@@ -88,8 +88,10 @@ npgettext(
 ```
 
 `tr` and `ntr` are exact aliases of `gettext` and `ngettext`. When an explicit
-translation object is omitted, module-level functions use the standard
-library's globally installed gettext functions.
+translation object is omitted, module-level functions use the translations bound
+to the current context (see [Per-request language](#per-request-language)), and
+otherwise fall back to the standard library's globally installed gettext
+functions.
 
 Plural branches may expose different values. This common form is valid:
 
@@ -107,6 +109,64 @@ Conversions and format specs stay outside the catalog:
 amount = 1234.5
 tr(t"Total: {amount:,.2f}")
 # msgid: "Total: {amount}"
+```
+
+## Per-request language
+
+Web frameworks pick a language per request. Bind the request's translations to
+the current context and the module-level functions (and any `_` that calls them)
+resolve to that language, safely across concurrent requests:
+
+```python
+from gettext_tstrings import tr, use_translations
+
+
+def handle(request):
+    translations = load_translations(request.locale)  # your gettext.translation(...)
+    with use_translations(translations):
+        return render(tr(t"Hello {name}"))
+```
+
+`set_translations(translations)` binds without a `with` block (for frameworks
+that manage the request lifecycle themselves), and `get_translations()` reads
+the current binding. An explicit `translations=` argument always wins over the
+context. A bound `Translator` is the alternative when you prefer to thread one
+object through your call sites explicitly.
+
+## Deferred (lazy) translation
+
+A t-string captures its values eagerly, which is wrong for a string defined at
+import time — a form label, an enum value, a module constant — that must render
+in whatever language is active when it is *used*. `lazy_gettext` defers the
+catalog lookup and rendering to first use, resolving the current context:
+
+```python
+from gettext_tstrings import lazy_gettext, lazy_pgettext, use_translations
+
+SAVE = lazy_gettext(t"Save changes")  # defined once, at import
+OPEN = lazy_pgettext("button", t"Open file")
+
+with use_translations(japanese):
+    assert str(SAVE) == "変更を保存"  # rendered here, in this language
+```
+
+A `LazyString` renders through `str()`, `format()`, and f-strings, and compares
+equal to its rendered text. Plural forms depend on a runtime count, so render
+those eagerly with `ngettext` where the count is known.
+
+## Broken catalogs never crash a render
+
+If a translation's placeholders do not match the source — a missing, unknown, or
+reformatted field slipping past validation (a hand-edited MO, a vendor catalog,
+a pipeline that skips the checker) — the default is to reproduce the source text
+rather than raise, mirroring gettext's contract that a bad catalog never breaks
+the application. A warning is logged on the `gettext_tstrings` logger.
+
+Opt into fail-loud behavior for tests and CI:
+
+```python
+_ = Translator(translations, strict=True)  # raises InvalidTranslationError
+tr(t"Hello {name}", translations=translations, strict=True)
 ```
 
 ## Extract with Babel
@@ -145,6 +205,31 @@ npgettext_functions = npgettext
 All `Translator` methods are recognized regardless of the variable name.
 Callable processors named `_` are recognized by default; add another callable
 variable name to `gettext_functions` if needed.
+
+### Registering t-string functions
+
+t-string calls are recognized through the `*_functions` mapping options above,
+**not** through Babel's `-k`/`--keyword` flag. A t-string literal cannot be read
+by Babel's built-in keyword machinery, so a custom helper such as `mytr(t"...")`
+must be listed in `tr_functions` (or the matching option) — `-k mytr` alone will
+not extract it. The `-k` flag continues to work for ordinary (non-t-string)
+gettext calls, which are extracted alongside.
+
+Only the standard gettext argument order is supported (message first; context
+then message for `pgettext`; context, singular, plural for `npgettext`). Wrappers
+with non-standard argument positions are not configurable.
+
+### Robust by default
+
+- A t-string the extractor rejects (attribute access, an expression, a wrong
+  argument) is **warned about and skipped**; it never aborts extraction of the
+  rest of the project. An unparsable file is skipped the same way. Set
+  `strict = true` in the mapping to fail the run instead.
+- Simple messages extract under **any** keyword set, including
+  `pybabel extract --no-default-keywords -k tr`. Plural and contextual messages
+  need Babel's canonical keyword specs, so keep `ngettext`, `pgettext`, and
+  `npgettext` in the keyword set (the default set already has them); otherwise
+  those messages are skipped with a warning.
 
 Translator comments work as usual:
 
@@ -202,9 +287,32 @@ tr(t"Hello {name}")
 This restriction produces stable catalog keys, gives translators useful names,
 and prevents translated strings from becoming an expression language.
 
+The safety guarantee is scoped to *structure and formatting*: a translation is
+never evaluated, and can never add attribute access, calls, conversions, or
+format specs. Two things stay the caller's responsibility, exactly as with
+stdlib gettext: **escaping** rendered output for its sink (HTML, shell,
+terminal), and **catalog integrity** — a hostile catalog can repeat a
+placeholder to amplify output size, which is inherent to any placeholder-based
+i18n and is not bounded here.
+
+## Templates and other tools
+
+t-strings are Python syntax, so this library covers Python source. Template
+languages (Jinja2, Django templates) keep using their own `{% trans %}` /
+`{{ _(...) }}` i18n and Babel's template extractors; both feed the **same** PO
+catalog, so one translation workflow covers a mixed codebase.
+
+`pygettext` cannot parse t-strings today, so extraction goes through Babel. The
+t-string→msgid convention is written down as a small, versioned contract in
+[SPEC.md](SPEC.md) so that other extractors, IDEs, type checkers, or a future
+`pygettext` can target it.
+
 ## Status
 
-The project is an alpha. Its core contract is small on purpose. Before a stable
-release it will add broader language fixtures, sustained performance tracking,
-API review from gettext/Babel users, and compatibility testing against every
-supported Python and Babel release.
+The project is an alpha. Its core contract is small on purpose; the
+[specification](SPEC.md) is the stable reference. Before a stable release it will
+add broader language fixtures, sustained performance tracking, API review from
+gettext/Babel users, and compatibility testing against every supported Python
+and Babel release.
+
+Contributions are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md).

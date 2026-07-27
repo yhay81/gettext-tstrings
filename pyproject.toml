@@ -4,13 +4,13 @@ build-backend = "hatchling.build"
 
 [project]
 name = "gettext-tstrings"
-version = "0.1.0a1"
+dynamic = ["version"]
 description = "Safe gettext and Babel integration for Python t-strings"
 readme = "README.md"
 requires-python = ">=3.14"
 license = "MIT"
 authors = [
-  { name = "Hayate" },
+  { name = "Yusuke Hayashi" },
 ]
 keywords = ["babel", "gettext", "i18n", "internationalization", "t-strings"]
 classifiers = [
@@ -43,6 +43,9 @@ dev = [
   "pytest-cov>=6.2",
   "ruff>=0.12",
 ]
+
+[tool.hatch.version]
+path = "src/gettext_tstrings/__init__.py"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/gettext_tstrings"]

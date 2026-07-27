@@ -81,11 +81,13 @@ def require_fields(
     if not missing and not unexpected:
         return
 
+    # 非ASCIIのホモグリフ名はASCII名と見分けがつかないため、
+    # 各名前を ascii() で可視化してから並べる。
     details: list[str] = []
     if missing:
-        details.append(f"missing {sorted(missing)!r}")
+        details.append(f"missing [{', '.join(ascii(n) for n in sorted(missing))}]")
     if unexpected:
-        details.append(f"unexpected {sorted(unexpected)!r}")
+        details.append(f"unexpected [{', '.join(ascii(n) for n in sorted(unexpected))}]")
     raise InvalidTranslationError(
         f"{label} placeholders do not match source: {', '.join(details)}",
     )

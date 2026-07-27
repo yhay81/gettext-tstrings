@@ -106,7 +106,6 @@ wheels = [
 
 [[package]]
 name = "gettext-tstrings"
-version = "0.1.0a1"
 source = { editable = "." }
 dependencies = [
     { name = "babel" },

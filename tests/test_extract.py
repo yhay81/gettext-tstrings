@@ -133,10 +133,12 @@ tr(t"Hello")
         ),
     )
 
+    # Simple messages are emitted with a None funcname so extraction never
+    # depends on the caller's keyword set (see _extract_call).
     assert raw == [
         (
             3,
-            "gettext",
+            None,
             "Hello",
             ["Translators: Greeting.", "Keep this concise.", "gettext-tstrings"],
         ),
@@ -163,6 +165,62 @@ def test_ignores_dynamic_call_targets() -> None:
         ),
     ],
 )
-def test_invalid_calls_fail_extraction(source: str, message: str) -> None:
+def test_invalid_calls_fail_extraction_in_strict_mode(source: str, message: str) -> None:
     with pytest.raises(ExtractionError, match=message):
-        extract_messages(source)
+        extract_messages(source, options={"strict": "true"})
+
+
+def test_invalid_call_is_skipped_and_extraction_continues_by_default() -> None:
+    # One rejected t-string must not abort extraction of the surrounding file.
+    source = """\
+def view(user, name):
+    bad = tr(t"Hi {user.name}")
+    good = tr(t"Hello {name}")
+    return bad, good
+"""
+    with pytest.warns(UserWarning, match="simple variable names"):
+        messages = extract_messages(source)
+
+    assert [message[1] for message in messages] == ["Hello {name}"]
+
+
+def test_unparsable_source_is_skipped_with_warning() -> None:
+    # `name =` tokenizes cleanly (Babel returns nothing) but ast.parse rejects it;
+    # our AST pass must not add an abort that stock Babel does not have.
+    with pytest.warns(UserWarning, match="unparsable source"):
+        assert extract_messages("name = \n") == []
+
+
+def test_simple_tstring_extracts_without_default_keywords() -> None:
+    # `pybabel extract --no-default-keywords -k tr` supplies a keyword set with
+    # none of the canonical gettext names; simple messages must still extract.
+    source = 'tr(t"Hello {name}")'
+    messages = list(
+        extract(
+            extract_tstrings,
+            io.BytesIO(source.encode()),
+            keywords={"tr": None},
+            comment_tags=["Translators:"],
+            options={},
+        ),
+    )
+
+    assert [message[1] for message in messages] == ["Hello {name}"]
+
+
+def test_plural_without_canonical_keyword_is_skipped_with_warning() -> None:
+    # Plural/contextual messages need Babel's canonical keyword spec; without it
+    # they are skipped with a warning rather than crashing the run.
+    source = 'ntr(t"{n} file", t"{n} files", n)'
+    with pytest.warns(UserWarning, match="not in the extraction keyword set"):
+        messages = list(
+            extract(
+                extract_tstrings,
+                io.BytesIO(source.encode()),
+                keywords={"ntr": None},
+                comment_tags=["Translators:"],
+                options={},
+            ),
+        )
+
+    assert messages == []

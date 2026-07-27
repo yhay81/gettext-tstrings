@@ -3,10 +3,14 @@
 from __future__ import annotations
 
 import gettext as _gettext
+import logging
+from collections.abc import Iterator
+from contextlib import contextmanager
+from contextvars import ContextVar
 from dataclasses import dataclass
 from functools import lru_cache
 from string.templatelib import Template, convert
-from typing import Any, Literal, Protocol
+from typing import Any, Literal, Protocol, runtime_checkable
 
 from ._patterns import escape_literal, parse_pattern, require_fields, validate_name
 from .errors import InvalidTemplateError, InvalidTranslationError
@@ -14,7 +18,43 @@ from .errors import InvalidTemplateError, InvalidTranslationError
 type Conversion = Literal["a", "r", "s"] | None
 type FieldMetadata = tuple[str, Conversion, str]
 
+_LOGGER = logging.getLogger("gettext_tstrings")
 
+# The translations to use when a call omits an explicit ``translations`` object.
+# Web frameworks bind this per request (per-context, concurrency-safe); when
+# unset the module functions fall back to the process-global gettext catalog.
+_current: ContextVar[Translations | None] = ContextVar(
+    "gettext_tstrings_translations",
+    default=None,
+)
+
+
+def get_translations() -> Translations | None:
+    """Return the translations bound to the current context, if any."""
+    return _current.get()
+
+
+def set_translations(translations: Translations | None) -> None:
+    """Bind translations to the current context (e.g. at the start of a request)."""
+    _current.set(translations)
+
+
+@contextmanager
+def use_translations(translations: Translations | None) -> Iterator[None]:
+    """Bind translations for the duration of a ``with`` block, then restore."""
+    token = _current.set(translations)
+    try:
+        yield
+    finally:
+        _current.reset(token)
+
+
+def _active(translations: Translations | None) -> Translations | None:
+    """Resolve the effective translations: explicit argument, else the context."""
+    return translations if translations is not None else _current.get()
+
+
+@runtime_checkable
 class Translations(Protocol):
     """The standard gettext translation methods used by this package."""
 
@@ -251,15 +291,37 @@ def compile_template(template: Template, /) -> CompiledTemplate:
     return CompiledTemplate(plan, values)
 
 
-def gettext(template: Template, /, *, translations: Translations | None = None) -> str:
-    """Translate and render one t-string."""
+def _render_source(plan: _TemplatePlan, values: tuple[Any, ...]) -> str:
+    """Render the source msgid structure (used for empty msgids and fallback)."""
+    return _render_template(plan, values, plan.msgid)
+
+
+def gettext(
+    template: Template,
+    /,
+    *,
+    translations: Translations | None = None,
+    strict: bool = False,
+) -> str:
+    """Translate and render one t-string.
+
+    An empty msgid is reserved by gettext for catalog metadata, so ``t""``
+    renders as ``""`` without a catalog lookup. When a translation's
+    placeholders do not match the source, a lenient render (the default) falls
+    back to the source text; ``strict=True`` re-raises ``InvalidTranslationError``.
+    """
     plan, values = _bind_template(template)
-    pattern = (
-        translations.gettext(plan.msgid)
-        if translations is not None
-        else _gettext.gettext(plan.msgid)
-    )
-    return _render_template(plan, values, pattern)
+    if not plan.msgid:
+        return _render_source(plan, values)
+    active = _active(translations)
+    pattern = active.gettext(plan.msgid) if active is not None else _gettext.gettext(plan.msgid)
+    try:
+        return _render_template(plan, values, pattern)
+    except InvalidTranslationError:
+        if strict:
+            raise
+        _LOGGER.warning("invalid translation for msgid %r; using source text", plan.msgid)
+        return _render_source(plan, values)
 
 
 def pgettext(
@@ -268,15 +330,29 @@ def pgettext(
     /,
     *,
     translations: Translations | None = None,
+    strict: bool = False,
 ) -> str:
     """Translate and render one contextual t-string."""
     plan, values = _bind_template(template)
+    if not plan.msgid:
+        return _render_source(plan, values)
+    active = _active(translations)
     pattern = (
-        translations.pgettext(context, plan.msgid)
-        if translations is not None
+        active.pgettext(context, plan.msgid)
+        if active is not None
         else _gettext.pgettext(context, plan.msgid)
     )
-    return _render_template(plan, values, pattern)
+    try:
+        return _render_template(plan, values, pattern)
+    except InvalidTranslationError:
+        if strict:
+            raise
+        _LOGGER.warning(
+            "invalid translation for context %r msgid %r; using source text",
+            context,
+            plan.msgid,
+        )
+        return _render_source(plan, values)
 
 
 @lru_cache(maxsize=2048)
@@ -369,6 +445,19 @@ def _render_plural(
     return "".join(rendered)
 
 
+def _render_plural_source(
+    singular_plan: _TemplatePlan,
+    singular_values: tuple[Any, ...],
+    plural_plan: _TemplatePlan,
+    plural_values: tuple[Any, ...],
+    n: int,
+) -> str:
+    """Render the source plural branch selected by the source language rule."""
+    if n == 1:
+        return _render_template(singular_plan, singular_values, singular_plan.msgid)
+    return _render_template(plural_plan, plural_values, plural_plan.msgid)
+
+
 def ngettext(
     singular: Template,
     plural: Template,
@@ -376,22 +465,33 @@ def ngettext(
     /,
     *,
     translations: Translations | None = None,
+    strict: bool = False,
 ) -> str:
     """Translate and render singular/plural t-strings."""
     singular_plan, singular_values = _bind_template(singular)
     plural_plan, plural_values = _bind_template(plural)
+    active = _active(translations)
     pattern = (
-        translations.ngettext(singular_plan.msgid, plural_plan.msgid, n)
-        if translations is not None
+        active.ngettext(singular_plan.msgid, plural_plan.msgid, n)
+        if active is not None
         else _gettext.ngettext(singular_plan.msgid, plural_plan.msgid, n)
     )
-    return _render_plural(
-        singular_plan,
-        singular_values,
-        plural_plan,
-        plural_values,
-        pattern,
-    )
+    try:
+        return _render_plural(
+            singular_plan,
+            singular_values,
+            plural_plan,
+            plural_values,
+            pattern,
+        )
+    except InvalidTranslationError:
+        if strict:
+            raise
+        _LOGGER.warning(
+            "invalid plural translation for msgid %r; using source text",
+            singular_plan.msgid,
+        )
+        return _render_plural_source(singular_plan, singular_values, plural_plan, plural_values, n)
 
 
 def npgettext(
@@ -402,18 +502,20 @@ def npgettext(
     /,
     *,
     translations: Translations | None = None,
+    strict: bool = False,
 ) -> str:
     """Translate and render contextual singular/plural t-strings."""
     singular_plan, singular_values = _bind_template(singular)
     plural_plan, plural_values = _bind_template(plural)
+    active = _active(translations)
     pattern = (
-        translations.npgettext(
+        active.npgettext(
             context,
             singular_plan.msgid,
             plural_plan.msgid,
             n,
         )
-        if translations is not None
+        if active is not None
         else _gettext.npgettext(
             context,
             singular_plan.msgid,
@@ -421,13 +523,23 @@ def npgettext(
             n,
         )
     )
-    return _render_plural(
-        singular_plan,
-        singular_values,
-        plural_plan,
-        plural_values,
-        pattern,
-    )
+    try:
+        return _render_plural(
+            singular_plan,
+            singular_values,
+            plural_plan,
+            plural_values,
+            pattern,
+        )
+    except InvalidTranslationError:
+        if strict:
+            raise
+        _LOGGER.warning(
+            "invalid plural translation for context %r msgid %r; using source text",
+            context,
+            singular_plan.msgid,
+        )
+        return _render_plural_source(singular_plan, singular_values, plural_plan, plural_values, n)
 
 
 # Concise aliases retained for applications that prefer them.
@@ -437,21 +549,28 @@ ntr = ngettext
 
 @dataclass(frozen=True, slots=True)
 class Translator:
-    """Bind a gettext translation object to a t-string processor."""
+    """Bind a gettext translation object to a t-string processor.
+
+    ``strict`` selects the response to a catalog whose placeholders do not match
+    the source. The default (``False``) reproduces the source text so a broken
+    translation never crashes a render, mirroring gettext's never-fail contract;
+    ``strict=True`` re-raises ``InvalidTranslationError`` and suits tests and CI.
+    """
 
     translations: Translations
+    strict: bool = False
 
     def __call__(self, template: Template, /) -> str:
         return self.gettext(template)
 
     def gettext(self, template: Template, /) -> str:
-        return gettext(template, translations=self.translations)
+        return gettext(template, translations=self.translations, strict=self.strict)
 
     def ngettext(self, singular: Template, plural: Template, n: int, /) -> str:
-        return ngettext(singular, plural, n, translations=self.translations)
+        return ngettext(singular, plural, n, translations=self.translations, strict=self.strict)
 
     def pgettext(self, context: str, template: Template, /) -> str:
-        return pgettext(context, template, translations=self.translations)
+        return pgettext(context, template, translations=self.translations, strict=self.strict)
 
     def npgettext(
         self,
@@ -467,6 +586,7 @@ class Translator:
             plural,
             n,
             translations=self.translations,
+            strict=self.strict,
         )
 
     tr = gettext

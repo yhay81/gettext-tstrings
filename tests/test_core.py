@@ -155,7 +155,7 @@ def test_repeated_placeholder_must_keep_same_source_format() -> None:
         ("Hello {name", "invalid translation pattern"),
     ],
 )
-def test_invalid_translation_placeholders_are_rejected(
+def test_invalid_translation_placeholders_are_rejected_in_strict_mode(
     translation: str,
     message: str,
 ) -> None:
@@ -163,7 +163,101 @@ def test_invalid_translation_placeholders_are_rejected(
     translations = StubTranslations({"Hello {name}": translation})
 
     with pytest.raises(InvalidTranslationError, match=message):
-        tr(t"Hello {name}", translations=translations)
+        tr(t"Hello {name}", translations=translations, strict=True)
+
+
+def test_confusable_placeholder_names_are_escaped_in_errors() -> None:
+    name = "Ada"
+    # キリル文字の U+0430 を含むホモグリフ名は ASCII の "name" と見分けが
+    # つかないため、エラーメッセージでは可視化されたエスケープ形で示される。
+    translations = StubTranslations({"Hello {name}": "Hello {nаme}"})  # noqa: RUF001
+
+    with pytest.raises(InvalidTranslationError) as excinfo:
+        tr(t"Hello {name}", translations=translations, strict=True)
+
+    assert "\\u0430" in str(excinfo.value)
+
+
+@pytest.mark.parametrize(
+    "translation",
+    [
+        "Hello",
+        "Hello {name} {extra}",
+        "Hello {name!r}",
+        "Hello {name.__class__}",
+        "Hello {name",
+    ],
+)
+def test_invalid_translation_falls_back_to_source_by_default(translation: str) -> None:
+    name = "Ada"
+    translations = StubTranslations({"Hello {name}": translation})
+
+    # A broken catalog must never crash a render: the source text is reproduced.
+    assert tr(t"Hello {name}", translations=translations) == "Hello Ada"
+
+
+def test_bound_translator_strict_mode_reraises() -> None:
+    name = "Ada"
+    strict = Translator(StubTranslations({"Hello {name}": "Hello"}), strict=True)
+    lenient = Translator(StubTranslations({"Hello {name}": "Hello"}))
+
+    with pytest.raises(InvalidTranslationError, match="missing"):
+        strict(t"Hello {name}")
+    assert lenient(t"Hello {name}") == "Hello Ada"
+
+
+def test_invalid_plural_translation_falls_back_to_source() -> None:
+    n = 2
+    translations = StubTranslations(
+        plurals={("{n} file", "{n} files"): ("{n} fichier", "fichiers cassés")},
+    )
+
+    # The plural branch's translation drops {n}; lenient mode renders the source.
+    assert ntr(t"{n} file", t"{n} files", n, translations=translations) == "2 files"
+    with pytest.raises(InvalidTranslationError, match="missing"):
+        ntr(t"{n} file", t"{n} files", n, translations=translations, strict=True)
+
+
+def test_empty_tstring_does_not_return_catalog_header() -> None:
+    # gettext reserves the empty msgid for catalog metadata; t"" must render "".
+    header_catalog = StubTranslations({"": "Project-Id-Version: demo\nLanguage: ja\n"})
+
+    assert tr(t"", translations=header_catalog) == ""
+    assert tpgettext("ctx", t"", translations=header_catalog) == ""
+
+
+def test_invalid_contextual_translation_falls_back_to_source() -> None:
+    filename = "report.txt"
+    # The contextual translation drops {filename}.
+    translations = StubTranslations(contexts={("button", "Open {filename}"): "Ouvrir"})
+
+    assert tpgettext("button", t"Open {filename}", translations=translations) == "Open report.txt"
+    with pytest.raises(InvalidTranslationError, match="missing"):
+        tpgettext("button", t"Open {filename}", translations=translations, strict=True)
+
+
+def test_invalid_contextual_plural_falls_back_to_source() -> None:
+    n = 2
+    # The plural form of the contextual translation adds an unknown placeholder.
+    translations = StubTranslations(
+        context_plurals={
+            ("inbox", "One message", "{n} messages"): ("{n} message", "{n} messages {bogus}"),
+        },
+    )
+
+    assert (
+        tnpgettext("inbox", t"One message", t"{n} messages", n, translations=translations)
+        == "2 messages"
+    )
+    with pytest.raises(InvalidTranslationError, match="unexpected"):
+        tnpgettext(
+            "inbox",
+            t"One message",
+            t"{n} messages",
+            n,
+            translations=translations,
+            strict=True,
+        )
 
 
 def test_plural_translation() -> None:

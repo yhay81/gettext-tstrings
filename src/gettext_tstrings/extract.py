@@ -6,6 +6,7 @@ import ast
 import heapq
 import io
 import tokenize
+import warnings
 from collections.abc import Collection, Iterator, Mapping
 from typing import Any, cast
 
@@ -15,6 +16,9 @@ from ._patterns import MARKER_COMMENT, escape_literal
 
 Extracted = tuple[int, str | None, str | tuple[str, ...], list[str]]
 
+# Truthy strings accepted for boolean extraction options.
+_TRUE = frozenset({"1", "true", "yes", "on"})
+
 
 class ExtractionError(ValueError):
     """A translation call cannot be extracted safely."""
@@ -23,6 +27,13 @@ class ExtractionError(ValueError):
 def _option_names(options: Mapping[str, Any], key: str, default: str) -> set[str]:
     value = str(options.get(key, default))
     return {item.strip() for item in value.replace(",", " ").split() if item.strip()}
+
+
+def _option_bool(options: Mapping[str, Any], key: str, default: bool) -> bool:
+    value = options.get(key, default)
+    if isinstance(value, bool):
+        return value
+    return str(value).strip().lower() in _TRUE
 
 
 def _decode_source(data: bytes | str) -> tuple[str, bytes]:
@@ -136,117 +147,151 @@ def _require_compatible_plural_formatting(
             )
 
 
+def _plural_messages(
+    singular_node: ast.expr,
+    plural_node: ast.expr,
+    *,
+    filename: str,
+    node: ast.AST,
+) -> tuple[str, str]:
+    singular, singular_fields = _template_pattern(singular_node, filename=filename)
+    plural, plural_fields = _template_pattern(plural_node, filename=filename)
+    _require_compatible_plural_formatting(
+        singular_fields,
+        plural_fields,
+        filename=filename,
+        node=node,
+    )
+    return singular, plural
+
+
+def _extract_call(
+    call: ast.Call,
+    *,
+    filename: str,
+    tr_functions: set[str],
+    ntr_functions: set[str],
+    gettext_functions: set[str],
+    ngettext_functions: set[str],
+    pgettext_functions: set[str],
+    npgettext_functions: set[str],
+) -> tuple[str | None, str | tuple[str, ...]] | None:
+    """Build ``(funcname, messages)`` for one recognized t-string call.
+
+    Simple messages use a ``None`` funcname so extraction never depends on the
+    caller's keyword set; plural and contextual messages keep their canonical
+    gettext funcname because Babel needs that keyword's argument spec.
+    """
+    name = _call_name(call.func)
+
+    if _matches(name, tr_functions):
+        if not call.args:
+            raise _fail(filename, call, "tr() requires a t-string argument")
+        message, _ = _template_pattern(call.args[0], filename=filename)
+        return None, message
+    if (
+        _matches(name, gettext_functions)
+        and call.args
+        and isinstance(call.args[0], ast.TemplateStr)
+    ):
+        message, _ = _template_pattern(call.args[0], filename=filename)
+        return None, message
+    if _matches(name, ntr_functions):
+        if len(call.args) < 3:
+            raise _fail(filename, call, "ntr() requires singular, plural, and count arguments")
+        return "ngettext", _plural_messages(
+            call.args[0], call.args[1], filename=filename, node=call
+        )
+    if (
+        _matches(name, ngettext_functions)
+        and len(call.args) >= 2
+        and isinstance(call.args[0], ast.TemplateStr)
+    ):
+        if len(call.args) < 3:
+            raise _fail(filename, call, "ngettext() requires singular, plural, and count arguments")
+        return "ngettext", _plural_messages(
+            call.args[0], call.args[1], filename=filename, node=call
+        )
+    if (
+        _matches(name, pgettext_functions)
+        and len(call.args) >= 2
+        and isinstance(call.args[1], ast.TemplateStr)
+    ):
+        context = _context(call.args[0], filename=filename)
+        message, _ = _template_pattern(call.args[1], filename=filename)
+        return "pgettext", (context, message)
+    if (
+        _matches(name, npgettext_functions)
+        and len(call.args) >= 3
+        and isinstance(call.args[1], ast.TemplateStr)
+    ):
+        if len(call.args) < 4:
+            raise _fail(
+                filename,
+                call,
+                "npgettext() requires context, singular, plural, and count arguments",
+            )
+        context = _context(call.args[0], filename=filename)
+        singular, plural = _plural_messages(
+            call.args[1], call.args[2], filename=filename, node=call
+        )
+        return "npgettext", (context, singular, plural)
+    return None
+
+
 def _extract_tstring_calls(
     source: str,
     *,
     filename: str,
+    keywords: Collection[str],
     comment_tags: Collection[str],
     options: Mapping[str, Any],
 ) -> Iterator[Extracted]:
-    tree = ast.parse(source, filename=filename)
+    strict = _option_bool(options, "strict", False)
+    available = frozenset(keywords)
+    try:
+        tree = ast.parse(source, filename=filename)
+    except SyntaxError as exc:
+        # A single unparsable file must not abort extraction of the whole project.
+        warnings.warn(f"{filename}: skipped unparsable source ({exc.msg})", stacklevel=2)
+        return
+
     lines = source.splitlines()
-    tr_functions = _option_names(options, "tr_functions", "tr")
-    ntr_functions = _option_names(options, "ntr_functions", "ntr")
-    gettext_functions = _option_names(options, "gettext_functions", "gettext _")
-    ngettext_functions = _option_names(options, "ngettext_functions", "ngettext")
-    pgettext_functions = _option_names(options, "pgettext_functions", "pgettext")
-    npgettext_functions = _option_names(options, "npgettext_functions", "npgettext")
+    function_sets = {
+        "tr_functions": _option_names(options, "tr_functions", "tr"),
+        "ntr_functions": _option_names(options, "ntr_functions", "ntr"),
+        "gettext_functions": _option_names(options, "gettext_functions", "gettext _"),
+        "ngettext_functions": _option_names(options, "ngettext_functions", "ngettext"),
+        "pgettext_functions": _option_names(options, "pgettext_functions", "pgettext"),
+        "npgettext_functions": _option_names(options, "npgettext_functions", "npgettext"),
+    }
 
     calls = (node for node in ast.walk(tree) if isinstance(node, ast.Call))
     for call in sorted(calls, key=lambda node: (node.lineno, node.col_offset)):
-        name = _call_name(call.func)
-        is_tr = _matches(name, tr_functions)
-        is_ntr = _matches(name, ntr_functions)
-        is_gettext = _matches(name, gettext_functions)
-        is_ngettext = _matches(name, ngettext_functions)
-        is_pgettext = _matches(name, pgettext_functions)
-        is_npgettext = _matches(name, npgettext_functions)
+        try:
+            extracted = _extract_call(call, filename=filename, **function_sets)
+        except ExtractionError as exc:
+            # One rejected call warns and is skipped; opt into strict to fail hard.
+            if strict:
+                raise
+            warnings.warn(str(exc), stacklevel=2)
+            continue
+        if extracted is None:
+            continue
 
-        if is_tr:
-            if not call.args:
-                raise _fail(filename, call, "tr() requires a t-string argument")
-            message, _ = _template_pattern(call.args[0], filename=filename)
-            extracted: tuple[str, str | tuple[str, ...]] = ("gettext", message)
-        elif is_gettext and call.args and isinstance(call.args[0], ast.TemplateStr):
-            message, _ = _template_pattern(call.args[0], filename=filename)
-            extracted = ("gettext", message)
-        elif is_ntr:
-            if len(call.args) < 3:
-                raise _fail(
-                    filename,
-                    call,
-                    "ntr() requires singular, plural, and count arguments",
-                )
-            singular, singular_fields = _template_pattern(
-                call.args[0],
-                filename=filename,
+        funcname, messages = extracted
+        if funcname is not None and funcname not in available:
+            warnings.warn(
+                f"{filename}:{call.lineno}: skipped {funcname!r} t-string because keyword "
+                f"{funcname!r} is not in the extraction keyword set; keep the standard gettext "
+                "keywords to extract plural and contextual messages",
+                stacklevel=2,
             )
-            plural, plural_fields = _template_pattern(
-                call.args[1],
-                filename=filename,
-            )
-            _require_compatible_plural_formatting(
-                singular_fields,
-                plural_fields,
-                filename=filename,
-                node=call,
-            )
-            extracted = ("ngettext", (singular, plural))
-        elif is_ngettext and len(call.args) >= 2 and isinstance(call.args[0], ast.TemplateStr):
-            if len(call.args) < 3:
-                raise _fail(
-                    filename,
-                    call,
-                    "ngettext() requires singular, plural, and count arguments",
-                )
-            singular, singular_fields = _template_pattern(
-                call.args[0],
-                filename=filename,
-            )
-            plural, plural_fields = _template_pattern(
-                call.args[1],
-                filename=filename,
-            )
-            _require_compatible_plural_formatting(
-                singular_fields,
-                plural_fields,
-                filename=filename,
-                node=call,
-            )
-            extracted = ("ngettext", (singular, plural))
-        elif is_pgettext and len(call.args) >= 2 and isinstance(call.args[1], ast.TemplateStr):
-            context = _context(call.args[0], filename=filename)
-            message, _ = _template_pattern(call.args[1], filename=filename)
-            extracted = ("pgettext", (context, message))
-        elif is_npgettext and len(call.args) >= 3 and isinstance(call.args[1], ast.TemplateStr):
-            if len(call.args) < 4:
-                raise _fail(
-                    filename,
-                    call,
-                    "npgettext() requires context, singular, plural, and count arguments",
-                )
-            context = _context(call.args[0], filename=filename)
-            singular, singular_fields = _template_pattern(
-                call.args[1],
-                filename=filename,
-            )
-            plural, plural_fields = _template_pattern(
-                call.args[2],
-                filename=filename,
-            )
-            _require_compatible_plural_formatting(
-                singular_fields,
-                plural_fields,
-                filename=filename,
-                node=call,
-            )
-            extracted = ("npgettext", (context, singular, plural))
-        else:
             continue
 
         comments = _translator_comments(lines, call.lineno, comment_tags)
         comments.append(MARKER_COMMENT)
-        yield call.lineno, extracted[0], extracted[1], comments
+        yield call.lineno, funcname, messages, comments
 
 
 def extract_tstrings(
@@ -269,6 +314,7 @@ def extract_tstrings(
     tstring_messages = _extract_tstring_calls(
         source,
         filename=filename,
+        keywords=keywords,
         comment_tags=comment_tags,
         options=options,
     )
