@@ -3,7 +3,7 @@ from __future__ import annotations
 import pytest
 from babel.messages.catalog import Catalog, Message, TranslationError
 
-from babel_tstrings.checkers import check_tstring
+from gettext_tstrings.checkers import check_tstring
 
 
 def marked_message(
@@ -13,7 +13,7 @@ def marked_message(
     return Message(
         message_id,
         string=translation,
-        auto_comments=["babel-tstrings"],
+        auto_comments=["gettext-tstrings"],
     )
 
 
@@ -85,7 +85,7 @@ def test_checker_ignores_none_translation() -> None:
     message = Message(
         "{name}",
         string=None,
-        auto_comments=["babel-tstrings"],
+        auto_comments=["gettext-tstrings"],
     )
 
     check_tstring(None, message)

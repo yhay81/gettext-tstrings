@@ -1,4 +1,4 @@
-"""Babel catalog checker for messages emitted by the t-string extractor."""
+"""Catalog checker for messages emitted by the t-string extractor."""
 
 from __future__ import annotations
 

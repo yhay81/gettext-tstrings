@@ -1,12 +1,12 @@
-# babel-tstrings
+# gettext-tstrings
 
-Safe gettext and [Babel](https://babel.pocoo.org/) integration for Python
-3.14+ t-strings.
+Safe gettext integration for Python 3.14+ t-strings, with first-class
+[Babel](https://babel.pocoo.org/) extraction and validation.
 
 ```python
 import gettext
 
-from babel_tstrings import Translator
+from gettext_tstrings import Translator
 
 _ = Translator(gettext.translation("messages", localedir="locales"))
 name = "Ada"
@@ -24,7 +24,7 @@ conversions, and format specifications separately. That makes them a useful
 boundary for internationalization, but gettext and Babel do not define how a
 t-string becomes a catalog message.
 
-`babel-tstrings` makes one deliberately narrow choice:
+`gettext-tstrings` makes one deliberately narrow choice:
 
 - translate complete messages, never sentence fragments;
 - accept only simple variable names such as `{name}`;
@@ -36,7 +36,7 @@ t-string becomes a catalog message.
 ## Install
 
 ```console
-python -m pip install babel-tstrings
+python -m pip install gettext-tstrings
 ```
 
 Python 3.14 or newer is required.
@@ -49,7 +49,7 @@ translation object once and use the callable processor as `_`:
 ```python
 import gettext
 
-from babel_tstrings import Translator
+from gettext_tstrings import Translator
 
 translations = gettext.translation(
     "messages",
@@ -73,7 +73,7 @@ The module-level API follows the standard library names and positional-only
 calling convention:
 
 ```python
-from babel_tstrings import gettext, ngettext, npgettext, pgettext
+from gettext_tstrings import gettext, ngettext, npgettext, pgettext
 
 gettext(t"Hello {name}", translations=translations)
 ngettext(t"One file", t"{n} files", n, translations=translations)
@@ -114,7 +114,7 @@ tr(t"Total: {amount:,.2f}")
 Create `babel.cfg`:
 
 ```ini
-[tstrings: **.py]
+[gettext_tstrings: **.py]
 encoding = utf-8
 ```
 
@@ -126,14 +126,14 @@ pybabel init -i locales/messages.pot -d locales -l ja
 pybabel compile -d locales
 ```
 
-The `tstrings` extractor also extracts ordinary `_()`, `gettext()`, and
-`ngettext()` calls, so one mapping can cover mixed codebases.
+The `gettext_tstrings` extractor also extracts ordinary `_()`, `gettext()`,
+and `ngettext()` calls, so one mapping can cover mixed codebases.
 
 The extractor recognizes `_()`, the four standard gettext names, and the
 `tr()` / `ntr()` aliases. Additional aliases can be configured:
 
 ```ini
-[tstrings: **.py]
+[gettext_tstrings: **.py]
 tr_functions = tr, translate
 ntr_functions = ntr, pluralize
 gettext_functions = gettext, _
@@ -153,7 +153,7 @@ Translator comments work as usual:
 tr(t"Welcome, {product_name}")
 ```
 
-Every extracted t-string message carries an automatic `babel-tstrings`
+Every extracted t-string message carries an automatic `gettext-tstrings`
 comment. The installed Babel checker uses that marker to reject incompatible
 placeholders and translation-controlled formatting during catalog validation
 and compilation.

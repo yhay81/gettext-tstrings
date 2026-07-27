@@ -1,4 +1,4 @@
-"""Gettext and Babel integration for Python t-strings."""
+"""Gettext and extraction-tool integration for Python t-strings."""
 
 from .core import (
     CompiledTemplate,

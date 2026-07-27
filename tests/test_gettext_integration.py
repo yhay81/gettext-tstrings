@@ -5,7 +5,7 @@ from collections.abc import Callable
 
 import pytest
 
-from babel_tstrings import Translator, npgettext, ntr, pgettext, tr
+from gettext_tstrings import Translator, npgettext, ntr, pgettext, tr
 
 
 def test_japanese_catalog(load_translations: Callable[[str], gettext.GNUTranslations]) -> None:

@@ -1,4 +1,4 @@
-"""Babel extraction plugin for Python t-string translation calls."""
+"""Message extraction plugin for Python t-string translation calls."""
 
 from __future__ import annotations
 

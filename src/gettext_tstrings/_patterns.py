@@ -9,7 +9,7 @@ from string import Formatter
 
 from .errors import InvalidTranslationError
 
-MARKER_COMMENT = "babel-tstrings"
+MARKER_COMMENT = "gettext-tstrings"
 _FORMATTER = Formatter()
 
 

@@ -5,7 +5,7 @@ import io
 import pytest
 from babel.messages.extract import DEFAULT_KEYWORDS, extract
 
-from babel_tstrings.extract import ExtractionError, extract_tstrings
+from gettext_tstrings.extract import ExtractionError, extract_tstrings
 
 
 def extract_messages(
@@ -41,10 +41,10 @@ def greet(name, n):
         (
             4,
             "Hello {name}",
-            ["Translators: Greeting on the home page.", "babel-tstrings"],
+            ["Translators: Greeting on the home page.", "gettext-tstrings"],
             None,
         ),
-        (5, ("{n} file", "{n} files"), ["babel-tstrings"], None),
+        (5, ("{n} file", "{n} files"), ["gettext-tstrings"], None),
     ]
 
 
@@ -113,8 +113,8 @@ def messages(name, n):
 """
 
     assert extract_messages(source) == [
-        (2, "Open {name}", ["babel-tstrings"], "button"),
-        (3, ("One message", "{n} messages"), ["babel-tstrings"], "inbox"),
+        (2, "Open {name}", ["gettext-tstrings"], "button"),
+        (3, ("One message", "{n} messages"), ["gettext-tstrings"], "inbox"),
     ]
 
 
@@ -138,7 +138,7 @@ tr(t"Hello")
             3,
             "gettext",
             "Hello",
-            ["Translators: Greeting.", "Keep this concise.", "babel-tstrings"],
+            ["Translators: Greeting.", "Keep this concise.", "gettext-tstrings"],
         ),
     ]
 

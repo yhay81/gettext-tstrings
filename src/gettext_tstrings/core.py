@@ -1,4 +1,4 @@
-"""Safe, cached runtime rendering for translated t-strings."""
+"""High-performance, safe runtime rendering for translated t-strings."""
 
 from __future__ import annotations
 

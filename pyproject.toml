@@ -3,7 +3,7 @@ requires = ["hatchling>=1.27"]
 build-backend = "hatchling.build"
 
 [project]
-name = "babel-tstrings"
+name = "gettext-tstrings"
 version = "0.1.0a1"
 description = "Safe gettext and Babel integration for Python t-strings"
 readme = "README.md"
@@ -27,14 +27,14 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/hayatepy/babel-tstrings"
-Issues = "https://github.com/hayatepy/babel-tstrings/issues"
+Homepage = "https://github.com/yhay81/gettext-tstrings"
+Issues = "https://github.com/yhay81/gettext-tstrings/issues"
 
 [project.entry-points."babel.extractors"]
-tstrings = "babel_tstrings.extract:extract_tstrings"
+gettext_tstrings = "gettext_tstrings.extract:extract_tstrings"
 
 [project.entry-points."babel.checkers"]
-tstrings = "babel_tstrings.checkers:check_tstring"
+gettext_tstrings = "gettext_tstrings.checkers:check_tstring"
 
 [dependency-groups]
 dev = [
@@ -45,7 +45,7 @@ dev = [
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/babel_tstrings"]
+packages = ["src/gettext_tstrings"]
 
 [tool.pytest.ini_options]
 addopts = "--strict-config --strict-markers"
@@ -53,7 +53,7 @@ testpaths = ["tests"]
 
 [tool.coverage.run]
 branch = true
-source = ["babel_tstrings"]
+source = ["gettext_tstrings"]
 
 [tool.coverage.report]
 fail_under = 95
@@ -69,4 +69,4 @@ select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
 [tool.mypy]
 python_version = "3.14"
 strict = true
-packages = ["babel_tstrings"]
+packages = ["gettext_tstrings"]

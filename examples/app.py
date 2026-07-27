@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import gettext
 
-from babel_tstrings import Translator
+from gettext_tstrings import Translator
 
 
 def main() -> None:

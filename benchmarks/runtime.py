@@ -9,7 +9,7 @@ import sys
 import timeit
 from collections.abc import Mapping
 
-from babel_tstrings import compile_template, tr
+from gettext_tstrings import compile_template, tr
 
 NUMBER = 100_000
 REPEAT = 7

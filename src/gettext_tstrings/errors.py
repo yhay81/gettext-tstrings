@@ -1,4 +1,4 @@
-"""Public exceptions raised by babel-tstrings."""
+"""Public exceptions raised by gettext-tstrings."""
 
 
 class TStringError(ValueError):

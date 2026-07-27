@@ -7,7 +7,7 @@ from typing import cast
 
 import pytest
 
-from babel_tstrings import (
+from gettext_tstrings import (
     InvalidTemplateError,
     InvalidTranslationError,
     Translator,
@@ -16,10 +16,10 @@ from babel_tstrings import (
     ntr,
     tr,
 )
-from babel_tstrings import gettext as tgettext
-from babel_tstrings import ngettext as tngettext
-from babel_tstrings import npgettext as tnpgettext
-from babel_tstrings import pgettext as tpgettext
+from gettext_tstrings import gettext as tgettext
+from gettext_tstrings import ngettext as tngettext
+from gettext_tstrings import npgettext as tnpgettext
+from gettext_tstrings import pgettext as tpgettext
 
 
 class StubTranslations(gettext.NullTranslations):
@@ -56,7 +56,7 @@ class StubTranslations(gettext.NullTranslations):
 
 
 def test_version_matches_package_metadata() -> None:
-    assert __version__ == version("babel-tstrings")
+    assert __version__ == version("gettext-tstrings")
 
 
 def test_identity_translation() -> None:
