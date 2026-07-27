@@ -1,5 +1,27 @@
 # Changelog
 
+## Unreleased
+
+- Rework the rendering hot path for roughly 1.7x lower overhead, measured on
+  CPython 3.14: plans are looked up by the template's `strings` tuple with
+  per-interpolation metadata verification instead of rebuilding an `lru_cache`
+  key per call, validated translation patterns are cached on their plan, and
+  constant/one-field/two-field messages render through specialized
+  concatenation paths. Safety validation is unchanged — unvalidated patterns
+  always pass through the same parser and placeholder checks.
+- Skip `format()` for plain `str` values with no conversion or format spec
+  (behavior-identical; `str` subclasses still take the `format()` path).
+- Bound every plan-cache dimension: a template shape whose format spec varies
+  at runtime (e.g. a nested `t"{x:{width}}"` spec) can no longer grow a cache
+  bucket without limit, and bare-placeholder shapes that share static strings
+  (`t"{name}"`, `t"{count}"`) are looked up by their leading expression instead
+  of a linear scan.
+- Skip the catalog for plural calls with an empty-msgid branch, matching the
+  empty-msgid rule of SPEC §2 (`ngettext(t"", t"", n)` renders `""`, never the
+  catalog header).
+- Benchmark the bound `Translator` and `ngettext` paths in
+  `benchmarks/runtime.py`.
+
 ## 0.1.0a1 - 2026-07-28
 
 First public release.

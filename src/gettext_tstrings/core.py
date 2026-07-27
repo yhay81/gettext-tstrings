@@ -1,4 +1,17 @@
-"""Safe, low-overhead runtime rendering for translated t-strings."""
+"""Safe, low-overhead runtime rendering for translated t-strings.
+
+ホットパスの設計方針:
+
+- 呼び出しごとのアロケーションを避ける。テンプレートの静的構造は
+  ``template.strings`` タプルをキーにした辞書で直接引き、メタデータの
+  タプル構築やlru_cacheのキーハッシュを毎回払わない。同じstringsで
+  書式指定だけ異なる別サイトと衝突しないよう、ヒット時は各補間の
+  expression/conversion/format_specを元の値と照合する。
+- 検証済みの翻訳パターン(RenderPlan)はプランに付随する辞書に
+  パターン文字列キーで保持する。2回目以降はdict.get1回で描画に入る。
+- 未検証のパターンは必ず parse_pattern + require_fields を通る。
+  高速化のために検証を省く経路は存在しない。
+"""
 
 from __future__ import annotations
 
@@ -9,7 +22,7 @@ from contextlib import contextmanager
 from contextvars import ContextVar
 from dataclasses import dataclass
 from functools import lru_cache
-from string.templatelib import Template, convert
+from string.templatelib import Interpolation, Template, convert
 from typing import Any, Literal, Protocol, runtime_checkable
 
 from ._patterns import escape_literal, parse_pattern, require_fields, validate_name
@@ -20,18 +33,47 @@ type FieldMetadata = tuple[str, Conversion, str]
 
 _LOGGER = logging.getLogger("gettext_tstrings")
 
-# The translations to use when a call omits an explicit ``translations`` object.
-# Web frameworks bind this per request (per-context, concurrency-safe); when
-# unset the module functions fall back to the process-global gettext catalog.
+# キャッシュ上限。超過時は該当次元を全消去する(粗いが、判定が最速で保守も単純)。
+# _PLANSは strings → 先頭expression → サイト列 の二段で、全次元が有界。
+_MAX_PLANS = 2048
+_MAX_SHAPES_PER_KEY = 512
+_MAX_SITES_PER_SHAPE = 8
+_MAX_PATTERNS_PER_PLAN = 128
+
+
+@runtime_checkable
+class Translations(Protocol):
+    """The standard gettext translation methods used by this package."""
+
+    def gettext(self, message: str, /) -> str: ...
+
+    def ngettext(self, singular: str, plural: str, n: int, /) -> str: ...
+
+    def pgettext(self, context: str, message: str, /) -> str: ...
+
+    def npgettext(self, context: str, singular: str, plural: str, n: int, /) -> str: ...
+
+
+# 明示引数がない呼び出しが使う翻訳。Webフレームワークはリクエスト単位で
+# 束縛する(コンテキスト単位なので並行安全)。未束縛ならプロセスグローバル
+# なgettextカタログへフォールバックする。
 _current: ContextVar[Translations | None] = ContextVar(
     "gettext_tstrings_translations",
     default=None,
 )
+_current_get = _current.get
+
+# stdlib関数はimport時に束縛する(関数オブジェクトは安定で、内部で
+# その時点のtextdomainを解決するため挙動は変わらない)。
+_std_gettext = _gettext.gettext
+_std_ngettext = _gettext.ngettext
+_std_pgettext = _gettext.pgettext
+_std_npgettext = _gettext.npgettext
 
 
 def get_translations() -> Translations | None:
     """Return the translations bound to the current context, if any."""
-    return _current.get()
+    return _current_get()
 
 
 def set_translations(translations: Translations | None) -> None:
@@ -49,70 +91,169 @@ def use_translations(translations: Translations | None) -> Iterator[None]:
         _current.reset(token)
 
 
-def _active(translations: Translations | None) -> Translations | None:
-    """Resolve the effective translations: explicit argument, else the context."""
-    return translations if translations is not None else _current.get()
+class _Field:
+    """1プレースホルダの描画情報。``plain`` はstr連結の高速路が使えるか。"""
 
+    __slots__ = (
+        "conversion",
+        "format_spec",
+        "index",
+        "name",
+        "plain",
+        "template_index",
+        "value_index",
+    )
 
-@runtime_checkable
-class Translations(Protocol):
-    """The standard gettext translation methods used by this package."""
-
-    def gettext(self, message: str, /) -> str: ...
-
-    def ngettext(self, singular: str, plural: str, n: int, /) -> str: ...
-
-    def pgettext(self, context: str, message: str, /) -> str: ...
-
-    def npgettext(self, context: str, singular: str, plural: str, n: int, /) -> str: ...
-
-
-@dataclass(frozen=True, slots=True)
-class _FieldPlan:
     name: str
     conversion: Conversion
     format_spec: str
     value_index: int
-
-
-@dataclass(frozen=True, slots=True)
-class _TemplatePlan:
-    msgid: str
-    fields: tuple[_FieldPlan, ...]
-    names: tuple[str, ...]
-
-
-@dataclass(frozen=True, slots=True)
-class _PluralFieldPlan:
-    name: str
-    conversion: Conversion
-    format_spec: str
     template_index: int
-    value_index: int
+    index: int
+    plain: bool
+
+    def __init__(
+        self,
+        name: str,
+        conversion: Conversion,
+        format_spec: str,
+        value_index: int,
+        template_index: int,
+        index: int,
+    ) -> None:
+        self.name = name
+        self.conversion = conversion
+        self.format_spec = format_spec
+        self.value_index = value_index
+        self.template_index = template_index
+        self.index = index
+        self.plain = conversion is None and not format_spec
 
 
-@dataclass(frozen=True, slots=True)
-class _PluralPlan:
-    fields: tuple[_PluralFieldPlan, ...]
-    names: tuple[str, ...]
-    required_names: tuple[str, ...]
-
-
-@dataclass(frozen=True, slots=True)
 class _RenderPlan:
-    chunks: tuple[tuple[str, int | None], ...]
-    repeats_fields: bool
+    """検証済みパターン1つ分の描画計画。
+
+    出現0(定数)・1(single)・相異なる2フィールド(pair)は連結チェーンに
+    特殊化し、それ以外はchunksの一般ループで描画する。
+    """
+
+    __slots__ = (
+        "chunks",
+        "constant",
+        "first",
+        "middle",
+        "nfields",
+        "prefix",
+        "repeats",
+        "second",
+        "single",
+        "suffix",
+    )
+
     constant: str | None
-    single_field: tuple[str, int, str] | None
+    single: _Field | None
+    first: _Field | None
+    second: _Field | None
+    prefix: str
+    middle: str
+    suffix: str
+    chunks: tuple[tuple[str, _Field | None], ...]
+    repeats: bool
+    nfields: int
+
+    def __init__(
+        self,
+        chunks: tuple[tuple[str, _Field | None], ...],
+        repeats: bool,
+        nfields: int,
+    ) -> None:
+        self.chunks = chunks
+        self.repeats = repeats
+        self.nfields = nfields
+        self.constant = None
+        self.single = None
+        self.first = None
+        self.second = None
+        self.prefix = ""
+        self.middle = ""
+        self.suffix = ""
 
 
-@lru_cache(maxsize=2048)
+class _TemplatePlan:
+    """1つのt-string構造に対する翻訳計画。プランはキャッシュで共有され、
+    同一構造なら同一オブジェクトになるため、等価・ハッシュは同一性で足りる。"""
+
+    __slots__ = ("allowed", "fields", "msgid", "names", "patterns", "required")
+
+    msgid: str
+    fields: tuple[_Field, ...]
+    names: tuple[str, ...]
+    allowed: frozenset[str]
+    required: frozenset[str]
+    patterns: dict[str, _RenderPlan]
+
+    def __init__(self, msgid: str, fields: tuple[_Field, ...]) -> None:
+        self.msgid = msgid
+        self.fields = fields
+        self.names = tuple(field.name for field in fields)
+        self.allowed = frozenset(self.names)
+        self.required = self.allowed
+        self.patterns = {}
+
+
+class _PluralPlan:
+    """単数・複数の2ブランチを統合した計画。requiredは両ブランチの積集合。"""
+
+    __slots__ = ("allowed", "fields", "names", "patterns", "required")
+
+    fields: tuple[_Field, ...]
+    names: tuple[str, ...]
+    allowed: frozenset[str]
+    required: frozenset[str]
+    patterns: dict[str, _RenderPlan]
+
+    def __init__(
+        self,
+        fields: tuple[_Field, ...],
+        required: frozenset[str],
+    ) -> None:
+        self.fields = fields
+        self.names = tuple(field.name for field in fields)
+        self.allowed = frozenset(self.names)
+        self.required = required
+        self.patterns = {}
+
+
+class _Site:
+    """strings共有キー内の1呼び出しサイト。照合用の生メタデータを持つ。"""
+
+    __slots__ = ("conversions", "expressions", "plan", "specs")
+
+    expressions: tuple[str, ...]
+    conversions: tuple[Conversion, ...]
+    specs: tuple[str, ...]
+    plan: _TemplatePlan
+
+    def __init__(self, metadata: tuple[FieldMetadata, ...], plan: _TemplatePlan) -> None:
+        self.expressions = tuple(item[0] for item in metadata)
+        self.conversions = tuple(item[1] for item in metadata)
+        self.specs = tuple(item[2] for item in metadata)
+        self.plan = plan
+
+
+# strings → 単一_Site(最頻)または {先頭expression: サイト列}(衝突時に昇格)。
+# 一意なリテラルテキストを持つ通常のメッセージは単一_Siteで完結し、
+# 素のプレースホルダ形(t"{name}"とt"{count}"等)の衝突だけがdictを払う。
+_PLANS: dict[tuple[str, ...], _Site | dict[str, list[_Site]]] = {}
+
+
+@lru_cache(maxsize=_MAX_PLANS)
 def _compile_plan(
     strings: tuple[str, ...],
     metadata: tuple[FieldMetadata, ...],
 ) -> _TemplatePlan:
     pieces: list[str] = []
-    fields: list[_FieldPlan] = []
+    fields: list[_Field] = []
     field_indices: dict[str, int] = {}
 
     for index, literal in enumerate(strings):
@@ -138,60 +279,154 @@ def _compile_plan(
         else:
             field_indices[name] = len(fields)
             fields.append(
-                _FieldPlan(
-                    name=name,
-                    conversion=conversion,
-                    format_spec=format_spec,
-                    value_index=index,
+                _Field(
+                    name,
+                    conversion,
+                    format_spec,
+                    index,
+                    0,
+                    len(fields),
                 ),
             )
         pieces.append(f"{{{name}}}")
 
-    return _TemplatePlan(
-        msgid="".join(pieces),
-        fields=tuple(fields),
-        names=tuple(field.name for field in fields),
+    return _TemplatePlan("".join(pieces), tuple(fields))
+
+
+def _site_matches(site: _Site, interpolations: tuple[Interpolation[Any], ...]) -> bool:
+    """サイトの生メタデータと各補間を照合する。
+
+    同じstringsで書式指定だけ異なる別サイト(例: ``t"{x:.2f}"`` と
+    ``t"{x:.3f}"``)を混同しないための必須の検査で、省略できない。
+    """
+    expressions = site.expressions
+    conversions = site.conversions
+    specs = site.specs
+    index = 0
+    # enumerate()は毎周タプルを生成し実測+57ns/フィールド遅いため、
+    # 最重要ホットパスに限り手動インデックスを使う。
+    for interp in interpolations:
+        if (
+            interp.expression != expressions[index]
+            or interp.conversion != conversions[index]
+            or interp.format_spec != specs[index]
+        ):
+            return False
+        index += 1  # noqa: SIM113  # enumerate()は実測+57ns/フィールド遅い
+    return True
+
+
+def _plan_for(
+    strings: tuple[str, ...], interpolations: tuple[Interpolation[Any], ...]
+) -> _TemplatePlan:
+    """テンプレートの静的構造からプランを引く。
+
+    最頻ケース(一意なリテラルテキスト=単一サイト)は照合1回で返す。
+    stringsが衝突する形(素のプレースホルダ ``t"{name}"``/``t"{count}"`` や
+    実行時に変わるネスト書式指定)だけが、先頭expressionで引く有界の
+    dictに昇格する。
+    """
+    entry = _PLANS.get(strings)
+    if entry is not None:
+        if type(entry) is _Site:
+            # 単一サイト(最頻)。照合ループをインラインで1回だけ回す。
+            expressions = entry.expressions
+            conversions = entry.conversions
+            specs = entry.specs
+            index = 0
+            for interp in interpolations:
+                if (
+                    interp.expression != expressions[index]
+                    or interp.conversion != conversions[index]
+                    or interp.format_spec != specs[index]
+                ):
+                    break
+                index += 1  # noqa: SIM113  # enumerate()は実測+57ns/フィールド遅い
+            else:
+                return entry.plan
+        else:
+            assert type(entry) is dict
+            head = interpolations[0].expression if interpolations else ""
+            sites = entry.get(head)
+            if sites is not None:
+                for site in sites:
+                    if _site_matches(site, interpolations):
+                        return site.plan
+
+    metadata = tuple(
+        (interp.expression, interp.conversion, interp.format_spec) for interp in interpolations
     )
+    plan = _compile_plan(strings, metadata)
+    site = _Site(metadata, plan)
+    # 各次元を明示的に有界にする。実行時にformat_specが変わる形
+    # (例: t"{x:{width}}" のネスト指定)は毎回別サイトになり得るため、
+    # 上限到達で消去して再コンパイルに退避する(結果は常に正しい)。
+    head = interpolations[0].expression if interpolations else ""
+    if entry is None:
+        if len(_PLANS) >= _MAX_PLANS:
+            _PLANS.clear()
+        _PLANS[strings] = site
+    elif type(entry) is _Site:
+        # 衝突発生: 単一サイトを先頭expressionで引くdictへ昇格する。
+        old_head = entry.expressions[0] if entry.expressions else ""
+        shapes: dict[str, list[_Site]] = {old_head: [entry]}
+        shapes.setdefault(head, []).append(site)
+        _PLANS[strings] = shapes
+    else:
+        assert type(entry) is dict
+        sites = entry.get(head)
+        if sites is None:
+            if len(entry) >= _MAX_SHAPES_PER_KEY:
+                entry.clear()
+            entry[head] = [site]
+        else:
+            if len(sites) >= _MAX_SITES_PER_SHAPE:
+                sites.clear()
+            sites.append(site)
+    return plan
 
 
-@lru_cache(maxsize=4096)
-def _compile_render_plan(
-    pattern: str,
-    names: tuple[str, ...],
-    required_names: tuple[str, ...],
-) -> _RenderPlan:
+def _compile_pattern(plan: _TemplatePlan | _PluralPlan, pattern: str) -> _RenderPlan:
+    """翻訳パターンを検証して描画計画に変換し、プランの辞書に保存する。"""
     parsed = parse_pattern(pattern)
-    allowed = frozenset(names)
-    require_fields(
-        required=frozenset(required_names),
-        allowed=allowed,
-        actual=parsed.fields,
-    )
-    field_indices = {name: index for index, name in enumerate(names)}
+    require_fields(required=plan.required, allowed=plan.allowed, actual=parsed.fields)
+
+    by_name = {field.name: field for field in plan.fields}
     chunks = tuple(
-        (literal, field_indices[name] if name is not None else None)
-        for literal, name in parsed.chunks
+        (literal, by_name[name] if name is not None else None) for literal, name in parsed.chunks
     )
-    field_occurrences = sum(index is not None for _, index in chunks)
-    constant = "".join(literal for literal, _ in chunks) if field_occurrences == 0 else None
-    single_field: tuple[str, int, str] | None = None
-    if field_occurrences == 1:
-        field_position = next(
-            position for position, (_, index) in enumerate(chunks) if index is not None
-        )
-        literal, field_index = chunks[field_position]
-        assert field_index is not None
-        single_field = (
-            "".join(chunk_literal for chunk_literal, _ in chunks[:field_position]) + literal,
-            field_index,
-            "".join(chunk_literal for chunk_literal, _ in chunks[field_position + 1 :]),
-        )
-    return _RenderPlan(
-        chunks=chunks,
-        repeats_fields=field_occurrences > len(parsed.fields),
-        constant=constant,
-        single_field=single_field,
-    )
+
+    # フィールドで区切ったテキスト断片を集め、出現数で描画方式を特殊化する。
+    segments = [""]
+    field_sequence: list[_Field] = []
+    for literal, field in chunks:
+        segments[-1] += literal
+        if field is not None:
+            field_sequence.append(field)
+            segments.append("")
+    occurrences = len(field_sequence)
+
+    render_plan = _RenderPlan(chunks, occurrences > len(parsed.fields), len(plan.fields))
+    if occurrences == 0:
+        render_plan.constant = segments[0]
+    elif occurrences == 1:
+        render_plan.single = field_sequence[0]
+        render_plan.prefix = segments[0]
+        render_plan.suffix = segments[1]
+    elif occurrences == 2 and field_sequence[0] is not field_sequence[1]:
+        # 相異なる2フィールドのみ。同一フィールドの反復は「整形は最大1回」の
+        # 保証があるため、メモ化を持つ一般ループに任せる。
+        render_plan.first = field_sequence[0]
+        render_plan.second = field_sequence[1]
+        render_plan.prefix = segments[0]
+        render_plan.middle = segments[1]
+        render_plan.suffix = segments[2]
+
+    patterns = plan.patterns
+    if len(patterns) >= _MAX_PATTERNS_PER_PLAN:
+        patterns.clear()
+    patterns[pattern] = render_plan
+    return render_plan
 
 
 def _format_value(value: Any, conversion: Conversion, format_spec: str) -> str:
@@ -200,56 +435,87 @@ def _format_value(value: Any, conversion: Conversion, format_spec: str) -> str:
     return format(value, format_spec)
 
 
-def _render_template(
-    plan: _TemplatePlan,
-    values: tuple[Any, ...],
-    pattern: str,
-    *,
-    required_names: tuple[str, ...] | None = None,
-) -> str:
-    render_plan = _compile_render_plan(pattern, plan.names, required_names or plan.names)
-    if render_plan.constant is not None:
-        return render_plan.constant
-    if render_plan.single_field is not None:
-        prefix, single_index, suffix = render_plan.single_field
-        field = plan.fields[single_index]
-        return (
-            prefix
-            + _format_value(
-                values[field.value_index],
-                field.conversion,
-                field.format_spec,
-            )
-            + suffix
-        )
-
+def _render_chunks(render_plan: _RenderPlan, values: tuple[Any, ...]) -> str:
+    """複数フィールドの一般描画。値の整形はフィールドごとに最大1回。"""
     rendered: list[str] = []
     formatted: list[str | None] | None = (
-        [None] * len(plan.fields) if render_plan.repeats_fields else None
+        [None] * render_plan.nfields if render_plan.repeats else None
     )
-    for literal, field_index in render_plan.chunks:
+    for literal, field in render_plan.chunks:
         rendered.append(literal)
-        if field_index is not None:
-            field = plan.fields[field_index]
-            value = formatted[field_index] if formatted is not None else None
+        if field is not None:
+            value = formatted[field.index] if formatted is not None else None
             if value is None:
-                value = _format_value(
-                    values[field.value_index],
-                    field.conversion,
-                    field.format_spec,
-                )
+                raw = values[field.value_index]
+                if field.plain and type(raw) is str:
+                    value = raw
+                else:
+                    value = _format_value(raw, field.conversion, field.format_spec)
                 if formatted is not None:
-                    formatted[field_index] = value
+                    formatted[field.index] = value
             rendered.append(value)
     return "".join(rendered)
 
 
-@dataclass(frozen=True, slots=True)
+def _render_with_values(
+    render_plan: _RenderPlan,
+    values: tuple[Any, ...],
+) -> str:
+    """値タプルを使う共通の描画末尾(CompiledTemplateとフォールバック用)。"""
+    constant = render_plan.constant
+    if constant is not None:
+        return constant
+    field = render_plan.single
+    if field is not None:
+        value = values[field.value_index]
+        if field.plain and type(value) is str:
+            return render_plan.prefix + value + render_plan.suffix
+        return (
+            render_plan.prefix
+            + _format_value(value, field.conversion, field.format_spec)
+            + render_plan.suffix
+        )
+    first = render_plan.first
+    if first is not None:
+        second = render_plan.second
+        assert second is not None
+        left_raw = values[first.value_index]
+        if first.plain and type(left_raw) is str:
+            left = left_raw
+        else:
+            left = _format_value(left_raw, first.conversion, first.format_spec)
+        right_raw = values[second.value_index]
+        if second.plain and type(right_raw) is str:
+            right = right_raw
+        else:
+            right = _format_value(right_raw, second.conversion, second.format_spec)
+        return render_plan.prefix + left + render_plan.middle + right + render_plan.suffix
+    return _render_chunks(render_plan, values)
+
+
+def _source_render_plan(plan: _TemplatePlan) -> _RenderPlan:
+    """ソースmsgid自身の描画計画(構造上、検証に失敗しない)。"""
+    render_plan = plan.patterns.get(plan.msgid)
+    if render_plan is None:
+        render_plan = _compile_pattern(plan, plan.msgid)
+    return render_plan
+
+
 class CompiledTemplate:
     """A cached gettext message plan bound to one t-string's runtime values."""
 
+    # dataclassの凍結初期化(object.__setattr__経由)は構築が遅いため素のクラス。
+    __slots__ = ("_plan", "_values")
+
     _plan: _TemplatePlan
     _values: tuple[Any, ...]
+
+    def __init__(self, plan: _TemplatePlan, values: tuple[Any, ...]) -> None:
+        self._plan = plan
+        self._values = values
+
+    def __repr__(self) -> str:
+        return f"CompiledTemplate(msgid={self._plan.msgid!r})"
 
     @property
     def msgid(self) -> str:
@@ -263,37 +529,23 @@ class CompiledTemplate:
 
     def render(self, pattern: str) -> str:
         """Validate and render one translated brace pattern."""
-        return _render_template(self._plan, self._values, pattern)
+        plan = self._plan
+        render_plan = plan.patterns.get(pattern)
+        if render_plan is None:
+            render_plan = _compile_pattern(plan, pattern)
+        return _render_with_values(render_plan, self._values)
 
 
-def _bind_template(template: Template) -> tuple[_TemplatePlan, tuple[Any, ...]]:
-    if not isinstance(template, Template):
+def _bind_template(template: Template) -> _TemplatePlan:
+    if type(template) is not Template and not isinstance(template, Template):
         raise TypeError(f"expected string.templatelib.Template, got {type(template).__name__}")
-
-    interpolations = template.interpolations
-    plan = _compile_plan(
-        template.strings,
-        tuple(
-            (
-                interpolation.expression,
-                interpolation.conversion,
-                interpolation.format_spec,
-            )
-            for interpolation in interpolations
-        ),
-    )
-    return plan, template.values
+    return _plan_for(template.strings, template.interpolations)
 
 
 def compile_template(template: Template, /) -> CompiledTemplate:
     """Compile a Python t-string, reusing its cached static plan."""
-    plan, values = _bind_template(template)
-    return CompiledTemplate(plan, values)
-
-
-def _render_source(plan: _TemplatePlan, values: tuple[Any, ...]) -> str:
-    """Render the source msgid structure (used for empty msgids and fallback)."""
-    return _render_template(plan, values, plan.msgid)
+    plan = _bind_template(template)
+    return CompiledTemplate(plan, template.values)
 
 
 def gettext(
@@ -310,18 +562,57 @@ def gettext(
     placeholders do not match the source, a lenient render (the default) falls
     back to the source text; ``strict=True`` re-raises ``InvalidTranslationError``.
     """
-    plan, values = _bind_template(template)
-    if not plan.msgid:
-        return _render_source(plan, values)
-    active = _active(translations)
-    pattern = active.gettext(plan.msgid) if active is not None else _gettext.gettext(plan.msgid)
-    try:
-        return _render_template(plan, values, pattern)
-    except InvalidTranslationError:
-        if strict:
-            raise
-        _LOGGER.warning("invalid translation for msgid %r; using source text", plan.msgid)
-        return _render_source(plan, values)
+    if type(template) is not Template and not isinstance(template, Template):
+        raise TypeError(f"expected string.templatelib.Template, got {type(template).__name__}")
+    interpolations = template.interpolations
+    plan = _plan_for(template.strings, interpolations)
+    msgid = plan.msgid
+    if not msgid:
+        return ""
+
+    if translations is None:
+        translations = _current_get()
+    pattern = translations.gettext(msgid) if translations is not None else _std_gettext(msgid)
+
+    render_plan = plan.patterns.get(pattern)
+    if render_plan is None:
+        try:
+            render_plan = _compile_pattern(plan, pattern)
+        except InvalidTranslationError:
+            if strict:
+                raise
+            _LOGGER.warning("invalid translation for msgid %r; using source text", msgid)
+            render_plan = _source_render_plan(plan)
+
+    constant = render_plan.constant
+    if constant is not None:
+        return constant
+    field = render_plan.single
+    if field is not None:
+        value = interpolations[field.value_index].value
+        if field.plain and type(value) is str:
+            return render_plan.prefix + value + render_plan.suffix
+        return (
+            render_plan.prefix
+            + _format_value(value, field.conversion, field.format_spec)
+            + render_plan.suffix
+        )
+    first = render_plan.first
+    if first is not None:
+        second = render_plan.second
+        assert second is not None
+        left_raw = interpolations[first.value_index].value
+        if first.plain and type(left_raw) is str:
+            left = left_raw
+        else:
+            left = _format_value(left_raw, first.conversion, first.format_spec)
+        right_raw = interpolations[second.value_index].value
+        if second.plain and type(right_raw) is str:
+            right = right_raw
+        else:
+            right = _format_value(right_raw, second.conversion, second.format_spec)
+        return render_plan.prefix + left + render_plan.middle + right + render_plan.suffix
+    return _render_chunks(render_plan, template.values)
 
 
 def pgettext(
@@ -333,39 +624,81 @@ def pgettext(
     strict: bool = False,
 ) -> str:
     """Translate and render one contextual t-string."""
-    plan, values = _bind_template(template)
-    if not plan.msgid:
-        return _render_source(plan, values)
-    active = _active(translations)
+    if type(template) is not Template and not isinstance(template, Template):
+        raise TypeError(f"expected string.templatelib.Template, got {type(template).__name__}")
+    interpolations = template.interpolations
+    plan = _plan_for(template.strings, interpolations)
+    msgid = plan.msgid
+    if not msgid:
+        return ""
+
+    if translations is None:
+        translations = _current_get()
     pattern = (
-        active.pgettext(context, plan.msgid)
-        if active is not None
-        else _gettext.pgettext(context, plan.msgid)
+        translations.pgettext(context, msgid)
+        if translations is not None
+        else _std_pgettext(context, msgid)
     )
-    try:
-        return _render_template(plan, values, pattern)
-    except InvalidTranslationError:
-        if strict:
-            raise
-        _LOGGER.warning(
-            "invalid translation for context %r msgid %r; using source text",
-            context,
-            plan.msgid,
+
+    render_plan = plan.patterns.get(pattern)
+    if render_plan is None:
+        try:
+            render_plan = _compile_pattern(plan, pattern)
+        except InvalidTranslationError:
+            if strict:
+                raise
+            _LOGGER.warning(
+                "invalid translation for context %r msgid %r; using source text",
+                context,
+                msgid,
+            )
+            render_plan = _source_render_plan(plan)
+
+    constant = render_plan.constant
+    if constant is not None:
+        return constant
+    field = render_plan.single
+    if field is not None:
+        value = interpolations[field.value_index].value
+        if field.plain and type(value) is str:
+            return render_plan.prefix + value + render_plan.suffix
+        return (
+            render_plan.prefix
+            + _format_value(value, field.conversion, field.format_spec)
+            + render_plan.suffix
         )
-        return _render_source(plan, values)
+    first = render_plan.first
+    if first is not None:
+        second = render_plan.second
+        assert second is not None
+        left_raw = interpolations[first.value_index].value
+        if first.plain and type(left_raw) is str:
+            left = left_raw
+        else:
+            left = _format_value(left_raw, first.conversion, first.format_spec)
+        right_raw = interpolations[second.value_index].value
+        if second.plain and type(right_raw) is str:
+            right = right_raw
+        else:
+            right = _format_value(right_raw, second.conversion, second.format_spec)
+        return render_plan.prefix + left + render_plan.middle + right + render_plan.suffix
+    return _render_chunks(render_plan, template.values)
 
 
-@lru_cache(maxsize=2048)
+@lru_cache(maxsize=_MAX_PLANS)
 def _merge_plural_plans(singular: _TemplatePlan, plural: _TemplatePlan) -> _PluralPlan:
-    fields: list[_PluralFieldPlan] = [
-        _PluralFieldPlan(
+    """2ブランチのフィールドを統合する。プランは同一性キャッシュ済みなので
+    lru_cacheのキーはオブジェクト同一性ベースで高速に決まる。"""
+    fields: list[_Field] = [
+        _Field(
             field.name,
             field.conversion,
             field.format_spec,
-            0,
             field.value_index,
+            0,
+            index,
         )
-        for field in singular.fields
+        for index, field in enumerate(singular.fields)
     ]
     field_indices = {field.name: index for index, field in enumerate(fields)}
 
@@ -374,12 +707,13 @@ def _merge_plural_plans(singular: _TemplatePlan, plural: _TemplatePlan) -> _Plur
         if previous_index is None:
             field_indices[field.name] = len(fields)
             fields.append(
-                _PluralFieldPlan(
+                _Field(
                     field.name,
                     field.conversion,
                     field.format_spec,
-                    1,
                     field.value_index,
+                    1,
+                    len(fields),
                 ),
             )
             continue
@@ -391,71 +725,76 @@ def _merge_plural_plans(singular: _TemplatePlan, plural: _TemplatePlan) -> _Plur
             )
 
     plural_names = frozenset(plural.names)
-    return _PluralPlan(
-        fields=tuple(fields),
-        names=tuple(field.name for field in fields),
-        required_names=tuple(name for name in singular.names if name in plural_names),
-    )
+    required = frozenset(name for name in singular.names if name in plural_names)
+    return _PluralPlan(tuple(fields), required)
 
 
-def _render_plural(
-    singular_plan: _TemplatePlan,
-    singular_values: tuple[Any, ...],
-    plural_plan: _TemplatePlan,
-    plural_values: tuple[Any, ...],
-    pattern: str,
+def _render_plural_chunks(
+    render_plan: _RenderPlan,
+    values: tuple[tuple[Any, ...], tuple[Any, ...]],
 ) -> str:
-    plan = _merge_plural_plans(singular_plan, plural_plan)
-    render_plan = _compile_render_plan(pattern, plan.names, plan.required_names)
-    if render_plan.constant is not None:
-        return render_plan.constant
-
-    values = (singular_values, plural_values)
-    if render_plan.single_field is not None:
-        prefix, single_index, suffix = render_plan.single_field
-        field = plan.fields[single_index]
-        return (
-            prefix
-            + _format_value(
-                values[field.template_index][field.value_index],
-                field.conversion,
-                field.format_spec,
-            )
-            + suffix
-        )
-
     rendered: list[str] = []
     formatted: list[str | None] | None = (
-        [None] * len(plan.fields) if render_plan.repeats_fields else None
+        [None] * render_plan.nfields if render_plan.repeats else None
     )
-    for literal, field_index in render_plan.chunks:
+    for literal, field in render_plan.chunks:
         rendered.append(literal)
-        if field_index is not None:
-            field = plan.fields[field_index]
-            value = formatted[field_index] if formatted is not None else None
+        if field is not None:
+            value = formatted[field.index] if formatted is not None else None
             if value is None:
-                value = _format_value(
-                    values[field.template_index][field.value_index],
-                    field.conversion,
-                    field.format_spec,
-                )
+                raw = values[field.template_index][field.value_index]
+                if field.plain and type(raw) is str:
+                    value = raw
+                else:
+                    value = _format_value(raw, field.conversion, field.format_spec)
                 if formatted is not None:
-                    formatted[field_index] = value
+                    formatted[field.index] = value
             rendered.append(value)
     return "".join(rendered)
 
 
+def _render_plural_pattern(
+    render_plan: _RenderPlan,
+    singular_template: Template,
+    plural_template: Template,
+) -> str:
+    constant = render_plan.constant
+    if constant is not None:
+        return constant
+    field = render_plan.single
+    if field is not None:
+        source = singular_template if field.template_index == 0 else plural_template
+        value = source.interpolations[field.value_index].value
+        if field.plain and type(value) is str:
+            return render_plan.prefix + value + render_plan.suffix
+        return (
+            render_plan.prefix
+            + _format_value(value, field.conversion, field.format_spec)
+            + render_plan.suffix
+        )
+    return _render_plural_chunks(
+        render_plan,
+        (singular_template.values, plural_template.values),
+    )
+
+
 def _render_plural_source(
     singular_plan: _TemplatePlan,
-    singular_values: tuple[Any, ...],
+    singular_template: Template,
     plural_plan: _TemplatePlan,
-    plural_values: tuple[Any, ...],
+    plural_template: Template,
     n: int,
 ) -> str:
-    """Render the source plural branch selected by the source language rule."""
+    """ソース言語の規則でブランチを選び、ソースの構造を描画する。"""
     if n == 1:
-        return _render_template(singular_plan, singular_values, singular_plan.msgid)
-    return _render_template(plural_plan, plural_values, plural_plan.msgid)
+        return _render_with_values(
+            _source_render_plan(singular_plan),
+            singular_template.values,
+        )
+    return _render_with_values(
+        _source_render_plan(plural_plan),
+        plural_template.values,
+    )
 
 
 def ngettext(
@@ -468,30 +807,35 @@ def ngettext(
     strict: bool = False,
 ) -> str:
     """Translate and render singular/plural t-strings."""
-    singular_plan, singular_values = _bind_template(singular)
-    plural_plan, plural_values = _bind_template(plural)
-    active = _active(translations)
+    singular_plan = _bind_template(singular)
+    plural_plan = _bind_template(plural)
+    # 空msgidはカタログのメタデータ用に予約されている(SPEC §2)。
+    # どちらかのブランチが空なら翻訳エントリは存在し得ないので、ソースを描画する。
+    if not singular_plan.msgid or not plural_plan.msgid:
+        return _render_plural_source(singular_plan, singular, plural_plan, plural, n)
+    merged = _merge_plural_plans(singular_plan, plural_plan)
+
+    if translations is None:
+        translations = _current_get()
     pattern = (
-        active.ngettext(singular_plan.msgid, plural_plan.msgid, n)
-        if active is not None
-        else _gettext.ngettext(singular_plan.msgid, plural_plan.msgid, n)
+        translations.ngettext(singular_plan.msgid, plural_plan.msgid, n)
+        if translations is not None
+        else _std_ngettext(singular_plan.msgid, plural_plan.msgid, n)
     )
-    try:
-        return _render_plural(
-            singular_plan,
-            singular_values,
-            plural_plan,
-            plural_values,
-            pattern,
-        )
-    except InvalidTranslationError:
-        if strict:
-            raise
-        _LOGGER.warning(
-            "invalid plural translation for msgid %r; using source text",
-            singular_plan.msgid,
-        )
-        return _render_plural_source(singular_plan, singular_values, plural_plan, plural_values, n)
+
+    render_plan = merged.patterns.get(pattern)
+    if render_plan is None:
+        try:
+            render_plan = _compile_pattern(merged, pattern)
+        except InvalidTranslationError:
+            if strict:
+                raise
+            _LOGGER.warning(
+                "invalid plural translation for msgid %r; using source text",
+                singular_plan.msgid,
+            )
+            return _render_plural_source(singular_plan, singular, plural_plan, plural, n)
+    return _render_plural_pattern(render_plan, singular, plural)
 
 
 def npgettext(
@@ -505,41 +849,34 @@ def npgettext(
     strict: bool = False,
 ) -> str:
     """Translate and render contextual singular/plural t-strings."""
-    singular_plan, singular_values = _bind_template(singular)
-    plural_plan, plural_values = _bind_template(plural)
-    active = _active(translations)
+    singular_plan = _bind_template(singular)
+    plural_plan = _bind_template(plural)
+    if not singular_plan.msgid or not plural_plan.msgid:
+        return _render_plural_source(singular_plan, singular, plural_plan, plural, n)
+    merged = _merge_plural_plans(singular_plan, plural_plan)
+
+    if translations is None:
+        translations = _current_get()
     pattern = (
-        active.npgettext(
-            context,
-            singular_plan.msgid,
-            plural_plan.msgid,
-            n,
-        )
-        if active is not None
-        else _gettext.npgettext(
-            context,
-            singular_plan.msgid,
-            plural_plan.msgid,
-            n,
-        )
+        translations.npgettext(context, singular_plan.msgid, plural_plan.msgid, n)
+        if translations is not None
+        else _std_npgettext(context, singular_plan.msgid, plural_plan.msgid, n)
     )
-    try:
-        return _render_plural(
-            singular_plan,
-            singular_values,
-            plural_plan,
-            plural_values,
-            pattern,
-        )
-    except InvalidTranslationError:
-        if strict:
-            raise
-        _LOGGER.warning(
-            "invalid plural translation for context %r msgid %r; using source text",
-            context,
-            singular_plan.msgid,
-        )
-        return _render_plural_source(singular_plan, singular_values, plural_plan, plural_values, n)
+
+    render_plan = merged.patterns.get(pattern)
+    if render_plan is None:
+        try:
+            render_plan = _compile_pattern(merged, pattern)
+        except InvalidTranslationError:
+            if strict:
+                raise
+            _LOGGER.warning(
+                "invalid plural translation for context %r msgid %r; using source text",
+                context,
+                singular_plan.msgid,
+            )
+            return _render_plural_source(singular_plan, singular, plural_plan, plural, n)
+    return _render_plural_pattern(render_plan, singular, plural)
 
 
 # Concise aliases retained for applications that prefer them.
@@ -561,7 +898,7 @@ class Translator:
     strict: bool = False
 
     def __call__(self, template: Template, /) -> str:
-        return self.gettext(template)
+        return gettext(template, translations=self.translations, strict=self.strict)
 
     def gettext(self, template: Template, /) -> str:
         return gettext(template, translations=self.translations, strict=self.strict)

@@ -9,7 +9,7 @@ import sys
 import timeit
 from collections.abc import Mapping
 
-from gettext_tstrings import compile_template, tr
+from gettext_tstrings import Translator, compile_template, ntr, tr
 
 NUMBER = 100_000
 REPEAT = 7
@@ -18,9 +18,11 @@ REPEAT = 7
 def run_benchmarks() -> Mapping[str, float]:
     """Return median nanoseconds per operation for representative cases."""
     translations = gettext.NullTranslations()
+    bound = Translator(translations)
     name = "Ada"
     category = "News"
     target = "Archive"
+    n = 3
     template = t"Hello {name}"
     compiled = compile_template(template)
 
@@ -30,8 +32,9 @@ def run_benchmarks() -> Mapping[str, float]:
         t"Category {category} moved to {target}",
         translations=translations,
     )
+    ntr(t"One file", t"{n} files", n, translations=translations)
 
-    namespace = locals() | {"compile_template": compile_template, "tr": tr}
+    namespace = locals() | {"compile_template": compile_template, "tr": tr, "ntr": ntr}
     statements = {
         "f-string": "f'Hello {name}'",
         "gettext(str).format": ("translations.gettext('Hello {name}').format(name=name)"),
@@ -41,6 +44,8 @@ def run_benchmarks() -> Mapping[str, float]:
         "tr (2 fields)": (
             "tr(t'Category {category} moved to {target}', translations=translations)"
         ),
+        "Translator (1 field)": "bound(t'Hello {name}')",
+        "ngettext (1 field)": "ntr(t'One file', t'{n} files', n, translations=translations)",
     }
     results: dict[str, float] = {}
     for label, statement in statements.items():

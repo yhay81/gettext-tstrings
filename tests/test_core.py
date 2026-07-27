@@ -218,6 +218,91 @@ def test_invalid_plural_translation_falls_back_to_source() -> None:
         ntr(t"{n} file", t"{n} files", n, translations=translations, strict=True)
 
 
+def test_same_strings_with_different_specs_do_not_share_a_plan() -> None:
+    # プランはstringsタプルをキーに引くため、staticテキストが同一で
+    # 書式指定だけ異なる別サイトの照合ミスは即座に誤整形につながる。
+    amount = 1234.5
+    translations = gettext.NullTranslations()
+
+    two = tr(t"{amount:.2f}", translations=translations)
+    three = tr(t"{amount:.3f}", translations=translations)
+    converted = tr(t"{amount!r}", translations=translations)
+    named = tr(t"{amount}", translations=translations)
+
+    assert two == "1234.50"
+    assert three == "1234.500"
+    assert converted == "1234.5"
+    assert named == "1234.5"
+
+    # 同じstringsで変数名だけ異なるサイトも独立したmsgidを持つ。
+    other = 9
+    assert compile_template(t"{other}").msgid == "{other}"
+    assert compile_template(t"{amount}").msgid == "{amount}"
+
+
+def test_dynamic_format_spec_sites_stay_bounded_and_correct() -> None:
+    # ネスト書式指定(t"{v:{width}.2f}")は実行時にformat_specが変わるため
+    # サイトが毎回増え得る。上限で消去され、メモリが無制限に伸びないこと。
+    from gettext_tstrings.core import _MAX_SITES_PER_SHAPE, _PLANS
+
+    translations = gettext.NullTranslations()
+    value = 3.14159
+
+    for width in range(4, 40):
+        rendered = tr(t"[{value:{width}.2f}]", translations=translations)
+        assert rendered == f"[{value:{width}.2f}]"
+
+    template = t"[{value:{4}.2f}]"
+    shapes = _PLANS[template.strings]
+    assert isinstance(shapes, dict)  # 衝突でdictへ昇格済み
+    assert all(len(sites) <= _MAX_SITES_PER_SHAPE for sites in shapes.values())
+
+
+def test_bare_placeholder_shapes_do_not_share_a_bucket() -> None:
+    # t"{name}" と t"{count}" はstringsが同一("", "")だが、先頭expressionで
+    # 二段目を引くため互いの照合コストを負わない。
+    from gettext_tstrings.core import _PLANS
+
+    translations = gettext.NullTranslations()
+    name = "Ada"
+    count = 7
+
+    assert tr(t"{name}", translations=translations) == "Ada"
+    assert tr(t"{count}", translations=translations) == "7"
+
+    template = t"{name}"
+    shapes = _PLANS[template.strings]
+    assert isinstance(shapes, dict)  # 2サイト目でdictへ昇格済み
+    assert "name" in shapes and "count" in shapes
+    assert len(shapes["name"]) == 1
+
+
+def test_plural_with_empty_branch_msgid_skips_catalog() -> None:
+    # 空msgidはカタログメタデータ用に予約(SPEC §2)。ヘッダを返す
+    # カタログが相手でも、空ブランチを含む複数形はソースを描画する。
+    header = "Project-Id-Version: demo\n"
+    translations = StubTranslations(
+        messages={"": header},
+        plurals={("", ""): (header, header)},
+    )
+
+    assert tngettext(t"", t"", 1, translations=translations) == ""
+    assert tngettext(t"", t"", 2, translations=translations) == ""
+    assert tnpgettext("ctx", t"", t"", 1, translations=translations) == ""
+
+
+def test_pattern_cache_eviction_preserves_correctness() -> None:
+    # パターン辞書は上限到達で全消去されるが、以後の描画は再検証・再構築
+    # されるだけで結果は変わらない。
+    value = "x"
+    compiled = compile_template(t"V {value}")
+
+    for index in range(300):
+        pattern = f"p{index} {{value}}"
+        assert compiled.render(pattern) == f"p{index} x"
+    assert compiled.render("V {value}") == "V x"
+
+
 def test_empty_tstring_does_not_return_catalog_header() -> None:
     # gettext reserves the empty msgid for catalog metadata; t"" must render "".
     header_catalog = StubTranslations({"": "Project-Id-Version: demo\nLanguage: ja\n"})
@@ -369,3 +454,81 @@ def test_translation_may_repeat_a_placeholder_but_formats_it_once() -> None:
 def test_compile_requires_a_template() -> None:
     with pytest.raises(TypeError, match=r"templatelib\.Template"):
         compile_template(cast("object", "Hello"))
+
+
+def test_runtime_functions_require_a_template() -> None:
+    with pytest.raises(TypeError, match=r"templatelib\.Template"):
+        tr(cast("object", "Hello"))
+    with pytest.raises(TypeError, match=r"templatelib\.Template"):
+        tpgettext("ctx", cast("object", "Hello"))
+
+
+def test_pair_path_renders_reordered_two_field_translations() -> None:
+    # 相異なる2フィールドの特殊化(pair)を、str値・非str値・pgettext・
+    # CompiledTemplateの各経路で確認する。
+    category = "News"
+    count = 7
+    translations = StubTranslations(
+        messages={"{category}: {count}": "{count} ({category})"},
+        contexts={("tab", "{category}: {count}"): "{count} / {category}"},
+    )
+
+    assert tr(t"{category}: {count}", translations=translations) == "7 (News)"
+    assert tpgettext("tab", t"{category}: {count}", translations=translations) == "7 / News"
+
+    compiled = compile_template(t"{category}: {count}")
+    assert compiled.render("{count} ({category})") == "7 (News)"
+    assert repr(compiled) == "CompiledTemplate(msgid='{category}: {count}')"
+
+
+def test_plural_pattern_with_str_value_and_repeated_formatted_field() -> None:
+    # 複数形の単一フィールドstr近道と、書式付きフィールド反復のメモ化。
+    label = "docs"
+    n = 2
+    # msgidは書式指定を含まない({n:03d}→{n})ため、カタログのキーもmsgid形。
+    translations = StubTranslations(
+        plurals={
+            ("{label} file", "{label} files"): ("[{label}]", "[{label}] and [{label}]"),
+            ("{n} file", "{n} files"): ("{n}", "{n} = {n}"),
+        },
+    )
+
+    assert (
+        ntr(t"{label} file", t"{label} files", n, translations=translations) == "[docs] and [docs]"
+    )
+    assert ntr(t"{n:03d} file", t"{n:03d} files", n, translations=translations) == "002 = 002"
+
+
+def test_plans_cache_clears_when_key_limit_is_reached() -> None:
+    # stringsキー数の上限到達で全消去され、その後も正しく描画されること。
+    from gettext_tstrings import core
+
+    translations = gettext.NullTranslations()
+    name = "Ada"
+    assert tr(t"Hello {name}", translations=translations) == "Hello Ada"
+
+    namespace: dict[str, object] = {"tr": tr, "translations": translations}
+    for index in range(core._MAX_PLANS + 1):
+        source = f'result = tr(t"L{index} literal", translations=translations)'
+        exec(source, namespace)
+        assert namespace["result"] == f"L{index} literal"
+
+    assert len(core._PLANS) <= core._MAX_PLANS
+    assert tr(t"Hello {name}", translations=translations) == "Hello Ada"
+
+
+def test_shape_dict_clears_when_expression_limit_is_reached() -> None:
+    # 同一stringsに先頭expressionが増え続けても上限で消去されること。
+    from gettext_tstrings import core
+
+    translations = gettext.NullTranslations()
+    namespace: dict[str, object] = {"tr": tr, "translations": translations}
+    for index in range(core._MAX_SHAPES_PER_KEY + 2):
+        source = f'v{index} = {index}\nresult = tr(t"{{v{index}}}", translations=translations)'
+        exec(source, namespace)
+        assert namespace["result"] == str(index)
+
+    template = t"{index}"
+    shapes = core._PLANS[template.strings]
+    assert isinstance(shapes, dict)
+    assert len(shapes) <= core._MAX_SHAPES_PER_KEY + 1

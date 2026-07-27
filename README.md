@@ -246,22 +246,23 @@ and compilation.
 
 ## Performance
 
-The overhead is sub-microsecond per call: roughly 0.7 µs for a one-field
-message on Apple Silicon, a few times a plain `gettext(...).format(...)`. That
-difference buys placeholder validation, safe rendering, and the structural
-guarantees above — this library optimizes for safety per nanosecond, not for
-beating `str.format`.
+The overhead is sub-microsecond per call: roughly 0.4 µs for a one-field
+message on Apple Silicon (including constructing the t-string itself), about
+2.5× a plain `gettext(...).format(...)`. That difference buys placeholder
+validation, safe rendering, and the structural guarantees above — this library
+optimizes for safety per nanosecond, not for beating `str.format`.
 
 The runtime separates static structure from dynamic values as intended by
 PEP 750:
 
-- template plans are cached by static strings, expressions, conversions, and
-  format specifications;
-- translated brace patterns are parsed and validated once;
+- template plans are looked up by the template's static strings with
+  per-interpolation verification, so a warm call builds no cache keys;
+- translated brace patterns are parsed and validated once, then cached on
+  their plan;
 - both caches are bounded and never retain interpolated values;
 - each distinct value is formatted at most once per render, even when a
   translation repeats its placeholder;
-- one-field and constant messages use specialized rendering paths.
+- constant, one-field, and two-field messages use specialized rendering paths.
 
 Run the reproducible microbenchmark on your target interpreter and hardware:
 
