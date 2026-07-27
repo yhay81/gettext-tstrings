@@ -1,0 +1,52 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+      - name: Check tag matches package version
+        run: |
+          VERSION=$(grep -oE '__version__ = "[^"]+"' src/gettext_tstrings/__init__.py | cut -d'"' -f2)
+          test "$GITHUB_REF_NAME" = "v$VERSION" || {
+            echo "tag $GITHUB_REF_NAME does not match __version__ $VERSION" >&2
+            exit 1
+          }
+      - run: uv build
+      - name: Smoke test the built wheel in a clean environment
+        run: |
+          uv venv smoke --python 3.14
+          uv pip install --python smoke/bin/python dist/*.whl
+          cat > smoke_check.py <<'EOF'
+          import gettext_tstrings
+
+          name = "World"
+          assert gettext_tstrings.tr(t"Hello {name}") == "Hello World"
+          print("smoke OK", gettext_tstrings.__version__)
+          EOF
+          smoke/bin/python smoke_check.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@release/v1

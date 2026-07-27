@@ -16,9 +16,16 @@ from .core import get_translations, gettext, pgettext
 
 
 class LazyString:
-    """A translatable string that renders when first used, not when defined."""
+    """A translatable string that renders when first used, not when defined.
+
+    Deliberately unhashable: the rendered text depends on the language active at
+    call time, so a hash would silently change across language switches and
+    corrupt sets and dict keys. Call ``str()`` first to use one as a key.
+    """
 
     __slots__ = ("_render",)
+
+    __hash__ = None  # type: ignore[assignment]
 
     def __init__(self, render: Callable[[], str]) -> None:
         self._render = render
@@ -38,9 +45,6 @@ class LazyString:
         if isinstance(other, str):
             return str(self) == other
         return NotImplemented
-
-    def __hash__(self) -> int:
-        return hash(str(self))
 
 
 def lazy_gettext(template: Template, /) -> LazyString:

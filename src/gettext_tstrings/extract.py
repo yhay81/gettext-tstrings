@@ -260,9 +260,11 @@ def _extract_tstring_calls(
     function_sets = {
         "tr_functions": _option_names(options, "tr_functions", "tr"),
         "ntr_functions": _option_names(options, "ntr_functions", "ntr"),
-        "gettext_functions": _option_names(options, "gettext_functions", "gettext _"),
+        "gettext_functions": _option_names(options, "gettext_functions", "gettext _ lazy_gettext"),
         "ngettext_functions": _option_names(options, "ngettext_functions", "ngettext"),
-        "pgettext_functions": _option_names(options, "pgettext_functions", "pgettext"),
+        "pgettext_functions": _option_names(
+            options, "pgettext_functions", "pgettext lazy_pgettext"
+        ),
         "npgettext_functions": _option_names(options, "npgettext_functions", "npgettext"),
     }
 

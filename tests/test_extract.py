@@ -208,6 +208,53 @@ def test_simple_tstring_extracts_without_default_keywords() -> None:
     assert [message[1] for message in messages] == ["Hello {name}"]
 
 
+def test_lazy_functions_are_extracted_by_default() -> None:
+    source = """\
+LABEL = lazy_gettext(t"Welcome")
+OPEN = lazy_pgettext("button", t"Open {name}")
+"""
+
+    assert extract_messages(source) == [
+        (1, "Welcome", ["gettext-tstrings"], None),
+        (2, "Open {name}", ["gettext-tstrings"], "button"),
+    ]
+
+
+def test_official_example_round_trips_through_extraction_and_runtime() -> None:
+    # 公式exampleの全メッセージ(遅延ラベル含む)が抽出され、翻訳して描画できる。
+    import gettext as gettext_module
+    import importlib.util
+    from pathlib import Path
+
+    from babel.messages.catalog import Catalog
+    from babel.messages.mofile import write_mo
+
+    from gettext_tstrings import use_translations
+
+    example = Path(__file__).parent.parent / "examples" / "app.py"
+    messages = extract_messages(example.read_text(encoding="utf-8"))
+    msgids = [message[1] for message in messages]
+
+    assert "Welcome" in msgids
+    assert "Hello {name}" in msgids
+    assert ("One file", "{n} files") in msgids
+
+    catalog = Catalog(locale="ja")
+    catalog.add("Welcome", "ようこそ")
+    mo_file = io.BytesIO()
+    write_mo(mo_file, catalog)
+    mo_file.seek(0)
+    translations = gettext_module.GNUTranslations(mo_file)
+
+    spec = importlib.util.spec_from_file_location("example_app", example)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    with use_translations(translations):
+        assert str(module.GREETING_LABEL) == "ようこそ"
+
+
 def test_plural_without_canonical_keyword_is_skipped_with_warning() -> None:
     # Plural/contextual messages need Babel's canonical keyword spec; without it
     # they are skipped with a warning rather than crashing the run.

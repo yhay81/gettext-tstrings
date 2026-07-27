@@ -9,7 +9,11 @@ permissions:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-python@v6
@@ -24,3 +28,17 @@ jobs:
       - run: uv run mypy
       - run: uv run pytest --cov=gettext_tstrings --cov-report=term-missing
       - run: uv build
+      - name: Smoke test the built wheel in a clean environment
+        shell: bash
+        run: |
+          uv venv smoke
+          if [ -x smoke/bin/python ]; then PY=smoke/bin/python; else PY=smoke/Scripts/python.exe; fi
+          uv pip install --python "$PY" dist/*.whl
+          cat > smoke_check.py <<'EOF'
+          import gettext_tstrings
+
+          name = "World"
+          assert gettext_tstrings.tr(t"Hello {name}") == "Hello World"
+          print("smoke OK", gettext_tstrings.__version__)
+          EOF
+          "$PY" smoke_check.py

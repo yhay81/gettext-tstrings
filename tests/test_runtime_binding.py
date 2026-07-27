@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import gettext
 
+import pytest
+
 from gettext_tstrings import (
     LazyString,
     Translations,
@@ -91,7 +93,18 @@ def test_lazy_string_supports_format_and_equality() -> None:
     assert label != "Other"
     assert label != 123  # unsupported type compares unequal, does not raise
     assert repr(label) == "LazyString('Save')"
-    assert hash(label) == hash("Save")
+
+
+def test_lazy_string_is_unhashable() -> None:
+    # 描画結果は現在の言語に依存するため、hashは言語切替で変化してしまう。
+    # set/dictの契約を黙って破るくらいなら、unhashableで早期に失敗させる。
+    label = lazy_gettext(t"Save")
+
+    with pytest.raises(TypeError, match="unhashable"):
+        hash(label)
+    with pytest.raises(TypeError, match="unhashable"):
+        {label}  # noqa: B018
+    assert str(label) in {"Save"}  # 明示的にstr()すればキーに使える
 
 
 def test_translations_protocol_is_runtime_checkable() -> None:

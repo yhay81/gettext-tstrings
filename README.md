@@ -189,16 +189,17 @@ pybabel compile -d locales
 The `gettext_tstrings` extractor also extracts ordinary `_()`, `gettext()`,
 and `ngettext()` calls, so one mapping can cover mixed codebases.
 
-The extractor recognizes `_()`, the four standard gettext names, and the
-`tr()` / `ntr()` aliases. Additional aliases can be configured:
+The extractor recognizes `_()`, the four standard gettext names, the
+`tr()` / `ntr()` aliases, and the deferred `lazy_gettext()` / `lazy_pgettext()`.
+Additional aliases can be configured:
 
 ```ini
 [gettext_tstrings: **.py]
 tr_functions = tr, translate
 ntr_functions = ntr, pluralize
-gettext_functions = gettext, _
+gettext_functions = gettext, _, lazy_gettext
 ngettext_functions = ngettext
-pgettext_functions = pgettext
+pgettext_functions = pgettext, lazy_pgettext
 npgettext_functions = npgettext
 ```
 
@@ -244,6 +245,12 @@ placeholders and translation-controlled formatting during catalog validation
 and compilation.
 
 ## Performance
+
+The overhead is sub-microsecond per call: roughly 0.7 µs for a one-field
+message on Apple Silicon, a few times a plain `gettext(...).format(...)`. That
+difference buys placeholder validation, safe rendering, and the structural
+guarantees above — this library optimizes for safety per nanosecond, not for
+beating `str.format`.
 
 The runtime separates static structure from dynamic values as intended by
 PEP 750:

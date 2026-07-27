@@ -10,7 +10,7 @@ readme = "README.md"
 requires-python = ">=3.14"
 license = "MIT"
 authors = [
-  { name = "Yusuke Hayashi" },
+  { name = "Yusuke Hayashi", email = "yusuke8h@gmail.com" },
 ]
 keywords = ["babel", "gettext", "i18n", "internationalization", "t-strings"]
 classifiers = [

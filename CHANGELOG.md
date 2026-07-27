@@ -10,6 +10,15 @@
 - Add deferred translation (`lazy_gettext`, `lazy_pgettext`, `LazyString`) for module-level translatable strings.
 - Make the `Translations` protocol `runtime_checkable`.
 - Improve confusable-placeholder diagnostics with escaped names.
+- Extract `lazy_gettext` and `lazy_pgettext` by default, with an example-driven
+  extraction-to-runtime round-trip test.
+- Make `LazyString` unhashable: its rendered text depends on the active
+  language, so a hash would silently break sets and dict keys across switches.
+- State the measured sub-microsecond overhead instead of claiming "fast".
+- Run CI on Linux, macOS, and Windows, and smoke-test the built wheel in a
+  clean environment.
+- Add a tag-triggered release workflow using PyPI Trusted Publishing
+  (see RELEASING.md).
 
 ## 0.1.0a1 - Unreleased
 
