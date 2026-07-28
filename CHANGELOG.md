@@ -1,7 +1,21 @@
 # Changelog
 
-## Unreleased
+## 0.1.0a3 - 2026-07-28
 
+- Reject mixed plain-string/t-string plural calls during extraction instead of
+  silently omitting them, including under the extractor's strict mode.
+- Preserve source order and translator-comment ownership when ordinary gettext
+  and t-string translation calls share one physical line, including when Babel
+  suppresses a nested intermediate call or an earlier function name is
+  NFKC-normalized by the AST but not recognized lexically by Babel. Rejected
+  configured aliases no longer leak their comments to a later ordinary message.
+- Render placeholders shared by plural source branches from the branch selected
+  by the source-language plural rule, instead of always reading the singular
+  t-string's captured value.
+- Reject an explicit empty translation-side format specifier (`{name:}`), which
+  `string.Formatter` otherwise makes indistinguishable from a bare `{name}`.
+- Gate the tag-triggered PyPI release on the same formatting, lint, type, test,
+  and coverage checks as CI.
 - Identify translator comments with `tokenize` instead of line-prefix
   scanning. This fixes two extraction defects: a comment-looking line inside a
   string literal could corrupt the masked source and abort the whole file's
