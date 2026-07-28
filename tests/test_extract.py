@@ -234,6 +234,92 @@ gettext("World")
     ]
 
 
+@pytest.mark.parametrize(
+    ("calls", "expected"),
+    [
+        (
+            'gettext("First"); tr(t"Second")',
+            [
+                (2, "First", ["Translators: First call."], None),
+                (2, "Second", ["gettext-tstrings"], None),
+            ],
+        ),
+        (
+            'tr(t"First"); gettext("Second")',
+            [
+                (2, "First", ["Translators: First call.", "gettext-tstrings"], None),
+                (2, "Second", [], None),
+            ],
+        ),
+        (
+            'tr(t"First"); tr(t"Second")',
+            [
+                (2, "First", ["Translators: First call.", "gettext-tstrings"], None),
+                (2, "Second", ["gettext-tstrings"], None),
+            ],
+        ),
+        (
+            'gettext(t"First"); gettext("Second")',
+            [
+                (2, "First", ["Translators: First call.", "gettext-tstrings"], None),
+                (2, "Second", [], None),
+            ],
+        ),
+    ],
+)
+def test_same_line_calls_keep_source_order_and_comment_owner(
+    calls: str,
+    expected: list[tuple[int, str, list[str], str | None]],
+) -> None:
+    source = f"# Translators: First call.\n{calls}\n"
+
+    assert extract_messages(source) == expected
+
+
+def test_nested_ordinary_gettext_does_not_break_same_line_merge() -> None:
+    source = 'gettext(gettext("Inner")); tr(t"After")\n'
+
+    assert extract_messages(source) == [
+        (1, "Inner", [], None),
+        (1, "After", ["gettext-tstrings"], None),
+    ]
+
+
+@pytest.mark.parametrize(
+    ("source", "expected"),
+    [
+        (
+            'gettext(foo(gettext(t"Nested"))); gettext("After")\n',
+            [
+                (1, "Nested", ["gettext-tstrings"], None),
+                (1, "After", [], None),
+            ],
+        ),
+        (
+            'gettext(foo(gettext("Suppressed"))); tr(t"Middle"); gettext("After")\n',
+            [
+                (1, "Middle", ["gettext-tstrings"], None),
+                (1, "After", [], None),
+            ],
+        ),
+    ],
+)
+def test_suppressed_nested_gettext_does_not_shift_later_message_positions(
+    source: str,
+    expected: list[tuple[int, str, list[str], str | None]],
+) -> None:
+    assert extract_messages(source) == expected
+
+
+def test_nfkc_equivalent_name_does_not_consume_a_standard_message_position() -> None:
+    source = 'ｇｅｔｔｅｘｔ(t"Wide"); gettext("Last")\n'  # noqa: RUF001
+
+    assert extract_messages(source) == [
+        (1, "Wide", ["gettext-tstrings"], None),
+        (1, "Last", [], None),
+    ]
+
+
 def test_rejected_tstring_comment_does_not_leak_to_ordinary_gettext() -> None:
     source = """\
 # Translators: Rejected t-string.
@@ -246,6 +332,24 @@ gettext("World")
         messages = extract_messages(source)
 
     assert messages == [(4, "World", ["Translators: Ordinary greeting."], None)]
+
+
+def test_rejected_configured_alias_comment_does_not_leak_to_later_gettext() -> None:
+    source = """\
+# Translators: Rejected alias.
+translate("Plain"); tr(t"Middle"); gettext("Later")
+"""
+
+    with pytest.warns(UserWarning, match="must be a t-string"):
+        messages = extract_messages(
+            source,
+            options={"tr_functions": "translate tr"},
+        )
+
+    assert messages == [
+        (2, "Middle", ["gettext-tstrings"], None),
+        (2, "Later", [], None),
+    ]
 
 
 def test_fake_comment_inside_string_literal_is_ignored_and_does_not_crash() -> None:
