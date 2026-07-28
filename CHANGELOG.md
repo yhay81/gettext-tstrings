@@ -1,5 +1,24 @@
 # Changelog
 
+## Unreleased
+
+- Identify translator comments with `tokenize` instead of line-prefix
+  scanning. This fixes two extraction defects: a comment-looking line inside a
+  string literal could corrupt the masked source and abort the whole file's
+  extraction with a `TokenError`, and characters that only `str.splitlines()`
+  treats as line breaks (form feed, U+2028) silently shifted comment
+  attribution.
+- Deduplicate the render tails: `pgettext` and the plural functions now share
+  single-sourced helpers (`_render_pattern`, `_ngettext_impl`); only
+  `gettext()` keeps its intentionally inlined copy, pinned by a new
+  render-parity test suite that catches drift between the copies.
+- Compute the translator-comment block once per extracted call and drop the
+  dead wrapper and unused optional parameter around it.
+- Replace `exec()`-based cache-eviction tests with direct
+  `string.templatelib.Template` construction.
+- Document that `pybabel extract` needs `-c "Translators:"` to collect
+  translator comments, as for ordinary gettext calls.
+
 ## 0.1.0a2 - 2026-07-28
 
 - Rework the rendering hot path for roughly 1.7x lower overhead, measured on

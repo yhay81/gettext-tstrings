@@ -461,7 +461,12 @@ def _render_with_values(
     render_plan: _RenderPlan,
     values: tuple[Any, ...],
 ) -> str:
-    """値タプルを使う共通の描画末尾(CompiledTemplateとフォールバック用)。"""
+    """値タプルを使う共通の描画末尾(CompiledTemplateとフォールバック用)。
+
+    単一テンプレート由来のプラン専用。_PluralPlan由来のrender_planは
+    field.template_indexで値の出所を選ぶ必要があるため、ここには渡さないこと
+    (single/pair経路はtemplate_indexを見ないので、渡すと静かに壊れる)。
+    """
     constant = render_plan.constant
     if constant is not None:
         return constant
@@ -548,6 +553,46 @@ def compile_template(template: Template, /) -> CompiledTemplate:
     return CompiledTemplate(plan, template.values)
 
 
+def _render_pattern(render_plan: _RenderPlan, template: Template) -> str:
+    """検証済みRenderPlanをテンプレートの補間値で描画する共通末尾。
+
+    gettext()内の同一ロジックは最重要ホットパスのため意図的にインライン
+    展開している(関数呼び出し1回分の節約が実測で効く唯一の経路)。この
+    関数を変更するときはgettext()内のコピーも必ず同期すること。挙動の
+    一致は tests/test_render_parity.py が固定している。
+    """
+    constant = render_plan.constant
+    if constant is not None:
+        return constant
+    interpolations = template.interpolations
+    field = render_plan.single
+    if field is not None:
+        value = interpolations[field.value_index].value
+        if field.plain and type(value) is str:
+            return render_plan.prefix + value + render_plan.suffix
+        return (
+            render_plan.prefix
+            + _format_value(value, field.conversion, field.format_spec)
+            + render_plan.suffix
+        )
+    first = render_plan.first
+    if first is not None:
+        second = render_plan.second
+        assert second is not None
+        left_raw = interpolations[first.value_index].value
+        if first.plain and type(left_raw) is str:
+            left = left_raw
+        else:
+            left = _format_value(left_raw, first.conversion, first.format_spec)
+        right_raw = interpolations[second.value_index].value
+        if second.plain and type(right_raw) is str:
+            right = right_raw
+        else:
+            right = _format_value(right_raw, second.conversion, second.format_spec)
+        return render_plan.prefix + left + render_plan.middle + right + render_plan.suffix
+    return _render_chunks(render_plan, template.values)
+
+
 def gettext(
     template: Template,
     /,
@@ -578,12 +623,18 @@ def gettext(
     if render_plan is None:
         try:
             render_plan = _compile_pattern(plan, pattern)
-        except InvalidTranslationError:
+        except InvalidTranslationError as exc:
             if strict:
                 raise
-            _LOGGER.warning("invalid translation for msgid %r; using source text", msgid)
+            _LOGGER.warning(
+                "invalid translation for msgid %r; using source text: %s",
+                msgid,
+                exc,
+            )
             render_plan = _source_render_plan(plan)
 
+    # 以下は _render_pattern のインライン展開(意図的な重複)。変更時は
+    # _render_pattern と同期すること。
     constant = render_plan.constant
     if constant is not None:
         return constant
@@ -644,45 +695,18 @@ def pgettext(
     if render_plan is None:
         try:
             render_plan = _compile_pattern(plan, pattern)
-        except InvalidTranslationError:
+        except InvalidTranslationError as exc:
             if strict:
                 raise
             _LOGGER.warning(
-                "invalid translation for context %r msgid %r; using source text",
+                "invalid translation for context %r msgid %r; using source text: %s",
                 context,
                 msgid,
+                exc,
             )
             render_plan = _source_render_plan(plan)
 
-    constant = render_plan.constant
-    if constant is not None:
-        return constant
-    field = render_plan.single
-    if field is not None:
-        value = interpolations[field.value_index].value
-        if field.plain and type(value) is str:
-            return render_plan.prefix + value + render_plan.suffix
-        return (
-            render_plan.prefix
-            + _format_value(value, field.conversion, field.format_spec)
-            + render_plan.suffix
-        )
-    first = render_plan.first
-    if first is not None:
-        second = render_plan.second
-        assert second is not None
-        left_raw = interpolations[first.value_index].value
-        if first.plain and type(left_raw) is str:
-            left = left_raw
-        else:
-            left = _format_value(left_raw, first.conversion, first.format_spec)
-        right_raw = interpolations[second.value_index].value
-        if second.plain and type(right_raw) is str:
-            right = right_raw
-        else:
-            right = _format_value(right_raw, second.conversion, second.format_spec)
-        return render_plan.prefix + left + render_plan.middle + right + render_plan.suffix
-    return _render_chunks(render_plan, template.values)
+    return _render_pattern(render_plan, template)
 
 
 @lru_cache(maxsize=_MAX_PLANS)
@@ -797,16 +821,15 @@ def _render_plural_source(
     )
 
 
-def ngettext(
+def _ngettext_impl(
+    context: str | None,
     singular: Template,
     plural: Template,
     n: int,
-    /,
-    *,
-    translations: Translations | None = None,
-    strict: bool = False,
+    translations: Translations | None,
+    strict: bool,
 ) -> str:
-    """Translate and render singular/plural t-strings."""
+    """ngettext/npgettextの共通本体。contextの有無だけが両者の差。"""
     singular_plan = _bind_template(singular)
     plural_plan = _bind_template(plural)
     # 空msgidはカタログのメタデータ用に予約されている(SPEC §2)。
@@ -817,25 +840,54 @@ def ngettext(
 
     if translations is None:
         translations = _current_get()
-    pattern = (
-        translations.ngettext(singular_plan.msgid, plural_plan.msgid, n)
-        if translations is not None
-        else _std_ngettext(singular_plan.msgid, plural_plan.msgid, n)
-    )
+    if context is None:
+        pattern = (
+            translations.ngettext(singular_plan.msgid, plural_plan.msgid, n)
+            if translations is not None
+            else _std_ngettext(singular_plan.msgid, plural_plan.msgid, n)
+        )
+    else:
+        pattern = (
+            translations.npgettext(context, singular_plan.msgid, plural_plan.msgid, n)
+            if translations is not None
+            else _std_npgettext(context, singular_plan.msgid, plural_plan.msgid, n)
+        )
 
     render_plan = merged.patterns.get(pattern)
     if render_plan is None:
         try:
             render_plan = _compile_pattern(merged, pattern)
-        except InvalidTranslationError:
+        except InvalidTranslationError as exc:
             if strict:
                 raise
-            _LOGGER.warning(
-                "invalid plural translation for msgid %r; using source text",
-                singular_plan.msgid,
-            )
+            if context is None:
+                _LOGGER.warning(
+                    "invalid plural translation for msgid %r; using source text: %s",
+                    singular_plan.msgid,
+                    exc,
+                )
+            else:
+                _LOGGER.warning(
+                    "invalid plural translation for context %r msgid %r; using source text: %s",
+                    context,
+                    singular_plan.msgid,
+                    exc,
+                )
             return _render_plural_source(singular_plan, singular, plural_plan, plural, n)
     return _render_plural_pattern(render_plan, singular, plural)
+
+
+def ngettext(
+    singular: Template,
+    plural: Template,
+    n: int,
+    /,
+    *,
+    translations: Translations | None = None,
+    strict: bool = False,
+) -> str:
+    """Translate and render singular/plural t-strings."""
+    return _ngettext_impl(None, singular, plural, n, translations, strict)
 
 
 def npgettext(
@@ -849,34 +901,7 @@ def npgettext(
     strict: bool = False,
 ) -> str:
     """Translate and render contextual singular/plural t-strings."""
-    singular_plan = _bind_template(singular)
-    plural_plan = _bind_template(plural)
-    if not singular_plan.msgid or not plural_plan.msgid:
-        return _render_plural_source(singular_plan, singular, plural_plan, plural, n)
-    merged = _merge_plural_plans(singular_plan, plural_plan)
-
-    if translations is None:
-        translations = _current_get()
-    pattern = (
-        translations.npgettext(context, singular_plan.msgid, plural_plan.msgid, n)
-        if translations is not None
-        else _std_npgettext(context, singular_plan.msgid, plural_plan.msgid, n)
-    )
-
-    render_plan = merged.patterns.get(pattern)
-    if render_plan is None:
-        try:
-            render_plan = _compile_pattern(merged, pattern)
-        except InvalidTranslationError:
-            if strict:
-                raise
-            _LOGGER.warning(
-                "invalid plural translation for context %r msgid %r; using source text",
-                context,
-                singular_plan.msgid,
-            )
-            return _render_plural_source(singular_plan, singular, plural_plan, plural, n)
-    return _render_plural_pattern(render_plan, singular, plural)
+    return _ngettext_impl(context, singular, plural, n, translations, strict)
 
 
 # Concise aliases retained for applications that prefer them.

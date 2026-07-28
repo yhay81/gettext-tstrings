@@ -232,7 +232,8 @@ with non-standard argument positions are not configurable.
   `npgettext` in the keyword set (the default set already has them); otherwise
   those messages are skipped with a warning.
 
-Translator comments work as usual:
+Translator comments work as usual — pass the tag to `pybabel extract` with
+`-c "Translators:"`, exactly as for ordinary gettext calls:
 
 ```python
 # Translators: Product name shown in the account header.

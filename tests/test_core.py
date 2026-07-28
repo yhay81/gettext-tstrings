@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import gettext
+import logging
 from importlib.metadata import version
 from types import SimpleNamespace
 from typing import cast
@@ -194,6 +195,18 @@ def test_invalid_translation_falls_back_to_source_by_default(translation: str) -
 
     # A broken catalog must never crash a render: the source text is reproduced.
     assert tr(t"Hello {name}", translations=translations) == "Hello Ada"
+
+
+def test_invalid_translation_warning_includes_the_reason(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    name = "Ada"
+    translations = StubTranslations({"Hello {name}": "Hello"})
+
+    with caplog.at_level(logging.WARNING, logger="gettext_tstrings"):
+        assert tr(t"Hello {name}", translations=translations) == "Hello Ada"
+
+    assert "missing ['name']" in caplog.text
 
 
 def test_bound_translator_strict_mode_reraises() -> None:
@@ -501,17 +514,19 @@ def test_plural_pattern_with_str_value_and_repeated_formatted_field() -> None:
 
 def test_plans_cache_clears_when_key_limit_is_reached() -> None:
     # stringsキー数の上限到達で全消去され、その後も正しく描画されること。
+    # Template直接構築はリテラル由来のt-stringとメタデータが同一なので、
+    # execでソースを合成せずに多数の相異なるstringsキーを作れる。
+    from string.templatelib import Template
+
     from gettext_tstrings import core
 
     translations = gettext.NullTranslations()
     name = "Ada"
     assert tr(t"Hello {name}", translations=translations) == "Hello Ada"
 
-    namespace: dict[str, object] = {"tr": tr, "translations": translations}
     for index in range(core._MAX_PLANS + 1):
-        source = f'result = tr(t"L{index} literal", translations=translations)'
-        exec(source, namespace)
-        assert namespace["result"] == f"L{index} literal"
+        rendered = tr(Template(f"L{index} literal"), translations=translations)
+        assert rendered == f"L{index} literal"
 
     assert len(core._PLANS) <= core._MAX_PLANS
     assert tr(t"Hello {name}", translations=translations) == "Hello Ada"
@@ -519,16 +534,16 @@ def test_plans_cache_clears_when_key_limit_is_reached() -> None:
 
 def test_shape_dict_clears_when_expression_limit_is_reached() -> None:
     # 同一stringsに先頭expressionが増え続けても上限で消去されること。
+    from string.templatelib import Interpolation, Template
+
     from gettext_tstrings import core
 
     translations = gettext.NullTranslations()
-    namespace: dict[str, object] = {"tr": tr, "translations": translations}
     for index in range(core._MAX_SHAPES_PER_KEY + 2):
-        source = f'v{index} = {index}\nresult = tr(t"{{v{index}}}", translations=translations)'
-        exec(source, namespace)
-        assert namespace["result"] == str(index)
+        template = Template("", Interpolation(index, f"v{index}", None, ""), "")
+        assert tr(template, translations=translations) == str(index)
 
-    template = t"{index}"
-    shapes = core._PLANS[template.strings]
+    probe = t"{index}"
+    shapes = core._PLANS[probe.strings]
     assert isinstance(shapes, dict)
     assert len(shapes) <= core._MAX_SHAPES_PER_KEY + 1

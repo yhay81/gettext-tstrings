@@ -12,7 +12,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from string.templatelib import Template
 
-from .core import get_translations, gettext, pgettext
+from .core import gettext, pgettext
 
 
 class LazyString:
@@ -49,9 +49,11 @@ class LazyString:
 
 def lazy_gettext(template: Template, /) -> LazyString:
     """Defer translation of one t-string to first use."""
-    return LazyString(lambda: gettext(template, translations=get_translations()))
+    # translations引数を省略すると、gettext()自身が描画時点のコンテキストを
+    # 解決する(明示的に渡すのと同じ挙動で、渡す方が冗長)。
+    return LazyString(lambda: gettext(template))
 
 
 def lazy_pgettext(context: str, template: Template, /) -> LazyString:
     """Defer translation of one contextual t-string to first use."""
-    return LazyString(lambda: pgettext(context, template, translations=get_translations()))
+    return LazyString(lambda: pgettext(context, template))

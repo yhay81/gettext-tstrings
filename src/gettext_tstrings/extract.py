@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import ast
+import codecs
 import heapq
 import io
 import tokenize
@@ -11,8 +12,10 @@ from collections.abc import Collection, Iterator, Mapping
 from typing import Any, cast
 
 from babel.messages.extract import extract_python
+from babel.util import parse_encoding
 
-from ._patterns import MARKER_COMMENT, escape_literal
+from ._patterns import MARKER_COMMENT, escape_literal, validate_name
+from .errors import InvalidTranslationError
 
 Extracted = tuple[int, str | None, str | tuple[str, ...], list[str]]
 
@@ -36,11 +39,19 @@ def _option_bool(options: Mapping[str, Any], key: str, default: bool) -> bool:
     return str(value).strip().lower() in _TRUE
 
 
-def _decode_source(data: bytes | str) -> tuple[str, bytes]:
+def _decode_source(
+    data: bytes | str,
+    options: Mapping[str, Any],
+) -> tuple[str, bytes, str]:
     if isinstance(data, str):
-        return data, data.encode()
-    encoding, _ = tokenize.detect_encoding(io.BytesIO(data).readline)
-    return data.decode(encoding), data
+        provisional = data.encode()
+        encoding = parse_encoding(io.BytesIO(provisional)) or str(options.get("encoding", "utf-8"))
+        return data, data.encode(encoding), encoding
+
+    encoding = parse_encoding(io.BytesIO(data)) or str(options.get("encoding", "utf-8"))
+    if data.startswith(codecs.BOM_UTF8):
+        encoding = "utf-8-sig"
+    return data.decode(encoding), data, encoding
 
 
 def _call_name(node: ast.expr) -> str | None:
@@ -84,7 +95,14 @@ def _template_pattern(
                 "t-string interpolations must be simple variable names",
             )
 
-        name = value.value.id
+        try:
+            name = validate_name(value.str or "")
+        except InvalidTranslationError as exc:
+            raise _fail(
+                filename,
+                value,
+                "t-string interpolations must be simple variable names",
+            ) from exc
         signature = (
             value.conversion,
             (
@@ -105,24 +123,87 @@ def _template_pattern(
     return "".join(pieces), formatting
 
 
-def _translator_comments(
-    lines: list[str],
+def _comment_lines(source: str) -> dict[int, tuple[int, str]]:
+    """コメントのみの物理行を ``{0始まり行番号: (♯の桁, コメント文字列)}`` で返す。
+
+    行の同定にtokenizeを使うことで、座標系がASTの行番号と厳密に一致する。
+    素朴な行走査と違い、文字列リテラル内の「コメントに見える行」を拾わず、
+    ``\\f`` やU+2028など ``str.splitlines()`` だけが行区切りに数える文字で
+    行番号がずれることもない。
+    """
+    comments: dict[int, tuple[int, str]] = {}
+    tokens = tokenize.generate_tokens(io.StringIO(source).readline)
+    try:
+        for token in tokens:
+            if token.type == tokenize.COMMENT and not token.line[: token.start[1]].strip():
+                comments[token.start[0] - 1] = (token.start[1], token.string)
+    except tokenize.TokenError, IndentationError, SyntaxError:
+        # ast.parseが通ったソースでは実質発生しない。途中まで集めた
+        # コメントは正しいので、そのまま使う。
+        pass
+    return comments
+
+
+def _translator_comment_block(
+    comments: dict[int, tuple[int, str]],
     lineno: int,
     comment_tags: Collection[str],
-) -> list[str]:
-    preceding: list[str] = []
+) -> tuple[list[str], tuple[int, ...]]:
+    """呼び出し直前の連続コメント行から翻訳者コメントブロックを取り出す。
+
+    戻り値は (コメント本文のリスト, タグ行の0始まり行番号タプル)。
+    """
+    preceding: list[tuple[int, str]] = []
     index = lineno - 2
-    while index >= 0:
-        stripped = lines[index].strip()
-        if not stripped.startswith("#"):
-            break
-        preceding.append(stripped[1:].strip())
+    while index >= 0 and index in comments:
+        preceding.append((index, comments[index][1][1:].strip()))
         index -= 1
     preceding.reverse()
 
-    if not preceding or not any(preceding[0].startswith(tag) for tag in comment_tags):
-        return []
-    return preceding
+    start = next(
+        (
+            position
+            for position, (_, comment) in enumerate(preceding)
+            if any(comment.startswith(tag) for tag in comment_tags)
+        ),
+        None,
+    )
+    if start is None:
+        return [], ()
+
+    selected = preceding[start:]
+    tag_lines = tuple(
+        line_index
+        for line_index, comment in selected
+        if any(comment.startswith(tag) for tag in comment_tags)
+    )
+    return [comment for _, comment in selected], tag_lines
+
+
+def _mask_comment_tags(
+    source: str,
+    comments: dict[int, tuple[int, str]],
+    tag_lines: Collection[int],
+) -> str:
+    """Hide t-string translator tags from Babel's ordinary Python pass.
+
+    Babel does not recognize a t-string call, so without masking it leaves that
+    call's translator comment pending and can attach it to a later ordinary
+    gettext message.
+    """
+    if not tag_lines:
+        return source
+
+    # tokenize/astの行番号は\nのみを行区切りに数えるため、splitlinesではなく
+    # \nで分割する(\r\nの\rは行末の内容として保たれる)。
+    physical_lines = source.split("\n")
+    for index in tag_lines:
+        column, comment = comments[index]
+        line = physical_lines[index]
+        physical_lines[index] = (
+            line[: column + 1] + " " * (len(comment) - 1) + line[column + len(comment) :]
+        )
+    return "\n".join(physical_lines)
 
 
 def _context(node: ast.expr, *, filename: str) -> str:
@@ -239,24 +320,55 @@ def _extract_call(
     return None
 
 
+def _uses_tstring_argument(
+    call: ast.Call,
+    *,
+    tr_functions: set[str],
+    ntr_functions: set[str],
+    gettext_functions: set[str],
+    ngettext_functions: set[str],
+    pgettext_functions: set[str],
+    npgettext_functions: set[str],
+) -> bool:
+    """Return whether a recognized call uses a t-string in a message position."""
+    name = _call_name(call.func)
+    if _matches(name, tr_functions) or _matches(name, gettext_functions):
+        return bool(call.args and isinstance(call.args[0], ast.TemplateStr))
+    if _matches(name, ntr_functions) or _matches(name, ngettext_functions):
+        return any(isinstance(arg, ast.TemplateStr) for arg in call.args[:2])
+    if _matches(name, pgettext_functions):
+        return len(call.args) >= 2 and isinstance(call.args[1], ast.TemplateStr)
+    if _matches(name, npgettext_functions):
+        return any(isinstance(arg, ast.TemplateStr) for arg in call.args[1:3])
+    return False
+
+
+def _parse_source(source: str, *, filename: str, strict: bool) -> ast.Module | None:
+    try:
+        return ast.parse(source, filename=filename)
+    except SyntaxError as exc:
+        error = ExtractionError(
+            f"{filename}:{exc.lineno or 0}: skipped unparsable source ({exc.msg})"
+        )
+        if strict:
+            raise error from exc
+        warnings.warn(str(error), stacklevel=2)
+        return None
+
+
 def _extract_tstring_calls(
-    source: str,
+    tree: ast.Module,
+    comments: dict[int, tuple[int, str]],
     *,
     filename: str,
     keywords: Collection[str],
     comment_tags: Collection[str],
     options: Mapping[str, Any],
+    claimed_comment_tag_lines: set[int],
 ) -> Iterator[Extracted]:
     strict = _option_bool(options, "strict", False)
     available = frozenset(keywords)
-    try:
-        tree = ast.parse(source, filename=filename)
-    except SyntaxError as exc:
-        # A single unparsable file must not abort extraction of the whole project.
-        warnings.warn(f"{filename}: skipped unparsable source ({exc.msg})", stacklevel=2)
-        return
 
-    lines = source.splitlines()
     function_sets = {
         "tr_functions": _option_names(options, "tr_functions", "tr"),
         "ntr_functions": _option_names(options, "ntr_functions", "ntr"),
@@ -270,9 +382,15 @@ def _extract_tstring_calls(
 
     calls = (node for node in ast.walk(tree) if isinstance(node, ast.Call))
     for call in sorted(calls, key=lambda node: (node.lineno, node.col_offset)):
+        uses_tstring = _uses_tstring_argument(call, **function_sets)
         try:
             extracted = _extract_call(call, filename=filename, **function_sets)
         except ExtractionError as exc:
+            # 拒否されたt-string呼び出しのコメントもclaimし、Babel側の通常
+            # メッセージへ漏れ着くのを防ぐ。
+            if uses_tstring:
+                _, claimed = _translator_comment_block(comments, call.lineno, comment_tags)
+                claimed_comment_tag_lines.update(claimed)
             # One rejected call warns and is skipped; opt into strict to fail hard.
             if strict:
                 raise
@@ -281,6 +399,12 @@ def _extract_tstring_calls(
         if extracted is None:
             continue
 
+        translator_comments, claimed = _translator_comment_block(
+            comments,
+            call.lineno,
+            comment_tags,
+        )
+        claimed_comment_tag_lines.update(claimed)
         funcname, messages = extracted
         if funcname is not None and funcname not in available:
             warnings.warn(
@@ -291,9 +415,8 @@ def _extract_tstring_calls(
             )
             continue
 
-        comments = _translator_comments(lines, call.lineno, comment_tags)
-        comments.append(MARKER_COMMENT)
-        yield call.lineno, funcname, messages, comments
+        translator_comments.append(MARKER_COMMENT)
+        yield call.lineno, funcname, messages, translator_comments
 
 
 def extract_tstrings(
@@ -304,24 +427,39 @@ def extract_tstrings(
 ) -> Iterator[Extracted]:
     """Extract ordinary Python gettext calls and t-string tr()/ntr() calls."""
     data = fileobj.read()
-    source, raw = _decode_source(data)
     filename = getattr(fileobj, "name", None) or "(unknown)"
+    source, raw, encoding = _decode_source(data, options)
+    tree = _parse_source(
+        source,
+        filename=filename,
+        strict=_option_bool(options, "strict", False),
+    )
+    if tree is None:
+        return
 
+    comments = _comment_lines(source)
+    claimed_comment_tag_lines: set[int] = set()
+    tstring_messages = list(
+        _extract_tstring_calls(
+            tree,
+            comments,
+            filename=filename,
+            keywords=keywords,
+            comment_tags=comment_tags,
+            options=options,
+            claimed_comment_tag_lines=claimed_comment_tag_lines,
+        )
+    )
+    standard_source = _mask_comment_tags(source, comments, claimed_comment_tag_lines)
+    standard_raw = raw if standard_source == source else standard_source.encode(encoding)
     standard_messages = extract_python(
-        io.BytesIO(raw),
+        io.BytesIO(standard_raw),
         cast("Any", keywords),
         comment_tags,
         cast("Any", options),
     )
-    tstring_messages = _extract_tstring_calls(
-        source,
-        filename=filename,
-        keywords=keywords,
-        comment_tags=comment_tags,
-        options=options,
-    )
     yield from heapq.merge(
         cast("Iterator[Extracted]", standard_messages),
-        tstring_messages,
+        iter(tstring_messages),
         key=lambda item: item[0],
     )
