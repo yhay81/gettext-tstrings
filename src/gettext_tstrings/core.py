@@ -414,7 +414,12 @@ def _plan_for(
 def _compile_pattern(plan: _TemplatePlan | _PluralPlan, pattern: str) -> _RenderPlan:
     """Validate a translation pattern, turn it into a render plan, and cache it."""
     parsed = parse_pattern(pattern)
-    require_fields(required=plan.required, allowed=plan.allowed, actual=parsed.fields)
+    require_fields(
+        required=plan.required,
+        allowed=plan.allowed,
+        actual=parsed.fields,
+        pattern=pattern,
+    )
 
     by_name = {field.name: field for field in plan.fields}
     chunks = tuple(

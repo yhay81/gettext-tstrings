@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import keyword
+import unicodedata
 from dataclasses import dataclass
 from functools import lru_cache
 from string import Formatter
@@ -11,6 +12,49 @@ from .errors import InvalidTranslationError
 
 MARKER_COMMENT = "gettext-tstrings"
 _FORMATTER = Formatter()
+
+# Japanese mixes kana with han, and Korean mixes hangul with han, as a matter of
+# course. Treating those as "mixed scripts" would annotate ordinary names.
+_EAST_ASIAN = ("HIRAGANA", "KATAKANA", "CJK", "HANGUL", "IDEOGRAPHIC")
+
+
+def _scripts(name: str) -> set[str]:
+    """Return the writing systems the letters of a name are drawn from."""
+    found: set[str] = set()
+    for character in name:
+        if not character.isalpha():
+            continue
+        try:
+            script = unicodedata.name(character).split()[0]
+        except ValueError:  # pragma: no cover - unnamed characters are not letters
+            script = "?"
+        found.add("EAST ASIAN" if script.startswith(_EAST_ASIAN) else script)
+    return found
+
+
+def show_name(name: str) -> str:
+    """Render a placeholder name for a message the way a translator can act on.
+
+    Three cases, and the reason for each:
+
+    - A name holding something invisible — a no-break space, a zero-width space,
+      a soft hyphen — is shown with that character replaced in place by its code
+      point. Saying ``{name} has a space in it`` about a name that reads exactly
+      ``{name}`` is a dead end for the reader; they need to see *where*.
+    - A name whose letters come from more than one writing system, or that
+      changes under NFKC, gets an escaped form alongside the readable one. This
+      is the homoglyph case: a name spelled with a Cyrillic instead of a Latin
+      "a" is indistinguishable from ``{name}`` on screen, and only the escaped
+      form tells the two apart.
+    - Everything else is shown as written. ``{名前}`` and ``{café}`` are ordinary
+      names; escaping them would leave a reader unable to find what was meant.
+    """
+    if not name.isprintable():
+        visible = "".join(c if c.isprintable() else f"<U+{ord(c):04X}>" for c in name)
+        return f"{{{visible}}}"
+    if unicodedata.normalize("NFKC", name) != name or len(_scripts(name)) > 1:
+        return f"{{{name}}} ({ascii(name).strip(chr(39))})"
+    return f"{{{name}}}"
 
 
 @dataclass(frozen=True, slots=True)
@@ -31,7 +75,8 @@ def validate_name(name: str) -> str:
     normalized = name.strip()
     if not normalized.isidentifier() or keyword.iskeyword(normalized):
         raise InvalidTranslationError(
-            f"placeholder {name!r} is not a simple Python identifier",
+            f"placeholder {show_name(name)} must be a plain name, "
+            "copied from the source message unchanged",
         )
     return normalized
 
@@ -86,8 +131,8 @@ def parse_pattern(pattern: str) -> Pattern:
             # accepting it here would emit patterns no existing tool validates.
             if field_name != field_name.strip():
                 raise InvalidTranslationError(
-                    f"translation placeholder {{{field_name}}} must not pad its name "
-                    "with whitespace",
+                    f"placeholder {show_name(field_name)} has a space inside the "
+                    f"braces; write {show_name(field_name.strip())}",
                 )
             name = validate_name(field_name)
             fields.add(name)
@@ -95,9 +140,15 @@ def parse_pattern(pattern: str) -> Pattern:
         modified = _modified_field_name(pattern)
         if modified is not None:
             raise InvalidTranslationError(
-                f"translation placeholder {{{modified}}} must not add "
-                "a conversion or format specifier",
+                f"placeholder {{{modified}}} adds formatting; write "
+                f"{show_name(modified.split(chr(33))[0].split(chr(58))[0])} on its own, "
+                "because the source message decides how the value is formatted",
             )
+    except InvalidTranslationError:
+        # Already this package's own diagnosis. Re-wrapping would stack a
+        # generic prefix on a specific sentence and leave a __cause__ that
+        # repeats it, which pytest then prints as two tracebacks.
+        raise
     except (TypeError, ValueError) as exc:
         # TypeError means a Translations implementation returned something
         # other than str — dict.get(...) returning None, typically. Letting it
@@ -107,30 +158,53 @@ def parse_pattern(pattern: str) -> Pattern:
     return Pattern(tuple(chunks), frozenset(fields))
 
 
+# Braces a translator can end up with instead of the ASCII pair: the full-width
+# ones an East Asian input method produces by default, and the small and
+# ornamental forms. Enough to explain the mistakes that actually happen.
+# ruff flags these as ambiguous, which is exactly why the table exists.
+_LOOKALIKE_BRACES = str.maketrans(
+    {"｛": "{", "｝": "}", "﹛": "{", "﹜": "}", "❴": "{", "❵": "}"},  # noqa: RUF001
+)
+
+
+def _why_missing(name: str, pattern: str) -> str:
+    """Explain a placeholder the translation seems to contain but does not.
+
+    Reporting only that ``{name}`` is missing is a dead end when the reader can
+    see those very characters in front of them, which is what happens when an
+    input method supplied full-width braces or a round trip doubled them.
+    """
+    if f"{{{{{name}}}}}" in pattern:
+        return f" (it is written {{{{{name}}}}}, which is how a literal brace is escaped)"
+    if f"{{{name}}}" in pattern.translate(_LOOKALIKE_BRACES):
+        return " (the braces around it are not the ASCII { and })"
+    if name in pattern:
+        return " (the name appears, but not inside braces)"
+    return ""
+
+
 def require_fields(
     *,
     required: frozenset[str],
     allowed: frozenset[str],
     actual: frozenset[str],
-    label: str = "translation",
+    pattern: str = "",
 ) -> None:
     """Require all necessary fields and reject unknown ones.
 
     Placeholder occurrence counts are deliberately unrestricted: repeating a
     known value can be grammatically necessary in a target language.
+
+    ``pattern`` is the translation being checked. It is only read to explain a
+    missing placeholder, so callers that have nothing useful to pass may omit it.
     """
     missing = required - actual
     unexpected = actual - allowed
     if not missing and not unexpected:
         return
 
-    # A non-ASCII homoglyph is indistinguishable from its ASCII lookalike, so
-    # each name is escaped with ascii() before it is shown.
-    details: list[str] = []
-    if missing:
-        details.append(f"missing [{', '.join(ascii(n) for n in sorted(missing))}]")
-    if unexpected:
-        details.append(f"unexpected [{', '.join(ascii(n) for n in sorted(unexpected))}]")
+    details = [f"{show_name(n)} is missing{_why_missing(n, pattern)}" for n in sorted(missing)]
+    details += [f"{show_name(n)} is not in the source message" for n in sorted(unexpected)]
     raise InvalidTranslationError(
-        f"{label} placeholders do not match source: {', '.join(details)}",
+        f"translation does not match the source placeholders: {'; '.join(details)}",
     )

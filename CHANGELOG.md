@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+- Rewrite the messages a translator sees. A missing placeholder whose name is
+  visible in the text now says why it does not count — full-width braces from an
+  input method, braces doubled by a round trip, or a name written outside braces
+  at all. An invisible character is shown where it sits (`{name<U+00A0>}`)
+  rather than described as "whitespace" in a name that reads as `{name}`. A name
+  is printed as written, with an escaped form added only when it mixes writing
+  systems or folds under NFKC, so `{名前}` stays readable while a Cyrillic
+  lookalike does not hide. Plural messages name the `msgstr[N]` at fault, as GNU
+  msgfmt does, because Babel reports the msgid's line for the whole block. And a
+  diagnosis is no longer re-wrapped by this package's own generic handler, which
+  had been prefixing every specific sentence and leaving a `__cause__` that
+  repeated it.
 - Treat a catalog that answers with the wrong type as a broken catalog rather
   than letting it end the render. The previous fix covered values the pattern
   parser rejects, but an *unhashable* one — a `Translations` implementation

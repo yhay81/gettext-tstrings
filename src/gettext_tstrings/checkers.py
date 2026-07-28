@@ -33,13 +33,22 @@ def check_tstring(catalog: Catalog | None, message: Message) -> None:
         allowed = frozenset().union(*source_fields)
         required = frozenset.intersection(*source_fields)
 
-        for translation in _strings(message.string):
+        # Babel reports the msgid's line, so a plural block gives no clue which
+        # form is at fault. Name it, exactly as msgfmt does for the same reason.
+        # A singular block has one msgstr directly below, and needs no pointer.
+        plural = not isinstance(message.id, str)
+        for index, translation in enumerate(_strings(message.string)):
             if not translation:
                 continue
-            require_fields(
-                required=required,
-                allowed=allowed,
-                actual=parse_pattern(translation).fields,
-            )
+            try:
+                require_fields(
+                    required=required,
+                    allowed=allowed,
+                    actual=parse_pattern(translation).fields,
+                    pattern=translation,
+                )
+            except InvalidTranslationError as exc:
+                slot = f"msgstr[{index}]: " if plural else ""
+                raise TranslationError(f"{slot}{exc}") from exc
     except InvalidTranslationError as exc:
         raise TranslationError(str(exc)) from exc

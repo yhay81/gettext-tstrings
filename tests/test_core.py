@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import gettext
 import logging
+import re
 from importlib.metadata import version
 from types import SimpleNamespace
 from typing import Any, cast
@@ -201,13 +202,13 @@ def test_repeated_placeholder_must_keep_same_source_format() -> None:
 @pytest.mark.parametrize(
     ("translation", "message"),
     [
-        ("Hello", "missing"),
-        ("Hello {name} {extra}", "unexpected"),
-        ("Hello {name!r}", "must not add"),
-        ("Hello { name }", "whitespace"),
-        ("Hello {name }", "whitespace"),
-        ("Hello {name:}", "must not add"),
-        ("Hello {name.__class__}", "simple Python identifier"),
+        ("Hello", "is missing"),
+        ("Hello {name} {extra}", "not in the source message"),
+        ("Hello {name!r}", "adds formatting"),
+        ("Hello { name }", "space inside the braces"),
+        ("Hello {name }", "space inside the braces"),
+        ("Hello {name:}", "adds formatting"),
+        ("Hello {name.__class__}", "must be a plain name"),
         ("Hello {name", "invalid translation pattern"),
     ],
 )
@@ -263,7 +264,7 @@ def test_invalid_translation_warning_includes_the_reason(
     with caplog.at_level(logging.WARNING, logger="gettext_tstrings"):
         assert tr(t"Warn once {warned}", translations=translations) == "Warn once Ada"
 
-    assert "missing ['warned']" in caplog.text
+    assert "{warned} is missing" in caplog.text
 
 
 def test_invalid_translation_warns_once_and_keeps_rendering(
@@ -279,7 +280,7 @@ def test_invalid_translation_warns_once_and_keeps_rendering(
     assert rendered == ["Flood Ada"] * 5
     assert caplog.text.count("invalid translation") == 1
     # strict raises every time, whatever was recorded.
-    with pytest.raises(InvalidTranslationError, match="missing"):
+    with pytest.raises(InvalidTranslationError, match="is missing"):
         tr(t"Flood {flooded}", translations=translations, strict=True)
 
 
@@ -298,7 +299,7 @@ def test_contextual_invalid_translation_warns_once_and_keeps_rendering(
 
     assert rendered == ["Ctx Ada"] * 4
     assert caplog.text.count("invalid translation") == 1
-    with pytest.raises(InvalidTranslationError, match="missing"):
+    with pytest.raises(InvalidTranslationError, match="is missing"):
         tpgettext("nav", t"Ctx {ctxflood}", translations=translations, strict=True)
 
 
@@ -318,7 +319,7 @@ def test_plural_invalid_translation_warns_once_and_keeps_rendering(
 
     assert rendered == ["3 floods"] * 4
     assert caplog.text.count("invalid plural translation") == 1
-    with pytest.raises(InvalidTranslationError, match="unexpected"):
+    with pytest.raises(InvalidTranslationError, match="not in the source message"):
         tngettext(
             t"One flood",
             t"{nflood} floods",
@@ -353,7 +354,7 @@ def test_bound_translator_strict_mode_reraises() -> None:
     strict = Translator(StubTranslations({"Hello {name}": "Hello"}), strict=True)
     lenient = Translator(StubTranslations({"Hello {name}": "Hello"}))
 
-    with pytest.raises(InvalidTranslationError, match="missing"):
+    with pytest.raises(InvalidTranslationError, match="is missing"):
         strict(t"Hello {name}")
     assert lenient(t"Hello {name}") == "Hello Ada"
 
@@ -366,7 +367,7 @@ def test_invalid_plural_translation_falls_back_to_source() -> None:
 
     # The plural branch's translation drops {n}; lenient mode renders the source.
     assert ntr(t"{n} file", t"{n} files", n, translations=translations) == "2 files"
-    with pytest.raises(InvalidTranslationError, match="missing"):
+    with pytest.raises(InvalidTranslationError, match="is missing"):
         ntr(t"{n} file", t"{n} files", n, translations=translations, strict=True)
 
 
@@ -477,7 +478,7 @@ def test_leading_placeholder_may_not_carry_a_modifier(translation: str) -> None:
     name = "Ada"
     translations = StubTranslations({"{name} desu": translation})
 
-    with pytest.raises(InvalidTranslationError, match="conversion or format specifier"):
+    with pytest.raises(InvalidTranslationError, match="adds formatting"):
         tr(t"{name} desu", translations=translations, strict=True)
 
 
@@ -612,7 +613,7 @@ def test_invalid_contextual_translation_falls_back_to_source() -> None:
     translations = StubTranslations(contexts={("button", "Open {filename}"): "Ouvrir"})
 
     assert tpgettext("button", t"Open {filename}", translations=translations) == "Open report.txt"
-    with pytest.raises(InvalidTranslationError, match="missing"):
+    with pytest.raises(InvalidTranslationError, match="is missing"):
         tpgettext("button", t"Open {filename}", translations=translations, strict=True)
 
 
@@ -629,7 +630,7 @@ def test_invalid_contextual_plural_falls_back_to_source() -> None:
         tnpgettext("inbox", t"One message", t"{n} messages", n, translations=translations)
         == "2 messages"
     )
-    with pytest.raises(InvalidTranslationError, match="unexpected"):
+    with pytest.raises(InvalidTranslationError, match="not in the source message"):
         tnpgettext(
             "inbox",
             t"One message",
@@ -863,3 +864,60 @@ def test_shape_dict_clears_when_expression_limit_is_reached() -> None:
     shapes = core._PLANS[probe.strings]
     assert isinstance(shapes, dict)
     assert len(shapes) <= core._MAX_SHAPES_PER_KEY + 1
+
+
+@pytest.mark.parametrize(
+    ("translation", "expected"),
+    [
+        ("こんにちは ｛name｝", "the braces around it are not the ASCII"),  # noqa: RUF001
+        ("こんにちは {{name}}", "which is how a literal brace is escaped"),
+        ("こんにちは [name]", "the name appears, but not inside braces"),
+        ("こんにちは", "{name} is missing"),
+    ],
+    ids=["wide-braces", "doubled-braces", "no-braces", "really-absent"],
+)
+def test_a_missing_placeholder_says_why_when_the_name_is_visible(
+    translation: str,
+    expected: str,
+) -> None:
+    # Reporting only that {name} is missing is a dead end when the reader can
+    # see those characters in front of them. An East Asian input method gives
+    # full-width braces by default, and a round trip through a tool can double
+    # them; both look like a placeholder and are not one.
+    name = "Ada"
+    translations = StubTranslations({"Hello {name}": translation})
+
+    with pytest.raises(InvalidTranslationError, match=re.escape(expected)):
+        tr(t"Hello {name}", translations=translations, strict=True)
+
+
+@pytest.mark.parametrize(
+    ("field", "expected"),
+    [
+        ("{nam\u200be}", "<U+200B>"),
+        ("{name }", "<U+00A0>"),  # noqa: RUF001
+        ("{na­me}", "<U+00AD>"),
+    ],
+    ids=["zero-width-space", "no-break-space", "soft-hyphen"],
+)
+def test_an_invisible_character_is_shown_where_it_sits(field: str, expected: str) -> None:
+    # "{name} has a space in it, write {name}" is unreadable advice. The reader
+    # has to be told which character, and where.
+    name = "Ada"
+    translations = StubTranslations({"Hello {name}": f"Hello {field}"})
+
+    with pytest.raises(InvalidTranslationError, match=re.escape(expected)):
+        tr(t"Hello {name}", translations=translations, strict=True)
+
+
+def test_a_readable_non_ascii_name_is_not_escaped_but_a_homoglyph_is() -> None:
+    # Escaping every non-ASCII name leaves a reader unable to find what they
+    # wrote; escaping none of them hides a Cyrillic lookalike. Split on whether
+    # the name mixes writing systems or changes under NFKC.
+    from gettext_tstrings._patterns import show_name
+
+    assert show_name("名前") == "{名前}"
+    assert show_name("café") == "{café}"
+    assert show_name("ファイル数") == "{ファイル数}"
+    assert "\\u0430" in show_name("nаme")  # noqa: RUF001  Cyrillic among Latin
+    assert "\\uff4e" in show_name("ｎａｍｅ")  # noqa: RUF001  folds to "name"

@@ -39,7 +39,7 @@ def test_checker_accepts_reordered_placeholders() -> None:
 def test_checker_rejects_incompatible_placeholders(translation: str) -> None:
     message = marked_message("{category} moved to {target}", translation)
 
-    with pytest.raises(TranslationError, match="placeholder"):
+    with pytest.raises(TranslationError, match=r"placeholder|source message"):
         check_tstring(Catalog(locale="ja"), message)
 
 
@@ -58,7 +58,7 @@ def test_checker_validates_every_plural_form() -> None:
         ("{n} файл", "{n} файла", "файлов"),
     )
 
-    with pytest.raises(TranslationError, match="missing"):
+    with pytest.raises(TranslationError, match="is missing"):
         check_tstring(Catalog(locale="ru"), message)
 
 
@@ -99,7 +99,7 @@ def test_checker_guards_a_msgid_that_only_escapes_braces() -> None:
     # of defence, so it has to reject a translation that drops the escaping.
     message = marked_message("Config {{raw}} only", "設定 {raw} のみ")
 
-    with pytest.raises(TranslationError, match="unexpected"):
+    with pytest.raises(TranslationError, match="not in the source message"):
         check_tstring(Catalog(locale="ja"), message)
 
 
@@ -115,3 +115,33 @@ def test_checker_ignores_a_message_without_a_source_pattern() -> None:
     message = Message((), string="x", auto_comments=["gettext-tstrings"])
 
     check_tstring(None, message)
+
+
+def test_checker_names_the_plural_form_at_fault() -> None:
+    # Babel reports the msgid's line, so a plural block gives no clue which form
+    # is wrong. GNU msgfmt names the slot for the same reason; so does this.
+    message = marked_message(
+        ("{n} file", "{n} files"),
+        ("{n} файл", "файла", "{n} файлов"),
+    )
+
+    with pytest.raises(TranslationError, match=r"^msgstr\[1\]: "):
+        check_tstring(Catalog(locale="ru"), message)
+
+
+def test_checker_does_not_name_a_slot_for_a_singular_message() -> None:
+    # A singular block has one msgstr directly below the msgid; a pointer would
+    # be noise on every message.
+    message = marked_message("{name} moved", "移動しました")
+
+    with pytest.raises(TranslationError, match=r"^translation does not match"):
+        check_tstring(Catalog(locale="ja"), message)
+
+
+def test_checker_reports_a_msgid_that_is_not_a_valid_pattern() -> None:
+    # The extractor never writes one, but a .po is a text file and someone can
+    # hand-edit the msgid. Report it rather than letting pybabel see a traceback.
+    message = marked_message("Hello {name", "こんにちは {name}")
+
+    with pytest.raises(TranslationError, match="invalid translation pattern"):
+        check_tstring(Catalog(locale="ja"), message)
