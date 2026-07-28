@@ -48,9 +48,9 @@ def _option_names(options: Mapping[str, Any], key: str, default: str) -> set[str
 
 
 def _option_bool(options: Mapping[str, Any], key: str, default: bool) -> bool:
+    # ini/TOMLからは文字列で、既定値からはboolで届く。str(True)は"true"、
+    # str(False)は"false"なので、どちらも同じ判定でよい。
     value = options.get(key, default)
-    if isinstance(value, bool):
-        return value
     return str(value).strip().lower() in _TRUE
 
 
@@ -346,29 +346,6 @@ def _extract_call(
     return None
 
 
-def _uses_tstring_argument(
-    call: ast.Call,
-    *,
-    tr_functions: set[str],
-    ntr_functions: set[str],
-    gettext_functions: set[str],
-    ngettext_functions: set[str],
-    pgettext_functions: set[str],
-    npgettext_functions: set[str],
-) -> bool:
-    """Return whether a recognized call uses a t-string in a message position."""
-    name = _call_name(call.func)
-    if _matches(name, tr_functions) or _matches(name, gettext_functions):
-        return bool(call.args and isinstance(call.args[0], ast.TemplateStr))
-    if _matches(name, ntr_functions) or _matches(name, ngettext_functions):
-        return any(isinstance(arg, ast.TemplateStr) for arg in call.args[:2])
-    if _matches(name, pgettext_functions):
-        return len(call.args) >= 2 and isinstance(call.args[1], ast.TemplateStr)
-    if _matches(name, npgettext_functions):
-        return any(isinstance(arg, ast.TemplateStr) for arg in call.args[1:3])
-    return False
-
-
 def _matches_configured_function(name: str | None, function_sets: _FunctionSets) -> bool:
     return (
         _matches(name, function_sets["tr_functions"])
@@ -425,18 +402,17 @@ def _extract_tstring_calls(
         return _translator_comment_block(comments, call.lineno, comment_tags)
 
     for call in calls:
-        uses_tstring = _uses_tstring_argument(call, **function_sets)
         try:
             extracted = _extract_call(call, filename=filename, **function_sets)
         except ExtractionError as exc:
-            # 拒否された翻訳呼び出しのコメントもclaimし、Babel側の通常
-            # メッセージへ漏れ着くのを防ぐ。ただしplain string呼び出しが
-            # Babelキーワードでもある場合は、通常抽出結果へコメントを残す。
+            # 拒否された呼び出しのコメントもclaimし、Babel側の通常メッセージへ
+            # 漏れ着くのを防ぐ。ただし名前がBabelキーワードでもあるなら、Babel
+            # 自身が同じ行にエントリを出してコメントを消費するので任せる。
             name = _call_name(call.func)
             standard = name is not None and (
                 name in available or name.rsplit(".", 1)[-1] in available
             )
-            if uses_tstring or not standard:
+            if not standard:
                 _, claimed = translator_comment_block(call)
                 claimed_comment_tag_lines.update(claimed)
             # One rejected call warns and is skipped; opt into strict to fail hard.

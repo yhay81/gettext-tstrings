@@ -36,11 +36,12 @@ def validate_name(name: str) -> str:
     return normalized
 
 
-def _has_explicit_field_modifier(pattern: str) -> bool:
-    """単一波括弧のフィールド内に ``!`` または ``:`` があるかを返す。
+def _modified_field_name(pattern: str) -> str | None:
+    """変換(``!``)か書式指定(``:``)を持つ最初のフィールド名を返す。無ければ ``None``。
 
-    ``Formatter.parse()`` は ``{name}`` と ``{name:}`` のformat_specを
-    どちらも空文字列にするため、後者だけは元パターンから補う必要がある。
+    ``Formatter.parse()`` は ``{name}`` と ``{name:}`` のformat_specをどちらも
+    空文字列にするため、修飾子の有無は元パターンを読むしかない。それなら
+    ``Formatter`` 側の判定は要らないので、検出はこの1箇所に集約する。
     二重波括弧内はリテラルなので読み飛ばす。
     """
     index = 0
@@ -53,12 +54,13 @@ def _has_explicit_field_modifier(pattern: str) -> bool:
             continue
 
         index += 1
+        start = index
         while index < len(pattern) and pattern[index] != "}":
             if pattern[index] in "!:":
-                return True
+                return pattern[start:index]
             index += 1
         index += 1
-    return False
+    return None
 
 
 @lru_cache(maxsize=4096)
@@ -71,7 +73,9 @@ def parse_pattern(pattern: str) -> Pattern:
     chunks: list[tuple[str, str | None]] = []
     fields: set[str] = set()
     try:
-        for literal, field_name, format_spec, conversion in _FORMATTER.parse(pattern):
+        # 修飾子は _modified_field_name が元パターンから読むので、Formatterが
+        # 返す format_spec / conversion は使わない。
+        for literal, field_name, _spec, _conversion in _FORMATTER.parse(pattern):
             if field_name is None:
                 chunks.append((literal, None))
                 continue
@@ -85,16 +89,13 @@ def parse_pattern(pattern: str) -> Pattern:
                     "with whitespace",
                 )
             name = validate_name(field_name)
-            if format_spec or conversion:
-                raise InvalidTranslationError(
-                    f"translation placeholder {{{name}}} must not add "
-                    "a conversion or format specifier",
-                )
             fields.add(name)
             chunks.append((literal, name))
-        if _has_explicit_field_modifier(pattern):
+        modified = _modified_field_name(pattern)
+        if modified is not None:
             raise InvalidTranslationError(
-                "translation placeholders must not add a conversion or format specifier",
+                f"translation placeholder {{{modified}}} must not add "
+                "a conversion or format specifier",
             )
     except (TypeError, ValueError) as exc:
         # TypeError は Translations 実装が str 以外(dict.get の None など)を

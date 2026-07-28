@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+- Remove four pieces of code the mutation run proved had no effect. The
+  extractor's `_uses_tstring_argument` (21 lines) never changed a result: a call
+  whose name is also a Babel keyword always gets an entry from Babel's own pass
+  on the same line, which consumes the translator comment either way. The
+  `isinstance` half of the template type guard was unreachable — `Template`
+  cannot be subclassed on 3.14, 3.15, or the free-threaded build. `_option_bool`
+  special-cased `bool` to reach the same answer the following line already gives.
+  And translation patterns were checked for modifiers twice; folding the two
+  into one detector that also reports the offending name means `{name:}` now
+  says which placeholder is at fault instead of falling back to a generic
+  message. Verified by differential testing: 299,593 patterns and 1,054
+  extraction inputs, no change in what is accepted, rejected, or produced.
+
 - Guard the claim that the plan caches never retain interpolated values. It
   holds — all nine render paths release their values — but nothing was checking
   it: a regression that stores a template's interpolations on its cached plan

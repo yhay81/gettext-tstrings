@@ -563,7 +563,7 @@ class CompiledTemplate:
 
 
 def _bind_template(template: Template) -> _TemplatePlan:
-    if type(template) is not Template and not isinstance(template, Template):
+    if type(template) is not Template:
         raise TypeError(f"expected string.templatelib.Template, got {type(template).__name__}")
     return _plan_for(template.strings, template.interpolations)
 
@@ -628,7 +628,7 @@ def gettext(
     placeholders do not match the source, a lenient render (the default) falls
     back to the source text; ``strict=True`` re-raises ``InvalidTranslationError``.
     """
-    if type(template) is not Template and not isinstance(template, Template):
+    if type(template) is not Template:
         raise TypeError(f"expected string.templatelib.Template, got {type(template).__name__}")
     interpolations = template.interpolations
     plan = _plan_for(template.strings, interpolations)
@@ -700,7 +700,7 @@ def pgettext(
     strict: bool = False,
 ) -> str:
     """Translate and render one contextual t-string."""
-    if type(template) is not Template and not isinstance(template, Template):
+    if type(template) is not Template:
         raise TypeError(f"expected string.templatelib.Template, got {type(template).__name__}")
     interpolations = template.interpolations
     plan = _plan_for(template.strings, interpolations)
