@@ -32,6 +32,7 @@ def test_checker_accepts_reordered_placeholders() -> None:
         "{category}を移動しました",
         "{category}を{target}と{extra}へ移動しました",
         "{category}を{target!r}へ移動しました",
+        "{category}を{target:}へ移動しました",
     ],
 )
 def test_checker_rejects_incompatible_placeholders(translation: str) -> None:

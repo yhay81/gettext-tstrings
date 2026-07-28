@@ -36,6 +36,31 @@ def validate_name(name: str) -> str:
     return normalized
 
 
+def _has_explicit_field_modifier(pattern: str) -> bool:
+    """単一波括弧のフィールド内に ``!`` または ``:`` があるかを返す。
+
+    ``Formatter.parse()`` は ``{name}`` と ``{name:}`` のformat_specを
+    どちらも空文字列にするため、後者だけは元パターンから補う必要がある。
+    二重波括弧内はリテラルなので読み飛ばす。
+    """
+    index = 0
+    while index < len(pattern):
+        if pattern[index] != "{":
+            index += 1
+            continue
+        if index + 1 < len(pattern) and pattern[index + 1] == "{":
+            index += 2
+            continue
+
+        index += 1
+        while index < len(pattern) and pattern[index] != "}":
+            if pattern[index] in "!:":
+                return True
+            index += 1
+        index += 1
+    return False
+
+
 @lru_cache(maxsize=4096)
 def parse_pattern(pattern: str) -> Pattern:
     """Parse and cache a restricted brace pattern.
@@ -59,6 +84,10 @@ def parse_pattern(pattern: str) -> Pattern:
                 )
             fields.add(name)
             chunks.append((literal, name))
+        if _has_explicit_field_modifier(pattern):
+            raise InvalidTranslationError(
+                "translation placeholders must not add a conversion or format specifier",
+            )
     except ValueError as exc:
         raise InvalidTranslationError(f"invalid translation pattern: {exc}") from exc
     return Pattern(tuple(chunks), frozenset(fields))

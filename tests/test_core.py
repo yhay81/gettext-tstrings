@@ -121,6 +121,7 @@ def test_literal_braces_round_trip() -> None:
 
     assert compiled.msgid == "Config {{raw}} is {value}"
     assert compiled.render(compiled.msgid) == "Config {raw} is on"
+    assert compiled.render("Literal {{name:}} {value}") == "Literal {name:} on"
 
 
 def test_compiled_template_exposes_stable_placeholder_order() -> None:
@@ -152,6 +153,7 @@ def test_repeated_placeholder_must_keep_same_source_format() -> None:
         ("Hello", "missing"),
         ("Hello {name} {extra}", "unexpected"),
         ("Hello {name!r}", "must not add"),
+        ("Hello {name:}", "must not add"),
         ("Hello {name.__class__}", "simple Python identifier"),
         ("Hello {name", "invalid translation pattern"),
     ],
