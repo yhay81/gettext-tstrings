@@ -2,10 +2,16 @@ name: CI
 
 on:
   push:
+    branches: [main]
   pull_request:
+  workflow_call:
 
 permissions:
   contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   test:
@@ -13,32 +19,69 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
+        python-version: ["3.14"]
+        include:
+          # t-strings are new, so track the next release and the free-threaded
+          # build, where this package's module-level plan caches are shared.
+          - os: ubuntu-latest
+            python-version: "3.14t"
+          - os: ubuntu-latest
+            python-version: "3.15"
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-python@v6
-        with:
-          python-version: "3.14"
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.0.1
       - uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
         with:
           enable-cache: true
+          python-version: ${{ matrix.python-version }}
       - run: uv sync --locked
       - run: uv run ruff format --check .
       - run: uv run ruff check .
       - run: uv run mypy
       - run: uv run pytest --cov=gettext_tstrings --cov-report=term-missing
       - run: uv build
-      - name: Smoke test the built wheel in a clean environment
+      - name: Smoke test the built wheel without Babel
         shell: bash
         run: |
-          uv venv smoke
-          if [ -x smoke/bin/python ]; then PY=smoke/bin/python; else PY=smoke/Scripts/python.exe; fi
+          uv venv smoke-runtime
+          if [ -x smoke-runtime/bin/python ]; then PY=smoke-runtime/bin/python; else PY=smoke-runtime/Scripts/python.exe; fi
           uv pip install --python "$PY" dist/*.whl
-          cat > smoke_check.py <<'EOF'
+          cat > smoke_runtime.py <<'EOF'
+          import sys
+
           import gettext_tstrings
 
           name = "World"
+          n = 3
           assert gettext_tstrings.tr(t"Hello {name}") == "Hello World"
-          print("smoke OK", gettext_tstrings.__version__)
+          assert gettext_tstrings.ntr(t"{n} file", t"{n} files", n) == "3 files"
+          # Rendering must not need Babel: it is an extraction-time dependency
+          # only, declared as the [babel] extra.
+          assert not [m for m in sys.modules if m.startswith("babel")]
+          print("runtime smoke OK", gettext_tstrings.__version__)
           EOF
-          "$PY" smoke_check.py
+          "$PY" smoke_runtime.py
+
+      - name: Smoke test the built wheel with the babel extra
+        shell: bash
+        run: |
+          uv venv smoke-babel
+          if [ -x smoke-babel/bin/python ]; then PY=smoke-babel/bin/python; else PY=smoke-babel/Scripts/python.exe; fi
+          uv pip install --python "$PY" "$(ls dist/*.whl)[babel]"
+          cat > smoke_babel.py <<'EOF'
+          from io import BytesIO
+
+          from babel.messages.checkers import checkers
+          from babel.messages.extract import extract
+
+          import gettext_tstrings
+
+          # Registration as a Babel plugin is the product; the test suite only
+          # ever sees the editable install's entry points, never the wheel's.
+          assert list(extract("gettext_tstrings", BytesIO(b'n = 1\ntr(t"Hi {n}")\n'))) == [
+              (2, "Hi {n}", ["gettext-tstrings"], None)
+          ]
+          assert "check_tstring" in [c.__name__ for c in checkers]
+          print("babel smoke OK", gettext_tstrings.__version__)
+          EOF
+          "$PY" smoke_babel.py

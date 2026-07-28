@@ -22,7 +22,11 @@ classifiers = [
   "Programming Language :: Python :: 3.14",
   "Topic :: Software Development :: Internationalization",
 ]
-dependencies = [
+dependencies = []
+
+[project.optional-dependencies]
+# 抽出とカタログ検証(pybabel)にのみ必要。実行時の描画はstdlibのgettextだけで動く。
+babel = [
   "Babel>=2.18",
 ]
 
@@ -38,6 +42,8 @@ gettext_tstrings = "gettext_tstrings.checkers:check_tstring"
 
 [dependency-groups]
 dev = [
+  # 抽出器とチェッカーのテストに必要(実行時の描画には不要)。
+  "Babel>=2.18",
   "mypy>=1.17",
   "pytest>=8.4",
   "pytest-cov>=6.2",

@@ -29,15 +29,44 @@ jobs:
       - run: uv run mypy
       - run: uv run pytest --cov=gettext_tstrings --cov-report=term-missing
       - run: uv build
-      - name: Smoke test the built wheel in a clean environment
+      - name: Smoke test the built wheel without Babel
         run: |
-          uv venv smoke --python 3.14
-          uv pip install --python smoke/bin/python dist/*.whl
-          cat > smoke_check.py <<'EOF'
+          uv venv smoke-runtime --python 3.14
+          uv pip install --python smoke-runtime/bin/python dist/*.whl
+          cat > smoke_runtime.py <<'EOF'
+          import sys
+
           import gettext_tstrings
 
           name = "World"
           assert gettext_tstrings.tr(t"Hello {name}") == "Hello World"
+          # Rendering must not need Babel: it is an extraction-time dependency
+          # only, declared as the [babel] extra.
+          assert not [m for m in sys.modules if m.startswith("babel")]
+          print("runtime smoke OK", gettext_tstrings.__version__)
+          EOF
+          smoke-runtime/bin/python smoke_runtime.py
+
+      - name: Smoke test the built wheel with the babel extra
+        run: |
+          uv venv smoke --python 3.14
+          uv pip install --python smoke/bin/python "$(ls dist/*.whl)[babel]"
+          cat > smoke_check.py <<'EOF'
+          from io import BytesIO
+
+          from babel.messages.checkers import checkers
+          from babel.messages.extract import extract
+
+          import gettext_tstrings
+
+          name = "World"
+          assert gettext_tstrings.tr(t"Hello {name}") == "Hello World"
+          # Registration as a Babel plugin is the product; the test suite only
+          # ever sees the editable install's entry points, never the wheel's.
+          assert list(extract("gettext_tstrings", BytesIO(b'n = 1\ntr(t"Hi {n}")\n'))) == [
+              (2, "Hi {n}", ["gettext-tstrings"], None)
+          ]
+          assert "check_tstring" in [c.__name__ for c in checkers]
           print("smoke OK", gettext_tstrings.__version__)
           EOF
           smoke/bin/python smoke_check.py

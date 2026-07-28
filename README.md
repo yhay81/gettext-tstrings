@@ -39,7 +39,16 @@ t-string becomes a catalog message.
 python -m pip install gettext-tstrings
 ```
 
-Python 3.14 or newer is required.
+Python 3.14 or newer is required. Rendering has **no dependencies** — it uses
+the standard library's `gettext` and nothing else.
+
+Extraction and catalog validation run through [Babel](https://babel.pocoo.org/),
+so install that extra wherever you run `pybabel` (typically a dev or CI
+environment, not your production image):
+
+```console
+python -m pip install "gettext-tstrings[babel]"
+```
 
 ## Pythonic runtime API
 
@@ -171,6 +180,7 @@ tr(t"Hello {name}", translations=translations, strict=True)
 
 ## Extract with Babel
 
+Extraction needs the `babel` extra (`pip install "gettext-tstrings[babel]"`).
 Create `babel.cfg`:
 
 ```ini

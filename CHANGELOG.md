@@ -1,5 +1,26 @@
 # Changelog
 
+## Unreleased
+
+- **Breaking:** Babel is no longer a runtime dependency. Rendering never
+  imported it — only the extractor and the catalog checker do — so it moved to
+  a `babel` extra. Install `gettext-tstrings[babel]` wherever `pybabel` runs;
+  a production image that only renders messages now installs no dependencies
+  at all.
+
+- Accept list values for the `*_functions` extraction options. A `babel.toml`
+  or `pyproject.toml` mapping passes them as lists, and stringifying the list
+  made every configured name fail to match, so `tr_functions = ["tr"]` silently
+  dropped every t-string message — with no warning and a zero exit status, and
+  without `strict` catching it either.
+- Cover the `plain` rendering fast path with a source format specifier applied
+  to a `str` value. Every render path shares that fast path, but no test used
+  the combination, so losing it would have silently ignored format specifiers
+  across the whole API.
+- Assert the Babel extractor and checker entry points in the built wheel's smoke
+  test. Registration as a Babel plugin is the product, and the test suite only
+  ever resolves the editable install's entry points, never the wheel's.
+
 ## 0.1.0a3 - 2026-07-28
 
 - Reject mixed plain-string/t-string plural calls during extraction instead of
