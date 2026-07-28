@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import ast
 import codecs
+import heapq
 import io
 import tokenize
 import warnings
@@ -17,9 +18,6 @@ from ._patterns import MARKER_COMMENT, escape_literal, validate_name
 from .errors import InvalidTranslationError
 
 Extracted = tuple[int, str | None, str | tuple[str, ...], list[str]]
-PositionedExtracted = tuple[int, int, int, str | None, str | tuple[str, ...], list[str]]
-StandardCallPosition = tuple[int, int, bool, str]
-TokenEnd = tuple[int, int]
 
 # Truthy strings accepted for boolean extraction options.
 _TRUE = frozenset({"1", "true", "yes", "on"})
@@ -402,7 +400,7 @@ def _extract_tstring_calls(
     options: Mapping[str, Any],
     function_sets: _FunctionSets,
     claimed_comment_tag_lines: set[int],
-) -> Iterator[PositionedExtracted]:
+) -> Iterator[Extracted]:
     strict = _option_bool(options, "strict", False)
     available = frozenset(keywords)
 
@@ -459,124 +457,7 @@ def _extract_tstring_calls(
             continue
 
         translator_comments.append(MARKER_COMMENT)
-        yield (
-            call.lineno,
-            call.lineno,
-            call.col_offset,
-            funcname,
-            messages,
-            translator_comments,
-        )
-
-
-def _position_standard_source(
-    tree: ast.Module,
-    source: str,
-    keywords: Collection[str],
-    function_sets: _FunctionSets,
-) -> tuple[str, dict[str, None], dict[str, StandardCallPosition]]:
-    """Babelキーワードを一意名へ置換し、各結果を元の位置へ戻す情報を返す。
-
-    Babelの公開抽出形式は列を持たず、同名呼び出しの一部がネスト構造に
-    よって出力されないこともある。関数名ごとの序数では後続結果と位置が
-    ずれるため、各NAMEトークンを一意なキーワードへ置換してBabel自身に
-    対応を保持させる。置換は改行を変えないのでメッセージ行は維持される。
-    """
-    available = frozenset(keywords)
-    physical_lines = source.split("\n")
-    tokens = list(tokenize.generate_tokens(io.StringIO(source).readline))
-    existing_names = {token.string for token in tokens if token.type == tokenize.NAME}
-
-    prefix = "__gettext_tstrings_position_"
-    while any(name.startswith(prefix) for name in existing_names):
-        prefix = f"_{prefix}"
-
-    replacements: dict[int, list[tuple[int, int, str]]] = {}
-    positioned_keywords: dict[str, None] = {}
-    positions: dict[str, StandardCallPosition] = {}
-    unique_by_end: dict[TokenEnd, tuple[str, str, int, int]] = {}
-    counter = 0
-    for token in tokens:
-        if token.type != tokenize.NAME or token.string not in available:
-            continue
-        unique = f"{prefix}{counter}"
-        counter += 1
-        line = physical_lines[token.end[0] - 1]
-        end_byte_column = len(line[: token.end[1]].encode())
-        unique_by_end[(token.end[0], end_byte_column)] = (
-            unique,
-            token.string,
-            token.start[0],
-            len(line[: token.start[1]].encode()),
-        )
-        replacements.setdefault(token.start[0] - 1, []).append(
-            (token.start[1], token.end[1], unique),
-        )
-        positioned_keywords[unique] = None
-
-    calls = sorted(
-        (node for node in ast.walk(tree) if isinstance(node, ast.Call)),
-        key=lambda node: (node.lineno, node.col_offset),
-    )
-    for call in calls:
-        name = _call_name(call.func)
-        if name is None:
-            continue
-
-        end_lineno = call.func.end_lineno
-        end_col_offset = call.func.end_col_offset
-        if end_lineno is None or end_col_offset is None:
-            continue
-        positioned = unique_by_end.get((end_lineno, end_col_offset))
-        if positioned is None:
-            continue
-        unique, source_basename, _, _ = positioned
-        # astは識別子をNFKC正規化する一方、Babelはソース上のNAMEトークンを
-        # そのままキーワードと照合する。Babelが実際に返す呼び出しだけを
-        # 一意名へ置換して位置対応へ含める。
-        positions[unique] = (
-            call.lineno,
-            call.col_offset,
-            _uses_tstring_argument(call, **function_sets),
-            source_basename,
-        )
-
-    # AST Callに対応しないキーワードトークンも、Babelが結果を返した場合に
-    # 元の関数名と字句位置へ戻せるようフォールバック位置を持たせる。
-    for unique, source_basename, lineno, column in unique_by_end.values():
-        positions.setdefault(unique, (lineno, column, False, source_basename))
-
-    for line_index, line_replacements in replacements.items():
-        line = physical_lines[line_index]
-        for start, end, replacement in reversed(line_replacements):
-            line = line[:start] + replacement + line[end:]
-        physical_lines[line_index] = line
-    return "\n".join(physical_lines), positioned_keywords, positions
-
-
-def _position_standard_messages(
-    messages: Collection[Extracted],
-    positions: Mapping[str, StandardCallPosition],
-) -> list[PositionedExtracted]:
-    """Babelの通常抽出結果に位置を補い、t-string側の中間結果を除く。"""
-    positioned: list[PositionedExtracted] = []
-    for lineno, funcname, message, comments in messages:
-        key = funcname or ""
-        position = positions.get(key)
-
-        # Babelの通常抽出器は、t-stringを解釈できなくても関数名だけを
-        # 認識した中間項目を返す。対応するt-string結果はAST側で出す。
-        if position is not None and position[2]:
-            continue
-        # ネストした通常gettext呼び出しでは、Babelが最終結果にならない
-        # lineno=Noneの中間項目を返すことがある。公開extract()も捨てる。
-        if lineno is None:
-            continue
-
-        sort_line, column = position[:2] if position is not None else (lineno, -1)
-        original_funcname = position[3] if position is not None else funcname
-        positioned.append((lineno, sort_line, column, original_funcname, message, comments))
-    return positioned
+        yield call.lineno, funcname, messages, translator_comments
 
 
 def extract_tstrings(
@@ -613,31 +494,22 @@ def extract_tstrings(
         )
     )
     standard_source = _mask_comment_tags(source, comments, claimed_comment_tag_lines)
-    positioned_source, positioned_keywords, standard_positions = _position_standard_source(
-        tree,
-        standard_source,
-        keywords,
-        configured_functions,
+    standard_messages = cast(
+        "Iterator[Extracted]",
+        extract_python(
+            io.BytesIO(standard_source.encode(encoding)),
+            cast("Any", keywords),
+            comment_tags,
+            cast("Any", options),
+        ),
     )
-    standard_raw = positioned_source.encode(encoding)
-    standard_messages = list(
-        cast(
-            "Iterator[Extracted]",
-            extract_python(
-                io.BytesIO(standard_raw),
-                cast("Any", positioned_keywords),
-                comment_tags,
-                cast("Any", options),
-            ),
-        )
+    # Messages are merged by line. Two translation calls on one physical line
+    # come out in an unspecified order — POT entries are keyed by file and line,
+    # and `pybabel extract --sort-output` normalizes the rest.
+    yield from heapq.merge(
+        # Babel yields an intermediate entry with no line number for a nested
+        # ordinary call; its own public extract() drops those, and so do we.
+        (message for message in standard_messages if message[0] is not None),
+        iter(tstring_messages),
+        key=lambda item: item[0],
     )
-    positioned_standard = _position_standard_messages(
-        standard_messages,
-        standard_positions,
-    )
-    combined = sorted(
-        (*positioned_standard, *tstring_messages),
-        key=lambda item: (item[1], item[2]),
-    )
-    for lineno, _, _, funcname, message, translator_comments in combined:
-        yield lineno, funcname, message, translator_comments

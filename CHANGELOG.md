@@ -20,6 +20,16 @@
 - Assert the Babel extractor and checker entry points in the built wheel's smoke
   test. Registration as a Babel plugin is the product, and the test suite only
   ever resolves the editable install's entry points, never the wheel's.
+- Merge extracted messages by line again, dropping the pass that rewrote every
+  Babel keyword to a unique name so results could be mapped back to a column.
+  That machinery bought nothing but the ordering of entries that share one
+  physical line: across 4,895 files and generated programs the extracted
+  messages are identical either way, and a line holding two translation calls
+  occurs on roughly 0.5% of lines in a real internationalized codebase — an
+  ordering `pybabel extract --sort-output` normalizes anyway. Extraction is
+  about 1.5x faster and the extractor is 128 lines shorter, with one less
+  dependency on Babel's internal behavior. Translator-comment ownership on a
+  shared line, which was fixed at the same time, is unchanged and still tested.
 - Publish `conformance/v1.json`, spec v1 in machine-readable form, so another
   extractor, IDE, type checker, or future `pygettext` can demonstrate that it
   targets the same convention. The cases name only derived msgids, accepted and
@@ -38,7 +48,6 @@
 - Exercise the declared dependency lower bounds, run the microbenchmarks (no
   threshold — only bit-rot detection), type-check `tests/`, turn warnings into
   errors under pytest, and raise the coverage floor from 95% to 98%.
-
 
 ## 0.1.0a3 - 2026-07-28
 

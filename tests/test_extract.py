@@ -33,6 +33,21 @@ def extract_messages(
     )
 
 
+def extract_messages_unordered(
+    source: str,
+    *,
+    options: dict[str, Any] | None = None,
+) -> list[tuple[int, str | tuple[str, ...], list[str], str | None]]:
+    """Extraction results with same-line ordering normalized away.
+
+    Messages are merged by line, so two translation calls on one physical line
+    come out in an unspecified order. A PO entry is keyed by file and line and
+    there is no third coordinate to order by, so only the set of messages and
+    the translator comment each one owns are contractual.
+    """
+    return sorted(extract_messages(source, options=options), key=repr)
+
+
 def test_extracts_tstrings_and_ordinary_gettext_in_source_order() -> None:
     source = """\
 def greet(name, n):
@@ -298,22 +313,27 @@ gettext("World")
         ),
     ],
 )
-def test_same_line_calls_keep_source_order_and_comment_owner(
+def test_same_line_calls_keep_comment_ownership(
     calls: str,
     expected: list[tuple[int, str, list[str], str | None]],
 ) -> None:
+    # The translator comment belongs to the leftmost call on the line and must
+    # not follow the other one, whichever order they are reported in.
     source = f"# Translators: First call.\n{calls}\n"
 
-    assert extract_messages(source) == expected
+    assert extract_messages_unordered(source) == sorted(expected, key=repr)
 
 
 def test_nested_ordinary_gettext_does_not_break_same_line_merge() -> None:
     source = 'gettext(gettext("Inner")); tr(t"After")\n'
 
-    assert extract_messages(source) == [
-        (1, "Inner", [], None),
-        (1, "After", ["gettext-tstrings"], None),
-    ]
+    assert extract_messages_unordered(source) == sorted(
+        [
+            (1, "Inner", [], None),
+            (1, "After", ["gettext-tstrings"], None),
+        ],
+        key=repr,
+    )
 
 
 @pytest.mark.parametrize(
@@ -335,20 +355,27 @@ def test_nested_ordinary_gettext_does_not_break_same_line_merge() -> None:
         ),
     ],
 )
-def test_suppressed_nested_gettext_does_not_shift_later_message_positions(
+def test_suppressed_nested_gettext_does_not_lose_later_messages(
     source: str,
     expected: list[tuple[int, str, list[str], str | None]],
 ) -> None:
-    assert extract_messages(source) == expected
+    # Babel returns an intermediate entry with no line number for a nested
+    # ordinary call. Dropping it must not take a real message with it.
+    assert extract_messages_unordered(source) == sorted(expected, key=repr)
 
 
-def test_nfkc_equivalent_name_does_not_consume_a_standard_message_position() -> None:
+def test_nfkc_equivalent_name_does_not_lose_a_standard_message() -> None:
+    # The AST normalizes this call's name to "gettext" while Babel matches the
+    # source token, so only one of the two passes recognizes each call.
     source = 'ｇｅｔｔｅｘｔ(t"Wide"); gettext("Last")\n'  # noqa: RUF001
 
-    assert extract_messages(source) == [
-        (1, "Wide", ["gettext-tstrings"], None),
-        (1, "Last", [], None),
-    ]
+    assert extract_messages_unordered(source) == sorted(
+        [
+            (1, "Wide", ["gettext-tstrings"], None),
+            (1, "Last", [], None),
+        ],
+        key=repr,
+    )
 
 
 def test_rejected_tstring_comment_does_not_leak_to_ordinary_gettext() -> None:
@@ -377,10 +404,13 @@ translate("Plain"); tr(t"Middle"); gettext("Later")
             options={"tr_functions": "translate tr"},
         )
 
-    assert messages == [
-        (2, "Middle", ["gettext-tstrings"], None),
-        (2, "Later", [], None),
-    ]
+    assert sorted(messages, key=repr) == sorted(
+        [
+            (2, "Middle", ["gettext-tstrings"], None),
+            (2, "Later", [], None),
+        ],
+        key=repr,
+    )
 
 
 def test_fake_comment_inside_string_literal_is_ignored_and_does_not_crash() -> None:
