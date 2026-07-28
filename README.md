@@ -247,8 +247,8 @@ and compilation.
 
 ## Your existing toolchain validates these catalogs
 
-Babel (≥2.17) automatically marks extracted t-string messages with the standard
-`python-brace-format` flag:
+Babel (≥2.18, the declared floor) automatically marks extracted t-string
+messages with the standard `python-brace-format` flag:
 
 ```po
 #: app.py:4
@@ -257,10 +257,11 @@ msgid "Hello {name}"
 msgstr ""
 ```
 
-That one flag activates placeholder validation across the entire gettext
-ecosystem, with no configuration:
+That flag is what standard gettext tooling keys on, so a broken translation is
+caught without any extra configuration:
 
-- **GNU msgfmt** (≥0.19) rejects a broken translation at compile time:
+- **GNU msgfmt** (≥0.19) rejects it at compile time — verified against
+  gettext-tools, and covered by this project's test suite:
 
   ```console
   $ msgfmt --check-format -o /dev/null ja.po
@@ -268,16 +269,19 @@ ecosystem, with no configuration:
   msgfmt: found 1 fatal error
   ```
 
-- **Weblate** runs its dedicated [Python brace format
-  check](https://docs.weblate.org/en/latest/user/checks.html) on every
-  translation, flagging mismatched placeholders as translators type.
-- **Crowdin, Transifex, and POEditor** highlight `{name}` placeholders and run
-  variables-mismatch QA checks on PO files.
+- **The Babel checker shipped with this package** applies the stricter t-string
+  rules during `pybabel compile`: no translation-side conversions or format
+  specs, and the plural required/allowed placeholder sets.
 
-The Babel checker shipped with this package adds the stricter t-string rules on
-top (no translation-side conversions or format specs, plural
-required/allowed placeholder sets), so `pybabel compile` catches what generic
-brace-format checks cannot.
+Beyond those two, the flag is a documented PO convention rather than something
+this project can vouch for: Weblate documents a [Python brace format
+check](https://docs.weblate.org/en/latest/user/checks.html), and the commercial
+platforms have their own placeholder QA. Behavior there is theirs, not verified
+here.
+
+Note that `msgfmt` only checks placeholder names it can parse as Python brace
+format. Sticking to ASCII placeholder names keeps every tool in the chain able
+to validate the message.
 
 ## Performance
 
@@ -294,7 +298,12 @@ PEP 750:
   per-interpolation verification, so a warm call builds no cache keys;
 - translated brace patterns are parsed and validated once, then cached on
   their plan;
-- both caches are bounded and never retain interpolated values;
+- both caches are bounded and never retain interpolated values — with one
+  documented exception: a nested format spec (`t"{x:{width}}"`) is evaluated by
+  the interpreter before the library sees it, so that evaluated spec is part of
+  the cached plan's identity;
+- a translation that fails validation is remembered too, so a broken catalog
+  entry warns once instead of re-validating on every render;
 - each distinct value is formatted at most once per render, even when a
   translation repeats its placeholder;
 - constant, one-field, and two-field messages use specialized rendering paths.

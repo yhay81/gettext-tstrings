@@ -6,8 +6,9 @@ are small and stable on purpose: another implementation, an IDE, a type checker,
 or a future `pygettext` can target "spec v1" and interoperate with the catalogs
 this library produces and consumes.
 
-The reference implementation lives in `src/gettext_tstrings/`. Where prose and
-code disagree, the code is authoritative and the prose is a bug.
+This document is normative. The reference implementation lives in
+`src/gettext_tstrings/` and is tested against these rules; where the two
+disagree, the implementation has the bug. Please report it.
 
 ## 1. Terms
 
@@ -39,6 +40,19 @@ segments and one placeholder token per interpolation.
 3. **Repeated names.** The same `name` may appear more than once. Every
    occurrence must carry the identical `conversion` and `format_spec`; a repeat
    with different formatting is an error (the msgid would be ambiguous).
+   Equality is over the `format_spec`'s **source text**, so a repeated name may
+   not carry a nested (runtime-evaluated) format spec such as `t"{x:{width}}"` —
+   an extractor sees only the source and cannot know what it evaluates to.
+4. **Placeholder names are not normalized.** `name` is the interpolation's
+   expression text with surrounding whitespace stripped; it is not NFKC-folded,
+   even though Python itself normalizes the identifier it names. An
+   implementation reading the AST must use the source spelling, so that the same
+   source always derives the same msgid.
+
+Placeholder names should be ASCII. Non-ASCII names are accepted (Python
+identifiers permit them), but GNU `msgfmt` will not validate a message whose
+placeholder names it cannot parse as Python brace format, so the guarantees of
+§4 then rest on this project's checker alone.
 
 Examples:
 
@@ -68,10 +82,12 @@ A pattern retrieved from a catalog is validated against the source before
 rendering. A pattern is **valid** when:
 
 1. It contains only bare placeholders `{name}`. A translation placeholder **must
-   not** carry a conversion or a format spec, and `name` must be a simple
-   placeholder name (§2.2). Positional (`{0}`, `{}`), attribute, and index
-   fields are rejected. Formatting is the source's responsibility, never the
-   translator's.
+   not** carry a conversion or a format spec — including an explicitly empty one
+   (`{name:}`) — and `name` must be a simple placeholder name (§2.2) written
+   without surrounding whitespace: `{ name }` is rejected, because `str.format`
+   and GNU `msgfmt` both reject it. Positional (`{0}`, `{}`), attribute, and
+   index fields are rejected. Formatting is the source's responsibility, never
+   the translator's.
 2. Its placeholder set satisfies the source contract:
    - **allowed** = the union of the placeholder names across the source
      branches (for a singular message, simply the source's names).
