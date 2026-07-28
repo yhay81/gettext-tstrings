@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.1.0a2 - 2026-07-28
 
 - Rework the rendering hot path for roughly 1.7x lower overhead, measured on
   CPython 3.14: plans are looked up by the template's `strings` tuple with
@@ -21,6 +21,9 @@
   catalog header).
 - Benchmark the bound `Translator` and `ngettext` paths in
   `benchmarks/runtime.py`.
+- Document the zero-configuration validation pipeline: Babel's automatic
+  `python-brace-format` flag activates placeholder checks in GNU msgfmt,
+  Weblate, Crowdin, Transifex, and POEditor.
 
 ## 0.1.0a1 - 2026-07-28
 

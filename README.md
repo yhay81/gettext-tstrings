@@ -244,6 +244,40 @@ comment. The installed Babel checker uses that marker to reject incompatible
 placeholders and translation-controlled formatting during catalog validation
 and compilation.
 
+## Your existing toolchain validates these catalogs
+
+Babel (≥2.17) automatically marks extracted t-string messages with the standard
+`python-brace-format` flag:
+
+```po
+#: app.py:4
+#, python-brace-format
+msgid "Hello {name}"
+msgstr ""
+```
+
+That one flag activates placeholder validation across the entire gettext
+ecosystem, with no configuration:
+
+- **GNU msgfmt** (≥0.19) rejects a broken translation at compile time:
+
+  ```console
+  $ msgfmt --check-format -o /dev/null ja.po
+  ja.po:24: a format specification for argument 'name' doesn't exist in 'msgstr'
+  msgfmt: found 1 fatal error
+  ```
+
+- **Weblate** runs its dedicated [Python brace format
+  check](https://docs.weblate.org/en/latest/user/checks.html) on every
+  translation, flagging mismatched placeholders as translators type.
+- **Crowdin, Transifex, and POEditor** highlight `{name}` placeholders and run
+  variables-mismatch QA checks on PO files.
+
+The Babel checker shipped with this package adds the stricter t-string rules on
+top (no translation-side conversions or format specs, plural
+required/allowed placeholder sets), so `pybabel compile` catches what generic
+brace-format checks cannot.
+
 ## Performance
 
 The overhead is sub-microsecond per call: roughly 0.4 µs for a one-field
