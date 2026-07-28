@@ -32,9 +32,14 @@ jobs:
           name: site
           path: site/
 
+  # Publishing needs a Cloudflare API token in secrets. Until one exists this
+  # job skips instead of failing, so the build above still guards every pull
+  # request. Switch it on with:
+  #
+  #   gh variable set DEPLOY_DOCS --body true
   deploy:
     needs: build
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' && vars.DEPLOY_DOCS == 'true'
     runs-on: ubuntu-latest
     environment:
       name: cloudflare-pages
