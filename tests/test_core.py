@@ -481,7 +481,11 @@ def test_leading_placeholder_may_not_carry_a_modifier(translation: str) -> None:
         tr(t"{name} desu", translations=translations, strict=True)
 
 
-@pytest.mark.parametrize("returned", [None, b"bytes", 42], ids=["none", "bytes", "int"])
+@pytest.mark.parametrize(
+    "returned",
+    [None, b"bytes", 42, ["one", "many"], {"a": 1}],
+    ids=["none", "bytes", "int", "unhashable-list", "unhashable-dict"],
+)
 def test_a_catalog_returning_a_non_string_never_escapes_the_strict_switch(
     returned: object,
 ) -> None:
@@ -496,7 +500,7 @@ def test_a_catalog_returning_a_non_string_never_escapes_the_strict_switch(
             return cast("str", returned)
 
     assert tr(t"Hello {name}", translations=NonStringCatalog()) == "Hello Ada"
-    with pytest.raises(InvalidTranslationError, match="invalid translation pattern"):
+    with pytest.raises(InvalidTranslationError, match="not str"):
         tr(t"Hello {name}", translations=NonStringCatalog(), strict=True)
 
 

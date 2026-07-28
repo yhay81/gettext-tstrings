@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+- Treat a catalog that answers with the wrong type as a broken catalog rather
+  than letting it end the render. The previous fix covered values the pattern
+  parser rejects, but an *unhashable* one — a `Translations` implementation
+  returning the list of plural forms it forgot to index, say — crashed earlier,
+  in the cache lookup that happens before any validation, with a `TypeError`
+  about dict keys and nothing about translation in it. Fuzzing the four
+  translating functions over 20,104 catalog answers now produces no exception
+  under the default lenient mode.
+
 ## 0.1.0a4 - 2026-07-29
 
 ### Breaking

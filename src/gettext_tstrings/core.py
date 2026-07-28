@@ -524,6 +524,37 @@ def _render_with_values(
     return _render_chunks(render_plan, values)
 
 
+def _usable_pattern(pattern: object, msgid: str, *, strict: bool) -> str:
+    """Reduce a catalog's answer to something the rest of the render can use.
+
+    ``Translations`` is a public protocol implemented by user code, and what it
+    returns becomes a dict key, a set member, and parser input — all of which
+    assume ``str``. An implementation that hands back the list of plural forms
+    it forgot to index would otherwise end the render inside a cache lookup,
+    with a ``TypeError`` about unhashable types and nothing about translation in
+    it. SPEC §5 promises a broken catalog never crashes a render, and a catalog
+    that answers with the wrong type is broken like any other.
+
+    Falling back to the msgid renders the source text, which is what every other
+    unusable translation does. Unlike a bad *translation*, this warns on every
+    call rather than once: it is a defect in the calling program, not in data a
+    translator supplied, and it will not fix itself.
+    """
+    if type(pattern) is str:
+        return pattern
+    error = InvalidTranslationError(
+        f"catalog returned {type(pattern).__name__}, not str",
+    )
+    if strict:
+        raise error
+    _LOGGER.warning(
+        "invalid translation for msgid %r; using source text: %s",
+        msgid,
+        error,
+    )
+    return msgid
+
+
 def _source_render_plan(plan: _TemplatePlan) -> _RenderPlan:
     """The render plan for the source msgid, which cannot fail validation."""
     render_plan = plan.patterns.get(plan.msgid)
@@ -656,7 +687,11 @@ def gettext(
 
     if translations is None:
         translations = _current_get()
-    pattern = translations.gettext(msgid) if translations is not None else _std_gettext(msgid)
+    pattern = _usable_pattern(
+        translations.gettext(msgid) if translations is not None else _std_gettext(msgid),
+        msgid,
+        strict=strict,
+    )
 
     render_plan = plan.patterns.get(pattern)
     if render_plan is None:
@@ -728,10 +763,12 @@ def pgettext(
 
     if translations is None:
         translations = _current_get()
-    pattern = (
+    pattern = _usable_pattern(
         translations.pgettext(context, msgid)
         if translations is not None
-        else _std_pgettext(context, msgid)
+        else _std_pgettext(context, msgid),
+        msgid,
+        strict=strict,
     )
 
     render_plan = plan.patterns.get(pattern)
@@ -912,6 +949,8 @@ def _ngettext_impl(
             if translations is not None
             else _std_npgettext(context, singular_plan.msgid, plural_plan.msgid, n)
         )
+
+    pattern = _usable_pattern(pattern, singular_plan.msgid, strict=strict)
 
     render_plan = merged.patterns.get(pattern)
     if render_plan is None:
