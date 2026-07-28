@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import codecs
 import io
+from typing import Any
 
 import pytest
 from babel.messages.extract import DEFAULT_KEYWORDS, extract
@@ -13,7 +14,7 @@ from gettext_tstrings.extract import ExtractionError, extract_tstrings
 def extract_messages(
     source: str,
     *,
-    options: dict[str, str] | None = None,
+    options: dict[str, Any] | None = None,
 ) -> list[tuple[int, str | tuple[str, ...], list[str], str | None]]:
     return list(
         extract(
@@ -76,6 +77,30 @@ def greet(name):
     messages = extract_messages(source, options={"tr_functions": "translate"})
 
     assert messages[0][1] == "Hello {name}"
+
+
+@pytest.mark.parametrize(
+    "options",
+    [
+        {"tr_functions": "tr translate"},
+        {"tr_functions": ["tr", "translate"]},
+        {"ntr_functions": ["ntr"]},
+    ],
+    ids=["ini-string", "toml-list", "toml-list-restating-the-default"],
+)
+def test_function_options_accept_toml_list_values(options: dict[str, Any]) -> None:
+    # babel.toml / pyproject.toml の [[mappings]] はオプションをリストで渡す。
+    # 文字列化していたため ``["tr"]`` と書くだけで名前が一致しなくなり、
+    # 警告も終了コードも出さずにメッセージが丸ごと消えていた。
+    source = """\
+def greet(name, n):
+    return tr(t"Hello {name}"), ntr(t"{n} file", t"{n} files", n)
+"""
+
+    assert [message[1] for message in extract_messages(source, options=options)] == [
+        "Hello {name}",
+        ("{n} file", "{n} files"),
+    ]
 
 
 def test_qualified_default_call_is_extracted() -> None:

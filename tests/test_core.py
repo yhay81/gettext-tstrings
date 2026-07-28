@@ -115,6 +115,23 @@ def test_formatting_and_conversion_stay_in_source() -> None:
     assert result == "'total': 1,234.50"
 
 
+def test_str_values_still_apply_the_source_format_spec() -> None:
+    # str値は各描画経路の高速路(_Field.plain)でformat()を飛ばして素通しされる。
+    # そこが壊れると全APIで書式指定が静かに無視されるため、経路ごとに固定する。
+    # 既存の書式指定テストはfloatか``!r``付きなので、この組み合わせは通らない。
+    name = "Ada"
+    second = "Bo"
+    third = "Cy"
+    null = gettext.NullTranslations()
+
+    assert tr(t"[{name:>5}]", translations=null) == "[  Ada]"
+    assert tpgettext("nav", t"[{name:>5}]", translations=null) == "[  Ada]"
+    assert compile_template(t"[{name:>5}]").render("[{name}]") == "[  Ada]"
+    assert tngettext(t"[{name:>5}]", t"[{name:>5}]s", 1, translations=null) == "[  Ada]"
+    assert tngettext(t"[{name:>5}]", t"[{name:>5}]s", 2, translations=null) == "[  Ada]s"
+    assert tr(t"{name:>5}{second:>4}{third:>4}", translations=null) == "  Ada  Bo  Cy"
+
+
 def test_literal_braces_round_trip() -> None:
     value = "on"
     compiled = compile_template(t"Config {{raw}} is {value}")

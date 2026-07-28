@@ -39,8 +39,11 @@ class _FunctionSets(TypedDict):
 
 
 def _option_names(options: Mapping[str, Any], key: str, default: str) -> set[str]:
-    value = str(options.get(key, default))
-    return {item.strip() for item in value.replace(",", " ").split() if item.strip()}
+    value = options.get(key, default)
+    # babel.toml / pyproject.toml の [[mappings]] はオプション値をリストで渡してくる。
+    # ini の空白区切り文字列と同じに扱わないと、名前が丸ごと一致しなくなる。
+    text = " ".join(str(item) for item in value) if isinstance(value, list | tuple) else str(value)
+    return {item.strip() for item in text.replace(",", " ").split() if item.strip()}
 
 
 def _option_bool(options: Mapping[str, Any], key: str, default: bool) -> bool:
