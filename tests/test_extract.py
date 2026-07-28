@@ -308,6 +308,7 @@ def test_ignores_dynamic_call_targets() -> None:
         ("tr(t'{(name)}')", "simple variable names"),
         ("tr()", "requires a t-string"),
         ("ntr(t'{n} file', t'{n} files')", "singular, plural, and count"),
+        ('ngettext("One file", t"{n} files", n)', "must be a t-string"),
         ("ntr(t'{n:.1f} file', t'{n:.2f} files', n)", "different formatting"),
         ("tr(t'{n:.1f} {n:.2f}')", "different formatting"),
         ('pgettext(context, t"Open {name}")', "context must be a string literal"),
@@ -315,6 +316,7 @@ def test_ignores_dynamic_call_targets() -> None:
             'npgettext("inbox", t"One", t"{n} messages")',
             "context, singular, plural, and count",
         ),
+        ('npgettext("inbox", "One", t"{n} messages", n)', "must be a t-string"),
     ],
 )
 def test_invalid_calls_fail_extraction_in_strict_mode(source: str, message: str) -> None:
@@ -334,6 +336,18 @@ def view(user, name):
         messages = extract_messages(source)
 
     assert [message[1] for message in messages] == ["Hello {name}"]
+
+
+@pytest.mark.parametrize(
+    "source",
+    [
+        'ngettext("One file", t"{n} files", n)',
+        'npgettext("inbox", "One", t"{n} messages", n)',
+    ],
+)
+def test_mixed_plain_and_tstring_plural_arguments_warn_and_are_skipped(source: str) -> None:
+    with pytest.warns(UserWarning, match="must be a t-string"):
+        assert extract_messages(source) == []
 
 
 @pytest.mark.parametrize("source", ["name = \n", "name = (\n", '"""unterminated\n'])

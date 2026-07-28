@@ -283,10 +283,8 @@ def _extract_call(
         return "ngettext", _plural_messages(
             call.args[0], call.args[1], filename=filename, node=call
         )
-    if (
-        _matches(name, ngettext_functions)
-        and len(call.args) >= 2
-        and isinstance(call.args[0], ast.TemplateStr)
+    if _matches(name, ngettext_functions) and any(
+        isinstance(arg, ast.TemplateStr) for arg in call.args[:2]
     ):
         if len(call.args) < 3:
             raise _fail(filename, call, "ngettext() requires singular, plural, and count arguments")
@@ -301,10 +299,8 @@ def _extract_call(
         context = _context(call.args[0], filename=filename)
         message, _ = _template_pattern(call.args[1], filename=filename)
         return "pgettext", (context, message)
-    if (
-        _matches(name, npgettext_functions)
-        and len(call.args) >= 3
-        and isinstance(call.args[1], ast.TemplateStr)
+    if _matches(name, npgettext_functions) and any(
+        isinstance(arg, ast.TemplateStr) for arg in call.args[1:3]
     ):
         if len(call.args) < 4:
             raise _fail(
