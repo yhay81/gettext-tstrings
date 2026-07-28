@@ -371,6 +371,37 @@ def test_plural_translation() -> None:
     assert ntr(t"{n} file", t"{n} files", n, translations=translations) == "3 fichiers"
 
 
+def test_plural_common_placeholders_use_the_selected_source_values() -> None:
+    value = "singular"
+    singular = t"{value} item"
+    value = "plural"
+    plural = t"{value} items"
+    translations = gettext.NullTranslations()
+
+    assert ntr(singular, plural, 1, translations=translations) == "singular item"
+    assert ntr(singular, plural, 2, translations=translations) == "plural items"
+
+    first = "singular-first"
+    second = "singular-second"
+    singular_pair = t"{first} {second} item"
+    first = "plural-first"
+    second = "plural-second"
+    plural_pair = t"{first} {second} items"
+    reordered = StubTranslations(
+        plurals={
+            ("{first} {second} item", "{first} {second} items"): (
+                "{second}:{first}",
+                "{second}:{first}:{first}",
+            ),
+        },
+    )
+
+    assert (
+        ntr(singular_pair, plural_pair, 2, translations=reordered)
+        == "plural-second:plural-first:plural-first"
+    )
+
+
 def test_plural_translation_reorders_and_repeats_multiple_fields() -> None:
     n = 3
     total = 10

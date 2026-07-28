@@ -100,6 +100,7 @@ class _Field:
         "index",
         "name",
         "plain",
+        "plural_value_index",
         "template_index",
         "value_index",
     )
@@ -108,6 +109,7 @@ class _Field:
     conversion: Conversion
     format_spec: str
     value_index: int
+    plural_value_index: int | None
     template_index: int
     index: int
     plain: bool
@@ -120,11 +122,13 @@ class _Field:
         value_index: int,
         template_index: int,
         index: int,
+        plural_value_index: int | None = None,
     ) -> None:
         self.name = name
         self.conversion = conversion
         self.format_spec = format_spec
         self.value_index = value_index
+        self.plural_value_index = plural_value_index
         self.template_index = template_index
         self.index = index
         self.plain = conversion is None and not format_spec
@@ -747,6 +751,7 @@ def _merge_plural_plans(singular: _TemplatePlan, plural: _TemplatePlan) -> _Plur
             raise InvalidTemplateError(
                 f"plural source placeholder {field.name!r} uses different formatting",
             )
+        previous.plural_value_index = field.value_index
 
     plural_names = frozenset(plural.names)
     required = frozenset(name for name in singular.names if name in plural_names)
@@ -756,6 +761,7 @@ def _merge_plural_plans(singular: _TemplatePlan, plural: _TemplatePlan) -> _Plur
 def _render_plural_chunks(
     render_plan: _RenderPlan,
     values: tuple[tuple[Any, ...], tuple[Any, ...]],
+    use_plural_values: bool,
 ) -> str:
     rendered: list[str] = []
     formatted: list[str | None] | None = (
@@ -766,7 +772,10 @@ def _render_plural_chunks(
         if field is not None:
             value = formatted[field.index] if formatted is not None else None
             if value is None:
-                raw = values[field.template_index][field.value_index]
+                if use_plural_values and field.plural_value_index is not None:
+                    raw = values[1][field.plural_value_index]
+                else:
+                    raw = values[field.template_index][field.value_index]
                 if field.plain and type(raw) is str:
                     value = raw
                 else:
@@ -781,14 +790,18 @@ def _render_plural_pattern(
     render_plan: _RenderPlan,
     singular_template: Template,
     plural_template: Template,
+    n: int,
 ) -> str:
     constant = render_plan.constant
     if constant is not None:
         return constant
     field = render_plan.single
     if field is not None:
-        source = singular_template if field.template_index == 0 else plural_template
-        value = source.interpolations[field.value_index].value
+        if n != 1 and field.plural_value_index is not None:
+            value = plural_template.interpolations[field.plural_value_index].value
+        else:
+            source = singular_template if field.template_index == 0 else plural_template
+            value = source.interpolations[field.value_index].value
         if field.plain and type(value) is str:
             return render_plan.prefix + value + render_plan.suffix
         return (
@@ -799,6 +812,7 @@ def _render_plural_pattern(
     return _render_plural_chunks(
         render_plan,
         (singular_template.values, plural_template.values),
+        n != 1,
     )
 
 
@@ -874,7 +888,7 @@ def _ngettext_impl(
                     exc,
                 )
             return _render_plural_source(singular_plan, singular, plural_plan, plural, n)
-    return _render_plural_pattern(render_plan, singular, plural)
+    return _render_plural_pattern(render_plan, singular, plural, n)
 
 
 def ngettext(

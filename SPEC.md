@@ -96,6 +96,11 @@ Given a valid pattern and the t-string's runtime values:
 - Each placeholder renders its value formatted with that field's source-side
   `conversion` then `format_spec` (equivalent to `format(convert(value, conv),
   spec)`).
+- For plurals, a placeholder present in both source branches reads the value
+  captured by the source-language branch (`singular` when `n == 1`, otherwise
+  `plural`). A branch-specific placeholder always reads the value from the
+  branch where it is defined, even when a target-language plural form makes that
+  optional placeholder available in another form.
 - Each distinct value is formatted **at most once** per render, even when a
   translation repeats its placeholder.
 - On a validation failure at render time, the behavior is caller-selected:
