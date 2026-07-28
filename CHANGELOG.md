@@ -2,6 +2,36 @@
 
 ## Unreleased
 
+- Close six detection gaps a mutation run found behind 100% coverage. Escaped
+  braces beside a literal colon (`"{{{{:{a}"`) — the brace-skipping walk in the
+  translation parser could take the wrong stride and reject a valid translation,
+  and no test or conformance case mixed the two forms. `pgettext` with an empty
+  msgid, whose reservation guard was pinned only on the `gettext` side, so a
+  catalog's metadata header could reach the UI. A plural-branch-only placeholder
+  rendered through the general path. **`ntr`/`ngettext`/`npgettext` resolving
+  context-bound translations** — `use_translations()` was covered for `tr` and
+  the lazy helpers only, leaving the per-request path that web frameworks depend
+  on untested. The `n == 1` branch selection. And boolean extractor options
+  arriving as strings from an ini file, where `strict = "false"` must stay false.
+- Widen ruff from 7 rule groups to 46, with 9 ignores and 2 per-file entries,
+  each justified in place. The additions cost nothing here (every new group
+  reports zero) but they guard real classes of mistake — including `INT`, which
+  catches `_(f"...")`, the anti-pattern this library exists to replace.
+  `S` (bandit) is deliberately not selected: all 194 hits are pytest's `assert`,
+  and ignoring it wholesale would permanently hide the one failure mode that
+  matters (`assert` vanishing under `python -O`).
+- Add `ty` as a second type checker. It reports override incompatibilities mypy
+  does not, which is how the test doubles were found renaming
+  `NullTranslations`'s parameters. They now implement the published
+  `Translations` protocol directly instead of subclassing the standard library —
+  the interface users actually implement, and no base class to violate.
+- Turn on mypy's `strict_equality_for_none`, which caught a type that was simply
+  untrue: Babel's ordinary pass yields an entry with no line number for a nested
+  call, so the extractor's declared tuple type was wider in practice.
+- Drop zizmor's severity floor and stop persisting credentials on checkout. The
+  three `artipacked` findings were real: the release job checks out with a token
+  in `.git/config` and then uploads an artifact.
+
 - Skip Babel's ordinary-gettext pass, rather than aborting the whole
   `pybabel extract` run, when a source only `tokenize` rejects. `ast.parse`
   accepts a few files that `tokenize` does not — a form feed followed by a bare

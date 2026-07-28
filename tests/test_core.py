@@ -16,6 +16,7 @@ from gettext_tstrings import (
     compile_template,
     ntr,
     tr,
+    use_translations,
 )
 from gettext_tstrings import gettext as tgettext
 from gettext_tstrings import ngettext as tngettext
@@ -23,7 +24,11 @@ from gettext_tstrings import npgettext as tnpgettext
 from gettext_tstrings import pgettext as tpgettext
 
 
-class StubTranslations(gettext.NullTranslations):
+class StubTranslations:
+    # 公開Protocol(gettext_tstrings.Translations)だけを実装する。
+    # gettext.NullTranslations を継承すると、typeshedが宣言する
+    # msgid1/msgid2 という引数名の改名がLSP違反になる(位置専用化でも直らない)。
+    # 利用者が実装するのはこのProtocolなので、こちらを直接満たす方が忠実。
     def __init__(
         self,
         messages: dict[str, str] | None = None,
@@ -31,25 +36,24 @@ class StubTranslations(gettext.NullTranslations):
         contexts: dict[tuple[str, str], str] | None = None,
         context_plurals: dict[tuple[str, str, str], tuple[str, str]] | None = None,
     ) -> None:
-        super().__init__()
         self.messages = messages or {}
         self.plurals = plurals or {}
         self.contexts = contexts or {}
         self.context_plurals = context_plurals or {}
 
-    def gettext(self, message: str) -> str:
+    def gettext(self, message: str, /) -> str:
         return self.messages.get(message, message)
 
-    def ngettext(self, singular: str, plural: str, n: int) -> str:
+    def ngettext(self, singular: str, plural: str, n: int, /) -> str:
         translated = self.plurals.get((singular, plural))
         if translated is None:
             return singular if n == 1 else plural
         return translated[0] if n == 1 else translated[1]
 
-    def pgettext(self, context: str, message: str) -> str:
+    def pgettext(self, context: str, message: str, /) -> str:
         return self.contexts.get((context, message), message)
 
-    def npgettext(self, context: str, singular: str, plural: str, n: int) -> str:
+    def npgettext(self, context: str, singular: str, plural: str, n: int, /) -> str:
         translated = self.context_plurals.get((context, singular, plural))
         if translated is None:
             return singular if n == 1 else plural
@@ -479,8 +483,8 @@ def test_a_catalog_returning_a_non_string_never_escapes_the_strict_switch(
     # 漏れると「壊れたカタログは描画を落とさない」契約から外れる。
     name = "Ada"
 
-    class NonStringCatalog(gettext.NullTranslations):
-        def gettext(self, message: str) -> str:
+    class NonStringCatalog(StubTranslations):
+        def gettext(self, message: str, /) -> str:
             return cast("str", returned)
 
     assert tr(t"Hello {name}", translations=NonStringCatalog()) == "Hello Ada"
@@ -501,6 +505,71 @@ def test_pattern_dict_clears_when_its_limit_is_reached() -> None:
 
     assert len(plan.patterns) <= core._MAX_PATTERNS_PER_PLAN
     assert tr(t"Bounded {name}", translations=gettext.NullTranslations()) == "Bounded Ada"
+
+
+@pytest.mark.parametrize(
+    ("pattern", "expected"),
+    [("{{{{:{a}", "{{:X"), ("{a}{{:", "X{:"), ("{{:}}{a}", "{:}X")],
+    ids=["escapes-then-colon", "field-then-escape-colon", "escape-colon-brace"],
+)
+def test_escaped_braces_may_sit_beside_a_literal_colon(pattern: str, expected: str) -> None:
+    # _has_explicit_field_modifier の走査は ``{{`` を2文字、``}`` を1文字ぶん
+    # 読み飛ばす。歩幅がずれるとリテラルのコロンをフィールド内の書式指定と
+    # 誤認し、正しい翻訳を拒否する。エスケープした波括弧とリテラルの
+    # コロンが同居する形はどのテストにもconformanceにも無かった。
+    a = "X"
+    translations = StubTranslations({"{a}": pattern})
+
+    assert tr(t"{a}", translations=translations, strict=True) == expected
+
+
+def test_contextual_empty_msgid_never_reaches_the_catalog() -> None:
+    # 空msgidはカタログのメタデータヘッダ用に予約されている(SPEC §2)。
+    # gettext側のガードは固定済みだったが pgettext 側は未固定で、
+    # 外すとヘッダ文字列がそのままUIへ出る。
+    header = "Content-Type: text/plain; charset=UTF-8\n"
+    translations = StubTranslations(contexts={("nav", ""): header})
+
+    assert tpgettext("nav", t"", translations=translations) == ""
+
+
+def test_plural_only_placeholder_renders_through_the_general_path() -> None:
+    # 複数形ブランチにしか無いプレースホルダを、3要素以上で一般描画路
+    # (_render_plural_chunks)に通す。ブランチの取り違えはここでしか出ない。
+    shared = "S"
+    only = "O"
+    n = 2
+    translations = StubTranslations(
+        plurals={("One {shared}", "{shared} and {only}"): ("x", "{only}/{shared}")},
+    )
+
+    rendered = tngettext(
+        t"One {shared}",
+        t"{shared} and {only}",
+        n,
+        translations=translations,
+        strict=True,
+    )
+
+    assert rendered == "O/S"
+
+
+def test_plural_functions_resolve_the_context_bound_translations() -> None:
+    # use_translations() は tr と lazy_* でしか検証されておらず、
+    # ntr/ngettext/npgettext がコンテキスト束縛を解決する経路が未検証だった。
+    # リクエスト単位で言語を切り替えるフレームワーク統合の中核。
+    n = 2
+    translations = StubTranslations(
+        plurals={("One file", "{n} files"): ("1件", "{n}件")},
+        context_plurals={("inbox", "One message", "{n} messages"): ("1通", "{n}通")},
+    )
+
+    with use_translations(translations):
+        assert tngettext(t"One file", t"{n} files", n) == "2件"
+        assert tnpgettext("inbox", t"One message", t"{n} messages", n) == "2通"
+
+    # 束縛を抜ければグローバルのフォールバックへ戻る。
+    assert tngettext(t"One file", t"{n} files", n) == "2 files"
 
 
 def test_pattern_cache_eviction_preserves_correctness() -> None:

@@ -18,6 +18,9 @@ from ._patterns import MARKER_COMMENT, escape_literal, validate_name
 from .errors import InvalidTranslationError
 
 Extracted = tuple[int, str | None, str | tuple[str, ...], list[str]]
+# Babel's ordinary pass reports an intermediate entry with no line number for a
+# nested call, so what it actually yields is wider than what this plugin emits.
+_RawExtracted = tuple[int | None, str | None, str | tuple[str, ...], list[str]]
 
 # Truthy strings accepted for boolean extraction options.
 _TRUE = frozenset({"1", "true", "yes", "on"})
@@ -479,7 +482,7 @@ def _extract_standard_calls(
     try:
         messages = list(
             cast(
-                "Iterator[Extracted]",
+                "Iterator[_RawExtracted]",
                 extract_python(
                     io.BytesIO(standard_source.encode(encoding)),
                     cast("Any", keywords),
@@ -496,7 +499,7 @@ def _extract_standard_calls(
         return []
     # Babel yields an intermediate entry with no line number for a nested
     # ordinary call; its own public extract() drops those, and so do we.
-    return [message for message in messages if message[0] is not None]
+    return [cast("Extracted", message) for message in messages if message[0] is not None]
 
 
 def extract_tstrings(

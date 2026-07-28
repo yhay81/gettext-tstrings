@@ -30,6 +30,10 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.0.1
+        with:
+          # checkout は既定で GITHUB_TOKEN を .git/config へ残す。
+          # 直後に artifact を上げる経路があるので持ち越さない。
+          persist-credentials: false
       - uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
         with:
           enable-cache: true
@@ -38,6 +42,7 @@ jobs:
       - run: uv run ruff format --check .
       - run: uv run ruff check .
       - run: uv run mypy
+      - run: uv run ty check
       - run: uv run pytest --cov=gettext_tstrings --cov-report=term-missing
       - run: uv build
       - name: Smoke test the built wheel without Babel
@@ -102,5 +107,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.0.1
+        with:
+          # checkout は既定で GITHUB_TOKEN を .git/config へ残す。
+          # 直後に artifact を上げる経路があるので持ち越さない。
+          persist-credentials: false
       - uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
-      - run: uvx zizmor --min-severity high .github/workflows/
+      - run: uvx zizmor .github/workflows/

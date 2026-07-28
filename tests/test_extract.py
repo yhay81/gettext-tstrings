@@ -286,6 +286,34 @@ def test_a_source_only_tokenize_rejects_fails_hard_under_strict() -> None:
         extract_messages(_TOKENIZE_HOSTILE, options={"strict": "true"})
 
 
+@pytest.mark.parametrize(
+    ("value", "expect_raise"),
+    [
+        ("true", True),
+        ("True", True),
+        ("1", True),
+        ("yes", True),
+        ("on", True),
+        ("false", False),
+        ("False", False),
+        ("0", False),
+        ("no", False),
+        ("", False),
+    ],
+)
+def test_boolean_options_arrive_as_strings_from_ini(value: str, expect_raise: bool) -> None:
+    # babel.cfg / setup.cfg からは真偽値も**文字列**で届く。`strict = "false"` が
+    # 真と解釈されると、警告で済むはずの抽出が全体を落とす側に倒れる。
+    source = 'tr(t"Hello {user.name}")\n'
+
+    if expect_raise:
+        with pytest.raises(ExtractionError, match="simple variable names"):
+            extract_messages(source, options={"strict": value})
+    else:
+        with pytest.warns(UserWarning, match="simple variable names"):
+            assert extract_messages(source, options={"strict": value}) == []
+
+
 def test_comment_without_a_matching_tag_is_not_attached() -> None:
     # 直前のコメントを無条件に拾うと、開発者向けのメモが翻訳者コメントとして
     # .po に流出する。comment_tag に一致する行から下だけを取ること。

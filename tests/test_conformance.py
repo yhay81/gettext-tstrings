@@ -41,17 +41,22 @@ def _template(parts: list[Any]) -> Template:
     )
 
 
-class _Catalog(gettext.NullTranslations):
+class _Catalog:
     """Return one fixed pattern, standing in for a catalog lookup."""
 
     def __init__(self, pattern: str) -> None:
-        super().__init__()
         self.pattern = pattern
 
-    def gettext(self, message: str) -> str:
+    def gettext(self, message: str, /) -> str:
         return self.pattern
 
-    def ngettext(self, singular: str, plural: str, n: int) -> str:
+    def ngettext(self, singular: str, plural: str, n: int, /) -> str:
+        return self.pattern
+
+    def pgettext(self, context: str, message: str, /) -> str:
+        return self.pattern
+
+    def npgettext(self, context: str, singular: str, plural: str, n: int, /) -> str:
         return self.pattern
 
 

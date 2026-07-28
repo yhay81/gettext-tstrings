@@ -8,7 +8,6 @@ core.pyは性能上の理由で描画末尾のコピーを複数持つ(gettext()
 
 from __future__ import annotations
 
-import gettext as stdlib_gettext
 from typing import Any
 
 import pytest
@@ -16,29 +15,35 @@ import pytest
 from gettext_tstrings import compile_template, ngettext, pgettext, tr
 
 
-class Stub(stdlib_gettext.NullTranslations):
+class Stub:
+    # 公開Protocol(gettext_tstrings.Translations)だけを実装する。
+    # gettext.NullTranslations を継承すると、typeshedが宣言する
+    # msgid1/msgid2 という引数名の改名がLSP違反になる(位置専用化でも直らない)。
+    # 利用者が実装するのはこのProtocolなので、こちらを直接満たす方が忠実。
     def __init__(
         self,
         messages: dict[str, str] | None = None,
         plurals: dict[tuple[str, str], tuple[str, str]] | None = None,
         contexts: dict[tuple[str, str], str] | None = None,
     ) -> None:
-        super().__init__()
         self.messages = messages or {}
         self.plurals = plurals or {}
         self.contexts = contexts or {}
 
-    def gettext(self, message: str) -> str:
+    def gettext(self, message: str, /) -> str:
         return self.messages.get(message, message)
 
-    def ngettext(self, singular: str, plural: str, n: int) -> str:
+    def ngettext(self, singular: str, plural: str, n: int, /) -> str:
         translated = self.plurals.get((singular, plural))
         if translated is None:
             return singular if n == 1 else plural
         return translated[0] if n == 1 else translated[1]
 
-    def pgettext(self, context: str, message: str) -> str:
+    def pgettext(self, context: str, message: str, /) -> str:
         return self.contexts.get((context, message), message)
+
+    def npgettext(self, context: str, singular: str, plural: str, n: int, /) -> str:
+        return singular if n == 1 else plural
 
 
 class Formatted:

@@ -51,6 +51,9 @@ dev = [
   "pytest>=8.4",
   "pytest-cov>=6.2",
   "ruff>=0.12",
+  # mypy が見逃す override のLSP違反を捕まえる第二の目。0.0.x なので
+  # uv.lock でピンし、dependabot 経由で意図的に上げる。
+  "ty>=0.0.64",
 ]
 
 [tool.hatch.version]
@@ -79,9 +82,40 @@ target-version = "py314"
 line-length = 100
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
+# 「このリポジトリで実際に0件、または少数のignoreで0件になる」群だけを列挙する。
+# ALLにしない理由: ruffのプレビュー昇格で、こちらが何も変えていないのにCIが赤くなる。
+# S(bandit)は非選択 — このリポジトリでの指摘は194件すべてpytestのassertで真陽性0件、
+# 全体ignoreは`python -O`でassertが消える唯一の実害を永久に見逃す形になる
+# (S110はSIM105が既に同じ行を検出する)。
+select = [
+  "A", "ANN", "ARG", "ASYNC", "B", "BLE", "C4", "DTZ", "E", "ERA", "EXE", "F",
+  "FA", "FIX", "FLY", "FURB", "G", "I", "ICN", "INT", "LOG", "N", "PERF",
+  "PGH", "PIE", "PLC", "PLE", "PLR", "PLW", "PT", "PTH", "PYI", "Q", "RET",
+  "RSE", "RUF", "SIM", "SLF", "SLOT", "T10", "T20", "TD", "TID", "UP", "W",
+  "YTT",
+]
+ignore = [
+  "ANN401",  # fileobj/optionsはBabel側の契約、補間値は本当にAny。狭めると嘘になる。
+  "FURB171", # 単一要素のin判定は、将来増える集合であることを示す意図的な書き方。
+  "PLC0415", # テスト内の局所importは、公開API面(__all__)を固定する方針と両立させるため。
+  "PLR0911", # 抽出器のディスパッチはgettext系6形の分岐そのもの。
+  "PLR0912", # ホットパスは実測でフラットに保つ設計(core.py冒頭のコメント参照)。
+  "PLR0913", # Babelのオプション(6種のキーワード集合)をそのまま引き回すため。
+  "PLR0917", # 同上。
+  "PLR2004", # `len(args) < 3` などgettextのアリティそのもの。定数化は可読性を下げる。
+  "PT018",   # 分解しても失敗メッセージが少し良くなるだけ。意図は明快。
+]
+
+[tool.ruff.lint.per-file-ignores]
+"benchmarks/*" = ["T201"]  # 計測結果はprintで出す。
+"examples/*" = ["T201"]    # サンプルはprintで動きを見せる。
+"tests/*" = [
+  "ARG002",  # Translationsスタブは公開Protocolの引数名に合わせる必要がある。
+  "SLF001",  # キャッシュ上限(_PLANS等)の内部状態を直接検証するテスト。
+]
 
 [tool.mypy]
 python_version = "3.14"
 strict = true
+strict_equality_for_none = true
 files = ["src", "tests", "benchmarks", "examples"]
