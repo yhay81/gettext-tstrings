@@ -21,6 +21,7 @@ classifiers = [
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3.14",
   "Topic :: Software Development :: Internationalization",
+  "Typing :: Typed",
 ]
 dependencies = []
 
@@ -33,6 +34,8 @@ babel = [
 [project.urls]
 Homepage = "https://github.com/yhay81/gettext-tstrings"
 Issues = "https://github.com/yhay81/gettext-tstrings/issues"
+Changelog = "https://github.com/yhay81/gettext-tstrings/blob/main/CHANGELOG.md"
+Specification = "https://github.com/yhay81/gettext-tstrings/blob/main/SPEC.md"
 
 [project.entry-points."babel.extractors"]
 gettext_tstrings = "gettext_tstrings.extract:extract_tstrings"
@@ -59,13 +62,16 @@ packages = ["src/gettext_tstrings"]
 [tool.pytest.ini_options]
 addopts = "--strict-config --strict-markers"
 testpaths = ["tests"]
+# The extractor warns rather than aborting, so an unexpected warning is a
+# result the suite must not swallow.
+filterwarnings = ["error"]
 
 [tool.coverage.run]
 branch = true
 source = ["gettext_tstrings"]
 
 [tool.coverage.report]
-fail_under = 95
+fail_under = 98
 show_missing = true
 
 [tool.ruff]
@@ -78,4 +84,4 @@ select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
 [tool.mypy]
 python_version = "3.14"
 strict = true
-packages = ["gettext_tstrings"]
+files = ["src", "tests", "benchmarks", "examples"]

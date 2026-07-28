@@ -2,13 +2,19 @@ from __future__ import annotations
 
 import codecs
 import io
-from typing import Any
+from typing import Any, cast
 
 import pytest
 from babel.messages.extract import DEFAULT_KEYWORDS, extract
 
 from gettext_tstrings import compile_template
 from gettext_tstrings.extract import ExtractionError, extract_tstrings
+
+# Babel's declared extractor type takes a keyword *mapping* and returns tuples
+# without a funcname, but its own extract() passes keywords.keys() and reads a
+# funcname back. The declaration and the implementation disagree upstream, so
+# absorb the mismatch once here instead of at every call site.
+_EXTRACTOR = cast("Any", extract_tstrings)
 
 
 def extract_messages(
@@ -18,7 +24,7 @@ def extract_messages(
 ) -> list[tuple[int, str | tuple[str, ...], list[str], str | None]]:
     return list(
         extract(
-            extract_tstrings,
+            _EXTRACTOR,
             io.BytesIO(source.encode()),
             keywords=DEFAULT_KEYWORDS,
             comment_tags=["Translators:"],
@@ -200,7 +206,7 @@ def test_configured_source_encoding_is_used_without_a_cookie() -> None:
 
     messages = list(
         extract(
-            extract_tstrings,
+            _EXTRACTOR,
             io.BytesIO(source),
             keywords=DEFAULT_KEYWORDS,
             comment_tags=["Translators:"],
@@ -219,7 +225,7 @@ def test_utf8_bom_is_preserved_when_comments_are_masked() -> None:
 
     messages = list(
         extract(
-            extract_tstrings,
+            _EXTRACTOR,
             io.BytesIO(source),
             keywords=DEFAULT_KEYWORDS,
             comment_tags=["Translators:"],
@@ -414,7 +420,7 @@ translate("Hello")
     with pytest.warns(UserWarning, match="must be a t-string"):
         messages = list(
             extract(
-                extract_tstrings,
+                _EXTRACTOR,
                 io.BytesIO(source.encode()),
                 keywords=DEFAULT_KEYWORDS | {"translate": None},
                 comment_tags=["Translators:"],
@@ -496,7 +502,7 @@ def test_simple_tstring_extracts_without_default_keywords() -> None:
     source = 'tr(t"Hello {name}")'
     messages = list(
         extract(
-            extract_tstrings,
+            _EXTRACTOR,
             io.BytesIO(source.encode()),
             keywords={"tr": None},
             comment_tags=["Translators:"],
@@ -561,7 +567,7 @@ def test_plural_without_canonical_keyword_is_skipped_with_warning() -> None:
     with pytest.warns(UserWarning, match="not in the extraction keyword set"):
         messages = list(
             extract(
-                extract_tstrings,
+                _EXTRACTOR,
                 io.BytesIO(source.encode()),
                 keywords={"ntr": None},
                 comment_tags=["Translators:"],

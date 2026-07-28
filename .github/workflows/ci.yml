@@ -85,3 +85,22 @@ jobs:
           print("babel smoke OK", gettext_tstrings.__version__)
           EOF
           "$PY" smoke_babel.py
+
+      # The lock pins one version of each dependency, so the declared lower
+      # bounds are otherwise never exercised. --isolated keeps uv.lock intact.
+      - name: Check the declared lower bounds still work
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.14'
+        run: uv run --isolated --resolution lowest-direct --extra babel pytest -q
+
+      # No threshold: runner variance would make that flaky. This catches
+      # bit-rot and leaves ns/op in the log for manual regression tracking.
+      - name: Run the microbenchmarks
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.14'
+        run: uv run python benchmarks/runtime.py
+
+  actions:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.0.1
+      - uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+      - run: uvx zizmor --min-severity high .github/workflows/

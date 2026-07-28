@@ -38,7 +38,8 @@ def _project(tmp_path: Path) -> Path:
 
 def _extract(tmp_path: Path) -> str:
     pot = tmp_path / "messages.pot"
-    exit_code = CommandLineInterface().run(
+    # Babel ships no annotations for its frontend.
+    exit_code = CommandLineInterface().run(  # type: ignore[no-untyped-call]
         [
             "pybabel",
             "extract",
@@ -148,7 +149,7 @@ def test_pybabel_compile_runs_the_shipped_checker(tmp_path: Path) -> None:
         encoding="utf-8",
     )
 
-    exit_code = CommandLineInterface().run(
+    exit_code = CommandLineInterface().run(  # type: ignore[no-untyped-call]
         ["pybabel", "compile", "-d", str(tmp_path / "locales"), "-l", "ja"],
     )
 

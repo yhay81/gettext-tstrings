@@ -20,6 +20,18 @@
 - Assert the Babel extractor and checker entry points in the built wheel's smoke
   test. Registration as a Babel plugin is the product, and the test suite only
   ever resolves the editable install's entry points, never the wheel's.
+- Test on the next Python (3.15) and on the free-threaded build (3.14t), where
+  this package's module-level plan caches are shared across threads.
+- Stop restating CI inside the release workflow; it now calls CI. The two had
+  already drifted, and a release must not be checked more loosely than a pull
+  request. The release also fails now when `CHANGELOG.md` has no section for the
+  tagged version, and it never builds a published artifact from a restored cache.
+- Pin every GitHub Action to a commit SHA and add Dependabot so the pins, and
+  `uv.lock`, do not rot. `zizmor` now runs in CI and reports no findings.
+- Exercise the declared dependency lower bounds, run the microbenchmarks (no
+  threshold — only bit-rot detection), type-check `tests/`, turn warnings into
+  errors under pytest, and raise the coverage floor from 95% to 98%.
+
 
 ## 0.1.0a3 - 2026-07-28
 

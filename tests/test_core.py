@@ -4,7 +4,7 @@ import gettext
 import logging
 from importlib.metadata import version
 from types import SimpleNamespace
-from typing import cast
+from typing import Any, cast
 
 import pytest
 
@@ -537,14 +537,14 @@ def test_translation_may_repeat_a_placeholder_but_formats_it_once() -> None:
 
 def test_compile_requires_a_template() -> None:
     with pytest.raises(TypeError, match=r"templatelib\.Template"):
-        compile_template(cast("object", "Hello"))
+        compile_template(cast("Any", "Hello"))
 
 
 def test_runtime_functions_require_a_template() -> None:
     with pytest.raises(TypeError, match=r"templatelib\.Template"):
-        tr(cast("object", "Hello"))
+        tr(cast("Any", "Hello"))
     with pytest.raises(TypeError, match=r"templatelib\.Template"):
-        tpgettext("ctx", cast("object", "Hello"))
+        tpgettext("ctx", cast("Any", "Hello"))
 
 
 def test_pair_path_renders_reordered_two_field_translations() -> None:

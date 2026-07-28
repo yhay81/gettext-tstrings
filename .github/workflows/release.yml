@@ -8,69 +8,34 @@ permissions:
   contents: read
 
 jobs:
+  # Reuse CI verbatim rather than restating it: the two drifted apart before
+  # (the wheel smoke lost its Windows shim on this side), and a release must
+  # never be checked more loosely than a pull request.
+  checks:
+    uses: ./.github/workflows/ci.yml
+
   build:
+    needs: checks
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-python@v6
-        with:
-          python-version: "3.14"
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.0.1
       - uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
-      - name: Check tag matches package version
+        with:
+          # A published artifact must not be built from a restored cache.
+          enable-cache: false
+      - name: Check the tag, version, and changelog agree
         run: |
           VERSION=$(grep -oE '__version__ = "[^"]+"' src/gettext_tstrings/__init__.py | cut -d'"' -f2)
           test "$GITHUB_REF_NAME" = "v$VERSION" || {
             echo "tag $GITHUB_REF_NAME does not match __version__ $VERSION" >&2
             exit 1
           }
-      - run: uv sync --locked
-      - run: uv run ruff format --check .
-      - run: uv run ruff check .
-      - run: uv run mypy
-      - run: uv run pytest --cov=gettext_tstrings --cov-report=term-missing
+          grep -q "^## $VERSION " CHANGELOG.md || {
+            echo "CHANGELOG.md has no released section for $VERSION" >&2
+            exit 1
+          }
       - run: uv build
-      - name: Smoke test the built wheel without Babel
-        run: |
-          uv venv smoke-runtime --python 3.14
-          uv pip install --python smoke-runtime/bin/python dist/*.whl
-          cat > smoke_runtime.py <<'EOF'
-          import sys
-
-          import gettext_tstrings
-
-          name = "World"
-          assert gettext_tstrings.tr(t"Hello {name}") == "Hello World"
-          # Rendering must not need Babel: it is an extraction-time dependency
-          # only, declared as the [babel] extra.
-          assert not [m for m in sys.modules if m.startswith("babel")]
-          print("runtime smoke OK", gettext_tstrings.__version__)
-          EOF
-          smoke-runtime/bin/python smoke_runtime.py
-
-      - name: Smoke test the built wheel with the babel extra
-        run: |
-          uv venv smoke --python 3.14
-          uv pip install --python smoke/bin/python "$(ls dist/*.whl)[babel]"
-          cat > smoke_check.py <<'EOF'
-          from io import BytesIO
-
-          from babel.messages.checkers import checkers
-          from babel.messages.extract import extract
-
-          import gettext_tstrings
-
-          name = "World"
-          assert gettext_tstrings.tr(t"Hello {name}") == "Hello World"
-          # Registration as a Babel plugin is the product; the test suite only
-          # ever sees the editable install's entry points, never the wheel's.
-          assert list(extract("gettext_tstrings", BytesIO(b'n = 1\ntr(t"Hi {n}")\n'))) == [
-              (2, "Hi {n}", ["gettext-tstrings"], None)
-          ]
-          assert "check_tstring" in [c.__name__ for c in checkers]
-          print("smoke OK", gettext_tstrings.__version__)
-          EOF
-          smoke/bin/python smoke_check.py
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: dist
           path: dist/
@@ -82,8 +47,8 @@ jobs:
     permissions:
       id-token: write
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           name: dist
           path: dist/
-      - uses: pypa/gh-action-pypi-publish@release/v1
+      - uses: pypa/gh-action-pypi-publish@ba38be9e461d3875417946c167d0b5f3d385a247 # v1.12.4
