@@ -34,6 +34,7 @@ babel = [
 
 [project.urls]
 Homepage = "https://github.com/yhay81/gettext-tstrings"
+Documentation = "https://gettext-tstrings.yhay81.com/"
 Issues = "https://github.com/yhay81/gettext-tstrings/issues"
 Changelog = "https://github.com/yhay81/gettext-tstrings/blob/main/CHANGELOG.md"
 Specification = "https://github.com/yhay81/gettext-tstrings/blob/main/SPEC.md"

@@ -1,0 +1,12 @@
+# Serves the built documentation from Cloudflare.
+#
+# Workers with static assets rather than Pages: the custom domain and its DNS
+# record are declared here and created by `wrangler deploy`, so the hosting
+# setup lives in the repository instead of in dashboard state nobody can review.
+
+name = "gettext-tstrings-docs"
+compatibility_date = "2026-07-29"
+
+assets = { directory = "./site", not_found_handling = "404-page" }
+
+routes = [{ pattern = "gettext-tstrings.yhay81.com", custom_domain = true }]

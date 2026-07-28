@@ -3,6 +3,8 @@
 Safe gettext integration for Python 3.14+ t-strings, with first-class
 [Babel](https://babel.pocoo.org/) extraction and validation.
 
+**Documentation: <https://gettext-tstrings.yhay81.com/>**
+
 ```python
 import gettext
 
