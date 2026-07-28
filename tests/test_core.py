@@ -204,13 +204,32 @@ def test_invalid_translation_falls_back_to_source_by_default(translation: str) -
 def test_invalid_translation_warning_includes_the_reason(
     caplog: pytest.LogCaptureFixture,
 ) -> None:
-    name = "Ada"
-    translations = StubTranslations({"Hello {name}": "Hello"})
+    # 警告は「プラン+パターン」ごとに一度だけなので、他のテストと共有されない
+    # 固有のmsgidを使う。
+    warned = "Ada"
+    translations = StubTranslations({"Warn once {warned}": "Warn once"})
 
     with caplog.at_level(logging.WARNING, logger="gettext_tstrings"):
-        assert tr(t"Hello {name}", translations=translations) == "Hello Ada"
+        assert tr(t"Warn once {warned}", translations=translations) == "Warn once Ada"
 
-    assert "missing ['name']" in caplog.text
+    assert "missing ['warned']" in caplog.text
+
+
+def test_invalid_translation_warns_once_and_keeps_rendering(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    # 壊れたカタログ1件が描画のたびに再検証と警告を起こさないこと。
+    flooded = "Ada"
+    translations = StubTranslations({"Flood {flooded}": "Flood"})
+
+    with caplog.at_level(logging.WARNING, logger="gettext_tstrings"):
+        rendered = [tr(t"Flood {flooded}", translations=translations) for _ in range(5)]
+
+    assert rendered == ["Flood Ada"] * 5
+    assert caplog.text.count("invalid translation") == 1
+    # strictは記録に関わらず毎回例外を投げる。
+    with pytest.raises(InvalidTranslationError, match="missing"):
+        tr(t"Flood {flooded}", translations=translations, strict=True)
 
 
 def test_bound_translator_strict_mode_reraises() -> None:

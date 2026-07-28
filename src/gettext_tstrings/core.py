@@ -187,7 +187,7 @@ class _TemplatePlan:
     """1つのt-string構造に対する翻訳計画。プランはキャッシュで共有され、
     同一構造なら同一オブジェクトになるため、等価・ハッシュは同一性で足りる。"""
 
-    __slots__ = ("allowed", "fields", "msgid", "names", "patterns", "required")
+    __slots__ = ("allowed", "fields", "invalid", "msgid", "names", "patterns", "required")
 
     msgid: str
     fields: tuple[_Field, ...]
@@ -195,6 +195,7 @@ class _TemplatePlan:
     allowed: frozenset[str]
     required: frozenset[str]
     patterns: dict[str, _RenderPlan]
+    invalid: set[str]
 
     def __init__(self, msgid: str, fields: tuple[_Field, ...]) -> None:
         self.msgid = msgid
@@ -203,18 +204,20 @@ class _TemplatePlan:
         self.allowed = frozenset(self.names)
         self.required = self.allowed
         self.patterns = {}
+        self.invalid = set()
 
 
 class _PluralPlan:
     """単数・複数の2ブランチを統合した計画。requiredは両ブランチの積集合。"""
 
-    __slots__ = ("allowed", "fields", "names", "patterns", "required")
+    __slots__ = ("allowed", "fields", "invalid", "names", "patterns", "required")
 
     fields: tuple[_Field, ...]
     names: tuple[str, ...]
     allowed: frozenset[str]
     required: frozenset[str]
     patterns: dict[str, _RenderPlan]
+    invalid: set[str]
 
     def __init__(
         self,
@@ -226,6 +229,7 @@ class _PluralPlan:
         self.allowed = frozenset(self.names)
         self.required = required
         self.patterns = {}
+        self.invalid = set()
 
 
 class _Site:
@@ -510,6 +514,19 @@ def _source_render_plan(plan: _TemplatePlan) -> _RenderPlan:
     return render_plan
 
 
+def _remember_invalid(plan: _TemplatePlan | _PluralPlan, pattern: str) -> None:
+    """検証に失敗したパターンを記録する。
+
+    正常パターンとは別に持つことで、``strict=True`` の呼び出しは引き続き
+    検証をやり直して例外を投げられる。記録しないと、壊れたカタログ1件が
+    描画のたびに再検証と警告を発生させ続ける。
+    """
+    invalid = plan.invalid
+    if len(invalid) >= _MAX_PATTERNS_PER_PLAN:
+        invalid.clear()
+    invalid.add(pattern)
+
+
 class CompiledTemplate:
     """A cached gettext message plan bound to one t-string's runtime values."""
 
@@ -625,17 +642,21 @@ def gettext(
 
     render_plan = plan.patterns.get(pattern)
     if render_plan is None:
-        try:
-            render_plan = _compile_pattern(plan, pattern)
-        except InvalidTranslationError as exc:
-            if strict:
-                raise
-            _LOGGER.warning(
-                "invalid translation for msgid %r; using source text: %s",
-                msgid,
-                exc,
-            )
+        if not strict and pattern in plan.invalid:
             render_plan = _source_render_plan(plan)
+        else:
+            try:
+                render_plan = _compile_pattern(plan, pattern)
+            except InvalidTranslationError as exc:
+                if strict:
+                    raise
+                _LOGGER.warning(
+                    "invalid translation for msgid %r; using source text: %s",
+                    msgid,
+                    exc,
+                )
+                _remember_invalid(plan, pattern)
+                render_plan = _source_render_plan(plan)
 
     # 以下は _render_pattern のインライン展開(意図的な重複)。変更時は
     # _render_pattern と同期すること。
@@ -697,18 +718,22 @@ def pgettext(
 
     render_plan = plan.patterns.get(pattern)
     if render_plan is None:
-        try:
-            render_plan = _compile_pattern(plan, pattern)
-        except InvalidTranslationError as exc:
-            if strict:
-                raise
-            _LOGGER.warning(
-                "invalid translation for context %r msgid %r; using source text: %s",
-                context,
-                msgid,
-                exc,
-            )
+        if not strict and pattern in plan.invalid:
             render_plan = _source_render_plan(plan)
+        else:
+            try:
+                render_plan = _compile_pattern(plan, pattern)
+            except InvalidTranslationError as exc:
+                if strict:
+                    raise
+                _LOGGER.warning(
+                    "invalid translation for context %r msgid %r; using source text: %s",
+                    context,
+                    msgid,
+                    exc,
+                )
+                _remember_invalid(plan, pattern)
+                render_plan = _source_render_plan(plan)
 
     return _render_pattern(render_plan, template)
 
@@ -869,6 +894,8 @@ def _ngettext_impl(
 
     render_plan = merged.patterns.get(pattern)
     if render_plan is None:
+        if not strict and pattern in merged.invalid:
+            return _render_plural_source(singular_plan, singular, plural_plan, plural, n)
         try:
             render_plan = _compile_pattern(merged, pattern)
         except InvalidTranslationError as exc:
@@ -887,6 +914,7 @@ def _ngettext_impl(
                     singular_plan.msgid,
                     exc,
                 )
+            _remember_invalid(merged, pattern)
             return _render_plural_source(singular_plan, singular, plural_plan, plural, n)
     return _render_plural_pattern(render_plan, singular, plural, n)
 
