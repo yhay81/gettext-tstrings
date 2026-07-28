@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Guard the claim that the plan caches never retain interpolated values. It
+  holds — all nine render paths release their values — but nothing was checking
+  it: a regression that stores a template's interpolations on its cached plan
+  passes all 246 other tests, and only these four fail.
+
 - Close six detection gaps a mutation run found behind 100% coverage. Escaped
   braces beside a literal colon (`"{{{{:{a}"`) — the brace-skipping walk in the
   translation parser could take the wrong stride and reject a valid translation,
