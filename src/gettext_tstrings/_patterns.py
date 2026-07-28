@@ -96,7 +96,10 @@ def parse_pattern(pattern: str) -> Pattern:
             raise InvalidTranslationError(
                 "translation placeholders must not add a conversion or format specifier",
             )
-    except ValueError as exc:
+    except (TypeError, ValueError) as exc:
+        # TypeError は Translations 実装が str 以外(dict.get の None など)を
+        # 返したとき。生のまま漏らすと strict/lenient の外でアプリが落ち、
+        # 「壊れたカタログは描画を落とさない」契約(SPEC §5)から外れる。
         raise InvalidTranslationError(f"invalid translation pattern: {exc}") from exc
     return Pattern(tuple(chunks), frozenset(fields))
 

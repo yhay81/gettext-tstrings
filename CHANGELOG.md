@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+- Skip Babel's ordinary-gettext pass, rather than aborting the whole
+  `pybabel extract` run, when a source only `tokenize` rejects. `ast.parse`
+  accepts a few files that `tokenize` does not — a form feed followed by a bare
+  carriage return is one — and Babel's extractor is tokenize-based, so a single
+  such file used to end the run with a `TokenError` and no POT. It now warns and
+  skips like an unparsable file, keeping the t-string messages the AST pass
+  already read, and `strict` still fails hard.
+- Reject a non-`str` value returned by a `Translations` implementation as an
+  invalid pattern instead of letting a bare `TypeError` escape. The protocol is
+  public, and an implementation that returns `dict.get(...)` directly used to
+  crash the render in both lenient and strict mode, outside the switch that is
+  supposed to decide that.
 - **Breaking:** Babel is no longer a runtime dependency. Rendering never
   imported it — only the extractor and the catalog checker do — so it moved to
   a `babel` extra. Install `gettext-tstrings[babel]` wherever `pybabel` runs;

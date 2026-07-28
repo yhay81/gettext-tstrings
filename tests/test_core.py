@@ -344,6 +344,24 @@ def test_plural_with_empty_branch_msgid_skips_catalog() -> None:
     assert tnpgettext("ctx", t"", t"", 1, translations=translations) == ""
 
 
+@pytest.mark.parametrize("returned", [None, b"bytes", 42], ids=["none", "bytes", "int"])
+def test_a_catalog_returning_a_non_string_never_escapes_the_strict_switch(
+    returned: object,
+) -> None:
+    # Translations は公開Protocolなので、外部実装が str 以外を返しうる
+    # (dict.get をそのまま返す実装はありふれている)。生のTypeErrorが
+    # 漏れると「壊れたカタログは描画を落とさない」契約から外れる。
+    name = "Ada"
+
+    class NonStringCatalog(gettext.NullTranslations):
+        def gettext(self, message: str) -> str:
+            return cast("str", returned)
+
+    assert tr(t"Hello {name}", translations=NonStringCatalog()) == "Hello Ada"
+    with pytest.raises(InvalidTranslationError, match="invalid translation pattern"):
+        tr(t"Hello {name}", translations=NonStringCatalog(), strict=True)
+
+
 def test_pattern_cache_eviction_preserves_correctness() -> None:
     # パターン辞書は上限到達で全消去されるが、以後の描画は再検証・再構築
     # されるだけで結果は変わらない。

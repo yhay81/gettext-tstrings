@@ -460,6 +460,45 @@ def _extract_tstring_calls(
         yield call.lineno, funcname, messages, translator_comments
 
 
+def _extract_standard_calls(
+    standard_source: str,
+    encoding: str,
+    keywords: Collection[str],
+    comment_tags: Collection[str],
+    options: Mapping[str, Any],
+    *,
+    filename: str,
+) -> list[Extracted]:
+    """Run Babel's ordinary Python pass, degrading like `_parse_source` does.
+
+    ``ast.parse`` accepts a few sources that ``tokenize`` rejects (a form feed
+    followed by a bare carriage return, for one), and Babel's extractor is
+    tokenize-based. Letting that abort the whole ``pybabel extract`` run would
+    contradict this extractor's contract that one bad file is skipped, not fatal.
+    """
+    try:
+        messages = list(
+            cast(
+                "Iterator[Extracted]",
+                extract_python(
+                    io.BytesIO(standard_source.encode(encoding)),
+                    cast("Any", keywords),
+                    comment_tags,
+                    cast("Any", options),
+                ),
+            )
+        )
+    except tokenize.TokenError as exc:
+        error = ExtractionError(f"{filename}: skipped ordinary gettext calls ({exc.args[0]})")
+        if _option_bool(options, "strict", False):
+            raise error from exc
+        warnings.warn(str(error), stacklevel=2)
+        return []
+    # Babel yields an intermediate entry with no line number for a nested
+    # ordinary call; its own public extract() drops those, and so do we.
+    return [message for message in messages if message[0] is not None]
+
+
 def extract_tstrings(
     fileobj: Any,
     keywords: Collection[str],
@@ -494,22 +533,19 @@ def extract_tstrings(
         )
     )
     standard_source = _mask_comment_tags(source, comments, claimed_comment_tag_lines)
-    standard_messages = cast(
-        "Iterator[Extracted]",
-        extract_python(
-            io.BytesIO(standard_source.encode(encoding)),
-            cast("Any", keywords),
-            comment_tags,
-            cast("Any", options),
-        ),
+    standard_messages = _extract_standard_calls(
+        standard_source,
+        encoding,
+        keywords,
+        comment_tags,
+        options,
+        filename=filename,
     )
     # Messages are merged by line. Two translation calls on one physical line
     # come out in an unspecified order — POT entries are keyed by file and line,
     # and `pybabel extract --sort-output` normalizes the rest.
     yield from heapq.merge(
-        # Babel yields an intermediate entry with no line number for a nested
-        # ordinary call; its own public extract() drops those, and so do we.
-        (message for message in standard_messages if message[0] is not None),
+        standard_messages,
         iter(tstring_messages),
         key=lambda item: item[0],
     )

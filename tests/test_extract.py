@@ -266,6 +266,26 @@ tr(t"Hello")
     ]
 
 
+#: ast.parse は通るが tokenize は拒否する。改ページ直後の裸のCRが実例で、
+#: Babelの通常抽出器はtokenizeベースなのでこの1ファイルで全体が落ちていた。
+_TOKENIZE_HOSTILE = '\x0c\r\r\t\nname = "Ada"\ngettext("Plain")\ntr(t"Hello {name}")\n'
+
+
+def test_a_source_only_tokenize_rejects_does_not_abort_the_run() -> None:
+    # SyntaxErrorと同じく、1ファイルの失敗は警告してスキップに留める。
+    # t-string側はASTで読めているので、そちらの結果は失われない。
+    with pytest.warns(UserWarning, match="skipped ordinary gettext calls"):
+        messages = extract_messages(_TOKENIZE_HOSTILE)
+
+    # 裸のCRもASTは行区切りに数えるので、呼び出しは6行目になる。
+    assert messages == [(6, "Hello {name}", ["gettext-tstrings"], None)]
+
+
+def test_a_source_only_tokenize_rejects_fails_hard_under_strict() -> None:
+    with pytest.raises(ExtractionError, match="skipped ordinary gettext calls"):
+        extract_messages(_TOKENIZE_HOSTILE, options={"strict": "true"})
+
+
 def test_tstring_translator_comment_does_not_leak_to_ordinary_gettext() -> None:
     source = """\
 # Translators: T-string greeting.
