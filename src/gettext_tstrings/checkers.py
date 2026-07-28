@@ -25,6 +25,9 @@ def check_tstring(catalog: Catalog | None, message: Message) -> None:
         return
 
     source_patterns = _strings(message.id)
+    if not source_patterns:
+        return
+
     try:
         source_fields = [parse_pattern(pattern).fields for pattern in source_patterns]
         allowed = frozenset().union(*source_fields)

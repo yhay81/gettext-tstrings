@@ -76,6 +76,14 @@ def parse_pattern(pattern: str) -> Pattern:
                 chunks.append((literal, None))
                 continue
 
+            # 翻訳側では式のstripを行わない。``{ name }`` は str.format も
+            # msgfmt も拒否する非python-brace-formatなので、ここで弾かないと
+            # 既存ツールが検証できないパターンを通してしまう。
+            if field_name != field_name.strip():
+                raise InvalidTranslationError(
+                    f"translation placeholder {{{field_name}}} must not pad its name "
+                    "with whitespace",
+                )
             name = validate_name(field_name)
             if format_spec or conversion:
                 raise InvalidTranslationError(

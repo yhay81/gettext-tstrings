@@ -33,6 +33,7 @@ def test_checker_accepts_reordered_placeholders() -> None:
         "{category}を{target}と{extra}へ移動しました",
         "{category}を{target!r}へ移動しました",
         "{category}を{target:}へ移動しました",
+        "{category}を{ target }へ移動しました",
     ],
 )
 def test_checker_rejects_incompatible_placeholders(translation: str) -> None:
@@ -88,5 +89,13 @@ def test_checker_ignores_none_translation() -> None:
         string=None,
         auto_comments=["gettext-tstrings"],
     )
+
+    check_tstring(None, message)
+
+
+def test_checker_ignores_a_message_without_a_source_pattern() -> None:
+    # Babelは msgid が空タプルの Message を渡すことがある。生のTypeErrorを
+    # 漏らすとpybabelがトレースバックで落ちるため、静かに無視する。
+    message = Message((), string="x", auto_comments=["gettext-tstrings"])
 
     check_tstring(None, message)
