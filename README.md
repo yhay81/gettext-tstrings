@@ -178,6 +178,29 @@ _ = Translator(translations, strict=True)  # raises InvalidTranslationError
 tr(t"Hello {name}", translations=translations, strict=True)
 ```
 
+## Rendering a pattern without a catalog
+
+`compile_template` exposes the same machinery one level down: it turns a
+t-string into its msgid plus a bound set of values, and renders any pattern you
+hand it. Use it when the pattern comes from somewhere other than a gettext
+catalog, or to see the msgid a call will produce.
+
+```python
+from gettext_tstrings import compile_template
+
+name = "Ada"
+compiled = compile_template(t"Hello {name}")
+
+compiled.msgid  # "Hello {name}"
+compiled.placeholders  # ("name",)
+compiled.render("こんにちは {name}")  # "こんにちは Ada"
+```
+
+`render` validates its pattern by the same rules and **always raises**
+`InvalidTranslationError` on a mismatch. There is no lenient mode here: leniency
+exists so that a *catalog* lookup can degrade to the source text, and a pattern
+you passed in yourself has nothing to degrade away from.
+
 ## Extract with Babel
 
 Extraction needs the `babel` extra (`pip install "gettext-tstrings[babel]"`).

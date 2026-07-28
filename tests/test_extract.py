@@ -286,6 +286,17 @@ def test_a_source_only_tokenize_rejects_fails_hard_under_strict() -> None:
         extract_messages(_TOKENIZE_HOSTILE, options={"strict": "true"})
 
 
+def test_comment_without_a_matching_tag_is_not_attached() -> None:
+    # 直前のコメントを無条件に拾うと、開発者向けのメモが翻訳者コメントとして
+    # .po に流出する。comment_tag に一致する行から下だけを取ること。
+    source = """\
+# TODO: rename this helper before the release.
+tr(t"Hello")
+"""
+
+    assert extract_messages(source) == [(2, "Hello", ["gettext-tstrings"], None)]
+
+
 def test_tstring_translator_comment_does_not_leak_to_ordinary_gettext() -> None:
     source = """\
 # Translators: T-string greeting.
@@ -493,6 +504,8 @@ def test_ignores_dynamic_call_targets() -> None:
         ("tr(t'{(name)}')", "simple variable names"),
         ("tr()", "requires a t-string"),
         ("ntr(t'{n} file', t'{n} files')", "singular, plural, and count"),
+        # canonical名は別の分岐を通るので、両方の引数不足を押さえる。
+        ("ngettext(t'{n} file', t'{n} files')", "singular, plural, and count"),
         ('ngettext("One file", t"{n} files", n)', "must be a t-string"),
         ("ntr(t'{n:.1f} file', t'{n:.2f} files', n)", "different formatting"),
         ("tr(t'{n:.1f} {n:.2f}')", "different formatting"),

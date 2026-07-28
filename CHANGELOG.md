@@ -14,6 +14,19 @@
   public, and an implementation that returns `dict.get(...)` directly used to
   crash the render in both lenient and strict mode, outside the switch that is
   supposed to decide that.
+- Document `compile_template` / `CompiledTemplate` in the README, and state in
+  SPEC §5 that lenient rendering is a property of catalog lookups: an interface
+  handed a pattern directly always raises.
+- Close the remaining test gaps the quality audit found: plural calls where only
+  one branch has an empty msgid, the pattern-record and pattern-cache bounds, a
+  modifier on the *leading* placeholder of a pattern (the one position where
+  `_has_explicit_field_modifier` is the sole detector), the `__all__` surface,
+  translator comments without a matching tag, a msgid that only escapes braces
+  (which Babel never flags `python-brace-format`, leaving the shipped checker as
+  the only guard), and a plural form dropping a placeholder that
+  `msgfmt --check-format` accepts but the shipped checker rejects. Coverage is
+  100%; the floor moves to 99%.
+
 - **Breaking:** Babel is no longer a runtime dependency. Rendering never
   imported it — only the extractor and the catalog checker do — so it moved to
   a `babel` extra. Install `gettext-tstrings[babel]` wherever `pybabel` runs;

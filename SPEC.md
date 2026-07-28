@@ -121,7 +121,11 @@ Given a valid pattern and the t-string's runtime values:
   translation repeats its placeholder.
 - On a validation failure at render time, the behavior is caller-selected:
   lenient (default) reproduces the source text; strict re-raises. This mirrors
-  gettext's contract that a broken catalog never crashes an application.
+  gettext's contract that a broken catalog never crashes an application. The
+  choice belongs to the operations that look a pattern up in a catalog. An
+  interface that renders a pattern the caller supplies directly — this
+  implementation's `CompiledTemplate.render` — has no catalog to degrade away
+  from and always raises.
 
 ## 6. Extraction marker
 

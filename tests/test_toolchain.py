@@ -132,6 +132,44 @@ def test_gnu_msgfmt_accepts_a_reordered_translation(tmp_path: Path) -> None:
     assert result.returncode == 0, result.stderr
 
 
+@pytest.mark.skipif(shutil.which("msgfmt") is None, reason="GNU gettext-tools not installed")
+def test_the_shipped_checker_catches_what_msgfmt_lets_through(tmp_path: Path) -> None:
+    # 複数形の一形式だけがプレースホルダを落とした場合、GNU msgfmt の
+    # --check-format は通してしまう。同梱チェッカーはここで厳しい側に立つ。
+    po = tmp_path / "messages.po"
+    po.write_text(
+        'msgid ""\n'
+        'msgstr "Content-Type: text/plain; charset=UTF-8\\n'
+        'Plural-Forms: nplurals=2; plural=(n!=1);\\n"\n'
+        "\n"
+        "#. gettext-tstrings\n"
+        "#, python-brace-format\n"
+        'msgid "{n} file"\n'
+        'msgid_plural "{n} files"\n'
+        'msgstr[0] "ファイル"\n'
+        'msgstr[1] "{n} 個のファイル"\n',
+        encoding="utf-8",
+    )
+
+    msgfmt = subprocess.run(
+        [shutil.which("msgfmt") or "msgfmt", "--check-format", "-o", "/dev/null", str(po)],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert msgfmt.returncode == 0, "この形をmsgfmtが弾くようになったら本テストの前提が変わる"
+
+    locale_dir = tmp_path / "locales" / "ja" / "LC_MESSAGES"
+    locale_dir.mkdir(parents=True)
+    (locale_dir / "messages.po").write_text(po.read_text(encoding="utf-8"), encoding="utf-8")
+
+    exit_code = CommandLineInterface().run(  # type: ignore[no-untyped-call]
+        ["pybabel", "compile", "-d", str(tmp_path / "locales"), "-l", "ja"],
+    )
+
+    assert exit_code not in (0, None)
+
+
 def test_pybabel_compile_runs_the_shipped_checker(tmp_path: Path) -> None:
     # 同梱チェッカーがpybabel compileの経路で実際に呼ばれ、
     # t-string固有の規則違反(翻訳側の書式指定)を検出すること。

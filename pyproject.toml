@@ -71,7 +71,7 @@ branch = true
 source = ["gettext_tstrings"]
 
 [tool.coverage.report]
-fail_under = 98
+fail_under = 99
 show_missing = true
 
 [tool.ruff]

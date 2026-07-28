@@ -60,6 +60,35 @@ def test_version_matches_package_metadata() -> None:
     assert __version__ == version("gettext-tstrings")
 
 
+def test_public_api_surface_is_pinned() -> None:
+    # __all__ は公開契約。名前が落ちたり増えたりするのは利用者から見た
+    # 破壊的変更なので、意図せず起きないよう明示的に固定する。
+    import gettext_tstrings
+
+    assert sorted(gettext_tstrings.__all__) == [
+        "CompiledTemplate",
+        "InvalidTemplateError",
+        "InvalidTranslationError",
+        "LazyString",
+        "TStringError",
+        "Translations",
+        "Translator",
+        "compile_template",
+        "get_translations",
+        "gettext",
+        "lazy_gettext",
+        "lazy_pgettext",
+        "ngettext",
+        "npgettext",
+        "ntr",
+        "pgettext",
+        "set_translations",
+        "tr",
+        "use_translations",
+    ]
+    assert all(hasattr(gettext_tstrings, name) for name in gettext_tstrings.__all__)
+
+
 def test_identity_translation() -> None:
     name = "Ada"
     assert tr(t"Hello {name}", translations=gettext.NullTranslations()) == "Hello Ada"
@@ -249,6 +278,70 @@ def test_invalid_translation_warns_once_and_keeps_rendering(
         tr(t"Flood {flooded}", translations=translations, strict=True)
 
 
+def test_contextual_invalid_translation_warns_once_and_keeps_rendering(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    # 単数の素の経路だけでなく、pgettextも記録済みパターンを引いて退避すること。
+    ctxflood = "Ada"
+    translations = StubTranslations(contexts={("nav", "Ctx {ctxflood}"): "Ctx"})
+
+    with caplog.at_level(logging.WARNING, logger="gettext_tstrings"):
+        rendered = [
+            tpgettext("nav", t"Ctx {ctxflood}", translations=translations) for _ in range(4)
+        ]
+
+    assert rendered == ["Ctx Ada"] * 4
+    assert caplog.text.count("invalid translation") == 1
+    with pytest.raises(InvalidTranslationError, match="missing"):
+        tpgettext("nav", t"Ctx {ctxflood}", translations=translations, strict=True)
+
+
+def test_plural_invalid_translation_warns_once_and_keeps_rendering(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    nflood = 3
+    translations = StubTranslations(
+        plurals={("One flood", "{nflood} floods"): ("bad {gone}", "bad {gone}")},
+    )
+
+    with caplog.at_level(logging.WARNING, logger="gettext_tstrings"):
+        rendered = [
+            tngettext(t"One flood", t"{nflood} floods", nflood, translations=translations)
+            for _ in range(4)
+        ]
+
+    assert rendered == ["3 floods"] * 4
+    assert caplog.text.count("invalid plural translation") == 1
+    with pytest.raises(InvalidTranslationError, match="unexpected"):
+        tngettext(
+            t"One flood",
+            t"{nflood} floods",
+            nflood,
+            translations=translations,
+            strict=True,
+        )
+
+
+def test_contextual_constant_translation_renders_through_the_shared_tail() -> None:
+    # 文脈付きの定数メッセージは _render_pattern の constant 経路を通る。
+    translations = StubTranslations(contexts={("nav", "Static ctx"): "固定"})
+
+    assert tpgettext("nav", t"Static ctx", translations=translations) == "固定"
+
+
+def test_invalid_pattern_record_clears_when_its_limit_is_reached() -> None:
+    # 壊れたパターンの記録も有界であること(記録が無制限に育たない)。
+    from gettext_tstrings import core
+
+    bounded = "Ada"
+    plan = core._plan_for(t"Rec {bounded}".strings, t"Rec {bounded}".interpolations)
+    for index in range(core._MAX_PATTERNS_PER_PLAN + 2):
+        translations = StubTranslations({"Rec {bounded}": f"broken {index} {{gone}}"})
+        assert tr(t"Rec {bounded}", translations=translations) == "Rec Ada"
+
+    assert len(plan.invalid) <= core._MAX_PATTERNS_PER_PLAN
+
+
 def test_bound_translator_strict_mode_reraises() -> None:
     name = "Ada"
     strict = Translator(StubTranslations({"Hello {name}": "Hello"}), strict=True)
@@ -344,6 +437,39 @@ def test_plural_with_empty_branch_msgid_skips_catalog() -> None:
     assert tnpgettext("ctx", t"", t"", 1, translations=translations) == ""
 
 
+def test_plural_with_one_empty_branch_msgid_skips_catalog() -> None:
+    # 片方のブランチだけが空でも、そのペアのカタログエントリは存在し得ない。
+    # ヘッダを返すカタログでも、UI文字列としてヘッダが漏れてはならない。
+    header = "Project-Id-Version: demo\n"
+    n = 2
+    translations = StubTranslations(
+        messages={"": header},
+        plurals={("", "{n} files"): (header, header), ("One file", ""): (header, header)},
+    )
+
+    assert tngettext(t"", t"{n} files", 1, translations=translations) == ""
+    assert tngettext(t"", t"{n} files", n, translations=translations) == "2 files"
+    assert tngettext(t"One file", t"", 1, translations=translations) == "One file"
+    assert tngettext(t"One file", t"", n, translations=translations) == ""
+
+
+@pytest.mark.parametrize(
+    "translation",
+    ["{name:} さん", "{name:>8} さん", "{name!r} さん"],
+    ids=["empty-format-spec", "format-spec", "conversion"],
+)
+def test_leading_placeholder_may_not_carry_a_modifier(translation: str) -> None:
+    # パターン先頭(index=0)は _has_explicit_field_modifier の走査境界。
+    # 既存テストの修飾子はすべて先頭以外にある。特に ``{name:}`` は
+    # Formatter が format_spec を空文字列で返すため本体ループでは判別できず、
+    # この関数だけが検出器になる = 境界がずれても他が拾ってくれない。
+    name = "Ada"
+    translations = StubTranslations({"{name} desu": translation})
+
+    with pytest.raises(InvalidTranslationError, match="conversion or format specifier"):
+        tr(t"{name} desu", translations=translations, strict=True)
+
+
 @pytest.mark.parametrize("returned", [None, b"bytes", 42], ids=["none", "bytes", "int"])
 def test_a_catalog_returning_a_non_string_never_escapes_the_strict_switch(
     returned: object,
@@ -360,6 +486,21 @@ def test_a_catalog_returning_a_non_string_never_escapes_the_strict_switch(
     assert tr(t"Hello {name}", translations=NonStringCatalog()) == "Hello Ada"
     with pytest.raises(InvalidTranslationError, match="invalid translation pattern"):
         tr(t"Hello {name}", translations=NonStringCatalog(), strict=True)
+
+
+def test_pattern_dict_clears_when_its_limit_is_reached() -> None:
+    # 1つのプランに溜まる翻訳パターンも有界であること。他の3上限と違い、
+    # ここだけ上限そのものをassertしておらず退避コードが死んでいても通った。
+    from gettext_tstrings import core
+
+    name = "Ada"
+    plan = core._plan_for(t"Bounded {name}".strings, t"Bounded {name}".interpolations)
+    for index in range(core._MAX_PATTERNS_PER_PLAN + 2):
+        translations = StubTranslations({"Bounded {name}": f"L{index} {{name}}"})
+        assert tr(t"Bounded {name}", translations=translations) == f"L{index} Ada"
+
+    assert len(plan.patterns) <= core._MAX_PATTERNS_PER_PLAN
+    assert tr(t"Bounded {name}", translations=gettext.NullTranslations()) == "Bounded Ada"
 
 
 def test_pattern_cache_eviction_preserves_correctness() -> None:
