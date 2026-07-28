@@ -20,6 +20,13 @@
 - Assert the Babel extractor and checker entry points in the built wheel's smoke
   test. Registration as a Babel plugin is the product, and the test suite only
   ever resolves the editable install's entry points, never the wheel's.
+- Publish `conformance/v1.json`, spec v1 in machine-readable form, so another
+  extractor, IDE, type checker, or future `pygettext` can demonstrate that it
+  targets the same convention. The cases name only derived msgids, accepted and
+  rejected patterns, and rendered output — never an error message or an
+  exception type — so an implementation in another language can run them
+  unchanged. The reference implementation runs them as part of its own tests, so
+  SPEC.md and the code cannot drift apart silently.
 - Test on the next Python (3.15) and on the free-threaded build (3.14t), where
   this package's module-level plan caches are shared across threads.
 - Stop restating CI inside the release workflow; it now calls CI. The two had

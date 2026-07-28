@@ -140,8 +140,27 @@ the checker.
   repeat a placeholder to amplify output size; this is inherent to every
   placeholder-substituting i18n layer and is not bounded here.
 
-## 8. Versioning
+## 8. Conformance
+
+[`conformance/v1.json`](conformance/v1.json) is this document in machine-readable
+form: cases that map a t-string's static structure to a msgid, and a msgid plus a
+catalog pattern to a rendered string or a rejection. An implementation **conforms
+to spec v1** when it reproduces every case. The cases name only what this
+document defines — derived msgids, accepted and rejected patterns, rendered
+output — and never an error message or an exception type, so an implementation in
+another language can run them unchanged.
+
+The file describes structure, never Python source: an interpolation is an
+`expression` string, a `value`, and an optional `conversion` and `format_spec`.
+Nothing in the suite is evaluated.
+
+The reference implementation runs the suite as part of its own tests
+(`tests/test_conformance.py`), so the prose above and the code cannot drift apart
+silently.
+
+## 9. Versioning
 
 This is **spec v1**. Backwards-incompatible changes to msgid derivation or
-translation validation will increment the version. Additive clarifications that
-do not change derived msgids or accepted/rejected patterns will not.
+translation validation will increment the version, and ship a new
+`conformance/vN.json` beside the existing one. Additive clarifications that do
+not change derived msgids or accepted/rejected patterns will not.
