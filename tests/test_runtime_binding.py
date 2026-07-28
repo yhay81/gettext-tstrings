@@ -96,15 +96,16 @@ def test_lazy_string_supports_format_and_equality() -> None:
 
 
 def test_lazy_string_is_unhashable() -> None:
-    # 描画結果は現在の言語に依存するため、hashは言語切替で変化してしまう。
-    # set/dictの契約を黙って破るくらいなら、unhashableで早期に失敗させる。
+    # The rendered result depends on the current language, so a hash would change
+    # whenever the language is switched. Rather than silently break the set/dict
+    # contract, stay unhashable and fail early.
     label = lazy_gettext(t"Save")
 
     with pytest.raises(TypeError, match="unhashable"):
         hash(label)
     with pytest.raises(TypeError, match="unhashable"):
         {label}  # noqa: B018
-    assert str(label) in {"Save"}  # 明示的にstr()すればキーに使える
+    assert str(label) in {"Save"}  # an explicit str() can still be used as a key
 
 
 def test_translations_protocol_is_runtime_checkable() -> None:

@@ -1,12 +1,13 @@
-"""キャッシュが補間値を保持しないことを守る。
+"""Guard the promise that caches never retain interpolated values.
 
-READMEの性能節は「both caches are bounded and never retain interpolated
-values」と公言している。プランは静的構造(strings と各補間のメタデータ)だけを
-持ち、実行時の値は描画の間だけ触る、という設計そのものの主張。
+The performance section of the README states that both caches are bounded and
+never retain interpolated values. That is a claim about the design itself: a
+plan holds only static structure (the strings and each interpolation's
+metadata), and runtime values are touched only for the duration of a render.
 
-この保証はどのテストにも守られていなかった。実際、_Site に補間タプルを持たせる
-リグレッションを注入しても既存テストは全て緑のまま通る。ここで各描画経路について
-弱参照が切れることを確かめる。
+No test guarded that promise. Injecting a regression that stores the
+interpolation tuple on _Site leaves the existing suite entirely green. These
+tests check that weak references break on every render path.
 """
 
 from __future__ import annotations
@@ -22,7 +23,7 @@ from gettext_tstrings import compile_template, ngettext, pgettext, tr
 
 
 class _Probe:
-    """弱参照を張れる補間値。"""
+    """Interpolated value that a weak reference can point at."""
 
     def __format__(self, format_spec: str, /) -> str:
         return "probe"
@@ -44,7 +45,7 @@ def test_single_field_render_does_not_retain_its_value() -> None:
 
 
 def test_warm_cache_does_not_retain_values_across_calls() -> None:
-    # 2回目以降はプランがキャッシュヒットする経路。温めてから確かめる。
+    # From the second call on, the plan comes from a cache hit. Warm it, then check.
     null = gettext.NullTranslations()
     for _ in range(50):
         warm = _Probe()
@@ -60,8 +61,8 @@ def test_warm_cache_does_not_retain_values_across_calls() -> None:
 
 
 def test_every_render_path_releases_its_values() -> None:
-    # 定数以外の全経路: 2フィールド(pair)、3フィールド(chunks)、文脈、複数形、
-    # そして低レベルのCompiledTemplate。
+    # Every path but the constant one: two fields (pair), three fields (chunks),
+    # context, plural, and the low-level CompiledTemplate.
     null = gettext.NullTranslations()
     probes = [_Probe() for _ in range(6)]
     refs = [weakref.ref(probe) for probe in probes]
@@ -82,8 +83,8 @@ def test_every_render_path_releases_its_values() -> None:
 def test_a_rejected_translation_does_not_retain_its_values(
     caplog: pytest.LogCaptureFixture,
 ) -> None:
-    # 壊れたパターンは plan.invalid に記録される。記録するのはパターン文字列
-    # だけで、そのとき描画しようとした値ではない。
+    # A broken pattern is remembered in plan.invalid. What gets remembered is the
+    # pattern string alone, not the values that render was about to use.
     class Broken(gettext.NullTranslations):
         def gettext(self, message: str) -> str:
             return "Broken without the placeholder"
@@ -91,9 +92,10 @@ def test_a_rejected_translation_does_not_retain_its_values(
     probe = _Probe()
     ref = weakref.ref(probe)
 
-    # 警告を出させない。捕捉されたログレコードは例外を保持し、その traceback の
-    # フレーム経由でテンプレートを掴むため、pytest側の事情で弱参照が切れなくなる
-    # (素のPythonでは解放される)。ここで測りたいのはライブラリ側の保持だけ。
+    # Keep the warning from being emitted. A captured log record holds the exception,
+    # whose traceback frames keep the template alive, so the weak reference would
+    # survive for reasons that belong to pytest rather than to the library (plain
+    # Python releases it). What we measure here is retention by the library alone.
     with caplog.at_level(logging.CRITICAL, logger="gettext_tstrings"):
         assert tr(t"Rejected {probe}", translations=Broken()) == "Rejected probe"
 

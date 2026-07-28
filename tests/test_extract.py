@@ -110,9 +110,9 @@ def greet(name):
     ids=["ini-string", "toml-list", "toml-list-restating-the-default"],
 )
 def test_function_options_accept_toml_list_values(options: dict[str, Any]) -> None:
-    # babel.toml / pyproject.toml の [[mappings]] はオプションをリストで渡す。
-    # 文字列化していたため ``["tr"]`` と書くだけで名前が一致しなくなり、
-    # 警告も終了コードも出さずにメッセージが丸ごと消えていた。
+    # A babel.toml or pyproject.toml [[mappings]] table hands option values over
+    # as lists. Stringifying one meant that writing ``["tr"]`` stopped matching
+    # any name, and the messages vanished whole with no warning and no exit code.
     source = """\
 def greet(name, n):
     return tr(t"Hello {name}"), ntr(t"{n} file", t"{n} files", n)
@@ -266,18 +266,19 @@ tr(t"Hello")
     ]
 
 
-#: ast.parse は通るが tokenize は拒否する。改ページ直後の裸のCRが実例で、
-#: Babelの通常抽出器はtokenizeベースなのでこの1ファイルで全体が落ちていた。
+#: ast.parse accepts this source but tokenize rejects it. A bare CR right after a
+#: form feed is the real-world case, and because Babel's ordinary extractor is
+#: tokenize-based, this one file used to bring the whole run down.
 _TOKENIZE_HOSTILE = '\x0c\r\r\t\nname = "Ada"\ngettext("Plain")\ntr(t"Hello {name}")\n'
 
 
 def test_a_source_only_tokenize_rejects_does_not_abort_the_run() -> None:
-    # SyntaxErrorと同じく、1ファイルの失敗は警告してスキップに留める。
-    # t-string側はASTで読めているので、そちらの結果は失われない。
+    # As with a SyntaxError, one failing file only warns and is skipped. The
+    # t-strings are still readable from the AST, so those results are not lost.
     with pytest.warns(UserWarning, match="skipped ordinary gettext calls"):
         messages = extract_messages(_TOKENIZE_HOSTILE)
 
-    # 裸のCRもASTは行区切りに数えるので、呼び出しは6行目になる。
+    # The AST counts a bare CR as a line break too, so the call lands on line 6.
     assert messages == [(6, "Hello {name}", ["gettext-tstrings"], None)]
 
 
@@ -302,8 +303,9 @@ def test_a_source_only_tokenize_rejects_fails_hard_under_strict() -> None:
     ],
 )
 def test_boolean_options_arrive_as_strings_from_ini(value: str, expect_raise: bool) -> None:
-    # babel.cfg / setup.cfg からは真偽値も**文字列**で届く。`strict = "false"` が
-    # 真と解釈されると、警告で済むはずの抽出が全体を落とす側に倒れる。
+    # babel.cfg and setup.cfg deliver booleans as strings too. If `strict =
+    # "false"` were read as true, an extraction that should only warn would
+    # bring the whole run down instead.
     source = 'tr(t"Hello {user.name}")\n'
 
     if expect_raise:
@@ -315,8 +317,9 @@ def test_boolean_options_arrive_as_strings_from_ini(value: str, expect_raise: bo
 
 
 def test_comment_without_a_matching_tag_is_not_attached() -> None:
-    # 直前のコメントを無条件に拾うと、開発者向けのメモが翻訳者コメントとして
-    # .po に流出する。comment_tag に一致する行から下だけを取ること。
+    # Picking up the preceding comment unconditionally leaks developer notes
+    # into the .po as translator comments. Take only the lines from a
+    # comment_tag match downwards.
     source = """\
 # TODO: rename this helper before the release.
 tr(t"Hello")
@@ -473,8 +476,9 @@ translate("Plain"); tr(t"Middle"); gettext("Later")
 
 
 def test_fake_comment_inside_string_literal_is_ignored_and_does_not_crash() -> None:
-    # 文字列リテラル内の「コメントに見える行」を行走査で拾うと、マスキングが
-    # リテラルを破壊しBabelがTokenErrorで全体を停止していた(tokenize化で解決)。
+    # A line scan picked up comment-looking lines inside a string literal, and
+    # masking them broke the literal, so Babel stopped the whole run with a
+    # TokenError (fixed by tokenizing instead).
     source = '''\
 TEXT = """
 # Translators: fake comment inside a string
@@ -491,8 +495,9 @@ gettext("World")
 
 
 def test_form_feed_does_not_shift_translator_comment_lines() -> None:
-    # \f はstr.splitlines()だけが行区切りに数えるため、行走査では以降の
-    # 行番号がずれて翻訳者コメントが無言で欠落していた(tokenize化で解決)。
+    # Only str.splitlines() counts \f as a line break, so a line scan shifted
+    # every later line number and silently dropped the translator comment
+    # (fixed by tokenizing instead).
     source = 'PAGE = "a\fb"\n\n# Translators: after a form feed.\ngreeting = tr(t"Hello")\n'
 
     assert extract_messages(source) == [
@@ -532,7 +537,8 @@ def test_ignores_dynamic_call_targets() -> None:
         ("tr(t'{(name)}')", "simple variable names"),
         ("tr()", "requires a t-string"),
         ("ntr(t'{n} file', t'{n} files')", "singular, plural, and count"),
-        # canonical名は別の分岐を通るので、両方の引数不足を押さえる。
+        # The canonical name goes through a different branch, so pin the missing
+        # argument down for both.
         ("ngettext(t'{n} file', t'{n} files')", "singular, plural, and count"),
         ('ngettext("One file", t"{n} files", n)', "must be a t-string"),
         ("ntr(t'{n:.1f} file', t'{n:.2f} files', n)", "different formatting"),
@@ -617,7 +623,8 @@ OPEN = lazy_pgettext("button", t"Open {name}")
 
 
 def test_official_example_round_trips_through_extraction_and_runtime() -> None:
-    # 公式exampleの全メッセージ(遅延ラベル含む)が抽出され、翻訳して描画できる。
+    # Every message in the official example, the lazy label included, extracts
+    # and can then be translated and rendered.
     import gettext as gettext_module
     import importlib.util
     from pathlib import Path

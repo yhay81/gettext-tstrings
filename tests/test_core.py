@@ -25,10 +25,10 @@ from gettext_tstrings import pgettext as tpgettext
 
 
 class StubTranslations:
-    # 公開Protocol(gettext_tstrings.Translations)だけを実装する。
-    # gettext.NullTranslations を継承すると、typeshedが宣言する
-    # msgid1/msgid2 という引数名の改名がLSP違反になる(位置専用化でも直らない)。
-    # 利用者が実装するのはこのProtocolなので、こちらを直接満たす方が忠実。
+    # Implement only the public Protocol (gettext_tstrings.Translations).
+    # Subclassing gettext.NullTranslations would turn the rename of typeshed's
+    # msgid1/msgid2 parameters into an LSP violation (positional-only does not
+    # fix it). The Protocol is what users implement, so satisfy it directly.
     def __init__(
         self,
         messages: dict[str, str] | None = None,
@@ -65,8 +65,8 @@ def test_version_matches_package_metadata() -> None:
 
 
 def test_public_api_surface_is_pinned() -> None:
-    # __all__ は公開契約。名前が落ちたり増えたりするのは利用者から見た
-    # 破壊的変更なので、意図せず起きないよう明示的に固定する。
+    # __all__ is the public contract. A name dropping out or appearing is a
+    # breaking change for users, so pin the list explicitly.
     import gettext_tstrings
 
     assert sorted(gettext_tstrings.__all__) == [
@@ -149,9 +149,10 @@ def test_formatting_and_conversion_stay_in_source() -> None:
 
 
 def test_str_values_still_apply_the_source_format_spec() -> None:
-    # str値は各描画経路の高速路(_Field.plain)でformat()を飛ばして素通しされる。
-    # そこが壊れると全APIで書式指定が静かに無視されるため、経路ごとに固定する。
-    # 既存の書式指定テストはfloatか``!r``付きなので、この組み合わせは通らない。
+    # A str value passes through the fast path (_Field.plain) of every render
+    # route, skipping format(). If that breaks, format specs are silently
+    # ignored across the whole API, so pin one case per route. The existing
+    # format-spec tests all use a float or ``!r`` and miss this combination.
     name = "Ada"
     second = "Bo"
     third = "Cy"
@@ -223,8 +224,8 @@ def test_invalid_translation_placeholders_are_rejected_in_strict_mode(
 
 def test_confusable_placeholder_names_are_escaped_in_errors() -> None:
     name = "Ada"
-    # キリル文字の U+0430 を含むホモグリフ名は ASCII の "name" と見分けが
-    # つかないため、エラーメッセージでは可視化されたエスケープ形で示される。
+    # A homoglyph name holding Cyrillic U+0430 is indistinguishable from ASCII
+    # "name", so the error message shows it in visible, escaped form.
     translations = StubTranslations({"Hello {name}": "Hello {nаme}"})  # noqa: RUF001
 
     with pytest.raises(InvalidTranslationError) as excinfo:
@@ -254,8 +255,8 @@ def test_invalid_translation_falls_back_to_source_by_default(translation: str) -
 def test_invalid_translation_warning_includes_the_reason(
     caplog: pytest.LogCaptureFixture,
 ) -> None:
-    # 警告は「プラン+パターン」ごとに一度だけなので、他のテストと共有されない
-    # 固有のmsgidを使う。
+    # The warning fires once per plan and pattern, so use a msgid of its own
+    # that no other test shares.
     warned = "Ada"
     translations = StubTranslations({"Warn once {warned}": "Warn once"})
 
@@ -268,7 +269,7 @@ def test_invalid_translation_warning_includes_the_reason(
 def test_invalid_translation_warns_once_and_keeps_rendering(
     caplog: pytest.LogCaptureFixture,
 ) -> None:
-    # 壊れたカタログ1件が描画のたびに再検証と警告を起こさないこと。
+    # One broken catalog entry must not re-validate and re-warn on every render.
     flooded = "Ada"
     translations = StubTranslations({"Flood {flooded}": "Flood"})
 
@@ -277,7 +278,7 @@ def test_invalid_translation_warns_once_and_keeps_rendering(
 
     assert rendered == ["Flood Ada"] * 5
     assert caplog.text.count("invalid translation") == 1
-    # strictは記録に関わらず毎回例外を投げる。
+    # strict raises every time, whatever was recorded.
     with pytest.raises(InvalidTranslationError, match="missing"):
         tr(t"Flood {flooded}", translations=translations, strict=True)
 
@@ -285,7 +286,8 @@ def test_invalid_translation_warns_once_and_keeps_rendering(
 def test_contextual_invalid_translation_warns_once_and_keeps_rendering(
     caplog: pytest.LogCaptureFixture,
 ) -> None:
-    # 単数の素の経路だけでなく、pgettextも記録済みパターンを引いて退避すること。
+    # Not only the plain singular path: pgettext must also look up the recorded
+    # pattern and fall back.
     ctxflood = "Ada"
     translations = StubTranslations(contexts={("nav", "Ctx {ctxflood}"): "Ctx"})
 
@@ -327,14 +329,14 @@ def test_plural_invalid_translation_warns_once_and_keeps_rendering(
 
 
 def test_contextual_constant_translation_renders_through_the_shared_tail() -> None:
-    # 文脈付きの定数メッセージは _render_pattern の constant 経路を通る。
+    # A contextual constant message goes through _render_pattern's constant path.
     translations = StubTranslations(contexts={("nav", "Static ctx"): "固定"})
 
     assert tpgettext("nav", t"Static ctx", translations=translations) == "固定"
 
 
 def test_invalid_pattern_record_clears_when_its_limit_is_reached() -> None:
-    # 壊れたパターンの記録も有界であること(記録が無制限に育たない)。
+    # The record of broken patterns is bounded too, so it cannot grow forever.
     from gettext_tstrings import core
 
     bounded = "Ada"
@@ -369,8 +371,8 @@ def test_invalid_plural_translation_falls_back_to_source() -> None:
 
 
 def test_same_strings_with_different_specs_do_not_share_a_plan() -> None:
-    # プランはstringsタプルをキーに引くため、staticテキストが同一で
-    # 書式指定だけ異なる別サイトの照合ミスは即座に誤整形につながる。
+    # Plans are keyed by the strings tuple, so mismatching two sites that share
+    # the static text and differ only in format spec formats the value wrongly.
     amount = 1234.5
     translations = gettext.NullTranslations()
 
@@ -384,15 +386,16 @@ def test_same_strings_with_different_specs_do_not_share_a_plan() -> None:
     assert converted == "1234.5"
     assert named == "1234.5"
 
-    # 同じstringsで変数名だけ異なるサイトも独立したmsgidを持つ。
+    # Sites sharing the strings but differing in variable name get their own msgid.
     other = 9
     assert compile_template(t"{other}").msgid == "{other}"
     assert compile_template(t"{amount}").msgid == "{amount}"
 
 
 def test_dynamic_format_spec_sites_stay_bounded_and_correct() -> None:
-    # ネスト書式指定(t"{v:{width}.2f}")は実行時にformat_specが変わるため
-    # サイトが毎回増え得る。上限で消去され、メモリが無制限に伸びないこと。
+    # A nested format spec (t"{v:{width}.2f}") changes format_spec at runtime, so
+    # a site can be added on every call. Reaching the limit clears them, which is
+    # what keeps memory from growing without bound.
     from gettext_tstrings.core import _MAX_SITES_PER_SHAPE, _PLANS
 
     translations = gettext.NullTranslations()
@@ -404,13 +407,14 @@ def test_dynamic_format_spec_sites_stay_bounded_and_correct() -> None:
 
     template = t"[{value:{4}.2f}]"
     shapes = _PLANS[template.strings]
-    assert isinstance(shapes, dict)  # 衝突でdictへ昇格済み
+    assert isinstance(shapes, dict)  # promoted to a dict by the collision
     assert all(len(sites) <= _MAX_SITES_PER_SHAPE for sites in shapes.values())
 
 
 def test_bare_placeholder_shapes_do_not_share_a_bucket() -> None:
-    # t"{name}" と t"{count}" はstringsが同一("", "")だが、先頭expressionで
-    # 二段目を引くため互いの照合コストを負わない。
+    # t"{name}" and t"{count}" share the same strings ("", ""), but the second
+    # level is keyed by the leading expression, so neither pays to compare
+    # against the other.
     from gettext_tstrings.core import _PLANS
 
     translations = gettext.NullTranslations()
@@ -422,14 +426,15 @@ def test_bare_placeholder_shapes_do_not_share_a_bucket() -> None:
 
     template = t"{name}"
     shapes = _PLANS[template.strings]
-    assert isinstance(shapes, dict)  # 2サイト目でdictへ昇格済み
+    assert isinstance(shapes, dict)  # promoted to a dict by the second site
     assert "name" in shapes and "count" in shapes
     assert len(shapes["name"]) == 1
 
 
 def test_plural_with_empty_branch_msgid_skips_catalog() -> None:
-    # 空msgidはカタログメタデータ用に予約(SPEC §2)。ヘッダを返す
-    # カタログが相手でも、空ブランチを含む複数形はソースを描画する。
+    # An empty msgid is reserved for catalog metadata (SPEC §2). Even against a
+    # catalog that returns the header, a plural with an empty branch renders the
+    # source.
     header = "Project-Id-Version: demo\n"
     translations = StubTranslations(
         messages={"": header},
@@ -442,8 +447,9 @@ def test_plural_with_empty_branch_msgid_skips_catalog() -> None:
 
 
 def test_plural_with_one_empty_branch_msgid_skips_catalog() -> None:
-    # 片方のブランチだけが空でも、そのペアのカタログエントリは存在し得ない。
-    # ヘッダを返すカタログでも、UI文字列としてヘッダが漏れてはならない。
+    # Even when only one branch is empty, no catalog entry for that pair can
+    # exist. Against a catalog that returns the header, the header must never
+    # leak out as a UI string.
     header = "Project-Id-Version: demo\n"
     n = 2
     translations = StubTranslations(
@@ -463,10 +469,11 @@ def test_plural_with_one_empty_branch_msgid_skips_catalog() -> None:
     ids=["empty-format-spec", "format-spec", "conversion"],
 )
 def test_leading_placeholder_may_not_carry_a_modifier(translation: str) -> None:
-    # パターン先頭(index=0)は _has_explicit_field_modifier の走査境界。
-    # 既存テストの修飾子はすべて先頭以外にある。特に ``{name:}`` は
-    # Formatter が format_spec を空文字列で返すため本体ループでは判別できず、
-    # この関数だけが検出器になる = 境界がずれても他が拾ってくれない。
+    # The start of the pattern (index 0) is the scan boundary in
+    # _has_explicit_field_modifier. Every modifier in the existing tests sits
+    # elsewhere. ``{name:}`` in particular is invisible to the main loop, since
+    # Formatter reports its format_spec as the empty string, so this function is
+    # the only detector: if the boundary slips, nothing else catches it.
     name = "Ada"
     translations = StubTranslations({"{name} desu": translation})
 
@@ -478,9 +485,10 @@ def test_leading_placeholder_may_not_carry_a_modifier(translation: str) -> None:
 def test_a_catalog_returning_a_non_string_never_escapes_the_strict_switch(
     returned: object,
 ) -> None:
-    # Translations は公開Protocolなので、外部実装が str 以外を返しうる
-    # (dict.get をそのまま返す実装はありふれている)。生のTypeErrorが
-    # 漏れると「壊れたカタログは描画を落とさない」契約から外れる。
+    # Translations is a public Protocol, so an outside implementation can return
+    # something other than str (returning dict.get directly is a common shape).
+    # A raw TypeError escaping would break the contract that a broken catalog
+    # never fails a render.
     name = "Ada"
 
     class NonStringCatalog(StubTranslations):
@@ -493,8 +501,9 @@ def test_a_catalog_returning_a_non_string_never_escapes_the_strict_switch(
 
 
 def test_pattern_dict_clears_when_its_limit_is_reached() -> None:
-    # 1つのプランに溜まる翻訳パターンも有界であること。他の3上限と違い、
-    # ここだけ上限そのものをassertしておらず退避コードが死んでいても通った。
+    # The translation patterns piling up in one plan are bounded too. Unlike the
+    # other three limits, this one asserted nothing about the limit itself and
+    # passed even with the eviction code dead.
     from gettext_tstrings import core
 
     name = "Ada"
@@ -513,10 +522,10 @@ def test_pattern_dict_clears_when_its_limit_is_reached() -> None:
     ids=["escapes-then-colon", "field-then-escape-colon", "escape-colon-brace"],
 )
 def test_escaped_braces_may_sit_beside_a_literal_colon(pattern: str, expected: str) -> None:
-    # _has_explicit_field_modifier の走査は ``{{`` を2文字、``}`` を1文字ぶん
-    # 読み飛ばす。歩幅がずれるとリテラルのコロンをフィールド内の書式指定と
-    # 誤認し、正しい翻訳を拒否する。エスケープした波括弧とリテラルの
-    # コロンが同居する形はどのテストにもconformanceにも無かった。
+    # The scan in _has_explicit_field_modifier skips ``{{`` as two characters and
+    # ``}`` as one. If the stride slips, a literal colon reads as a format spec
+    # inside a field and a valid translation is rejected. Escaped braces sitting
+    # beside a literal colon appeared in no test and in no conformance case.
     a = "X"
     translations = StubTranslations({"{a}": pattern})
 
@@ -524,9 +533,9 @@ def test_escaped_braces_may_sit_beside_a_literal_colon(pattern: str, expected: s
 
 
 def test_contextual_empty_msgid_never_reaches_the_catalog() -> None:
-    # 空msgidはカタログのメタデータヘッダ用に予約されている(SPEC §2)。
-    # gettext側のガードは固定済みだったが pgettext 側は未固定で、
-    # 外すとヘッダ文字列がそのままUIへ出る。
+    # An empty msgid is reserved for the catalog's metadata header (SPEC §2).
+    # The guard on the gettext side was pinned, the one on the pgettext side was
+    # not: remove it and the header string goes straight into the UI.
     header = "Content-Type: text/plain; charset=UTF-8\n"
     translations = StubTranslations(contexts={("nav", ""): header})
 
@@ -534,8 +543,9 @@ def test_contextual_empty_msgid_never_reaches_the_catalog() -> None:
 
 
 def test_plural_only_placeholder_renders_through_the_general_path() -> None:
-    # 複数形ブランチにしか無いプレースホルダを、3要素以上で一般描画路
-    # (_render_plural_chunks)に通す。ブランチの取り違えはここでしか出ない。
+    # Send a placeholder that exists only in the plural branch through the
+    # general render path (_render_plural_chunks) by using three chunks or more.
+    # Picking the wrong branch shows up nowhere else.
     shared = "S"
     only = "O"
     n = 2
@@ -555,9 +565,9 @@ def test_plural_only_placeholder_renders_through_the_general_path() -> None:
 
 
 def test_plural_functions_resolve_the_context_bound_translations() -> None:
-    # use_translations() は tr と lazy_* でしか検証されておらず、
-    # ntr/ngettext/npgettext がコンテキスト束縛を解決する経路が未検証だった。
-    # リクエスト単位で言語を切り替えるフレームワーク統合の中核。
+    # use_translations() was exercised only through tr and lazy_*; the path where
+    # ntr/ngettext/npgettext resolve the context binding went untested. It is the
+    # core of a framework integration that switches language per request.
     n = 2
     translations = StubTranslations(
         plurals={("One file", "{n} files"): ("1件", "{n}件")},
@@ -568,13 +578,13 @@ def test_plural_functions_resolve_the_context_bound_translations() -> None:
         assert tngettext(t"One file", t"{n} files", n) == "2件"
         assert tnpgettext("inbox", t"One message", t"{n} messages", n) == "2通"
 
-    # 束縛を抜ければグローバルのフォールバックへ戻る。
+    # Leaving the binding returns to the global fallback.
     assert tngettext(t"One file", t"{n} files", n) == "2 files"
 
 
 def test_pattern_cache_eviction_preserves_correctness() -> None:
-    # パターン辞書は上限到達で全消去されるが、以後の描画は再検証・再構築
-    # されるだけで結果は変わらない。
+    # Reaching the limit clears the pattern dict outright, but later renders only
+    # re-validate and rebuild; the result is unchanged.
     value = "x"
     compiled = compile_template(t"V {value}")
 
@@ -776,8 +786,8 @@ def test_runtime_functions_require_a_template() -> None:
 
 
 def test_pair_path_renders_reordered_two_field_translations() -> None:
-    # 相異なる2フィールドの特殊化(pair)を、str値・非str値・pgettext・
-    # CompiledTemplateの各経路で確認する。
+    # Check the two-distinct-field specialization (pair) through each route: a
+    # str value, a non-str value, pgettext, and CompiledTemplate.
     category = "News"
     count = 7
     translations = StubTranslations(
@@ -794,10 +804,12 @@ def test_pair_path_renders_reordered_two_field_translations() -> None:
 
 
 def test_plural_pattern_with_str_value_and_repeated_formatted_field() -> None:
-    # 複数形の単一フィールドstr近道と、書式付きフィールド反復のメモ化。
+    # The plural single-field str shortcut, and the memo for a repeated
+    # formatted field.
     label = "docs"
     n = 2
-    # msgidは書式指定を含まない({n:03d}→{n})ため、カタログのキーもmsgid形。
+    # A msgid carries no format spec ({n:03d} becomes {n}), so the catalog keys
+    # are in msgid form too.
     translations = StubTranslations(
         plurals={
             ("{label} file", "{label} files"): ("[{label}]", "[{label}] and [{label}]"),
@@ -812,9 +824,10 @@ def test_plural_pattern_with_str_value_and_repeated_formatted_field() -> None:
 
 
 def test_plans_cache_clears_when_key_limit_is_reached() -> None:
-    # stringsキー数の上限到達で全消去され、その後も正しく描画されること。
-    # Template直接構築はリテラル由来のt-stringとメタデータが同一なので、
-    # execでソースを合成せずに多数の相異なるstringsキーを作れる。
+    # Reaching the limit on strings keys clears the cache, and rendering stays
+    # correct afterwards. Constructing Template directly carries the same
+    # metadata as a t-string from a literal, so many distinct strings keys can be
+    # made without synthesizing source through exec.
     from string.templatelib import Template
 
     from gettext_tstrings import core
@@ -832,7 +845,7 @@ def test_plans_cache_clears_when_key_limit_is_reached() -> None:
 
 
 def test_shape_dict_clears_when_expression_limit_is_reached() -> None:
-    # 同一stringsに先頭expressionが増え続けても上限で消去されること。
+    # Leading expressions piling up under one strings key are cleared at the limit.
     from string.templatelib import Interpolation, Template
 
     from gettext_tstrings import core

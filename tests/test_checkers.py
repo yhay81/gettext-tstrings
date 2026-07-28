@@ -94,9 +94,9 @@ def test_checker_ignores_none_translation() -> None:
 
 
 def test_checker_guards_a_msgid_that_only_escapes_braces() -> None:
-    # Babelはプレースホルダを持たないmsgidに python-brace-format を付けない
-    # ので、この形だけはmsgfmtやWeblateの検証が一切効かない。同梱チェッカーが
-    # 唯一の防波堤になるため、波括弧を外す翻訳を確実に拒否すること。
+    # Babel never flags a msgid without placeholders as python-brace-format, so neither
+    # msgfmt nor Weblate validates this shape at all. The bundled checker is the only line
+    # of defence, so it has to reject a translation that drops the escaping.
     message = marked_message("Config {{raw}} only", "設定 {raw} のみ")
 
     with pytest.raises(TranslationError, match="unexpected"):
@@ -110,8 +110,8 @@ def test_checker_accepts_escaped_braces_kept_escaped() -> None:
 
 
 def test_checker_ignores_a_message_without_a_source_pattern() -> None:
-    # Babelは msgid が空タプルの Message を渡すことがある。生のTypeErrorを
-    # 漏らすとpybabelがトレースバックで落ちるため、静かに無視する。
+    # Babel can hand the checker a Message whose msgid is an empty tuple. Leaking a raw
+    # TypeError would take pybabel down with a traceback, so ignore it quietly.
     message = Message((), string="x", auto_comments=["gettext-tstrings"])
 
     check_tstring(None, message)

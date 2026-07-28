@@ -10,7 +10,8 @@ import gettext
 
 from gettext_tstrings import Translator, lazy_gettext, tr, use_translations
 
-# 言語が決まる前(インポート時)に定義され、使用時に翻訳される遅延ラベル。
+# A lazy label: defined at import time, before a language is known, and
+# translated when it is used.
 GREETING_LABEL = lazy_gettext(t"Welcome")
 
 
@@ -22,7 +23,7 @@ def main() -> None:
         fallback=True,
     )
 
-    # 明示的に束縛したプロセッサを ``_`` として使う。
+    # Use an explicitly bound translator as ``_``.
     _ = Translator(translations)
 
     name = "Ada"
@@ -30,8 +31,8 @@ def main() -> None:
     print(_(t"Hello {name}"))
     print(_.ngettext(t"One file", t"{n} files", n))
 
-    # リクエスト単位の言語切り替え: 文脈に束縛すると、モジュール関数と
-    # 遅延ラベルの両方が現在の言語で解決される。
+    # Per-request language switching: binding to the context resolves both the
+    # module-level functions and the lazy label in the current language.
     with use_translations(translations):
         print(tr(t"Hello {name}"))
         print(str(GREETING_LABEL))

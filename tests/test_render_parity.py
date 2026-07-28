@@ -1,9 +1,9 @@
-"""手同期された描画末尾コピー間の挙動一致を固定するドリフト防止テスト。
+"""Drift guard pinning the hand-synced copies of the render tail to one behavior.
 
-core.pyは性能上の理由で描画末尾のコピーを複数持つ(gettext()のインライン
-展開・_render_pattern・_render_with_values・_render_plural_pattern)。
-片方だけ修正して他方を直し忘れるドリフトは、APIごとの個別テストでは
-すり抜け得る(変異検証で実証済み)ため、ここで全経路の出力を突き合わせる。
+core.py keeps several copies of the render tail for speed: the one inlined into
+gettext(), _render_pattern, _render_with_values, and _render_plural_pattern.
+Fixing one copy and forgetting another is drift that per-API tests can miss
+(mutation testing proved it), so every path's output is compared here.
 """
 
 from __future__ import annotations
@@ -16,10 +16,11 @@ from gettext_tstrings import compile_template, ngettext, pgettext, tr
 
 
 class Stub:
-    # 公開Protocol(gettext_tstrings.Translations)だけを実装する。
-    # gettext.NullTranslations を継承すると、typeshedが宣言する
-    # msgid1/msgid2 という引数名の改名がLSP違反になる(位置専用化でも直らない)。
-    # 利用者が実装するのはこのProtocolなので、こちらを直接満たす方が忠実。
+    # Implements only the public Protocol (gettext_tstrings.Translations).
+    # Subclassing gettext.NullTranslations would turn the rename of typeshed's
+    # declared msgid1/msgid2 parameter names into an LSP violation (making them
+    # positional-only does not fix it). Users implement the Protocol, so
+    # satisfying it directly is the faithful stub.
     def __init__(
         self,
         messages: dict[str, str] | None = None,
@@ -47,7 +48,7 @@ class Stub:
 
 
 class Formatted:
-    """``__format__`` が ``__str__`` と異なる値。strショートカットの誤適用を露出させる。"""
+    """Value whose ``__format__`` differs from ``__str__``, exposing a misapplied str shortcut."""
 
     def __format__(self, format_spec: str) -> str:
         return f"<F:{format_spec}>"
@@ -57,7 +58,7 @@ class Formatted:
 
 
 def _all_paths_one_field(pattern: str, a: Any) -> dict[str, str]:
-    """1フィールドのソースを全描画経路で描画する。"""
+    """Render a one-field source through every render path."""
     return {
         "gettext": tr(t"{a}", translations=Stub(messages={"{a}": pattern})),
         "pgettext": pgettext("k", t"{a}", translations=Stub(contexts={("k", "{a}"): pattern})),
@@ -78,7 +79,7 @@ def _all_paths_one_field(pattern: str, a: Any) -> dict[str, str]:
 
 
 def _all_paths_two_fields(pattern: str, a: Any, b: Any) -> dict[str, str]:
-    """2フィールドのソースを全描画経路で描画する。"""
+    """Render a two-field source through every render path."""
     return {
         "gettext": tr(t"{a} {b}", translations=Stub(messages={"{a} {b}": pattern})),
         "pgettext": pgettext(
@@ -109,7 +110,7 @@ def _all_paths_two_fields(pattern: str, a: Any, b: Any) -> dict[str, str]:
     ids=["bare", "prefix-suffix", "repeat"],
 )
 def test_one_field_render_paths_agree(pattern: str, value: Any) -> None:
-    # 参照値はSPECの規則(format(value, "")をプレーン差し込み)を素朴に適用する。
+    # The expected value applies SPEC's rule naively: a plain field is format(value, "").
     expected = pattern.replace("{a}", format(value, ""))
 
     results = _all_paths_one_field(pattern, value)

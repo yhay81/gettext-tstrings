@@ -1,16 +1,18 @@
 """Safe, low-overhead runtime rendering for translated t-strings.
 
-ホットパスの設計方針:
+How the hot path is shaped:
 
-- 呼び出しごとのアロケーションを避ける。テンプレートの静的構造は
-  ``template.strings`` タプルをキーにした辞書で直接引き、メタデータの
-  タプル構築やlru_cacheのキーハッシュを毎回払わない。同じstringsで
-  書式指定だけ異なる別サイトと衝突しないよう、ヒット時は各補間の
-  expression/conversion/format_specを元の値と照合する。
-- 検証済みの翻訳パターン(RenderPlan)はプランに付随する辞書に
-  パターン文字列キーで保持する。2回目以降はdict.get1回で描画に入る。
-- 未検証のパターンは必ず parse_pattern + require_fields を通る。
-  高速化のために検証を省く経路は存在しない。
+- Allocate nothing per call. A template's static structure is looked up
+  directly in a dict keyed by its ``template.strings`` tuple, so no
+  metadata tuple is built and no lru_cache key is hashed per call. On a
+  hit, each interpolation's expression, conversion, and format spec is
+  compared against the recorded values, so a different call site that
+  shares the same strings but differs in formatting cannot collide.
+- A validated translation pattern (RenderPlan) is kept on its plan in a
+  dict keyed by the pattern string. Later renders reach it in one
+  dict.get.
+- An unvalidated pattern always goes through parse_pattern and
+  require_fields. There is no path that skips validation for speed.
 """
 
 from __future__ import annotations
@@ -33,8 +35,9 @@ type FieldMetadata = tuple[str, Conversion, str]
 
 _LOGGER = logging.getLogger("gettext_tstrings")
 
-# キャッシュ上限。超過時は該当次元を全消去する(粗いが、判定が最速で保守も単純)。
-# _PLANSは strings → 先頭expression → サイト列 の二段で、全次元が有界。
+# Cache limits. Passing one clears that dimension outright — coarse, but the
+# cheapest check and the simplest to reason about. _PLANS is two levels,
+# strings then leading expression then sites, and every level is bounded.
 _MAX_PLANS = 2048
 _MAX_SHAPES_PER_KEY = 512
 _MAX_SITES_PER_SHAPE = 8
@@ -54,17 +57,19 @@ class Translations(Protocol):
     def npgettext(self, context: str, singular: str, plural: str, n: int, /) -> str: ...
 
 
-# 明示引数がない呼び出しが使う翻訳。Webフレームワークはリクエスト単位で
-# 束縛する(コンテキスト単位なので並行安全)。未束縛ならプロセスグローバル
-# なgettextカタログへフォールバックする。
+# The translations a call without an explicit argument uses. A web framework
+# binds this per request; being context-scoped, that is safe under
+# concurrency. Unbound, calls fall back to the process-global gettext
+# catalog.
 _current: ContextVar[Translations | None] = ContextVar(
     "gettext_tstrings_translations",
     default=None,
 )
 _current_get = _current.get
 
-# stdlib関数はimport時に束縛する(関数オブジェクトは安定で、内部で
-# その時点のtextdomainを解決するため挙動は変わらない)。
+# Bind the standard library functions at import: the function objects are
+# stable and resolve the current text domain internally, so behavior is
+# unaffected.
 _std_gettext = _gettext.gettext
 _std_ngettext = _gettext.ngettext
 _std_pgettext = _gettext.pgettext
@@ -92,7 +97,7 @@ def use_translations(translations: Translations | None) -> Iterator[None]:
 
 
 class _Field:
-    """1プレースホルダの描画情報。``plain`` はstr連結の高速路が使えるか。"""
+    """How one placeholder renders. ``plain`` marks the str-concatenation path."""
 
     __slots__ = (
         "conversion",
@@ -135,10 +140,11 @@ class _Field:
 
 
 class _RenderPlan:
-    """検証済みパターン1つ分の描画計画。
+    """The render plan for one validated pattern.
 
-    出現0(定数)・1(single)・相異なる2フィールド(pair)は連結チェーンに
-    特殊化し、それ以外はchunksの一般ループで描画する。
+    Zero occurrences (a constant), one, and two distinct fields are
+    specialized into concatenation chains; anything else renders through
+    the general loop over chunks.
     """
 
     __slots__ = (
@@ -184,8 +190,11 @@ class _RenderPlan:
 
 
 class _TemplatePlan:
-    """1つのt-string構造に対する翻訳計画。プランはキャッシュで共有され、
-    同一構造なら同一オブジェクトになるため、等価・ハッシュは同一性で足りる。"""
+    """The translation plan for one t-string structure.
+
+    Plans are shared through the cache, so the same structure yields the same
+    object and identity is enough for equality and hashing.
+    """
 
     __slots__ = ("allowed", "fields", "invalid", "msgid", "names", "patterns", "required")
 
@@ -208,7 +217,10 @@ class _TemplatePlan:
 
 
 class _PluralPlan:
-    """単数・複数の2ブランチを統合した計画。requiredは両ブランチの積集合。"""
+    """A plan merging the singular and plural branches.
+
+    ``required`` is the intersection of the two branches' placeholders.
+    """
 
     __slots__ = ("allowed", "fields", "invalid", "names", "patterns", "required")
 
@@ -233,7 +245,7 @@ class _PluralPlan:
 
 
 class _Site:
-    """strings共有キー内の1呼び出しサイト。照合用の生メタデータを持つ。"""
+    """One call site under a shared strings key, with the metadata to match it."""
 
     __slots__ = ("conversions", "expressions", "plan", "specs")
 
@@ -249,9 +261,10 @@ class _Site:
         self.plan = plan
 
 
-# strings → 単一_Site(最頻)または {先頭expression: サイト列}(衝突時に昇格)。
-# 一意なリテラルテキストを持つ通常のメッセージは単一_Siteで完結し、
-# 素のプレースホルダ形(t"{name}"とt"{count}"等)の衝突だけがdictを払う。
+# strings maps to a single _Site (the common case) or, once two sites collide,
+# to {leading expression: sites}. An ordinary message with distinctive literal
+# text stays a single _Site; only bare-placeholder shapes (t"{name}" against
+# t"{count}") pay for the dict.
 _PLANS: dict[tuple[str, ...], _Site | dict[str, list[_Site]]] = {}
 
 
@@ -302,17 +315,18 @@ def _compile_plan(
 
 
 def _site_matches(site: _Site, interpolations: tuple[Interpolation[Any], ...]) -> bool:
-    """サイトの生メタデータと各補間を照合する。
+    """Match a site's recorded metadata against each interpolation.
 
-    同じstringsで書式指定だけ異なる別サイト(例: ``t"{x:.2f}"`` と
-    ``t"{x:.3f}"``)を混同しないための必須の検査で、省略できない。
+    This is what keeps two sites that share strings but differ in formatting
+    (``t"{x:.2f}"`` against ``t"{x:.3f}"``) from being confused. It cannot be
+    skipped.
     """
     expressions = site.expressions
     conversions = site.conversions
     specs = site.specs
     index = 0
-    # enumerate()は毎周タプルを生成し実測+57ns/フィールド遅いため、
-    # 最重要ホットパスに限り手動インデックスを使う。
+    # enumerate() builds a tuple per iteration and measured +57ns per field, so
+    # the hottest paths index by hand.
     for interp in interpolations:
         if (
             interp.expression != expressions[index]
@@ -320,24 +334,25 @@ def _site_matches(site: _Site, interpolations: tuple[Interpolation[Any], ...]) -
             or interp.format_spec != specs[index]
         ):
             return False
-        index += 1  # noqa: SIM113  # enumerate()は実測+57ns/フィールド遅い
+        index += 1  # noqa: SIM113  # enumerate() measured +57ns per field
     return True
 
 
 def _plan_for(
     strings: tuple[str, ...], interpolations: tuple[Interpolation[Any], ...]
 ) -> _TemplatePlan:
-    """テンプレートの静的構造からプランを引く。
+    """Look a plan up from the template's static structure.
 
-    最頻ケース(一意なリテラルテキスト=単一サイト)は照合1回で返す。
-    stringsが衝突する形(素のプレースホルダ ``t"{name}"``/``t"{count}"`` や
-    実行時に変わるネスト書式指定)だけが、先頭expressionで引く有界の
-    dictに昇格する。
+    The common case — distinctive literal text, so a single site — returns
+    after one comparison. Only shapes whose strings collide (bare
+    placeholders like ``t"{name}"`` against ``t"{count}"``, or a nested
+    format spec that varies at runtime) get promoted to a bounded dict keyed
+    by the leading expression.
     """
     entry = _PLANS.get(strings)
     if entry is not None:
         if type(entry) is _Site:
-            # 単一サイト(最頻)。照合ループをインラインで1回だけ回す。
+            # A single site, the common case: run the comparison inline, once.
             expressions = entry.expressions
             conversions = entry.conversions
             specs = entry.specs
@@ -349,7 +364,7 @@ def _plan_for(
                     or interp.format_spec != specs[index]
                 ):
                     break
-                index += 1  # noqa: SIM113  # enumerate()は実測+57ns/フィールド遅い
+                index += 1  # noqa: SIM113  # enumerate() measured +57ns per field
             else:
                 return entry.plan
         else:
@@ -366,16 +381,18 @@ def _plan_for(
     )
     plan = _compile_plan(strings, metadata)
     site = _Site(metadata, plan)
-    # 各次元を明示的に有界にする。実行時にformat_specが変わる形
-    # (例: t"{x:{width}}" のネスト指定)は毎回別サイトになり得るため、
-    # 上限到達で消去して再コンパイルに退避する(結果は常に正しい)。
+    # Bound every dimension explicitly. A shape whose format spec varies at
+    # runtime (a nested spec such as t"{x:{width}}") can produce a new site
+    # each call, so reaching a limit clears it and falls back to recompiling.
+    # The result is correct either way.
     head = interpolations[0].expression if interpolations else ""
     if entry is None:
         if len(_PLANS) >= _MAX_PLANS:
             _PLANS.clear()
         _PLANS[strings] = site
     elif type(entry) is _Site:
-        # 衝突発生: 単一サイトを先頭expressionで引くdictへ昇格する。
+        # A collision: promote the single site into a dict keyed by the
+        # leading expression.
         old_head = entry.expressions[0] if entry.expressions else ""
         shapes: dict[str, list[_Site]] = {old_head: [entry]}
         shapes.setdefault(head, []).append(site)
@@ -395,7 +412,7 @@ def _plan_for(
 
 
 def _compile_pattern(plan: _TemplatePlan | _PluralPlan, pattern: str) -> _RenderPlan:
-    """翻訳パターンを検証して描画計画に変換し、プランの辞書に保存する。"""
+    """Validate a translation pattern, turn it into a render plan, and cache it."""
     parsed = parse_pattern(pattern)
     require_fields(required=plan.required, allowed=plan.allowed, actual=parsed.fields)
 
@@ -404,7 +421,7 @@ def _compile_pattern(plan: _TemplatePlan | _PluralPlan, pattern: str) -> _Render
         (literal, by_name[name] if name is not None else None) for literal, name in parsed.chunks
     )
 
-    # フィールドで区切ったテキスト断片を集め、出現数で描画方式を特殊化する。
+    # Collect the text between fields, then specialize on how many fields occur.
     segments = [""]
     field_sequence: list[_Field] = []
     for literal, field in chunks:
@@ -422,8 +439,8 @@ def _compile_pattern(plan: _TemplatePlan | _PluralPlan, pattern: str) -> _Render
         render_plan.prefix = segments[0]
         render_plan.suffix = segments[1]
     elif occurrences == 2 and field_sequence[0] is not field_sequence[1]:
-        # 相異なる2フィールドのみ。同一フィールドの反復は「整形は最大1回」の
-        # 保証があるため、メモ化を持つ一般ループに任せる。
+        # Two distinct fields only. A repeated field is left to the general
+        # loop, whose memo is what keeps "formatted at most once" true.
         render_plan.first = field_sequence[0]
         render_plan.second = field_sequence[1]
         render_plan.prefix = segments[0]
@@ -444,7 +461,7 @@ def _format_value(value: Any, conversion: Conversion, format_spec: str) -> str:
 
 
 def _render_chunks(render_plan: _RenderPlan, values: tuple[Any, ...]) -> str:
-    """複数フィールドの一般描画。値の整形はフィールドごとに最大1回。"""
+    """The general multi-field render. Each field's value is formatted once."""
     rendered: list[str] = []
     formatted: list[str | None] | None = (
         [None] * render_plan.nfields if render_plan.repeats else None
@@ -469,11 +486,12 @@ def _render_with_values(
     render_plan: _RenderPlan,
     values: tuple[Any, ...],
 ) -> str:
-    """値タプルを使う共通の描画末尾(CompiledTemplateとフォールバック用)。
+    """The shared render tail that reads a values tuple.
 
-    単一テンプレート由来のプラン専用。_PluralPlan由来のrender_planは
-    field.template_indexで値の出所を選ぶ必要があるため、ここには渡さないこと
-    (single/pair経路はtemplate_indexを見ないので、渡すと静かに壊れる)。
+    Used by CompiledTemplate and by the source-text fallback. Only for plans
+    from a single template: a render plan from a _PluralPlan has to pick its
+    values by field.template_index, and the single/pair paths here never look
+    at it, so passing one breaks silently.
     """
     constant = render_plan.constant
     if constant is not None:
@@ -507,7 +525,7 @@ def _render_with_values(
 
 
 def _source_render_plan(plan: _TemplatePlan) -> _RenderPlan:
-    """ソースmsgid自身の描画計画(構造上、検証に失敗しない)。"""
+    """The render plan for the source msgid, which cannot fail validation."""
     render_plan = plan.patterns.get(plan.msgid)
     if render_plan is None:
         render_plan = _compile_pattern(plan, plan.msgid)
@@ -515,11 +533,11 @@ def _source_render_plan(plan: _TemplatePlan) -> _RenderPlan:
 
 
 def _remember_invalid(plan: _TemplatePlan | _PluralPlan, pattern: str) -> None:
-    """検証に失敗したパターンを記録する。
+    """Record a pattern that failed validation.
 
-    正常パターンとは別に持つことで、``strict=True`` の呼び出しは引き続き
-    検証をやり直して例外を投げられる。記録しないと、壊れたカタログ1件が
-    描画のたびに再検証と警告を発生させ続ける。
+    Kept apart from the valid ones so a ``strict=True`` call still revalidates
+    and raises. Without the record, one broken catalog entry revalidates and
+    warns on every single render.
     """
     invalid = plan.invalid
     if len(invalid) >= _MAX_PATTERNS_PER_PLAN:
@@ -530,7 +548,8 @@ def _remember_invalid(plan: _TemplatePlan | _PluralPlan, pattern: str) -> None:
 class CompiledTemplate:
     """A cached gettext message plan bound to one t-string's runtime values."""
 
-    # dataclassの凍結初期化(object.__setattr__経由)は構築が遅いため素のクラス。
+    # A plain class: a frozen dataclass initializes through object.__setattr__,
+    # which is measurably slower to construct.
     __slots__ = ("_plan", "_values")
 
     _plan: _TemplatePlan
@@ -575,12 +594,11 @@ def compile_template(template: Template, /) -> CompiledTemplate:
 
 
 def _render_pattern(render_plan: _RenderPlan, template: Template) -> str:
-    """検証済みRenderPlanをテンプレートの補間値で描画する共通末尾。
+    """Render a validated RenderPlan with a template's interpolated values.
 
-    gettext()内の同一ロジックは最重要ホットパスのため意図的にインライン
-    展開している(関数呼び出し1回分の節約が実測で効く唯一の経路)。この
-    関数を変更するときはgettext()内のコピーも必ず同期すること。挙動の
-    一致は tests/test_render_parity.py が固定している。
+    gettext() inlines this same logic on purpose: it is the one path where
+    saving a single function call measures. Any change here must be mirrored
+    in that copy; tests/test_render_parity.py pins the two together.
     """
     constant = render_plan.constant
     if constant is not None:
@@ -658,8 +676,8 @@ def gettext(
                 _remember_invalid(plan, pattern)
                 render_plan = _source_render_plan(plan)
 
-    # 以下は _render_pattern のインライン展開(意図的な重複)。変更時は
-    # _render_pattern と同期すること。
+    # What follows is _render_pattern inlined — duplicated deliberately. Keep
+    # it in sync with that function.
     constant = render_plan.constant
     if constant is not None:
         return constant
@@ -740,8 +758,11 @@ def pgettext(
 
 @lru_cache(maxsize=_MAX_PLANS)
 def _merge_plural_plans(singular: _TemplatePlan, plural: _TemplatePlan) -> _PluralPlan:
-    """2ブランチのフィールドを統合する。プランは同一性キャッシュ済みなので
-    lru_cacheのキーはオブジェクト同一性ベースで高速に決まる。"""
+    """Merge the fields of both plural branches.
+
+    Plans are already interned by the structural cache, so the lru_cache key
+    resolves on object identity.
+    """
     fields: list[_Field] = [
         _Field(
             field.name,
@@ -848,7 +869,7 @@ def _render_plural_source(
     plural_template: Template,
     n: int,
 ) -> str:
-    """ソース言語の規則でブランチを選び、ソースの構造を描画する。"""
+    """Pick a branch by the source language's rule and render the source."""
     if n == 1:
         return _render_with_values(
             _source_render_plan(singular_plan),
@@ -868,11 +889,11 @@ def _ngettext_impl(
     translations: Translations | None,
     strict: bool,
 ) -> str:
-    """ngettext/npgettextの共通本体。contextの有無だけが両者の差。"""
+    """The body shared by ngettext and npgettext; only the context differs."""
     singular_plan = _bind_template(singular)
     plural_plan = _bind_template(plural)
-    # 空msgidはカタログのメタデータ用に予約されている(SPEC §2)。
-    # どちらかのブランチが空なら翻訳エントリは存在し得ないので、ソースを描画する。
+    # An empty msgid is reserved for the catalog's metadata (SPEC §2). If either
+    # branch is empty no translation entry can exist, so render the source.
     if not singular_plan.msgid or not plural_plan.msgid:
         return _render_plural_source(singular_plan, singular, plural_plan, plural, n)
     merged = _merge_plural_plans(singular_plan, plural_plan)

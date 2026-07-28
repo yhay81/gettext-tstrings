@@ -41,15 +41,16 @@ class _FunctionSets(TypedDict):
 
 def _option_names(options: Mapping[str, Any], key: str, default: str) -> set[str]:
     value = options.get(key, default)
-    # babel.toml / pyproject.toml の [[mappings]] はオプション値をリストで渡してくる。
-    # ini の空白区切り文字列と同じに扱わないと、名前が丸ごと一致しなくなる。
+    # A babel.toml or pyproject.toml [[mappings]] table hands option values
+    # over as lists. Unless they are treated like the whitespace-separated
+    # string an ini file gives, no configured name matches at all.
     text = " ".join(str(item) for item in value) if isinstance(value, list | tuple) else str(value)
     return {item.strip() for item in text.replace(",", " ").split() if item.strip()}
 
 
 def _option_bool(options: Mapping[str, Any], key: str, default: bool) -> bool:
-    # ini/TOMLからは文字列で、既定値からはboolで届く。str(True)は"true"、
-    # str(False)は"false"なので、どちらも同じ判定でよい。
+    # ini and TOML deliver strings while the default arrives as a bool.
+    # str(True) is "true" and str(False) is "false", so one test covers both.
     value = options.get(key, default)
     return str(value).strip().lower() in _TRUE
 
@@ -154,12 +155,15 @@ def _template_pattern(
 
 
 def _comment_lines(source: str) -> dict[int, tuple[int, str]]:
-    """コメントのみの物理行を ``{0始まり行番号: (♯の桁, コメント文字列)}`` で返す。
+    """Map each comment-only physical line to ``(column of #, comment text)``.
 
-    行の同定にtokenizeを使うことで、座標系がASTの行番号と厳密に一致する。
-    素朴な行走査と違い、文字列リテラル内の「コメントに見える行」を拾わず、
-    ``\\f`` やU+2028など ``str.splitlines()`` だけが行区切りに数える文字で
-    行番号がずれることもない。
+    Lines are identified with ``tokenize`` so the coordinates match the AST's
+    line numbers exactly. Unlike a naive line scan, this never picks up a
+    comment-looking line inside a string literal, and never shifts line
+    numbers on characters only ``str.splitlines()`` counts as breaks
+    (form feed, U+2028).
+
+    Keys are zero-based line numbers.
     """
     comments: dict[int, tuple[int, str]] = {}
     tokens = tokenize.generate_tokens(io.StringIO(source).readline)
@@ -168,8 +172,8 @@ def _comment_lines(source: str) -> dict[int, tuple[int, str]]:
             if token.type == tokenize.COMMENT and not token.line[: token.start[1]].strip():
                 comments[token.start[0] - 1] = (token.start[1], token.string)
     except tokenize.TokenError, IndentationError, SyntaxError:
-        # ast.parseが通ったソースでは実質発生しない。途中まで集めた
-        # コメントは正しいので、そのまま使う。
+        # Rare, but reachable: ast.parse accepts a few sources tokenize does
+        # not. Whatever was collected before the error is still correct.
         pass
     return comments
 
@@ -179,9 +183,9 @@ def _translator_comment_block(
     lineno: int,
     comment_tags: Collection[str],
 ) -> tuple[list[str], tuple[int, ...]]:
-    """呼び出し直前の連続コメント行から翻訳者コメントブロックを取り出す。
+    """Take the translator-comment block from the lines just above a call.
 
-    戻り値は (コメント本文のリスト, タグ行の0始まり行番号タプル)。
+    Returns ``(comment texts, zero-based line numbers of the tagged lines)``.
     """
     preceding: list[tuple[int, str]] = []
     index = lineno - 2
@@ -224,8 +228,8 @@ def _mask_comment_tags(
     if not tag_lines:
         return source
 
-    # tokenize/astの行番号は\nのみを行区切りに数えるため、splitlinesではなく
-    # \nで分割する(\r\nの\rは行末の内容として保たれる)。
+    # tokenize and ast count only \n as a line break, so split on \n rather
+    # than with splitlines (the \r of a \r\n stays as end-of-line content).
     physical_lines = source.split("\n")
     for index in tag_lines:
         column, comment = comments[index]
@@ -405,9 +409,9 @@ def _extract_tstring_calls(
         try:
             extracted = _extract_call(call, filename=filename, **function_sets)
         except ExtractionError as exc:
-            # 拒否された呼び出しのコメントもclaimし、Babel側の通常メッセージへ
-            # 漏れ着くのを防ぐ。ただし名前がBabelキーワードでもあるなら、Babel
-            # 自身が同じ行にエントリを出してコメントを消費するので任せる。
+            # Claim a rejected call's comment too, so it cannot drift onto a
+            # later ordinary message. Unless the name is also a Babel keyword:
+            # then Babel emits its own entry on this line and consumes it.
             name = _call_name(call.func)
             standard = name is not None and (
                 name in available or name.rsplit(".", 1)[-1] in available

@@ -37,12 +37,13 @@ def validate_name(name: str) -> str:
 
 
 def _modified_field_name(pattern: str) -> str | None:
-    """変換(``!``)か書式指定(``:``)を持つ最初のフィールド名を返す。無ければ ``None``。
+    """Return the first field name carrying a conversion or format spec, else None.
 
-    ``Formatter.parse()`` は ``{name}`` と ``{name:}`` のformat_specをどちらも
-    空文字列にするため、修飾子の有無は元パターンを読むしかない。それなら
-    ``Formatter`` 側の判定は要らないので、検出はこの1箇所に集約する。
-    二重波括弧内はリテラルなので読み飛ばす。
+    ``Formatter.parse()`` reports an empty format spec for both ``{name}`` and
+    ``{name:}``, so whether a field carries a modifier can only be read off the
+    original pattern. Since that scan has to happen anyway, it is the only
+    detector: what ``Formatter`` reports adds nothing. Doubled braces are
+    literal text and are skipped.
     """
     index = 0
     while index < len(pattern):
@@ -73,16 +74,16 @@ def parse_pattern(pattern: str) -> Pattern:
     chunks: list[tuple[str, str | None]] = []
     fields: set[str] = set()
     try:
-        # 修飾子は _modified_field_name が元パターンから読むので、Formatterが
-        # 返す format_spec / conversion は使わない。
+        # _modified_field_name reads modifiers off the original pattern, so the
+        # format spec and conversion Formatter reports here go unused.
         for literal, field_name, _spec, _conversion in _FORMATTER.parse(pattern):
             if field_name is None:
                 chunks.append((literal, None))
                 continue
 
-            # 翻訳側では式のstripを行わない。``{ name }`` は str.format も
-            # msgfmt も拒否する非python-brace-formatなので、ここで弾かないと
-            # 既存ツールが検証できないパターンを通してしまう。
+            # Do not strip the name on the translation side. ``{ name }`` is
+            # not python-brace-format: both str.format and msgfmt reject it, so
+            # accepting it here would emit patterns no existing tool validates.
             if field_name != field_name.strip():
                 raise InvalidTranslationError(
                     f"translation placeholder {{{field_name}}} must not pad its name "
@@ -98,9 +99,10 @@ def parse_pattern(pattern: str) -> Pattern:
                 "a conversion or format specifier",
             )
     except (TypeError, ValueError) as exc:
-        # TypeError は Translations 実装が str 以外(dict.get の None など)を
-        # 返したとき。生のまま漏らすと strict/lenient の外でアプリが落ち、
-        # 「壊れたカタログは描画を落とさない」契約(SPEC §5)から外れる。
+        # TypeError means a Translations implementation returned something
+        # other than str — dict.get(...) returning None, typically. Letting it
+        # escape would crash the render outside the strict/lenient switch,
+        # breaking the promise that a broken catalog never does (SPEC §5).
         raise InvalidTranslationError(f"invalid translation pattern: {exc}") from exc
     return Pattern(tuple(chunks), frozenset(fields))
 
@@ -122,8 +124,8 @@ def require_fields(
     if not missing and not unexpected:
         return
 
-    # 非ASCIIのホモグリフ名はASCII名と見分けがつかないため、
-    # 各名前を ascii() で可視化してから並べる。
+    # A non-ASCII homoglyph is indistinguishable from its ASCII lookalike, so
+    # each name is escaped with ascii() before it is shown.
     details: list[str] = []
     if missing:
         details.append(f"missing [{', '.join(ascii(n) for n in sorted(missing))}]")

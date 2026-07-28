@@ -1,35 +1,37 @@
-# リリース手順
+# Releasing
 
-PyPIへの公開は[Trusted Publishing](https://docs.pypi.org/trusted-publishers/)
-(APIトークン不要のOIDC)で、`v*` タグのpushをトリガーに
-[release.yml](.github/workflows/release.yml)が実行する。
+Publishing to PyPI goes through
+[Trusted Publishing](https://docs.pypi.org/trusted-publishers/)
+(OIDC, no API token), and
+[release.yml](.github/workflows/release.yml) runs it on every push of a `v*` tag.
 
-## 初回のみ: PyPI側の設定
+## One-time PyPI setup
 
-1. PyPIにログインし、[Publishing](https://pypi.org/manage/account/publishing/)
-   から "Add a new pending publisher" で以下を登録する:
+1. Sign in to PyPI and register the following from
+   [Publishing](https://pypi.org/manage/account/publishing/)
+   under "Add a new pending publisher":
    - PyPI Project Name: `gettext-tstrings`
    - Owner: `yhay81`
    - Repository name: `gettext-tstrings`
    - Workflow name: `release.yml`
    - Environment name: `pypi`
-2. GitHubリポジトリの Settings → Environments で `pypi` environmentを作成する
-   (保護ルールは任意)。
+2. Create a `pypi` environment under Settings → Environments in the GitHub
+   repository (protection rules are optional).
 
-## 毎回のリリース
+## Every release
 
-1. `src/gettext_tstrings/__init__.py` の `__version__` を上げる
-   (pyproject.tomlはdynamic versionでここを参照する)。
-2. `CHANGELOG.md` の `## Unreleased` を新しいバージョン番号と日付に付け替える。
-3. コミットしてmainへpushし、CIが緑であることを確認する。
-4. タグを打ってpushする(タグとバージョンの一致はworkflowが検証する):
+1. Bump `__version__` in `src/gettext_tstrings/__init__.py`
+   (pyproject.toml declares a dynamic version that reads it from there).
+2. Rename `## Unreleased` in `CHANGELOG.md` to the new version number and date.
+3. Commit, push to main, and confirm CI is green.
+4. Tag and push (the workflow verifies that the tag matches the version):
 
    ```console
    git tag v0.1.0a2
    git push origin v0.1.0a2
    ```
 
-5. workflowの完了(CI相当チェック → build → wheelのsmoke test →
-   PyPI publish)を確認し、タグからGitHub Releaseを作成してCHANGELOGの
-   該当節を貼る。
-6. クリーンな環境で `pip install gettext-tstrings` を確認する。
+5. Confirm the workflow completes (CI-equivalent checks → build → wheel smoke
+   test → PyPI publish), then create a GitHub Release from the tag and paste in
+   the matching CHANGELOG section.
+6. Verify `pip install gettext-tstrings` in a clean environment.

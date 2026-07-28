@@ -49,8 +49,8 @@ class LazyString:
 
 def lazy_gettext(template: Template, /) -> LazyString:
     """Defer translation of one t-string to first use."""
-    # translations引数を省略すると、gettext()自身が描画時点のコンテキストを
-    # 解決する(明示的に渡すのと同じ挙動で、渡す方が冗長)。
+    # Omitting the translations argument lets gettext() resolve the context at
+    # render time, which is what we want and what passing it would restate.
     return LazyString(lambda: gettext(template))
 
 

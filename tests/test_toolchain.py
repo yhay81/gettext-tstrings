@@ -1,9 +1,9 @@
-"""実ツールチェーン(pybabel / msgfmt)を通したend-to-endテスト。
+"""End-to-end tests that run the real toolchain (pybabel / msgfmt).
 
-READMEの中心的な主張 — 「既存のgettextツールがこのカタログを検証できる」 —
-を、ドキュメントの記述ではなく実行結果で裏づける。単体テストは抽出器の
-戻り値までしか見ないので、Babelのフロントエンドを実際に走らせる経路は
-ここにしかない。
+They back the README's central claim — that existing gettext tools can validate
+this catalog — with actual runs rather than with prose. The unit tests only look
+as far as the extractor's return value, so this is the only path that drives
+Babel's frontend for real.
 """
 
 from __future__ import annotations
@@ -59,23 +59,24 @@ def _extract(tmp_path: Path) -> str:
 def test_pybabel_extract_produces_a_standard_pot(tmp_path: Path) -> None:
     pot = _extract(_project(tmp_path))
 
-    # t-stringメッセージ、複数形、msgctxt、通常のgettext呼び出しが揃うこと。
+    # t-string messages, plurals, msgctxt, and plain gettext calls all come through.
     assert 'msgid "Hello {name}"' in pot
     assert 'msgid "One file"' in pot
     assert 'msgid_plural "{n} files"' in pot
     assert 'msgctxt "button"' in pot
     assert 'msgid "Open {filename}"' in pot
     assert 'msgid "Plain gettext call"' in pot
-    # 書式指定はカタログへ出ない。
+    # Format specs never reach the catalog.
     assert 'msgid "Total: {amount}"' in pot
     assert ":,.2f" not in pot
-    # 翻訳者コメントと自動マーカー。
+    # Translator comments and the automatic marker.
     assert "#. Translators: Shown on the home page." in pot
     assert "#. gettext-tstrings" in pot
 
 
 def test_extracted_messages_carry_the_python_brace_format_flag(tmp_path: Path) -> None:
-    # このフラグがGNU msgfmtやWeblateの検証を有効にする。READMEの主張の要。
+    # This flag is what enables validation in GNU msgfmt and Weblate. The README's
+    # claim rests on it.
     pot = _extract(_project(tmp_path))
 
     for block in pot.split("\n\n"):
@@ -85,7 +86,7 @@ def test_extracted_messages_carry_the_python_brace_format_flag(tmp_path: Path) -
 
 @pytest.mark.skipif(shutil.which("msgfmt") is None, reason="GNU gettext-tools not installed")
 def test_gnu_msgfmt_rejects_a_broken_translation(tmp_path: Path) -> None:
-    # READMEに載せているmsgfmtのトランスクリプトが実際に再現すること。
+    # The msgfmt transcript printed in the README really does reproduce.
     po = tmp_path / "ja.po"
     po.write_text(
         'msgid ""\n'
@@ -110,7 +111,8 @@ def test_gnu_msgfmt_rejects_a_broken_translation(tmp_path: Path) -> None:
 
 @pytest.mark.skipif(shutil.which("msgfmt") is None, reason="GNU gettext-tools not installed")
 def test_gnu_msgfmt_accepts_a_reordered_translation(tmp_path: Path) -> None:
-    # 語順を入れ替えた正しい翻訳は通ること(拒否が厳しすぎないことの確認)。
+    # A correct translation that reorders the placeholders passes — the check is not
+    # over-strict.
     po = tmp_path / "ja.po"
     po.write_text(
         'msgid ""\n'
@@ -134,8 +136,8 @@ def test_gnu_msgfmt_accepts_a_reordered_translation(tmp_path: Path) -> None:
 
 @pytest.mark.skipif(shutil.which("msgfmt") is None, reason="GNU gettext-tools not installed")
 def test_the_shipped_checker_catches_what_msgfmt_lets_through(tmp_path: Path) -> None:
-    # 複数形の一形式だけがプレースホルダを落とした場合、GNU msgfmt の
-    # --check-format は通してしまう。同梱チェッカーはここで厳しい側に立つ。
+    # When only one plural form drops a placeholder, GNU msgfmt --check-format lets it
+    # through. The shipped checker takes the strict side here.
     po = tmp_path / "messages.po"
     po.write_text(
         'msgid ""\n'
@@ -157,7 +159,7 @@ def test_the_shipped_checker_catches_what_msgfmt_lets_through(tmp_path: Path) ->
         text=True,
         check=False,
     )
-    assert msgfmt.returncode == 0, "この形をmsgfmtが弾くようになったら本テストの前提が変わる"
+    assert msgfmt.returncode == 0, "if msgfmt starts rejecting this, this test's premise changes"
 
     locale_dir = tmp_path / "locales" / "ja" / "LC_MESSAGES"
     locale_dir.mkdir(parents=True)
@@ -171,8 +173,8 @@ def test_the_shipped_checker_catches_what_msgfmt_lets_through(tmp_path: Path) ->
 
 
 def test_pybabel_compile_runs_the_shipped_checker(tmp_path: Path) -> None:
-    # 同梱チェッカーがpybabel compileの経路で実際に呼ばれ、
-    # t-string固有の規則違反(翻訳側の書式指定)を検出すること。
+    # The shipped checker really is invoked on the pybabel compile path, and it catches
+    # a t-string-specific violation: a format spec on the translation side.
     locale_dir = tmp_path / "locales" / "ja" / "LC_MESSAGES"
     locale_dir.mkdir(parents=True)
     (locale_dir / "messages.po").write_text(
