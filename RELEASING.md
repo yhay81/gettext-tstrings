@@ -29,6 +29,7 @@ PyPIへの公開は[Trusted Publishing](https://docs.pypi.org/trusted-publishers
    git push origin v0.1.0a2
    ```
 
-5. workflowの完了(build → wheelのsmoke test → PyPI publish)を確認し、
-   タグからGitHub Releaseを作成してCHANGELOGの該当節を貼る。
+5. workflowの完了(CI相当チェック → build → wheelのsmoke test →
+   PyPI publish)を確認し、タグからGitHub Releaseを作成してCHANGELOGの
+   該当節を貼る。
 6. クリーンな環境で `pip install gettext-tstrings` を確認する。
