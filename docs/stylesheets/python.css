@@ -1,0 +1,60 @@
+/*
+ * python.org's two brand colours, and nothing else.
+ *
+ * The blue and the yellow are taken straight from the Python logo. They are not
+ * in Material's built-in palette, so both schemes select "custom" and read the
+ * values from here. Everything below is colour: no layout, spacing, or type
+ * overrides, so the theme's own rhythm is left intact.
+ */
+
+:root {
+  --py-blue: #3776ab;
+  --py-blue-dark: #2b5f88;
+  --py-blue-light: #4b8bc8;
+  --py-yellow: #ffd43b;
+  --py-yellow-dark: #e6bc22;
+}
+
+[data-md-color-primary="custom"] {
+  --md-primary-fg-color: var(--py-blue);
+  --md-primary-fg-color--light: var(--py-blue-light);
+  --md-primary-fg-color--dark: var(--py-blue-dark);
+  --md-primary-bg-color: #ffffff;
+  --md-primary-bg-color--light: rgba(255, 255, 255, 0.7);
+}
+
+[data-md-color-accent="custom"] {
+  --md-accent-fg-color: var(--py-blue-dark);
+  --md-accent-fg-color--transparent: rgba(55, 118, 171, 0.1);
+  --md-accent-bg-color: #ffffff;
+  --md-accent-bg-color--light: rgba(255, 255, 255, 0.7);
+}
+
+/* On dark backgrounds the blue loses contrast, so the accent becomes the
+   yellow — the same pairing the logo uses. */
+[data-md-color-scheme="slate"][data-md-color-accent="custom"] {
+  --md-accent-fg-color: var(--py-yellow);
+  --md-accent-fg-color--transparent: rgba(255, 212, 59, 0.1);
+  --md-accent-bg-color: #1e1e2e;
+}
+
+[data-md-color-scheme="slate"] {
+  --md-typeset-a-color: var(--py-yellow);
+}
+
+/* The yellow reads as a highlight, not as body text: keep it to the marks the
+   theme already uses for emphasis. */
+.md-typeset mark {
+  background-color: rgba(255, 212, 59, 0.4);
+}
+
+.md-typeset .md-button--primary {
+  background-color: var(--py-blue);
+  border-color: var(--py-blue);
+  color: #ffffff;
+}
+
+.md-typeset .md-button--primary:hover {
+  background-color: var(--py-blue-dark);
+  border-color: var(--py-blue-dark);
+}

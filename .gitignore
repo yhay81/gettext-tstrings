@@ -10,3 +10,5 @@ __pycache__/
 build/
 dist/
 *.mo
+# Build output of the documentation site.
+site/

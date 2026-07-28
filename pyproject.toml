@@ -56,6 +56,11 @@ dev = [
   # 0.0.x, so uv.lock pins it and bumps land deliberately through dependabot.
   "ty>=0.0.64",
 ]
+# Kept out of dev so a normal contributor setup does not pull the site
+# generator; CI installs it with --group docs.
+docs = [
+  "zensical>=0.0.51",
+]
 
 [tool.hatch.version]
 path = "src/gettext_tstrings/__init__.py"
