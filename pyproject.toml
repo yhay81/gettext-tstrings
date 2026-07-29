@@ -66,6 +66,18 @@ docs = [
 [tool.hatch.version]
 path = "src/gettext_tstrings/__init__.py"
 
+[tool.hatch.build.targets.sdist]
+# VCS ignores are the first line of defense. Keep explicit build exclusions too:
+# a source archive must not depend on which local documentation/deployment tools
+# happened to run before it was built.
+exclude = [
+  "/.cache",
+  "/.wrangler",
+  "/build",
+  "/dist",
+  "/site",
+]
+
 [tool.hatch.build.targets.wheel]
 packages = ["src/gettext_tstrings"]
 

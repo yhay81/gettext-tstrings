@@ -45,6 +45,9 @@ jobs:
       - run: uv run ty check
       - run: uv run pytest --cov=gettext_tstrings --cov-report=term-missing
       - run: uv build
+      - name: Check the source distribution contents
+        shell: bash
+        run: uv run python scripts/check_sdist.py dist/*.tar.gz
       - name: Smoke test the built wheel without Babel
         shell: bash
         run: |

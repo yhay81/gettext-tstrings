@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.1.0a6 - 2026-07-30
+
+- Keep local Zensical and Wrangler state out of source distributions. Builds now
+  exclude those directories explicitly in addition to ignoring them in Git, and
+  both tests and the release workflow inspect the finished archive so a future
+  cache leak fails before publication.
+- Create the GitHub Release automatically after PyPI publishing succeeds, using
+  the matching changelog section and the exact wheel and source distribution
+  produced by the release workflow. Pre-release versions are marked accordingly,
+  and rerunning an already completed release remains safe.
+
 ## 0.1.0a5 - 2026-07-29
 
 - Correct the last edges of the lenient catalog boundary: a non-string plural

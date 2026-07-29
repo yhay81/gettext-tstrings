@@ -31,7 +31,7 @@ Publishing to PyPI goes through
    git push origin v0.1.0a2
    ```
 
-5. Confirm the workflow completes (CI-equivalent checks → build → wheel smoke
-   test → PyPI publish), then create a GitHub Release from the tag and paste in
-   the matching CHANGELOG section.
+5. Confirm the workflow completes (CI-equivalent checks → build and distribution
+   audit → wheel smoke test → PyPI publish → GitHub Release with the matching
+   CHANGELOG section and distribution files).
 6. Verify `pip install gettext-tstrings` in a clean environment.

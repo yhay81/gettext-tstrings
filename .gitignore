@@ -3,10 +3,12 @@ __pycache__/
 *.py[cod]
 *.egg-info/
 .coverage
+.cache/
 .mypy_cache/
 .pytest_cache/
 .ruff_cache/
 .venv/
+.wrangler/
 build/
 dist/
 *.mo
