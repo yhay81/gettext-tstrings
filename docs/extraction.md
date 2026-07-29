@@ -110,9 +110,11 @@ locales/ja/LC_MESSAGES/messages.po:25: a format specification for argument
 msgfmt: found 1 fatal error
 ```
 
-Weblate documents the same check under *Python brace format*, and the commercial
-platforms have their own placeholder QA keyed on the same flag. Their behaviour
-is theirs; the two tools below are the ones verified here.
+Weblate documents the same check as [Python brace format][weblate-checks], and
+the commercial platforms have their own placeholder QA keyed on the same flag.
+Their behaviour is theirs; the two tools below are the ones verified here.
+
+  [weblate-checks]: https://docs.weblate.org/en/latest/user/checks.html
 
 On top of that, the package registers a Babel **checker**, so `pybabel compile`
 applies the specification's rules to every message carrying the
