@@ -36,6 +36,27 @@ def test_russian_plural_catalog(
     assert ntr(t"{n} file", t"{n} files", n, translations=translations) == expected
 
 
+@pytest.mark.parametrize(
+    ("n", "expected"),
+    [
+        (0, "0 ملفات"),    # zero form  (n == 0)
+        (1, "1 ملف"),      # one form   (n == 1)
+        (2, "2 ملفان"),    # two form   (n == 2)
+        (3, "3 ملفات"),    # few form   (n%100 in 3..10)
+        (11, "11 ملفًا"),  # many form  (n%100 in 11..99)
+        (100, "100 ملف"),  # other form (n%100 == 0, i.e. 100, 200, …)
+    ],
+)
+def test_arabic_plural_catalog(
+    load_translations: Callable[[str], gettext.GNUTranslations],
+    n: int,
+    expected: str,
+) -> None:
+    translations = load_translations("ar")
+
+    assert ntr(t"{n} file", t"{n} files", n, translations=translations) == expected
+
+
 def test_translator_with_real_mo(
     load_translations: Callable[[str], gettext.GNUTranslations],
 ) -> None:
