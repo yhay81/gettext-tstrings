@@ -3,6 +3,19 @@
 # Workers with static assets rather than Pages: the custom domain and its DNS
 # record are declared here and created by `wrangler deploy`, so the hosting
 # setup lives in the repository instead of in dashboard state nobody can review.
+#
+# Deployment runs on Cloudflare Workers Builds, connected to this repository,
+# with the API token Cloudflare generates and keeps on its own side. Nothing in
+# this repository, in GitHub Actions secrets, or on a maintainer's machine holds
+# a deployment credential. The three dashboard fields under Settings > Build are:
+#
+#   Build command        ./scripts/build-docs.sh
+#   Deploy command       npx wrangler deploy
+#   Non-production       npx wrangler versions upload
+#
+# To deploy by hand, authenticate through OAuth rather than with a token —
+# `npx wrangler login` stores the credential in the OS keychain — and run
+# `./scripts/build-docs.sh && npx wrangler deploy`.
 
 name = "gettext-tstrings-docs"
 compatibility_date = "2026-07-29"
