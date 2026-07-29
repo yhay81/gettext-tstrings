@@ -14,7 +14,9 @@ import gettext
 
 from gettext_tstrings import Translator
 
-translations = gettext.translation("messages", localedir="locales", languages=["ja"])
+translations = gettext.translation(
+    "messages", localedir="locales", languages=["ja"]
+)
 _ = Translator(translations)
 
 name = "Ada"
@@ -36,7 +38,9 @@ from gettext_tstrings import gettext, ngettext, npgettext, pgettext
 gettext(t"Hello {name}", translations=translations)
 ngettext(t"One file", t"{n} files", n, translations=translations)
 pgettext("button", t"Open {filename}", translations=translations)
-npgettext("inbox", t"One message", t"{n} messages", n, translations=translations)
+npgettext(
+    "inbox", t"One message", t"{n} messages", n, translations=translations
+)
 ```
 
 `tr` and `ntr` are exact aliases of `gettext` and `ngettext`.

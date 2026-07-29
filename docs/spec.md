@@ -56,7 +56,10 @@ Interpolations are described structurally, never as Python source:
 {
   "spec": "2.2",
   "name": "format spec stays out of the msgid",
-  "source": ["Total: ", {"expression": "amount", "value": 1234.5, "format_spec": ",.2f"}],
+  "source": [
+    "Total: ",
+    {"expression": "amount", "value": 1234.5, "format_spec": ",.2f"}
+  ],
   "msgid": "Total: {amount}"
 }
 ```

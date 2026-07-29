@@ -1,60 +1,64 @@
 /*
- * python.org's two brand colours, and nothing else.
+ * python.org's colours, read off python.org rather than approximated.
  *
- * The blue and the yellow are taken straight from the Python logo. They are not
- * in Material's built-in palette, so both schemes select "custom" and read the
- * values from here. Everything below is colour: no layout, spacing, or type
- * overrides, so the theme's own rhythm is left intact.
+ * The site makes a distinction worth keeping: its chrome is a dark, desaturated
+ * blue (#2b5b84), while links in the prose are the brighter logo blue (#3776ab).
+ * Using one colour for both loses the contrast the original relies on — the
+ * chrome recedes so the text can carry the page.
+ *
+ * Everything below is colour and nothing else, so the theme's own spacing and
+ * type rhythm are left intact.
  */
 
 :root {
-  --py-blue: #3776ab;
-  --py-blue-dark: #2b5f88;
-  --py-blue-light: #4b8bc8;
-  --py-yellow: #ffd43b;
-  --py-yellow-dark: #e6bc22;
+  --py-header: #2b5b84; /* .main-header */
+  --py-header-light: #2d618c; /* .python-navigation */
+  --py-header-dark: #1e2933; /* .top-bar */
+  --py-link: #3776ab; /* prose links, and the logo's blue */
+  --py-yellow: #ffd343; /* the donate button, and headings on the blue */
+  --py-text: #444; /* python.org's body colour, softer than the theme's */
 }
 
 [data-md-color-primary="custom"] {
-  --md-primary-fg-color: var(--py-blue);
-  --md-primary-fg-color--light: var(--py-blue-light);
-  --md-primary-fg-color--dark: var(--py-blue-dark);
+  --md-primary-fg-color: var(--py-header);
+  --md-primary-fg-color--light: var(--py-header-light);
+  --md-primary-fg-color--dark: var(--py-header-dark);
   --md-primary-bg-color: #ffffff;
   --md-primary-bg-color--light: rgba(255, 255, 255, 0.7);
 }
 
 [data-md-color-accent="custom"] {
-  --md-accent-fg-color: var(--py-blue-dark);
+  --md-accent-fg-color: var(--py-link);
   --md-accent-fg-color--transparent: rgba(55, 118, 171, 0.1);
   --md-accent-bg-color: #ffffff;
   --md-accent-bg-color--light: rgba(255, 255, 255, 0.7);
 }
 
-/* On dark backgrounds the blue loses contrast, so the accent becomes the
-   yellow — the same pairing the logo uses. */
-[data-md-color-scheme="slate"][data-md-color-accent="custom"] {
-  --md-accent-fg-color: var(--py-yellow);
-  --md-accent-fg-color--transparent: rgba(255, 212, 59, 0.1);
-  --md-accent-bg-color: #1e1e2e;
+[data-md-color-scheme="default"] {
+  --md-typeset-a-color: var(--py-link);
+  --md-typeset-color: var(--py-text);
 }
 
+/* On the dark scheme the blue loses too much contrast against the background,
+   so the accent becomes the yellow — the pairing the logo already makes, and
+   the one python.org itself uses for headings over its blue. */
 [data-md-color-scheme="slate"] {
   --md-typeset-a-color: var(--py-yellow);
 }
 
-/* The yellow reads as a highlight, not as body text: keep it to the marks the
-   theme already uses for emphasis. */
-.md-typeset mark {
-  background-color: rgba(255, 212, 59, 0.4);
+[data-md-color-scheme="slate"][data-md-color-accent="custom"] {
+  --md-accent-fg-color: var(--py-yellow);
+  --md-accent-fg-color--transparent: rgba(255, 211, 67, 0.1);
+  --md-accent-bg-color: #1e1e2e;
 }
 
 .md-typeset .md-button--primary {
-  background-color: var(--py-blue);
-  border-color: var(--py-blue);
+  background-color: var(--py-link);
+  border-color: var(--py-link);
   color: #ffffff;
 }
 
 .md-typeset .md-button--primary:hover {
-  background-color: var(--py-blue-dark);
-  border-color: var(--py-blue-dark);
+  background-color: var(--py-header);
+  border-color: var(--py-header);
 }

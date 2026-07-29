@@ -28,6 +28,15 @@ extra_css = ["stylesheets/python.css"]
 language = "en"
 # overrides/main.html adds the link-preview metadata; nothing else is themed.
 custom_dir = "overrides"
+# The default "modern" variant gives the header a translucent page-coloured
+# surface, which ignores the palette's primary colour entirely. "classic" paints
+# it with that colour instead, which is what makes the python.org blue reachable
+# — and a blue bar over white documentation is the vernacular of Python's own
+# docs, so it reads as familiar rather than as decoration.
+variant = "classic"
+# Braces in the logo's yellow on the chrome's blue: what the library is about,
+# at the one size a tab strip gives you.
+favicon = "assets/favicon.png"
 features = [
   "content.action.edit",
   "content.action.view",
@@ -38,6 +47,7 @@ features = [
   "navigation.footer",
   "navigation.instant",
   "navigation.instant.prefetch",
+  "navigation.instant.preview",
   "navigation.instant.progress",
   "navigation.top",
   "navigation.tracking",
@@ -66,8 +76,10 @@ accent = "custom"
 toggle.icon = "lucide/moon"
 toggle.name = "Switch to light mode"
 
-# Source Sans and Source Code are the faces python.org itself sets its prose and
-# code in. Using them here is the whole of the visual homage — no other ornament.
+# python.org sets its prose in Source Sans Pro; Source Sans 3 is that face's
+# current release. Its code is a Consolas stack, which is a 2008 Windows-first
+# choice this has no reason to copy — Source Code Pro is the companion face to
+# the text one, and reads better at documentation sizes.
 [project.theme.font]
 text = "Source Sans 3"
 code = "Source Code Pro"

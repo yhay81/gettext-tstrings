@@ -8,7 +8,7 @@ Every way of putting a value into a translatable message has to answer the same
 question: *how much of the format language does the catalog get to control?*
 The three answers below differ mostly in that.
 
-## `%`-format
+## %-format
 
 ```python
 _("Hello %(name)s") % {"name": name}
@@ -30,7 +30,7 @@ A one-character edit in a PO editor becomes a traceback in production. GNU
 `python-format`, and only if the catalog actually passes through msgfmt on its
 way to your application.
 
-## `str.format`
+## str.format
 
 ```python
 _("Hello {name}").format(name=name)
