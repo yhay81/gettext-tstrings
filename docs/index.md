@@ -85,5 +85,18 @@ across every supported Python and Babel release.
 [Issues and pull requests](https://github.com/yhay81/gettext-tstrings/issues) are
 welcome — an alpha is exactly when the interface is still worth arguing about.
 
+## Join the community
+
+- Pick a
+  [good first issue](https://github.com/yhay81/gettext-tstrings/issues?q=is%3Aissue%20state%3Aopen%20label%3A%22good%20first%20issue%22)
+  for a bounded contribution.
+- Ask usage questions in
+  [Q&A Discussions](https://github.com/yhay81/gettext-tstrings/discussions/categories/q-a).
+- Bring production gettext workflows and API ideas to
+  [Ideas Discussions](https://github.com/yhay81/gettext-tstrings/discussions/categories/ideas).
+- Read the
+  [contribution guide](https://github.com/yhay81/gettext-tstrings/blob/main/CONTRIBUTING.md)
+  before opening a pull request.
+
   [PEP 750]: https://peps.python.org/pep-0750/
   [Babel]: https://babel.pocoo.org/

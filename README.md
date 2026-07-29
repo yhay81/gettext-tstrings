@@ -402,4 +402,18 @@ add broader language fixtures, sustained performance tracking, API review from
 gettext/Babel users, and compatibility testing against every supported Python
 and Babel release.
 
-Contributions are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md).
+## Community
+
+Contributions from gettext users, translators, framework authors, tooling
+maintainers, and performance specialists are welcome.
+
+- Start with a
+  [`good first issue`](https://github.com/yhay81/gettext-tstrings/issues?q=is%3Aissue%20state%3Aopen%20label%3A%22good%20first%20issue%22).
+- Ask usage questions in
+  [Q&A Discussions](https://github.com/yhay81/gettext-tstrings/discussions/categories/q-a).
+- Propose larger ideas in
+  [Ideas Discussions](https://github.com/yhay81/gettext-tstrings/discussions/categories/ideas).
+- Read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request.
+
+Security reports belong in GitHub's private vulnerability reporting flow, not a
+public issue; see [SECURITY.md](SECURITY.md).
