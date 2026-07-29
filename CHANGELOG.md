@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.1.0a5 - 2026-07-29
 
 - Correct the last edges of the lenient catalog boundary: a non-string plural
   answer now falls back to the source branch selected by the count instead of
