@@ -168,6 +168,10 @@ translation does not match the source placeholders: {name} is missing;
 {nаme} (n\u0430me) is not in the source message
 ```
 
+The same disambiguation applies when a Greek or Cyrillic name written entirely
+in one script conflicts with an ASCII source name, including the one-letter
+Latin `a` / Cyrillic `а` case.
+
 ## Rendering a pattern without a catalog
 
 `compile_template` exposes the same machinery one level down: it turns a t-string

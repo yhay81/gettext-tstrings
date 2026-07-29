@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Correct the last edges of the lenient catalog boundary: a non-string plural
+  answer now falls back to the source branch selected by the count instead of
+  always rendering the singular, while a real `str` subclass is normalized and
+  accepted rather than mistaken for a wrong type. Diagnostics now distinguish
+  a one-script non-ASCII homoglyph when it conflicts with a source name and no
+  longer claim that a missing name found inside a different placeholder appears
+  outside braces.
 - Fix the documentation site's Markdown configuration. Declaring
   `markdown_extensions` in `zensical.toml` replaces the generator's defaults
   rather than adding to them, so nine extensions the pages were written against

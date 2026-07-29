@@ -505,6 +505,53 @@ def test_a_catalog_returning_a_non_string_never_escapes_the_strict_switch(
         tr(t"Hello {name}", translations=NonStringCatalog(), strict=True)
 
 
+def test_a_non_string_plural_answer_falls_back_to_the_selected_source_branch() -> None:
+    class NonStringCatalog(StubTranslations):
+        def ngettext(self, singular: str, plural: str, n: int, /) -> str:
+            return cast("str", ["one", "many"])
+
+        def npgettext(
+            self,
+            context: str,
+            singular: str,
+            plural: str,
+            n: int,
+            /,
+        ) -> str:
+            return cast("str", ["one", "many"])
+
+    n = 2
+    translations = NonStringCatalog()
+
+    assert tngettext(t"One file", t"{n} files", n, translations=translations) == "2 files"
+    assert (
+        tnpgettext(
+            "inbox",
+            t"One message",
+            t"{n} messages",
+            n,
+            translations=translations,
+        )
+        == "2 messages"
+    )
+
+
+def test_a_string_subclass_is_normalized_before_it_becomes_a_cache_key() -> None:
+    class Translation(str):
+        __slots__ = ()
+
+        # Passing the subclass itself to dict.get would reproduce the unhashable
+        # catalog-answer crash this boundary is meant to prevent.
+        __hash__ = None  # type: ignore[assignment]
+
+    class StringSubclassCatalog(StubTranslations):
+        def gettext(self, message: str, /) -> str:
+            return Translation("Bonjour {name}")
+
+    name = "Ada"
+    assert tr(t"Hello {name}", translations=StringSubclassCatalog(), strict=True) == "Bonjour Ada"
+
+
 def test_pattern_dict_clears_when_its_limit_is_reached() -> None:
     # The translation patterns piling up in one plan are bounded too. Unlike the
     # other three limits, this one asserted nothing about the limit itself and
@@ -891,6 +938,17 @@ def test_a_missing_placeholder_says_why_when_the_name_is_visible(
         tr(t"Hello {name}", translations=translations, strict=True)
 
 
+def test_a_name_inside_another_placeholder_is_not_reported_as_outside_braces() -> None:
+    name = "Ada"
+    translations = StubTranslations({"Hello {name}": "Hello {username}"})
+
+    with pytest.raises(InvalidTranslationError) as caught:
+        tr(t"Hello {name}", translations=translations, strict=True)
+
+    assert "the name appears, but not inside braces" not in str(caught.value)
+    assert "{username} is not in the source message" in str(caught.value)
+
+
 @pytest.mark.parametrize(
     ("field", "expected"),
     [
@@ -921,3 +979,15 @@ def test_a_readable_non_ascii_name_is_not_escaped_but_a_homoglyph_is() -> None:
     assert show_name("ファイル数") == "{ファイル数}"
     assert "\\u0430" in show_name("nаme")  # noqa: RUF001  Cyrillic among Latin
     assert "\\uff4e" in show_name("ｎａｍｅ")  # noqa: RUF001  folds to "name"
+
+
+def test_a_single_script_homoglyph_is_escaped_when_it_conflicts_with_a_source_name() -> None:
+    a = "Ada"
+    cyrillic_a = "\N{CYRILLIC SMALL LETTER A}"
+    translations = StubTranslations({"Hello {a}": f"Hello {{{cyrillic_a}}}"})
+
+    with pytest.raises(InvalidTranslationError) as caught:
+        tr(t"Hello {a}", translations=translations, strict=True)
+
+    assert "{a} is missing" in str(caught.value)
+    assert f"{{{cyrillic_a}}} (\\u0430) is not in the source message" in str(caught.value)

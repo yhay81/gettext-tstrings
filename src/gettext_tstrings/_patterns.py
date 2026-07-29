@@ -32,7 +32,7 @@ def _scripts(name: str) -> set[str]:
     return found
 
 
-def show_name(name: str) -> str:
+def show_name(name: str, *, disambiguate: bool = False) -> str:
     """Render a placeholder name for a message the way a translator can act on.
 
     Three cases, and the reason for each:
@@ -41,18 +41,18 @@ def show_name(name: str) -> str:
       a soft hyphen — is shown with that character replaced in place by its code
       point. Saying ``{name} has a space in it`` about a name that reads exactly
       ``{name}`` is a dead end for the reader; they need to see *where*.
-    - A name whose letters come from more than one writing system, or that
-      changes under NFKC, gets an escaped form alongside the readable one. This
-      is the homoglyph case: a name spelled with a Cyrillic instead of a Latin
-      "a" is indistinguishable from ``{name}`` on screen, and only the escaped
-      form tells the two apart.
+    - A name whose letters come from more than one writing system, that changes
+      under NFKC, or that a caller asks to disambiguate gets an escaped form
+      alongside the readable one. The last case covers two different
+      single-script names that look identical only when compared, such as Latin
+      ``a`` and Cyrillic U+0430.
     - Everything else is shown as written. ``{名前}`` and ``{café}`` are ordinary
       names; escaping them would leave a reader unable to find what was meant.
     """
     if not name.isprintable():
         visible = "".join(c if c.isprintable() else f"<U+{ord(c):04X}>" for c in name)
         return f"{{{visible}}}"
-    if unicodedata.normalize("NFKC", name) != name or len(_scripts(name)) > 1:
+    if disambiguate or unicodedata.normalize("NFKC", name) != name or len(_scripts(name)) > 1:
         return f"{{{name}}} ({ascii(name).strip(chr(39))})"
     return f"{{{name}}}"
 
@@ -178,7 +178,7 @@ def _why_missing(name: str, pattern: str) -> str:
         return f" (it is written {{{{{name}}}}}, which is how a literal brace is escaped)"
     if f"{{{name}}}" in pattern.translate(_LOOKALIKE_BRACES):
         return " (the braces around it are not the ASCII { and })"
-    if name in pattern:
+    if any(name in literal for literal, _field, _spec, _conversion in _FORMATTER.parse(pattern)):
         return " (the name appears, but not inside braces)"
     return ""
 
@@ -203,8 +203,20 @@ def require_fields(
     if not missing and not unexpected:
         return
 
-    details = [f"{show_name(n)} is missing{_why_missing(n, pattern)}" for n in sorted(missing)]
-    details += [f"{show_name(n)} is not in the source message" for n in sorted(unexpected)]
+    # A non-ASCII name is normally most useful as written. When a Greek or
+    # Cyrillic name directly conflicts with an ASCII one, add the escaped
+    # spelling as well: otherwise a one-letter substitution can leave two
+    # visually identical entries in the same diagnosis.
+    def display(name: str, counterparts: frozenset[str]) -> str:
+        disambiguate = bool({"CYRILLIC", "GREEK"} & _scripts(name)) and any(
+            counterpart.isascii() for counterpart in counterparts
+        )
+        return show_name(name, disambiguate=disambiguate)
+
+    details = [
+        f"{display(n, unexpected)} is missing{_why_missing(n, pattern)}" for n in sorted(missing)
+    ]
+    details += [f"{display(n, missing)} is not in the source message" for n in sorted(unexpected)]
     raise InvalidTranslationError(
         f"translation does not match the source placeholders: {'; '.join(details)}",
     )

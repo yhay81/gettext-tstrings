@@ -545,8 +545,13 @@ def _usable_pattern(pattern: object, msgid: str, *, strict: bool) -> str:
     call rather than once: it is a defect in the calling program, not in data a
     translator supplied, and it will not fix itself.
     """
-    if type(pattern) is str:
-        return pattern
+    if isinstance(pattern, str):
+        # The public protocol promises str, which includes subclasses. Normalize
+        # one to an exact str before it becomes a cache key: a subclass may
+        # override __hash__, __eq__, or parser methods, but its text is still a
+        # valid catalog answer. Calling the base descriptor bypasses those
+        # overrides; str(pattern) does not when __str__ itself is overridden.
+        return str.__str__(pattern)
     error = InvalidTranslationError(
         f"catalog returned {type(pattern).__name__}, not str",
     )
@@ -955,7 +960,8 @@ def _ngettext_impl(
             else _std_npgettext(context, singular_plan.msgid, plural_plan.msgid, n)
         )
 
-    pattern = _usable_pattern(pattern, singular_plan.msgid, strict=strict)
+    source_msgid = singular_plan.msgid if n == 1 else plural_plan.msgid
+    pattern = _usable_pattern(pattern, source_msgid, strict=strict)
 
     render_plan = merged.patterns.get(pattern)
     if render_plan is None:
