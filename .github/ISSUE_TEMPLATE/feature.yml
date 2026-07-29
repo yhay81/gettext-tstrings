@@ -1,0 +1,51 @@
+name: Focused enhancement
+description: Propose a bounded improvement after discussing large API or specification changes
+title: "[Enhancement]: "
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please start broad APIs and specification changes in Ideas Discussions. Use this form when the problem and scope are already concrete.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: Describe the real gettext workflow or user need. Examples are more useful than a proposed API alone.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed change
+      description: What is the smallest change that solves the problem?
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: How is this handled with stdlib gettext, Babel, or application code today?
+    validations:
+      required: true
+  - type: dropdown
+    id: contract
+    attributes:
+      label: Contract impact
+      options:
+        - No public API or specification change
+        - Public Python API change
+        - SPEC.md or conformance-suite change
+        - Unsure
+    validations:
+      required: true
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I searched existing issues and Discussions.
+          required: true
+        - label: This proposal stays within the t-string ↔ gettext scope.
+          required: true

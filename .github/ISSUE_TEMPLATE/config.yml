@@ -1,0 +1,14 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Usage questions
+    url: https://github.com/yhay81/gettext-tstrings/discussions/categories/q-a
+    about: Ask for help using gettext-tstrings.
+  - name: Ideas and API design
+    url: https://github.com/yhay81/gettext-tstrings/discussions/categories/ideas
+    about: Discuss larger ideas before turning them into implementation issues.
+  - name: Documentation
+    url: https://gettext-tstrings.yhay81.com/
+    about: Read the guide, extraction workflow, specification, and API reference.
+  - name: Report a vulnerability
+    url: https://github.com/yhay81/gettext-tstrings/security/advisories/new
+    about: Report security problems privately instead of opening a public issue.
