@@ -1,3 +1,7 @@
+---
+description: "Extracting t-string messages with pybabel, and how msgfmt and the bundled Babel checker validate the catalogs."
+---
+
 # Extraction
 
 Extraction needs the `babel` extra:
@@ -53,11 +57,22 @@ the four standard gettext names, the `tr()` / `ntr()` aliases, and the deferred
     ntr_functions = ["ntr"]
     ```
 
-Both spellings work: an ini file gives whitespace-separated strings, a TOML
-mapping gives lists.
+An ini file gives one string, a TOML mapping gives a list, and within a string
+either whitespace or commas separate the names. All four spellings work.
 
 The options are `tr_functions`, `ntr_functions`, `gettext_functions`,
 `ngettext_functions`, `pgettext_functions`, and `npgettext_functions`.
+
+!!! danger "`-k` does not reach a t-string"
+
+    A custom helper such as `mytr(t"…")` has to be named in one of the options
+    above. Babel's `--keyword` machinery cannot read a t-string literal, so
+    `pybabel extract -k mytr` finds nothing and says nothing — the messages are
+    simply absent from the POT. `-k` keeps working for the ordinary gettext
+    calls extracted alongside.
+
+    Only the standard argument order is supported: message first, context then
+    message for `pgettext`, context then singular then plural for `npgettext`.
 
 ## Robust by default
 
@@ -74,18 +89,30 @@ failure instead, which is what you want in CI.
 
 ## Your existing toolchain validates these catalogs
 
-Babel marks every extracted message `#, python-brace-format`, and that one flag
-is what activates placeholder checking in the tools you already run:
+Babel marks every extracted message with a standard flag, and that one line is
+what activates placeholder checking in the tools you already run:
+
+```po
+#. gettext-tstrings
+#: app.py:4
+#, python-brace-format
+msgid "Hello {name}"
+msgstr ""
+```
+
+Translate it as `こんにちは {nombre}` and the mistake is caught without any
+configuration:
 
 ```console
 $ msgfmt --check-format -o /dev/null locales/ja/LC_MESSAGES/messages.po
-locales/ja/LC_MESSAGES/messages.po:26: a format specification for argument
+locales/ja/LC_MESSAGES/messages.po:25: a format specification for argument
 'name' doesn't exist in 'msgstr'
 msgfmt: found 1 fatal error
 ```
 
-Weblate, Crowdin, Transifex, and POEditor read the same flag. No configuration is
-involved.
+Weblate documents the same check under *Python brace format*, and the commercial
+platforms have their own placeholder QA keyed on the same flag. Their behaviour
+is theirs; the two tools below are the ones verified here.
 
 On top of that, the package registers a Babel **checker**, so `pybabel compile`
 applies the specification's rules to every message carrying the
@@ -93,18 +120,41 @@ applies the specification's rules to every message carrying the
 
 ```console
 $ pybabel compile -d locales -l ja
-error: locales/ja/LC_MESSAGES/messages.po:25: translation placeholders do not
-match source: missing ['name'], unexpected ['nombre']
+error: locales/ja/LC_MESSAGES/messages.po:24: translation does not match the
+source placeholders: {name} is missing; {nombre} is not in the source message
 1 errors encountered.
 ```
 
-The two are not redundant. The shipped checker is the stricter party in at least
-two places:
+For a plural message the pointer names the form, because the line number Babel
+reports is the msgid's and a Russian block has three `msgstr` below it:
+
+```console
+error: locales/ru/LC_MESSAGES/messages.po:31: msgstr[1]: translation does not
+match the source placeholders: {n} is missing
+```
+
+!!! danger "`pybabel compile` still writes the `.mo`"
+
+    The error above is reported, the exit status is `1` — and the broken catalog
+    is compiled anyway. A pipeline that runs `pybabel compile` and then copies
+    `locales/` will ship the bad translation unless it checks the exit status.
+
+    ```yaml
+    - run: pybabel compile -d locales   # non-zero exit is the gate
+    ```
+
+The two checks are not redundant. The shipped checker is the stricter party in at
+least two places:
 
 - A msgid whose only braces are escaped (`Config {{raw}} only`) never gets the
   `python-brace-format` flag, so no external tool validates it at all.
-- `msgfmt --check-format` accepts a plural form that drops a placeholder the
-  other form keeps. `pybabel compile` rejects it.
+- Plural forms are checked one by one. `msgfmt --check-format` reads the very
+  file above and exits `0`; a form that drops a placeholder its siblings keep is
+  accepted there and rejected here.
+
+`msgfmt` only checks placeholder names it can parse as Python brace format, so
+ASCII names keep every tool in the chain able to validate the message. The
+library itself accepts any `str.isidentifier()` name.
 
 ## Templates and other tools
 

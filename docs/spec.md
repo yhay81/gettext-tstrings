@@ -1,3 +1,7 @@
+---
+description: "The t-string to msgid convention as a small versioned contract, with a machine-readable conformance suite."
+---
+
 # Specification
 
 The convention this library implements is written down as a small, stable

@@ -1,3 +1,7 @@
+---
+description: "The runtime API: binding a catalog, per-request languages, deferred strings, and how a broken translation is reported."
+---
+
 # Guide
 
 ## Binding a catalog
@@ -93,14 +97,75 @@ If a translation's placeholders do not match the source — a missing, unknown, 
 reformatted field that slipped past validation, from a hand-edited MO, a vendor
 catalog, or a pipeline that skips the checker — the default is to reproduce the
 source text rather than raise. This mirrors gettext's own contract that a bad
-catalog never breaks the application. A warning is logged once per plan and
-pattern on the `gettext_tstrings` logger.
+catalog never breaks the application.
+
+With `Hello {name}` translated as `こんにちは {nombre}`, the render succeeds and
+one warning goes to the `gettext_tstrings` logger:
+
+```text
+WARNING gettext_tstrings: invalid translation for msgid 'Hello {name}'; using
+source text: translation does not match the source placeholders: {name} is
+missing; {nombre} is not in the source message
+```
+
+```pycon
+>>> _(t"Hello {name}")
+'Hello Ada'
+```
+
+The warning fires once per plan and pattern, not once per render, so a broken
+catalog entry does not flood a log.
 
 Opt into failing loudly for tests and CI:
 
 ```python
-_ = Translator(translations, strict=True)  # raises InvalidTranslationError
+strict = Translator(translations, strict=True)
 tr(t"Hello {name}", translations=translations, strict=True)
+```
+
+The same lookup then raises, carrying the same sentence without the "using source
+text" half:
+
+```pycon
+>>> strict(t"Hello {name}")
+Traceback (most recent call last):
+  ...
+gettext_tstrings.errors.InvalidTranslationError: translation does not match the
+source placeholders: {name} is missing; {nombre} is not in the source message
+```
+
+## Reading a failure message
+
+These messages are written for whoever can act on them, which for a catalog
+problem is a translator more often than a programmer. Reporting only that
+`{name}` is missing is a dead end when the reader can see those characters in
+front of them, so where a placeholder looks present but is not, the message says
+why. Against the source `Hello {name}`, each of these is reported under
+`translation does not match the source placeholders:`
+
+| The translation says | The reason it gives |
+| --- | --- |
+| `こんにちは ｛name｝` | `{name}` is missing (the braces around it are not the ASCII `{` and `}`) |
+| `こんにちは {{name}}` | `{name}` is missing (it is written `{{name}}`, which is how a literal brace is escaped) |
+| `こんにちは name` | `{name}` is missing (the name appears, but not inside braces) |
+| `こんにちは {名前}` | `{name}` is missing; `{名前}` is not in the source message |
+
+Characters that cannot be seen get their own treatment. A no-break space inside
+the braces is something an input method produces and no editor shows, so the
+message prints it by code point rather than naming a character the reader cannot
+find:
+
+```text
+placeholder {<U+00A0>name} has a space inside the braces; write {name}
+```
+
+A name whose letters mix writing systems — the homoglyph case, where a Cyrillic
+`а` is indistinguishable from a Latin one — is shown twice, once readably and
+once escaped, which is the only form that tells the two apart:
+
+```text
+translation does not match the source placeholders: {name} is missing;
+{nаme} (n\u0430me) is not in the source message
 ```
 
 ## Rendering a pattern without a catalog

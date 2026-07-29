@@ -10,6 +10,7 @@ copyright = "Copyright &copy; 2026 Yusuke Hayashi &middot; MIT License"
 
 nav = [
   { "Home" = "index.md" },
+  { "Why t-strings" = "comparison.md" },
   { "Guide" = "guide.md" },
   { "Extraction" = "extraction.md" },
   { "Specification" = "spec.md" },
@@ -18,16 +19,25 @@ nav = [
 
 extra_css = ["stylesheets/python.css"]
 
+# No [project.markdown_extensions] table on purpose. Declaring one *replaces*
+# zensical's defaults rather than adding to them, and those defaults are already
+# the set these pages are written against — including pymdownx.emoji, which the
+# `:material-…:` icons need.
+
 [project.theme]
 language = "en"
+# overrides/main.html adds the link-preview metadata; nothing else is themed.
+custom_dir = "overrides"
 features = [
   "content.action.edit",
+  "content.action.view",
   "content.code.annotate",
   "content.code.copy",
   "content.tabs.link",
   "content.tooltips",
   "navigation.footer",
   "navigation.instant",
+  "navigation.instant.prefetch",
   "navigation.instant.progress",
   "navigation.top",
   "navigation.tracking",
@@ -38,7 +48,10 @@ features = [
 # python.org's palette, defined in stylesheets/python.css. Material's built-in
 # names have no entry for the logo's blue and yellow, so both schemes point at
 # "custom" and take their values from there.
+# A reader arrives in whichever scheme their system asks for, and the toggle
+# moves them to the other one.
 [[project.theme.palette]]
+media = "(prefers-color-scheme: light)"
 scheme = "default"
 primary = "custom"
 accent = "custom"
@@ -46,6 +59,7 @@ toggle.icon = "lucide/sun"
 toggle.name = "Switch to dark mode"
 
 [[project.theme.palette]]
+media = "(prefers-color-scheme: dark)"
 scheme = "slate"
 primary = "custom"
 accent = "custom"
@@ -69,23 +83,6 @@ link = "https://github.com/yhay81/gettext-tstrings"
 icon = "fontawesome/brands/python"
 link = "https://pypi.org/project/gettext-tstrings/"
 
-[project.markdown_extensions.abbr]
-[project.markdown_extensions.admonition]
-[project.markdown_extensions.attr_list]
-[project.markdown_extensions.def_list]
-[project.markdown_extensions.md_in_html]
-[project.markdown_extensions.toc]
-permalink = true
-[project.markdown_extensions.pymdownx.betterem]
-[project.markdown_extensions.pymdownx.details]
-[project.markdown_extensions.pymdownx.highlight]
-anchor_linenums = true
-line_spans = "__span"
-pygments_lang_class = true
-[project.markdown_extensions.pymdownx.inlinehilite]
-[project.markdown_extensions.pymdownx.magiclink]
-[project.markdown_extensions.pymdownx.snippets]
-[project.markdown_extensions.pymdownx.superfences]
-[project.markdown_extensions.pymdownx.tabbed]
-alternate_style = true
-combine_header_slug = true
+[project.extra.social_card]
+# Read by overrides/main.html. Kept here so the URL is written down once.
+image = "assets/social-card.png"

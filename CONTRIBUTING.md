@@ -21,11 +21,25 @@ uv sync
 uv run ruff format .
 uv run ruff check .
 uv run mypy
+uv run ty check
 uv run pytest --cov=gettext_tstrings --cov-report=term-missing
 ```
 
-All five must pass, matching CI. New behavior needs tests, and behavior that
+All of these must pass, matching CI. New behavior needs tests, and behavior that
 touches the spec needs tests that read like executable examples of the rule.
+
+### The documentation site
+
+<https://gettext-tstrings.yhay81.com/> is built from `docs/` with
+[Zensical](https://zensical.org/):
+
+```console
+uv run --group docs zensical serve
+```
+
+`tests/test_docs.py` ties the failure messages the pages quote back to the ones
+the library raises, so rewording a message fails the suite until the page is
+updated with it. Quote output; do not paraphrase it.
 
 ## Guidelines
 
@@ -36,7 +50,8 @@ touches the spec needs tests that read like executable examples of the rule.
   attribute access, no calls, no translation-side formatting — is the core of
   the project. Code that renders catalog data must go through the existing
   validated path.
-- **Match the surrounding code.** Docstrings and comments in this repository are
-  written in Japanese; follow that convention.
+- **Match the surrounding code.** Everything written down here — docstrings,
+  comments, documentation, commit messages — is in English. A comment says why a
+  line exists, not what it does.
 - **gettext parity.** The public API mirrors stdlib gettext naming and calling
   conventions; new surface should extend that, not diverge from it.

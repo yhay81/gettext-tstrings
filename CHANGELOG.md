@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- Fix the documentation site's Markdown configuration. Declaring
+  `markdown_extensions` in `zensical.toml` replaces the generator's defaults
+  rather than adding to them, so nine extensions the pages were written against
+  were silently off — including the one that renders `:material-…:` icons, which
+  the specification page was printing as literal text. The declaration only
+  reproduced those defaults, so removing it fixes the site and shortens the
+  config.
+- Add a *Why t-strings* page comparing `%(name)s`, `.format()` and a t-string on
+  what each hands to the catalog, and tie every failure message quoted anywhere
+  in the documentation back to the code with a test. The published pages had
+  been quoting the previous wording of the checker's output.
 - Rewrite the messages a translator sees. A missing placeholder whose name is
   visible in the text now says why it does not count — full-width braces from an
   input method, braces doubled by a round trip, or a name written outside braces

@@ -12,3 +12,6 @@ dist/
 *.mo
 # Build output of the documentation site.
 site/
+
+# Editor and agent launch configuration.
+.claude/

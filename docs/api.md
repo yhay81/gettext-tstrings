@@ -1,3 +1,7 @@
+---
+description: "Every name gettext_tstrings exports: functions, the Translator, context binding, lazy strings, and the errors."
+---
+
 # API
 
 Everything below is exported from `gettext_tstrings`. Nothing else is public.
