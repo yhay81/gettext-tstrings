@@ -4,6 +4,11 @@ description: "pybabel로 t-string 메시지를 추출하고 msgfmt와 내장 Bab
 
 # 추출
 
+추출은 소스 코드에 표시된 모든 메시지를 번역자를 위한 `.pot` 템플릿으로
+모으는 단계로, [튜토리얼](tutorial.md) 루프의 3단계입니다. 이 페이지는 그
+단계의 레퍼런스입니다. 설정, 사용자 정의 함수 이름, strict CI 모드,
+그리고 그 후 카탈로그를 지키는 검사를 다룹니다.
+
 추출에는 `babel` extra가 필요합니다.
 
 ```console

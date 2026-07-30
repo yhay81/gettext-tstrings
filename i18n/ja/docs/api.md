@@ -5,6 +5,8 @@ description: "gettext_tstringsが公開する関数、Translator、コンテキ�
 # API
 
 以下はすべて`gettext_tstrings`から公開されています。それ以外は公開APIではありません。
+このページはシグネチャのリファレンスです。各関数の具体的な使用例は
+[ガイド](guide.md)を参照してください。
 
 ## 翻訳
 

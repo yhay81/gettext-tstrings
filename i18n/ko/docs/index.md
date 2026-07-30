@@ -6,6 +6,8 @@ description: "포매팅을 카탈로그 밖에 둔 채 gettext와 Babel로 완�
 
 Python 3.14+ t-string을 gettext 및 Babel과 안전하게 통합합니다.
 
+문장을 원본 언어로, 값을 제자리에 둔 채, 한 번만 작성하세요.
+
 ```python
 import gettext
 
@@ -13,20 +15,35 @@ from gettext_tstrings import Translator
 
 _ = Translator(gettext.translation("messages", localedir="locales"))
 name = "Ada"
-print(_(t"Hello {name}"))
+print(_(t"Hello {name}"))  # with a Japanese catalog: こんにちは Ada
 ```
 
 카탈로그에는 완전한 문장 `Hello {name}`이 들어갑니다. 번역은 `{name}`의
 위치를 바꾸거나 반복할 수 있지만, 생략하거나 새로운 플레이스홀더를
-만들거나 자체 포매팅을 붙일 수는 없습니다.
+만들거나 자체 포매팅을 붙일 수는 없습니다. 이 라이브러리가 이를 검사하며,
+잘못된 카탈로그는 충돌 대신 원본 텍스트로 fallback합니다.
+
+!!! note "gettext가 처음이라면? 네 문장으로 보는 전체 작업 흐름"
+
+    **gettext**는 Python을 비롯해 훨씬 넓은 범위에서 소프트웨어를
+    번역하는 표준 방식입니다. 코드가 번역 가능한 문자열을 표시하면,
+    *추출기*가 이를 템플릿 파일(`.pot`)로 모으고, 대개 프로그래머가 아닌
+    번역자가 언어마다 하나씩 카탈로그 파일(`.po`)을 채우며, 이는
+    애플리케이션이 런타임에 로드하는 바이너리 `.mo`로 컴파일됩니다.
+    번역 함수의 관례적인 이름은 `_`이므로 `_(t"Hello {name}")`은
+    "이 문장을 번역하라"로 읽힙니다. **[튜토리얼](tutorial.md)**은
+    표시, 추출, 번역, 컴파일, 실행이라는 전체 경로를 약 5분 만에
+    안내합니다.
 
 ## 해결하는 문제
 
-f-string은 라이브러리가 받기 전에 이미 보간되어 있으므로 번역하면 문장
-조각만 남습니다. t-string([PEP 750])은 정적 텍스트, 평가된 값, 원본 식,
-변환, 포맷 명세를 분리해 보존합니다. 메시지 카탈로그에 정확히 필요한
-구조입니다. `%(name)s`, `.format()`과의 차이는
-[비교 페이지](comparison.md)에서 확인할 수 있습니다.
+f-string은 라이브러리가 받기 전에 이미 보간되어 있습니다.
+`f"Hello {name}"`은 이미 `"Hello Ada"`가 되었고, 값 주변의 조각을
+번역하면 대부분 언어의 문법이 깨집니다. t-string([PEP 750])은 정적
+텍스트, 평가된 값, 원본 식, 변환, 포맷 명세를 분리해 보존합니다. 메시지
+카탈로그에 정확히 필요한 구조입니다. `%(name)s`, `.format()`,
+`$` 문자열과의 차이는 [비교 페이지](comparison.md)에서 확인할 수
+있습니다.
 
 gettext와 Babel은 t-string을 메시지로 바꾸는 규칙까지 정하지 않습니다.
 이 라이브러리는 그 규칙을 [버전이 있는 명세](spec.md)로 정의하고
@@ -41,15 +58,6 @@ gettext와 Babel은 t-string을 메시지로 바꾸는 규칙까지 정하지 �
   포매팅 추가는 허용하지 않습니다.
 - 기존 POT, PO, MO 파일과 도구를 그대로 사용합니다.
 
-## 이 사이트가 직접 사용합니다
-
-이 문서는 번역된 데모에 그치지 않습니다. 내비게이션, 테마 레이블,
-저작권 문구, 복수형을 반영한 빌드 결과를 `gettext-tstrings`가 PO
-카탈로그에서 직접 렌더링합니다.
-[다국어 빌더](https://github.com/yhay81/gettext-tstrings/blob/main/scripts/build_multilingual_docs.py)는
-매 strict 빌드에서 컨텍스트 메시지, 이름 있는 플레이스홀더, 열 개 언어의
-복수형 규칙을 모두 실행합니다.
-
 ## 설치
 
 ```console
@@ -59,8 +67,9 @@ python -m pip install gettext-tstrings
 Python 3.14 이상이 필요합니다. 렌더링에는 **외부 의존성이 없으며** 표준
 라이브러리의 `gettext`만 사용합니다.
 
-추출과 카탈로그 검증에는 [Babel]을 사용합니다. 개발 또는 CI 환경에
-다음 extra를 설치하세요.
+추출과 카탈로그 검증에는 [Babel]을 사용합니다. `pybabel`이 실행되는 곳,
+즉 보통 프로덕션 이미지가 아니라 개발 또는 CI 환경에 다음 extra를
+설치하세요.
 
 ```console
 python -m pip install "gettext-tstrings[babel]"
@@ -70,13 +79,29 @@ python -m pip install "gettext-tstrings[babel]"
 
 <div class="grid cards" markdown>
 
-- **[왜 t-string인가](comparison.md)** — 같은 메시지를 세 가지 방식으로 비교합니다.
-- **[가이드](guide.md)** — 런타임 API, 요청별 언어, 지연 번역, 잘못된 카탈로그.
-- **[추출](extraction.md)** — `pybabel` 작업 흐름과 검증.
-- **[명세](spec.md)** — 안정된 규약과 적합성 테스트 모음.
-- **[API](api.md)** — 패키지의 모든 공개 API.
+- **[튜토리얼](tutorial.md)** — 여기서 시작하세요. 빈 디렉터리에서
+  동작하는 일본어 번역까지 다섯 단계, 모든 명령을 출력과 함께 보여줍니다.
+- **[왜 t-string인가](comparison.md)** — 같은 메시지를 네 가지 방식으로
+  작성하고, `%(name)s`, `.format()`, `$` 문자열이 각각 카탈로그에 무엇을
+  넘기는지 비교합니다.
+- **[가이드](guide.md)** — 런타임 API: 복수형, 요청별 언어, 지연 문자열,
+  잘못된 카탈로그 처리.
+- **[추출](extraction.md)** — `pybabel` 레퍼런스: 설정, 사용자 정의 함수
+  이름, 기존 도구가 이 카탈로그를 공짜로 검증하는 방법.
+- **[명세](spec.md)** — t-string ↔ msgid 규약을 안정된 버전 계약으로
+  정의하고 기계 판독 가능한 적합성 테스트 모음을 제공합니다.
+- **[API](api.md)** — 패키지의 모든 공개 API를 한 페이지에 담았습니다.
 
 </div>
+
+## 이 사이트가 직접 사용합니다
+
+이 문서는 번역된 데모에 그치지 않습니다. 내비게이션, 테마 레이블,
+저작권 문구, 복수형을 반영한 빌드 결과를 `gettext-tstrings`가 PO
+카탈로그에서 직접 렌더링합니다.
+[다국어 빌더](https://github.com/yhay81/gettext-tstrings/blob/main/scripts/build_multilingual_docs.py)는
+매 strict 빌드에서 컨텍스트 메시지, 이름 있는 플레이스홀더, 열 개 언어의
+복수형 규칙을 모두 실행합니다.
 
 ## 상태
 
@@ -85,7 +110,8 @@ python -m pip install "gettext-tstrings[babel]"
 측정, 실제 gettext/Babel 프로젝트의 피드백이 필요합니다.
 
 [이슈와 풀 리퀘스트](https://github.com/yhay81/gettext-tstrings/issues)를
-환영합니다.
+환영합니다. 알파는 인터페이스에 대해 논쟁할 가치가 있는 바로 그
+시기입니다.
 
 ## 커뮤니티 참여
 
@@ -93,7 +119,7 @@ python -m pip install "gettext-tstrings[babel]"
   [good first issue](https://github.com/yhay81/gettext-tstrings/issues?q=is%3Aissue%20state%3Aopen%20label%3A%22good%20first%20issue%22)를 선택하세요.
 - 사용법은
   [Q&A Discussions](https://github.com/yhay81/gettext-tstrings/discussions/categories/q-a)에서 질문하세요.
-- API 아이디어는
+- 실제 gettext 작업 흐름과 API 아이디어는
   [Ideas Discussions](https://github.com/yhay81/gettext-tstrings/discussions/categories/ideas)에서 논의하세요.
 - 풀 리퀘스트 전에
   [기여 가이드](https://github.com/yhay81/gettext-tstrings/blob/main/CONTRIBUTING.md)를 읽어 주세요.

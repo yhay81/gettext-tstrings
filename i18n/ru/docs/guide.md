@@ -4,6 +4,12 @@ description: "API времени выполнения: привязка ката
 
 # Руководство
 
+Эта страница — справочник по времени выполнения: всё, что делает с этой
+библиотекой *код приложения*, когда каталоги уже существуют. Если вы ещё не
+видели весь цикл — пометить, извлечь, перевести, скомпилировать, запустить, —
+[учебник](tutorial.md) проходит его за пять минут; создание и проверка
+каталогов описаны в разделе [Извлечение](extraction.md).
+
 ## Привязка каталога
 
 Рекомендуемая форма повторяет объектный API gettext: один раз привяжите
@@ -18,13 +24,13 @@ translations = gettext.translation("messages", localedir="locales", languages=["
 _ = Translator(translations)
 
 name = "Ada"
-print(_(t"Hello {name}"))
+print(_(t"Hello {name}"))  # こんにちは Ada
 
 n = 3
-print(_.ngettext(t"One file", t"{n} files", n))
+print(_.ngettext(t"One file", t"{n} files", n))  # picks the right plural form for n
 
 filename = "report.txt"
-print(_.pgettext("button", t"Open {filename}"))
+print(_.pgettext("button", t"Open {filename}"))  # "button" disambiguates homonyms
 ```
 
 Функции модуля повторяют имена и позиционные аргументы стандартной библиотеки:
@@ -108,8 +114,10 @@ missing; {nombre} is not in the source message
 'Hello Ada'
 ```
 
-Предупреждение появляется один раз для каждой пары плана и шаблона. В тестах и
-CI включайте строгий режим:
+Предупреждение появляется один раз для каждой пары сообщения и шаблона, а не
+при каждом рендеринге, поэтому неверная запись каталога не заливает журнал.
+
+В тестах и CI включайте строгий режим:
 
 ```python
 strict = Translator(translations, strict=True)

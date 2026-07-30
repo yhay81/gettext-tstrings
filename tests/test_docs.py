@@ -36,6 +36,7 @@ EXTRACTOR = cast("Any", extract_tstrings)
 SITE_MESSAGES = {
     (None, "Safe gettext and Babel integration for Python t-strings."),
     (None, "Home"),
+    (None, "Tutorial"),
     (None, "Why t-strings"),
     ("navigation", "Guide"),
     (None, "Extraction"),

@@ -5,6 +5,8 @@ description: "Todos los nombres que exporta gettext_tstrings: funciones, Transla
 # API
 
 Todo lo siguiente se exporta desde `gettext_tstrings`. Nada más es público.
+Esta página es la referencia de firmas; para ejemplos prácticos de cada
+función, consulta la [guía](guide.md).
 
 ## Traducción
 

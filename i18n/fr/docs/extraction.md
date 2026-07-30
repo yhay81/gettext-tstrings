@@ -4,6 +4,12 @@ description: "Extraire les messages t-string avec pybabel et valider les catalog
 
 # Extraction
 
+L'extraction est l'étape qui collecte chaque message marqué dans votre code
+source vers un modèle `.pot` destiné aux traducteurs — l'étape 3 de la boucle
+du [tutoriel](tutorial.md). Cette page est la référence de cette étape :
+configuration, noms de fonctions personnalisés, mode strict pour la CI et les
+contrôles qui protègent ensuite vos catalogues.
+
 L'extraction nécessite l'extra `babel` :
 
 ```console

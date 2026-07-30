@@ -6,6 +6,8 @@ description: "Vollständige t-string-Nachrichten sicher mit gettext und Babel ü
 
 Sichere Integration von Python-3.14+-t-strings mit gettext und Babel.
 
+Schreib den Satz einmal, in deiner Quellsprache, mit dem Wert an seinem Platz:
+
 ```python
 import gettext
 
@@ -13,21 +15,36 @@ from gettext_tstrings import Translator
 
 _ = Translator(gettext.translation("messages", localedir="locales"))
 name = "Ada"
-print(_(t"Hello {name}"))
+print(_(t"Hello {name}"))  # with a Japanese catalog: こんにちは Ada
 ```
 
 Der Katalog erhält den vollständigen Satz `Hello {name}`. Eine Übersetzung darf
 `{name}` umstellen oder wiederholen, aber weder entfernen noch neue Platzhalter
-hinzufügen oder eine eigene Formatierung festlegen.
+erfinden oder eine eigene Formatierung anhängen — diese Bibliothek prüft das,
+und ein fehlerhafter Katalog fällt auf den Quelltext zurück, statt abzustürzen.
+
+!!! note "Neu bei gettext? Der ganze Workflow in vier Sätzen"
+
+    **gettext** ist der Standardweg, auf dem Software übersetzt wird, in
+    Python und weit darüber hinaus. Dein Code markiert übersetzbare Strings;
+    ein *Extraktor* sammelt sie in eine Vorlagendatei (`.pot`); eine
+    übersetzende Person — meist keine Programmiererin — füllt pro Sprache eine
+    Katalogdatei (`.po`) aus, die zu einer binären `.mo` kompiliert wird, die
+    deine Anwendung zur Laufzeit lädt. Der konventionelle Name der
+    Übersetzungsfunktion ist `_`, sodass sich `_(t"Hello {name}")` als
+    „übersetze diesen Satz“ liest. Das **[Tutorial](tutorial.md)** geht den
+    gesamten Weg — markieren, extrahieren, übersetzen, kompilieren, ausführen
+    — in etwa fünf Minuten durch.
 
 ## Welches Problem wird gelöst?
 
-Ein f-string ist bereits interpoliert, bevor ihn eine Bibliothek sieht. Eine
-t-string ([PEP 750]) hält dagegen statischen Text, ausgewertete Werte,
-Quellausdrücke, Konvertierungen und Formatspezifikationen getrennt — genau die
-Trennung, die ein Nachrichtenkatalog braucht. Der
-[Vergleich](comparison.md) zeigt die Unterschiede zu `%(name)s` und
-`.format()`.
+Ein f-string ist bereits interpoliert, bevor ihn eine Bibliothek sieht — aus
+`f"Hello {name}"` ist `"Hello Ada"` geworden, und das Übersetzen der Fragmente
+um einen Wert herum zerstört die Grammatik der meisten Sprachen. Eine t-string
+([PEP 750]) hält dagegen statischen Text, ausgewertete Werte, Quellausdrücke,
+Konvertierungen und Formatspezifikationen getrennt — genau die Trennung, die
+ein Nachrichtenkatalog braucht. Der [Vergleich](comparison.md) zeigt, was sich
+dadurch gegenüber `%(name)s`, `.format()` und `$`-Strings ändert.
 
 gettext und Babel definieren jedoch nicht, wie eine t-string in eine Nachricht
 umgewandelt wird. Diese Bibliothek legt eine
@@ -42,15 +59,6 @@ umgewandelt wird. Diese Bibliothek legt eine
 - Bekannte Platzhalter dürfen umgestellt und wiederholt werden; Attributzugriffe
   und zusätzliche Formatierung sind nicht erlaubt.
 - Vorhandene POT-, PO- und MO-Dateien sowie deren Werkzeuge weiterverwenden.
-
-## Diese Website nutzt es selbst
-
-Diese Dokumentation ist nicht nur eine übersetzte Demo. Navigation,
-Theme-Beschriftungen, Copyright-Zeile und pluralabhängiger Build-Bericht werden
-von `gettext-tstrings` aus PO-Katalogen gerendert. Der
-[mehrsprachige Builder](https://github.com/yhay81/gettext-tstrings/blob/main/scripts/build_multilingual_docs.py)
-führt bei jedem strikten Build Kontextnachrichten, benannte Platzhalter und die
-Pluralregeln aller zehn Sprachen aus.
 
 ## Installation
 
@@ -72,14 +80,32 @@ python -m pip install "gettext-tstrings[babel]"
 
 <div class="grid cards" markdown>
 
-- **[Warum t-strings](comparison.md)** — dieselbe Nachricht auf drei Arten.
-- **[Anleitung](guide.md)** — Laufzeit-API, Sprache pro Anfrage, verzögerte
-  Übersetzung und fehlerhafte Kataloge.
-- **[Extraktion](extraction.md)** — `pybabel`, Konfiguration und Validierung.
-- **[Spezifikation](spec.md)** — stabiler Vertrag und Konformitätssuite.
-- **[API](api.md)** — alle öffentlichen Exporte.
+- **[Tutorial](tutorial.md)** — starte hier: vom leeren Verzeichnis zu einer
+  laufenden japanischen Übersetzung in fünf Schritten, jeder Befehl mit seiner
+  Ausgabe.
+- **[Warum t-strings](comparison.md)** — dieselbe Nachricht auf vier Arten
+  geschrieben, und was `%(name)s`, `.format()` und `$`-Strings dem Katalog
+  jeweils überlassen.
+- **[Anleitung](guide.md)** — die Laufzeit-API: Pluralformen, Sprache pro
+  Anfrage, verzögerte Strings und was geschieht, wenn ein Katalog fehlerhaft
+  ist.
+- **[Extraktion](extraction.md)** — die `pybabel`-Referenz: Konfiguration,
+  eigene Funktionsnamen und wie vorhandene Werkzeuge diese Kataloge ganz
+  nebenbei validieren.
+- **[Spezifikation](spec.md)** — die t-string-↔-msgid-Konvention als stabiler,
+  versionierter Vertrag mit maschinenlesbarer Konformitätssuite.
+- **[API](api.md)** — alles, was das Paket exportiert, auf einer Seite.
 
 </div>
+
+## Diese Website nutzt es selbst
+
+Diese Dokumentation ist nicht nur eine übersetzte Demo. Navigation,
+Theme-Beschriftungen, Copyright-Zeile und pluralabhängiger Build-Bericht werden
+von `gettext-tstrings` aus PO-Katalogen gerendert. Der
+[mehrsprachige Builder](https://github.com/yhay81/gettext-tstrings/blob/main/scripts/build_multilingual_docs.py)
+führt bei jedem strikten Build Kontextnachrichten, benannte Platzhalter und die
+Pluralregeln aller zehn Sprachen aus.
 
 ## Status
 

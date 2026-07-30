@@ -5,7 +5,8 @@ description: "Alle öffentlichen Namen von gettext_tstrings: Funktionen, Transla
 # API
 
 Alle folgenden Namen werden von `gettext_tstrings` exportiert. Andere Namen
-sind nicht öffentlich.
+sind nicht öffentlich. Diese Seite ist die Signaturreferenz; ausgearbeitete
+Beispiele zu jeder Funktion stehen in der [Anleitung](guide.md).
 
 ## Übersetzung
 

@@ -4,8 +4,11 @@ description: "t-string에서 msgid로 변환하는 규약을 버전이 있는 �
 
 # 명세
 
-추출기, IDE, 타입 검사기, 미래의 `pygettext`가 구현할 수 있도록 규약을
-작고 안정적으로 유지합니다.
+이 페이지를 읽지 않아도 라이브러리를 사용할 수 있습니다. 일상적인
+사용법은 [튜토리얼](tutorial.md)과 [가이드](guide.md)에서 다룹니다. 이
+페이지는 도구 작성자를 위한 것입니다. 추출기, IDE, 타입 검사기, 미래의
+`pygettext` 같은 다른 구현이 겨냥하고 상호 운용할 수 있도록, 라이브러리가
+구현하는 규약을 작고 안정된 계약으로 적어 둡니다.
 
 [명세 v1 읽기 :material-arrow-right:](https://github.com/yhay81/gettext-tstrings/blob/main/SPEC.md){ .md-button .md-button--primary }
 

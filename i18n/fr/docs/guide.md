@@ -4,6 +4,13 @@ description: "L'API d'exécution : liaison d'un catalogue, langue par requête, 
 
 # Guide
 
+Cette page est la référence d'exécution : tout ce que fait votre *code
+applicatif* avec cette bibliothèque une fois les catalogues en place. Si vous
+n'avez pas encore vu la boucle complète — marquer, extraire, traduire,
+compiler, exécuter — le [tutoriel](tutorial.md) la parcourt une fois en cinq
+minutes ; la création et la validation des catalogues sont couvertes dans
+[Extraction](extraction.md).
+
 ## Lier un catalogue
 
 La forme recommandée reprend l'usage objet de gettext : liez une traduction
@@ -18,13 +25,13 @@ translations = gettext.translation("messages", localedir="locales", languages=["
 _ = Translator(translations)
 
 name = "Ada"
-print(_(t"Hello {name}"))
+print(_(t"Hello {name}"))  # こんにちは Ada
 
 n = 3
-print(_.ngettext(t"One file", t"{n} files", n))
+print(_.ngettext(t"One file", t"{n} files", n))  # picks the right plural form for n
 
 filename = "report.txt"
-print(_.pgettext("button", t"Open {filename}"))
+print(_.pgettext("button", t"Open {filename}"))  # "button" disambiguates homonyms
 ```
 
 Les fonctions de module suivent les noms et les arguments positionnels de la
@@ -109,7 +116,8 @@ missing; {nombre} is not in the source message
 'Hello Ada'
 ```
 
-L'avertissement n'est émis qu'une fois par plan et pattern. En test et CI,
+L'avertissement n'est émis qu'une fois par message et pattern, pas à chaque
+rendu : une entrée de catalogue cassée n'inonde pas le journal. En test et CI,
 activez le mode strict :
 
 ```python

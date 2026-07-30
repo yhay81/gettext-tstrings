@@ -4,9 +4,11 @@ description: "t-stringからmsgidへの規約を、機械可読な適合性テ�
 
 # 仕様
 
-このライブラリが実装する規約は、小さく安定した契約として文書化されています。
-これにより、抽出器、IDE、型チェッカー、将来の`pygettext`など、別の実装も同じ
-規約を対象として相互運用できます。
+このページを読まなくてもライブラリは使えます。日常的な使い方は
+[チュートリアル](tutorial.md)と[ガイド](guide.md)で説明しています。このページは
+ツール作者向けです。このライブラリが実装する規約は、小さく安定した契約として
+文書化されています。これにより、抽出器、IDE、型チェッカー、将来の`pygettext`など、
+別の実装も同じ規約を対象として相互運用できます。
 
 [仕様v1を読む :material-arrow-right:](https://github.com/yhay81/gettext-tstrings/blob/main/SPEC.md){ .md-button .md-button--primary }
 

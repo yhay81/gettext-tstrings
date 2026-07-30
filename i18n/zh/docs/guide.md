@@ -4,6 +4,10 @@ description: "运行时 API：绑定目录、按请求选择语言、延迟字�
 
 # 指南
 
+本页是运行时参考：目录就绪之后，*应用程序代码*用本库所做的一切都在这里。
+如果你还没有见过完整的循环——标记、提取、翻译、编译、运行——[教程](tutorial.md)
+会在五分钟内走完一遍；目录的创建与验证参阅[提取](extraction.md)。
+
 ## 绑定目录
 
 推荐方式与 gettext 基于类的用法一致：绑定一次标准翻译对象，并把可调用的处理器用作
@@ -18,13 +22,13 @@ translations = gettext.translation("messages", localedir="locales", languages=["
 _ = Translator(translations)
 
 name = "Ada"
-print(_(t"Hello {name}"))
+print(_(t"Hello {name}"))  # こんにちは Ada
 
 n = 3
-print(_.ngettext(t"One file", t"{n} files", n))
+print(_.ngettext(t"One file", t"{n} files", n))  # picks the right plural form for n
 
 filename = "report.txt"
-print(_.pgettext("button", t"Open {filename}"))
+print(_.pgettext("button", t"Open {filename}"))  # "button" disambiguates homonyms
 ```
 
 模块级函数沿用标准库的名称和仅位置参数调用约定：
@@ -105,7 +109,7 @@ missing; {nombre} is not in the source message
 'Hello Ada'
 ```
 
-警告按 plan 与 pattern 的组合只触发一次，而不是每次渲染都触发，因此损坏的目录项
+警告按消息与 pattern 的组合只触发一次，而不是每次渲染都触发，因此损坏的目录项
 不会淹没日志。
 
 测试和 CI 可以选择立即失败：

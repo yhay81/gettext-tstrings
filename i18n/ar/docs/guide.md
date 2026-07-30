@@ -4,6 +4,12 @@ description: "API وقت التشغيل: ربط الكتالوج، لغة كل �
 
 # الدليل
 
+هذه الصفحة هي مرجع وقت التشغيل: كل ما تفعله *شيفرة تطبيقك* بهذه المكتبة
+بعد أن توجد الكتالوجات. إذا لم ترَ الحلقة الكاملة بعد — وسم، استخراج،
+ترجمة، تجميع، تشغيل — فإن [الدرس التعليمي](tutorial.md) يمر بها مرة واحدة
+في خمس دقائق؛ ويغطي [الاستخراج](extraction.md) إنشاء الكتالوجات والتحقق
+منها.
+
 ## ربط كتالوج
 
 يتبع الأسلوب الموصى به واجهة gettext الكائنية: اربط كائن ترجمة قياسياً مرة
@@ -18,13 +24,13 @@ translations = gettext.translation("messages", localedir="locales", languages=["
 _ = Translator(translations)
 
 name = "Ada"
-print(_(t"Hello {name}"))
+print(_(t"Hello {name}"))  # こんにちは Ada
 
 n = 3
-print(_.ngettext(t"One file", t"{n} files", n))
+print(_.ngettext(t"One file", t"{n} files", n))  # picks the right plural form for n
 
 filename = "report.txt"
-print(_.pgettext("button", t"Open {filename}"))
+print(_.pgettext("button", t"Open {filename}"))  # "button" disambiguates homonyms
 ```
 
 تتبع دوال الوحدة أسماء المكتبة القياسية ووسائطها الموضعية:
@@ -103,7 +109,8 @@ missing; {nombre} is not in the source message
 'Hello Ada'
 ```
 
-يصدر التحذير مرة واحدة لكل خطة ونمط. فعّل الوضع الصارم في الاختبارات وCI:
+يصدر التحذير مرة واحدة لكل رسالة ونمط، لا عند كل عرض، فلا يُغرق إدخال
+الكتالوج المعطوب السجل. فعّل الوضع الصارم في الاختبارات وCI:
 
 ```python
 strict = Translator(translations, strict=True)

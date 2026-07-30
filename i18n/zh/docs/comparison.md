@@ -4,8 +4,25 @@ description: "用 %-format、.format()、flufl.i18n $-string 和 t-string 编写
 
 # 为什么选择 t-string
 
-把一个值放入可翻译消息的每种方式都必须回答同一个问题：*目录可以控制格式语言的
-多少部分？* 以下四种答案在值来自何处，以及目录更改占位符时会发生什么方面也有所不同。
+把一个值放入可翻译消息的四种方式，在同一句话上进行比较。先说结论：
+
+- 使用 **%-format**，翻译者删掉一个字母，就会变成生产环境中的崩溃。
+- 使用 **str.format**，翻译可以读取代码传入对象的属性——包括机密信息。
+- 使用 **$-string**（flufl.i18n），值会从调用函数的变量中被隐式取出，点号
+  占位符还能进一步访问属性。
+- 使用 **t-string**，格式保留在你的代码中，翻译会在运行时接受检查，损坏的目录
+  会回退到源文本，而不是崩溃。
+
+本页其余部分就是证据，逐一分析每种方法。
+
+!!! note "每条翻译消息都经过三方之手"
+
+    **目录**是存放翻译的文件——供人编辑时是 `.po`，编译成 `.mo` 后供应用程序
+    加载（[教程](tutorial.md)对两者都有介绍）。每条消息都经过三方之手：
+    **开发者**编写源字符串；**翻译者**编辑目录——常常在外部平台上进行，远离
+    任何代码审查；**应用程序**在运行时把两者一起渲染。下面每种格式化风格都对
+    同一个问题给出了不同回答：*目录可以控制格式语言的多少部分？* 在示例中，
+    `_` 是翻译函数的约定名称，`tr` 是本库使用的名称。
 
 ## %-format
 
@@ -13,11 +30,13 @@ description: "用 %-format、.format()、flufl.i18n $-string 和 t-string 编写
 _("Hello %(name)s") % {"name": name}
 ```
 
-目录字符串携带 printf 语法，其中包括一个容易忽略、仅修改一个字符就可能损坏的
-尾随类型字母：
+可能出的问题：翻译中删掉一个字母，渲染就会崩溃。
+
+目录字符串携带 printf 语法，其中包括一个尾随类型字母——`%(name)s` 中的
+`s`——它既容易忽略，也容易损坏：
 
 ```pycon
->>> "Hello %(name)" % {"name": "Ada"}
+>>> "Hello %(name)" % {"name": "Ada"}  # the trailing "s" was deleted
 Traceback (most recent call last):
   ...
 ValueError: incomplete format
@@ -33,10 +52,11 @@ ValueError: incomplete format
 _("Hello {name}").format(name=name)
 ```
 
-它删除了尾随类型字母，同时保留了有名称且可自由调整顺序的占位符。
+它删除了尾随类型字母，同时保留了有名称且可自由调整顺序的占位符。可能出的问题
+转移到了交换的另一侧：翻译获得了操纵你的对象的权力。
 
-问题出在另一侧。`str.format` 是一种小型表达式语言；对字符串调用它，就意味着允许
-该字符串使用这种语言：
+`str.format` 是一种小型表达式语言；对字符串调用它，就意味着允许该字符串使用
+这种语言：
 
 ```pycon
 >>> "{name.__class__.__mro__}".format(name="Ada")
@@ -46,20 +66,27 @@ _("Hello {name}").format(name=name)
 'sk-live-…'
 ```
 
-目录不是代码，但会像数据一样流转：发送到翻译平台，经过多人处理，以 `.po` 返回，
-编译成 `.mo`，有时甚至直接从外部项目引入。`.format()` 让这条路径上的每个环节都有
-机会通过字符串访问你传入对象的属性。
+现在把那些字面字符串换成 `_()` 返回的任意内容。如果 `Hello {name}` 的某条翻译
+变成了 `{conf.api_key}`，渲染它就会打印出你的 API key——决定读取什么的是目录，
+而不是你的代码。目录不是代码，但会像数据一样流转：发送到翻译平台，经过多人处理，
+以 `.po` 返回，编译成 `.mo`，有时甚至直接从外部项目引入。`.format()` 让这条路径
+上的每个环节都有机会通过字符串访问你传入对象的属性。
 
 ## `$`-string 与 flufl.i18n
 
 ```python
+from flufl.i18n import initialize
+
+_ = initialize("example")
+
 name = "Ada"
-_("Hello $name")
+print(_("Hello $name"))  # Hello Ada — the value came from the caller's locals
 ```
 
 标准库的 [`string.Template`][stdlib-template] 提供 `$name` 插值语言，但它本身并不是翻译 API。
-[`flufl.i18n`][flufl-i18n] 将这种风格与 gettext 目录查询结合起来。它从调用方的全局变量和
-局部变量构建替换命名空间；可选的 `extras` 映射优先于两者。面向翻译者的语法没有
+[`flufl.i18n`][flufl-i18n] 将这种风格与 gettext 目录查询结合起来。请注意，这个值
+从未被传入：flufl.i18n 从调用方的全局变量和局部变量构建替换命名空间——调用点存在
+的任何变量都可供消息使用。可选的 `extras` 映射优先于两者。面向翻译者的语法没有
 尾随类型字母或格式说明符，占位符也可以自由调整顺序。
 
 找不到替换值时不会抛出异常。如果 `name = "Ada"`，而调用方的命名空间中没有
@@ -80,9 +107,10 @@ _("Hello $name")
 tr(t"Hello {name}")
 ```
 
-目录仍会看到 `Hello {name}`，并继续使用普通的 PO/MO 目录。源代码提取有所不同：
-当前工具需要能够识别 t-string 的提取器，例如本包提供的提取器。本库会根据源消息的占位符验证翻译并进行渲染，
-且只接受简单名称。对于
+目录仍会看到 `Hello {name}`，并继续使用普通的 PO/MO 目录。区别在于翻译*被允许
+说什么*，以及由谁来检查。
+
+本库会在渲染前根据源消息的占位符验证每一条翻译，且只接受简单名称。对于
 `t"Hello {name}"`：
 
 | 翻译包含 | 拒绝原因 |
@@ -92,7 +120,10 @@ tr(t"Hello {name}")
 | `{0}` | placeholder `{0}` must be a plain name, copied from the source message unchanged |
 | `{nombre}` | translation does not match the source placeholders: `{name}` is missing; `{nombre}` is not in the source message |
 
-格式仍留在编写它的地方：
+被拒绝并不意味着崩溃：默认情况下，本库会记录一条警告并渲染源文本，因此损坏的
+目录永远不会让应用程序宕机——[这正是 gettext 自身遵守的契约](guide.md#what-happens-when-a-catalog-is-wrong)。
+
+格式仍留在编写它的地方，也就是代码中：
 
 ```python
 amount = 1234.5
@@ -101,21 +132,28 @@ tr(t"Total: {amount:,.2f}")  # msgid is "Total: {amount}"
 
 `:,.2f` 永远不会进入目录，因此翻译不能更改它，翻译者也无需面对它。
 
+还有一个区别在于工具链：t-string 是新语法，因此目前把它们提取进 `.pot` 需要
+能够识别 t-string 的提取器，例如本包[为 Babel 提供](extraction.md)的那个。
+
 ## 并排比较
 
 | | `%(name)s` | `.format()` | `flufl.i18n` `$name` | `t"…"` |
 | --- | --- | --- | --- | --- |
-| 占位符有名称 | 是 | 是 | 是 | 是 |
-| 翻译者可以调整顺序 | 是 | 是 | 是 | 是 |
-| 值来自 | 显式映射 | 显式参数 | 调用方的全局变量和局部变量，可由可选的 `extras` 覆盖 | t-string 捕获的插值 |
-| 目录控制值转换／格式说明符 | 是 | 是 | 否 | 否 |
-| 目录可以请求属性访问 | 否 | 是 | 是，使用点号名称 | 否 |
-| 渲染时删除了源占位符 | 静默省略 | 静默省略 | 静默省略 | [默认情况下](guide.md#what-happens-when-a-catalog-is-wrong)完整渲染源模式 |
-| 渲染时新增的占位符不可用 | 抛出异常 | 抛出异常 | 保持可见 | [默认情况下](guide.md#what-happens-when-a-catalog-is-wrong)完整渲染源模式 |
-| 运行时检查源占位符集合（单数） | 否 | 否 | 否 | 是 |
-| Babel 为此示例推断的 PO 格式标志 | `python-format` | `python-brace-format` | 无 | `python-brace-format` |
-| 使用普通 PO/MO 目录 | 是 | 是 | 是 | 是 |
-| 需要自定义源代码提取器 | 否 | 否 | 否 | 是，目前需要 |
+| 占位符有名称吗？ | 是 | 是 | 是 | 是 |
+| 翻译者可以调整占位符顺序吗？ | 是 | 是 | 是 | 是 |
+| 值来自哪里？ | 显式映射 | 显式参数 | 调用方的局部变量和全局变量，外加可选的 `extras` | t-string 内部捕获的值 |
+| 目录能改变值的格式化方式吗？ | 能 | 能 | 不能 | 不能 |
+| 目录能深入对象内部（属性访问）吗？ | 不能 | 能 | 能，使用点号名称 | 不能 |
+| 翻译*删掉*了一个占位符——渲染什么？ | 值静默消失 | 值静默消失 | 值静默消失 | 源文本，并附带警告（[默认情况下](guide.md#what-happens-when-a-catalog-is-wrong)） |
+| 翻译*增加*了一个未知占位符——渲染什么？ | 抛出异常 | 抛出异常 | 占位符以文本形式保持可见 | 源文本，并附带警告（[默认情况下](guide.md#what-happens-when-a-catalog-is-wrong)） |
+| 渲染时会检查占位符吗？ | 否 | 否 | 否 | 是（见下文） |
+| Babel 推断哪个 PO 标志，供现有工具验证？ | `python-format` | `python-brace-format` | 无 | `python-brace-format` |
+| 使用普通 PO/MO 目录吗？ | 是 | 是 | 是 | 是 |
+| 需要自定义源代码提取器吗？ | 否 | 否 | 否 | 是，目前需要 |
+
+关于渲染时检查：单数消息要求占位符完全匹配。复数消息同样会检查，依据的是允许
+目标语言复数形式与源语言不同的[并集/交集规则](spec.md)；更严格的逐形式检查在
+编译目录时运行（[提取](extraction.md)）。
 
 格式标志这一行涉及的是能够识别占位符的验证，而不是目录兼容性。“无”表示标准
 gettext 工具仍能读取和编译消息，但 `msgfmt --check-format` 没有可应用的
@@ -124,16 +162,16 @@ gettext 工具仍能读取和编译消息，但 `msgfmt --check-format` 没有�
 ## 代价
 
 f-string 完全无法这样使用——任何库看到它时，它已经是一条完成的字符串，因此翻译它
-意味着翻译片段。t-string（[PEP 750]）在保持类似 f-string 的语法并显式绑定值的
-同时实现这种分离。`$`-string 已经提供了一种简洁的替代方案，但其绑定和失败模型
-不同。`flufl.i18n` 是一个成熟的软件包，其当前版本支持 Python 3.10；
-`gettext-tstrings` 目前处于 alpha 阶段，而原生 t-string 使 Python 3.14 成为
-它的最低版本。
+意味着翻译片段。t-string（[PEP 750]）在保持类似 f-string 的语法和显式值绑定的
+同时，让静态文本与值保持分离。`$`-string 已经提供了一种简洁的替代方案，但其绑定
+和失败模型不同。`flufl.i18n` 是一个成熟的软件包，可运行于 Python 3.10 及更高
+版本；`gettext-tstrings` 目前处于 alpha 阶段，而由于 t-string 是新语法，它要求
+Python 3.14 或更新版本。
 
 另一个代价正是这种限制：插值必须是简单名称。
 
 ```python
-tr(t"Hello {user.name}")  # rejected
+tr(t"Hello {user.name}")  # raises InvalidTemplateError at the call site
 ```
 
 ```python

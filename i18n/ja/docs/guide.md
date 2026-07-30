@@ -4,6 +4,12 @@ description: "カタログの束縛、リクエストごとの言語、遅延文
 
 # ガイド
 
+このページはランタイムのリファレンスです。カタログが用意できた後に
+*アプリケーションコード*がこのライブラリで行うすべてを説明します。
+マーク、抽出、翻訳、コンパイル、実行という一連のループをまだ見ていない場合は、
+[チュートリアル](tutorial.md)が5分で一巡します。カタログの作成と検証は
+[抽出](extraction.md)で説明します。
+
 ## カタログを束縛する
 
 推奨する構成はgettextのクラスベースの使い方と同じです。標準の翻訳オブジェクトを
@@ -18,13 +24,13 @@ translations = gettext.translation("messages", localedir="locales", languages=["
 _ = Translator(translations)
 
 name = "Ada"
-print(_(t"Hello {name}"))
+print(_(t"Hello {name}"))  # こんにちは Ada
 
 n = 3
-print(_.ngettext(t"One file", t"{n} files", n))
+print(_.ngettext(t"One file", t"{n} files", n))  # picks the right plural form for n
 
 filename = "report.txt"
-print(_.pgettext("button", t"Open {filename}"))
+print(_.pgettext("button", t"Open {filename}"))  # "button" disambiguates homonyms
 ```
 
 モジュールレベル関数は、標準ライブラリと同じ名前と位置専用の呼び出し規約を
@@ -112,7 +118,7 @@ missing; {nombre} is not in the source message
 'Hello Ada'
 ```
 
-警告はplanとpatternの組み合わせごとに1回だけ発生します。レンダリングごとでは
+警告はメッセージとpatternの組み合わせごとに1回だけ発生します。レンダリングごとでは
 ないので、不正なカタログ項目がログを埋め尽くすことはありません。
 
 テストとCIでは明示的に失敗させられます。

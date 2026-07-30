@@ -5,6 +5,7 @@ description: "gettext_tstrings 导出的全部名称：函数、Translator、上
 # API
 
 以下内容全部由 `gettext_tstrings` 导出，其他内容均不是公共 API。
+本页是签名参考；每个函数的完整示例请参阅[指南](guide.md)。
 
 ## 翻译
 

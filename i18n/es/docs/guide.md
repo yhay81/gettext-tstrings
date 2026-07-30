@@ -4,6 +4,13 @@ description: "La API de ejecución: vincular un catálogo, idiomas por petición
 
 # Guía
 
+Esta página es la referencia de tiempo de ejecución: todo lo que hace el
+*código de tu aplicación* con esta biblioteca una vez que existen los
+catálogos. Si aún no has visto el ciclo completo —marcar, extraer, traducir,
+compilar, ejecutar—, el [tutorial](tutorial.md) lo recorre una vez en cinco
+minutos; la creación y validación de catálogos se trata en
+[Extracción](extraction.md).
+
 ## Vincular un catálogo
 
 La forma recomendada refleja el uso de gettext basado en clases: vincula una vez
@@ -18,13 +25,13 @@ translations = gettext.translation("messages", localedir="locales", languages=["
 _ = Translator(translations)
 
 name = "Ada"
-print(_(t"Hello {name}"))
+print(_(t"Hello {name}"))  # こんにちは Ada
 
 n = 3
-print(_.ngettext(t"One file", t"{n} files", n))
+print(_.ngettext(t"One file", t"{n} files", n))  # picks the right plural form for n
 
 filename = "report.txt"
-print(_.pgettext("button", t"Open {filename}"))
+print(_.pgettext("button", t"Open {filename}"))  # "button" disambiguates homonyms
 ```
 
 Las funciones de módulo siguen los nombres y la convención de argumentos solo
@@ -114,8 +121,8 @@ missing; {nombre} is not in the source message
 'Hello Ada'
 ```
 
-La advertencia se emite una vez por combinación de plan y pattern, no una vez
-por renderizado, para que una entrada defectuosa no inunde el registro.
+La advertencia se emite una vez por combinación de mensaje y pattern, no una
+vez por renderizado, para que una entrada defectuosa no inunde el registro.
 
 En pruebas y CI se puede optar por fallar de inmediato:
 

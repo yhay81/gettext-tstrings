@@ -4,8 +4,9 @@ description: "将 t-string 到 msgid 的约定定义为精简、带版本并拥�
 
 # 规范
 
-本库实现的约定被写成一份精简而稳定的契约，使其他实现——提取器、IDE、类型检查器或
-未来的 `pygettext`——也能采用它并实现互操作。
+不阅读本页也可以使用本库——日常用法在[教程](tutorial.md)和[指南](guide.md)中
+均有介绍。本页面向工具作者：本库实现的约定被写成一份精简而稳定的契约，使其他
+实现——提取器、IDE、类型检查器或未来的 `pygettext`——也能采用它并实现互操作。
 
 [阅读规范 v1 :material-arrow-right:](https://github.com/yhay81/gettext-tstrings/blob/main/SPEC.md){ .md-button .md-button--primary }
 
