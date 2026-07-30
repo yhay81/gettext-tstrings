@@ -17,6 +17,7 @@ import importlib.util
 import logging
 import re
 import sys
+from collections import Counter
 from pathlib import Path
 from typing import Any, cast
 
@@ -80,6 +81,13 @@ LANGUAGES = (
 # before a catalog can be read against them.
 LOCALES = {language: language.replace("-", "_") for language in LANGUAGES}
 EXTRACTOR = cast("Any", extract_tstrings)
+INLINE_LINK_RE = re.compile(
+    r"(?<!!)(?<!\\)\[[^\]]+\]\(([^)\s]+)(?:\s+\"[^\"]*\")?\)",
+)
+REFERENCE_LINK_DEFINITION_RE = re.compile(
+    r"^[ \t]{0,3}\[(?!\^)[^\]\n]+\]:\s*(?:<([^>\n]+)>|([^ \t\n]+))",
+    re.MULTILINE,
+)
 
 SITE_MESSAGES = {
     (None, "Safe gettext and Babel integration for Python t-strings."),
@@ -197,6 +205,62 @@ def _prose() -> str:
     return _flatten("\n".join(page.read_text(encoding="utf-8") for page in pages))
 
 
+def _markdown_link_targets(page: Path) -> Counter[str]:
+    markdown = page.read_text(encoding="utf-8")
+    targets = Counter(INLINE_LINK_RE.findall(markdown))
+    targets.update(
+        target
+        for match in REFERENCE_LINK_DEFINITION_RE.finditer(markdown)
+        if (target := match.group(1) or match.group(2))
+    )
+    return targets
+
+
+def test_markdown_link_targets_ignore_text_translation_and_wrapping(tmp_path: Path) -> None:
+    english = tmp_path / "english.md"
+    translated = tmp_path / "translated.md"
+    english.write_text(
+        """[Guide](guide.md)
+[Again](guide.md "Guide title")
+[Spec](spec.md)
+[Conformance](spec.md#conformance)
+  [external]: https://example.test/path
+   [spec]: <spec.md> "Spec title"
+[^note]: footnote.md
+![Alt text](image.png)
+\\[escaped](escaped.md)
+paragraph [not a definition]: prose.md
+    [code]: code.md""",
+        encoding="utf-8",
+    )
+    translated.write_text(
+        """[Lugha kadhaa kwa wakati
+mmoja](guide.md)
+[Tena](guide.md "Guide title")
+[Uainishaji](spec.md)
+[Utiifu](spec.md#conformance)
+  [nje]: https://example.test/path
+   [uainishaji]: <spec.md> "Spec title"
+[^note]: footnote.md
+![Maandishi mbadala](image.png)
+\\[imeepushwa](escaped.md)
+paragraph [not a definition]: prose.md
+    [code]: code.md""",
+        encoding="utf-8",
+    )
+
+    expected = Counter(
+        {
+            "guide.md": 2,
+            "spec.md": 2,
+            "spec.md#conformance": 1,
+            "https://example.test/path": 1,
+        },
+    )
+    assert _markdown_link_targets(english) == expected
+    assert _markdown_link_targets(translated) == expected
+
+
 @pytest.mark.parametrize(("translation", "message", "quoted"), QUOTED_FAILURES)
 def test_the_library_produces_each_quoted_message(
     translation: str,
@@ -298,6 +362,13 @@ def test_translated_pages_preserve_verbatim_blocks(language: str) -> None:
     for english in DOCS.glob("*.md"):
         translated = I18N / language / "docs" / english.name
         assert _verbatim_blocks(translated) == _verbatim_blocks(english), translated
+
+
+@pytest.mark.parametrize("language", LANGUAGES)
+def test_translated_pages_preserve_markdown_link_targets(language: str) -> None:
+    for english in DOCS.glob("*.md"):
+        translated = I18N / language / "docs" / english.name
+        assert _markdown_link_targets(translated) == _markdown_link_targets(english), translated
 
 
 @pytest.mark.parametrize("language", LANGUAGES)
