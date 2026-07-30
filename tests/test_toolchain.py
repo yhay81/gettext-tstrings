@@ -56,6 +56,64 @@ def _extract(tmp_path: Path) -> str:
     return pot.read_text(encoding="utf-8")
 
 
+TOML_SOURCE = """\
+from gettext_tstrings import translate
+from gettext import gettext
+
+
+def demo(name):
+    a = translate(t"Hello {name}")
+    b = gettext("Ordinary message")
+    return a, b
+"""
+
+
+def _project_toml(tmp_path: Path) -> Path:
+    (tmp_path / "babel.toml").write_text(
+        "[[mappings]]\n"
+        'method = "gettext_tstrings"\n'
+        'pattern = "**.py"\n'
+        'tr_functions = ["tr", "translate"]\n',
+        encoding="utf-8",
+    )
+    (tmp_path / "app.py").write_text(TOML_SOURCE, encoding="utf-8")
+    return tmp_path
+
+
+def _extract_toml(tmp_path: Path) -> str:
+    pot = tmp_path / "messages.pot"
+    exit_code = CommandLineInterface().run(  # type: ignore[no-untyped-call]
+        [
+            "pybabel",
+            "extract",
+            "-F",
+            str(tmp_path / "babel.toml"),
+            "-o",
+            str(pot),
+            str(tmp_path),
+        ],
+    )
+    assert exit_code in (0, None)
+    return pot.read_text(encoding="utf-8")
+
+
+def test_pybabel_extract_with_toml_mapping_and_function_alias_list(tmp_path: Path) -> None:
+    # babel.toml hands tr_functions over as a real TOML list rather than the
+    # space-separated string babel.cfg uses. This drives Babel's actual frontend
+    # and the installed gettext_tstrings entry point, not extract_tstrings()
+    # directly, so a regression in either the TOML option parsing or the
+    # entry-point wiring would show up here.
+    pot = _extract_toml(_project_toml(tmp_path))
+
+    assert 'msgid "Hello {name}"' in pot
+    assert 'msgid "Ordinary message"' in pot
+
+    for block in pot.split("\n\n"):
+        if 'msgid "Hello {name}"' in block:
+            assert "#. gettext-tstrings" in block
+            assert "#, python-brace-format" in block
+
+
 def test_pybabel_extract_produces_a_standard_pot(tmp_path: Path) -> None:
     pot = _extract(_project(tmp_path))
 
