@@ -3,7 +3,16 @@
 Safe gettext integration for Python 3.14+ t-strings, with first-class
 [Babel](https://babel.pocoo.org/) extraction and validation.
 
-**Documentation: <https://gettext-tstrings.yhay81.com/>**
+**Documentation:** [English](https://gettext-tstrings.yhay81.com/) ·
+[日本語](https://gettext-tstrings.yhay81.com/ja/) ·
+[简体中文](https://gettext-tstrings.yhay81.com/zh/) ·
+[Español](https://gettext-tstrings.yhay81.com/es/) ·
+[Français](https://gettext-tstrings.yhay81.com/fr/) ·
+[Deutsch](https://gettext-tstrings.yhay81.com/de/) ·
+[Português (Brasil)](https://gettext-tstrings.yhay81.com/pt-br/) ·
+[한국어](https://gettext-tstrings.yhay81.com/ko/) ·
+[Русский](https://gettext-tstrings.yhay81.com/ru/) ·
+[العربية](https://gettext-tstrings.yhay81.com/ar/)
 
 ```python
 import gettext

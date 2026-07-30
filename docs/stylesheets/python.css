@@ -62,3 +62,71 @@
   background-color: var(--py-header);
   border-color: var(--py-header);
 }
+
+/*
+ * A translation icon alone is too easy to read as an action rather than a
+ * language menu. Keep the current language visible in a compact, familiar
+ * select-shaped control.
+ */
+.md-header__button.md-language-switcher {
+  align-items: center;
+  border: 0.05rem solid var(--md-primary-bg-color--light);
+  border-radius: 0.2rem;
+  display: flex;
+  gap: 0.3rem;
+  max-width: 9rem;
+  padding-inline: 0.45rem;
+  width: auto;
+}
+
+.md-language-switcher > svg {
+  flex: 0 0 auto;
+}
+
+.md-language-switcher::after {
+  border-bottom: 0.08rem solid currentcolor;
+  border-right: 0.08rem solid currentcolor;
+  content: "";
+  flex: 0 0 auto;
+  height: 0.3rem;
+  margin-top: -0.15rem;
+  transform: rotate(45deg);
+  width: 0.3rem;
+}
+
+.md-language-switcher__label {
+  font-size: 0.65rem;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.md-select__link[aria-current="page"] {
+  font-weight: 700;
+}
+
+@media screen and (max-width: 44.984375em) {
+  .md-header__button.md-language-switcher {
+    max-width: 5.5rem;
+    padding-inline: 0.35rem;
+  }
+}
+
+@media screen and (max-width: 59.984375em) {
+  .md-language-select .md-select__inner {
+    left: auto;
+    right: 0;
+    transform: translate3d(0, 0.3rem, 0);
+  }
+
+  .md-language-select:focus-within .md-select__inner,
+  .md-language-select:hover .md-select__inner {
+    transform: translate3d(0, 0, 0);
+  }
+
+  [dir="rtl"] .md-language-select .md-select__inner {
+    left: 0;
+    right: auto;
+  }
+}

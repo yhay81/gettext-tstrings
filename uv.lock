@@ -144,6 +144,7 @@ dev = [
     { name = "ty" },
 ]
 docs = [
+    { name = "babel" },
     { name = "zensical" },
 ]
 
@@ -160,7 +161,10 @@ dev = [
     { name = "ruff", specifier = ">=0.12" },
     { name = "ty", specifier = ">=0.0.64" },
 ]
-docs = [{ name = "zensical", specifier = ">=0.0.51" }]
+docs = [
+    { name = "babel", specifier = ">=2.18" },
+    { name = "zensical", specifier = ">=0.0.51" },
+]
 
 [[package]]
 name = "iniconfig"

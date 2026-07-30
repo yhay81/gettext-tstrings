@@ -1,0 +1,208 @@
+---
+description: "运行时 API：绑定目录、按请求选择语言、延迟字符串，以及损坏翻译的报告方式。"
+---
+
+# 指南
+
+## 绑定目录
+
+推荐方式与 gettext 基于类的用法一致：绑定一次标准翻译对象，并把可调用的处理器用作
+`_`。
+
+```python
+import gettext
+
+from gettext_tstrings import Translator
+
+translations = gettext.translation("messages", localedir="locales", languages=["ja"])
+_ = Translator(translations)
+
+name = "Ada"
+print(_(t"Hello {name}"))
+
+n = 3
+print(_.ngettext(t"One file", t"{n} files", n))
+
+filename = "report.txt"
+print(_.pgettext("button", t"Open {filename}"))
+```
+
+模块级函数沿用标准库的名称和仅位置参数调用约定：
+
+```python
+from gettext_tstrings import gettext, ngettext, npgettext, pgettext
+
+gettext(t"Hello {name}", translations=translations)
+ngettext(t"One file", t"{n} files", n, translations=translations)
+pgettext("button", t"Open {filename}", translations=translations)
+npgettext("inbox", t"One message", t"{n} messages", n, translations=translations)
+```
+
+`tr` 和 `ntr` 分别是 `gettext` 和 `ngettext` 的完全别名。
+
+## 按请求选择语言
+
+Web framework 会为每个请求选择语言。把该请求的翻译绑定到当前上下文后，所有模块级
+调用都会解析为对应语言，即使多个请求并发执行也能安全隔离：
+
+```python
+from gettext_tstrings import tr, use_translations
+
+
+def handle(request):
+    translations = load_translations(request.locale)
+    with use_translations(translations):
+        return render(tr(t"Hello {name}"))
+```
+
+对于自行管理请求生命周期的 framework，`set_translations(translations)` 可以不使用
+`with` 块直接绑定；`get_translations()` 用于读取当前绑定。显式的
+`translations=` 参数始终优先于上下文；未绑定的上下文会回退到标准库全局安装的
+gettext 函数。
+
+## 延迟翻译
+
+t-string 会立即捕获其值。对于在 import 时定义、但必须在*使用时*根据当前语言渲染的
+字符串——表单标签、枚举值、模块常量——这种行为并不合适。
+
+```python
+from gettext_tstrings import lazy_gettext, lazy_pgettext, use_translations
+
+SAVE = lazy_gettext(t"Save changes")  # defined once, at import
+OPEN = lazy_pgettext("button", t"Open file")
+
+with use_translations(japanese):
+    assert str(SAVE) == "変更を保存"  # rendered here, in this language
+```
+
+`LazyString` 可通过 `str()`、`format()` 和 f-string 渲染，并与渲染后的文本进行
+相等比较。
+
+!!! note "刻意不可哈希"
+
+    `LazyString` 的文本依赖当前语言。如果 hash 值在切换语言后改变，会悄无声息地
+    损坏保存它的 set 或 dict。需要作为 key 时，请先调用 `str()`。
+
+复数形式依赖运行时数量，因此应在已知数量的位置用 `ngettext` 立即渲染。
+
+## 目录出错时会发生什么 { #what-happens-when-a-catalog-is-wrong }
+
+如果翻译的占位符与源消息不一致——缺失、未知或被重新格式化的字段绕过了验证，来自
+手工编辑的 MO、供应商目录，或跳过 checker 的 pipeline——默认行为是还原源文本，
+而不是抛出异常。这与 gettext 自身“不让损坏目录破坏应用程序”的契约一致。
+
+当 `Hello {name}` 被翻译为 `こんにちは {nombre}` 时，渲染仍会成功，并向
+`gettext_tstrings` logger 发送一次警告：
+
+```text
+WARNING gettext_tstrings: invalid translation for msgid 'Hello {name}'; using
+source text: translation does not match the source placeholders: {name} is
+missing; {nombre} is not in the source message
+```
+
+```pycon
+>>> _(t"Hello {name}")
+'Hello Ada'
+```
+
+警告按 plan 与 pattern 的组合只触发一次，而不是每次渲染都触发，因此损坏的目录项
+不会淹没日志。
+
+测试和 CI 可以选择立即失败：
+
+```python
+strict = Translator(translations, strict=True)
+tr(t"Hello {name}", translations=translations, strict=True)
+```
+
+同一次查询随后会抛出异常，消息相同，但没有“using source text”部分：
+
+```pycon
+>>> strict(t"Hello {name}")
+Traceback (most recent call last):
+  ...
+gettext_tstrings.errors.InvalidTranslationError: translation does not match the
+source placeholders: {name} is missing; {nombre} is not in the source message
+```
+
+## 阅读错误消息
+
+这些消息是为能够解决问题的人编写的；目录问题的处理者往往是翻译者，而不是程序员。
+如果读者眼前明明能看到那些字符，只报告 `{name}` 缺失并没有帮助。因此，当占位符
+看似存在、实际却无效时，消息会说明原因。对于源消息 `Hello {name}`，下列每种翻译
+都会在 `translation does not match the source placeholders:` 后给出对应说明：
+
+| 翻译内容 | 给出的原因 |
+| --- | --- |
+| `こんにちは ｛name｝` | `{name}` is missing (the braces around it are not the ASCII `{` and `}`) |
+| `こんにちは {{name}}` | `{name}` is missing (it is written `{{name}}`, which is how a literal brace is escaped) |
+| `こんにちは name` | `{name}` is missing (the name appears, but not inside braces) |
+| `こんにちは {名前}` | `{name}` is missing; `{名前}` is not in the source message |
+
+不可见字符会得到专门处理。输入法可能在花括号中产生 no-break space，而编辑器不会
+显示它。因此消息会打印 code point，而不是让读者寻找一个看不见的字符：
+
+```text
+placeholder {<U+00A0>name} has a space inside the braces; write {name}
+```
+
+名称混用不同书写系统时——例如 Cyrillic `а` 与 Latin 字母外观完全相同的
+homoglyph 情况——会同时显示可读形式和转义形式，只有后者能揭示两者的差别：
+
+```text
+translation does not match the source placeholders: {name} is missing;
+{nаme} (n\u0430me) is not in the source message
+```
+
+当完全用 Greek 或 Cyrillic 写成的名称与 ASCII 源名称冲突时也会这样处理，包括
+单字符 Latin `a` / Cyrillic `а` 的情况。
+
+## 不使用目录渲染 pattern
+
+`compile_template` 将同一机制向下暴露一层：它把 t-string 转成 msgid 和一组绑定值，
+并渲染你提供的任意 pattern。
+
+```python
+from gettext_tstrings import compile_template
+
+name = "Ada"
+compiled = compile_template(t"Hello {name}")
+
+compiled.msgid  # "Hello {name}"
+compiled.placeholders  # ("name",)
+compiled.render("こんにちは {name}")  # "こんにちは Ada"
+```
+
+`render` 使用相同规则验证，并在不匹配时**始终抛出异常**。这里没有 lenient 模式：
+lenient 是为了让*目录*查询能够回退到源文本，而你直接传入的 pattern 没有可回退的
+来源。
+
+## 安全性与范围
+
+下面的代码有效：
+
+```python
+tr(t"Hello {name}")
+```
+
+下面的代码会被刻意拒绝：
+
+```python
+tr(t"Hello {user.name}")  # attribute access
+tr(t"Hello {display_name()}")  # a call
+```
+
+请先计算一个有意义的值：
+
+```python
+name = user.display_name()
+tr(t"Hello {name}")
+```
+
+这一限制产生稳定的目录 key，为翻译者提供有意义的名称，并阻止翻译字符串变成
+表达式语言。
+
+保证的范围是*结构和格式*：翻译永远不会被求值，也无法增加属性访问、调用、转换或
+格式说明。与标准库 gettext 相同，两项责任仍属于调用方：针对输出目标（HTML、shell、
+terminal）对渲染结果进行**转义**，以及维护**目录完整性**。恶意目录可以重复占位符
+来放大输出长度，这是任何基于占位符的 i18n 都具有的性质。

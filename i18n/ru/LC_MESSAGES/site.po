@@ -1,0 +1,62 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: gettext-tstrings documentation\n"
+"PO-Revision-Date: 2026-07-30 00:00+0900\n"
+"Last-Translator: gettext-tstrings contributors\n"
+"Language-Team: Russian\n"
+"Language: ru\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : "
+"n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+
+#. gettext-tstrings
+msgid "Safe gettext and Babel integration for Python t-strings."
+msgstr "Безопасная интеграция gettext и Babel для t-строк Python."
+
+#. gettext-tstrings
+msgid "Home"
+msgstr "Главная"
+
+#. gettext-tstrings
+msgid "Why t-strings"
+msgstr "Зачем нужны t-строки"
+
+#. gettext-tstrings
+msgctxt "navigation"
+msgid "Guide"
+msgstr "Руководство"
+
+#. gettext-tstrings
+msgid "Extraction"
+msgstr "Извлечение"
+
+#. gettext-tstrings
+msgid "Specification"
+msgstr "Спецификация"
+
+#. gettext-tstrings
+msgid "API"
+msgstr "API"
+
+#. gettext-tstrings
+msgid "Switch to dark mode"
+msgstr "Переключиться на тёмную тему"
+
+#. gettext-tstrings
+msgid "Switch to light mode"
+msgstr "Переключиться на светлую тему"
+
+#. gettext-tstrings
+#, python-brace-format
+msgid "Copyright © 2026 {author} · MIT License"
+msgstr "Copyright © 2026 {author} · Лицензия MIT"
+
+#. gettext-tstrings
+#, python-brace-format
+msgid "Built {n} localized page"
+msgid_plural "Built {n} localized pages"
+msgstr[0] "Собрана {n} локализованная страница"
+msgstr[1] "Собраны {n} локализованные страницы"
+msgstr[2] "Собрано {n} локализованных страниц"
