@@ -1,0 +1,37 @@
+{#
+  Keep the current page when switching languages. Every language build has the
+  same Markdown filenames, so page.url is valid under every language root.
+#}
+<div class="md-header__option">
+  <div class="md-select md-language-select">
+    {% set icon = config.theme.icon.alternate or "material/translate" %}
+    <button
+      class="md-header__button md-icon md-language-switcher"
+      aria-label="{{ lang.t('select.language') }}"
+    >
+      {% include ".icons/" ~ icon ~ ".svg" %}
+      <span class="md-language-switcher__label">
+        {% for alt in config.extra.alternate %}
+          {% if alt.lang == config.extra.html_language %}{{ alt.name }}{% endif %}
+        {% endfor %}
+      </span>
+    </button>
+    <div class="md-select__inner">
+      <ul class="md-select__list">
+        {% for alt in config.extra.alternate %}
+          {% set href = alt.link ~ page.url %}
+          <li class="md-select__item">
+            <a
+              href="{{ href | url }}"
+              hreflang="{{ alt.lang }}"
+              class="md-select__link"
+              {% if alt.lang == config.extra.html_language %}aria-current="page"{% endif %}
+            >
+              {{ alt.name }}
+            </a>
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>

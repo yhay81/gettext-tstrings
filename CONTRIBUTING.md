@@ -63,16 +63,34 @@ uv run pytest tests/test_gettext_integration.py
 
 ### The documentation site
 
-<https://gettext-tstrings.yhay81.com/> is built from `docs/` with
-[Zensical](https://zensical.org/):
+<https://gettext-tstrings.yhay81.com/> is built with
+[Zensical](https://zensical.org/) in ten languages: English, Japanese,
+Simplified Chinese, Spanish, French, German, Brazilian Portuguese, Korean,
+Russian, and Arabic. Build the exact site that CI and Cloudflare use:
 
 ```console
-uv run --group docs zensical serve
+./scripts/build-docs.sh
+uv run python -m http.server --directory site 8000
 ```
 
+English pages live in `docs/`. Translated pages live in
+`i18n/<language>/docs/`, and their navigation and theme strings live in the
+adjacent `LC_MESSAGES/site.po`. All languages deliberately keep the same
+Markdown filenames and Python examples so the language selector can stay on the
+current page and copied examples never drift.
+
+The multilingual builder compiles the PO files and renders each localized
+Zensical configuration through `gettext-tstrings` itself. Add or change site
+chrome messages in `scripts/build_multilingual_docs.py`, then update every
+catalog. The build runs Zensical in strict mode, so broken links and translated
+anchors fail before deployment. Its site chrome deliberately exercises
+contextual messages, named placeholders, and each language's plural rules;
+Arabic also keeps the right-to-left rendering path under test.
+
 `tests/test_docs.py` ties the failure messages the pages quote back to the ones
-the library raises, so rewording a message fails the suite until the page is
-updated with it. Quote output; do not paraphrase it.
+the library raises, checks that every language has the same pages and Python
+examples, and rejects incomplete site catalogs. Rewording a message fails the
+suite until every quoted page is updated. Quote output; do not paraphrase it.
 
 ## Guidelines
 

@@ -41,6 +41,15 @@ and ships the [conformance suite](spec.md#conformance) to check it.
   attributes, and not add formatting behaviour.
 - Reuse ordinary POT, PO, and MO files, and the tools that already read them.
 
+## Dogfooded by this site
+
+This documentation is not just a translated demo. Its navigation, theme
+labels, copyright line, and plural-aware build report are rendered from PO
+catalogs by `gettext-tstrings` itself. The
+[multilingual builder](https://github.com/yhay81/gettext-tstrings/blob/main/scripts/build_multilingual_docs.py)
+exercises contextual messages, named placeholders, and the plural rules of all
+ten languages on every strict build.
+
 ## Install
 
 ```console

@@ -1,0 +1,59 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: gettext-tstrings documentation\n"
+"PO-Revision-Date: 2026-07-30 00:00+0900\n"
+"Last-Translator: gettext-tstrings contributors\n"
+"Language-Team: Japanese\n"
+"Language: ja\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#. gettext-tstrings
+msgid "Safe gettext and Babel integration for Python t-strings."
+msgstr "Python t-stringのための安全なgettext/Babel統合。"
+
+#. gettext-tstrings
+msgid "Home"
+msgstr "ホーム"
+
+#. gettext-tstrings
+msgid "Why t-strings"
+msgstr "t-stringを選ぶ理由"
+
+#. gettext-tstrings
+msgctxt "navigation"
+msgid "Guide"
+msgstr "ガイド"
+
+#. gettext-tstrings
+msgid "Extraction"
+msgstr "抽出"
+
+#. gettext-tstrings
+msgid "Specification"
+msgstr "仕様"
+
+#. gettext-tstrings
+msgid "API"
+msgstr "API"
+
+#. gettext-tstrings
+msgid "Switch to dark mode"
+msgstr "ダークモードに切り替える"
+
+#. gettext-tstrings
+msgid "Switch to light mode"
+msgstr "ライトモードに切り替える"
+
+#. gettext-tstrings
+#, python-brace-format
+msgid "Copyright © 2026 {author} · MIT License"
+msgstr "Copyright © 2026 {author} · MITライセンス"
+
+#. gettext-tstrings
+#, python-brace-format
+msgid "Built {n} localized page"
+msgid_plural "Built {n} localized pages"
+msgstr[0] "ローカライズ済みページを{n}件ビルドしました"

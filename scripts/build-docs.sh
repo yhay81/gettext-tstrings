@@ -14,4 +14,4 @@ if ! command -v uv >/dev/null 2>&1; then
     export PATH
 fi
 
-uv run --group docs zensical build --clean
+uv run --group docs python scripts/build_multilingual_docs.py

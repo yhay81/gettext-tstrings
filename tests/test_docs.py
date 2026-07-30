@@ -15,14 +15,37 @@ from __future__ import annotations
 import ast
 import re
 from pathlib import Path
+from typing import Any, cast
 
 import pytest
+from babel.messages.extract import DEFAULT_KEYWORDS, extract
+from babel.messages.pofile import read_po
 
 from gettext_tstrings import InvalidTranslationError, compile_template
+from gettext_tstrings.extract import extract_tstrings
 
 ROOT = Path(__file__).parent.parent
 DOCS = ROOT / "docs"
+I18N = ROOT / "i18n"
 README = ROOT / "README.md"
+SITE_BUILDER = ROOT / "scripts" / "build_multilingual_docs.py"
+LANGUAGES = ("ja", "zh", "es", "fr", "de", "pt-BR", "ko", "ru", "ar")
+LOCALES = {language: ("pt_BR" if language == "pt-BR" else language) for language in LANGUAGES}
+EXTRACTOR = cast("Any", extract_tstrings)
+
+SITE_MESSAGES = {
+    (None, "Safe gettext and Babel integration for Python t-strings."),
+    (None, "Home"),
+    (None, "Why t-strings"),
+    ("navigation", "Guide"),
+    (None, "Extraction"),
+    (None, "Specification"),
+    (None, "API"),
+    (None, "Switch to dark mode"),
+    (None, "Switch to light mode"),
+    (None, "Copyright © 2026 {author} · MIT License"),
+    (None, ("Built {n} localized page", "Built {n} localized pages")),
+}
 
 MISMATCH = "translation does not match the source placeholders: "
 
@@ -153,3 +176,52 @@ def test_every_python_block_parses() -> None:
     assert len(blocks) > 20, "the fence pattern probably stopped matching"
     for name, index, block in blocks:
         ast.parse(block, filename=f"{name}#python-{index}")
+
+
+@pytest.mark.parametrize("language", LANGUAGES)
+def test_translated_sites_cover_every_english_page(language: str) -> None:
+    english = {page.name for page in DOCS.glob("*.md")}
+    translated = {page.name for page in (I18N / language / "docs").glob("*.md")}
+
+    assert translated == english
+
+
+@pytest.mark.parametrize("language", LANGUAGES)
+def test_translated_pages_preserve_python_examples(language: str) -> None:
+    def python_blocks(page: Path) -> list[str]:
+        return re.findall(
+            r"\n```python\n(.*?)\n```",
+            page.read_text(encoding="utf-8"),
+            re.DOTALL,
+        )
+
+    for english in DOCS.glob("*.md"):
+        translated = I18N / language / "docs" / english.name
+        assert python_blocks(translated) == python_blocks(english), translated
+
+
+@pytest.mark.parametrize("language", LANGUAGES)
+def test_site_chrome_catalog_is_complete(language: str) -> None:
+    with (I18N / language / "LC_MESSAGES" / "site.po").open(encoding="utf-8") as file:
+        catalog = read_po(file, locale=LOCALES[language])
+
+    messages = {(message.context, message.id): message for message in catalog if message.id}
+    assert set(messages) == SITE_MESSAGES
+    assert all(message.string and not message.fuzzy for message in messages.values())
+    assert all("gettext-tstrings" in message.auto_comments for message in messages.values())
+
+
+def test_site_catalog_matches_messages_extracted_from_builder() -> None:
+    with SITE_BUILDER.open("rb") as file:
+        extracted = list(
+            extract(
+                EXTRACTOR,
+                file,
+                keywords=DEFAULT_KEYWORDS,
+                comment_tags=[],
+                options={},
+            ),
+        )
+
+    messages = {(context, message) for _, message, _, context in extracted}
+    assert messages == SITE_MESSAGES

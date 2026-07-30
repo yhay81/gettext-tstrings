@@ -1,0 +1,59 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: gettext-tstrings documentation\n"
+"PO-Revision-Date: 2026-07-30 00:00+0900\n"
+"Last-Translator: gettext-tstrings contributors\n"
+"Language-Team: Korean\n"
+"Language: ko\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#. gettext-tstrings
+msgid "Safe gettext and Babel integration for Python t-strings."
+msgstr "Python t-string을 위한 안전한 gettext 및 Babel 통합."
+
+#. gettext-tstrings
+msgid "Home"
+msgstr "홈"
+
+#. gettext-tstrings
+msgid "Why t-strings"
+msgstr "t-string을 사용하는 이유"
+
+#. gettext-tstrings
+msgctxt "navigation"
+msgid "Guide"
+msgstr "가이드"
+
+#. gettext-tstrings
+msgid "Extraction"
+msgstr "추출"
+
+#. gettext-tstrings
+msgid "Specification"
+msgstr "명세"
+
+#. gettext-tstrings
+msgid "API"
+msgstr "API"
+
+#. gettext-tstrings
+msgid "Switch to dark mode"
+msgstr "다크 모드로 전환"
+
+#. gettext-tstrings
+msgid "Switch to light mode"
+msgstr "라이트 모드로 전환"
+
+#. gettext-tstrings
+#, python-brace-format
+msgid "Copyright © 2026 {author} · MIT License"
+msgstr "Copyright © 2026 {author} · MIT 라이선스"
+
+#. gettext-tstrings
+#, python-brace-format
+msgid "Built {n} localized page"
+msgid_plural "Built {n} localized pages"
+msgstr[0] "{n}개의 현지화 페이지를 빌드했습니다"

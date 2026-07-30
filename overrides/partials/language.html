@@ -1,0 +1,16 @@
+{#
+  Zensical's Brazilian Portuguese dictionary reports its HTML language as
+  generic "pt". The project configuration already carries the precise BCP 47
+  tag, so use it for document metadata while keeping Zensical's translated
+  labels, text direction, and search-language settings unchanged.
+#}
+{% set language = config.theme.language | d("en", true) %}
+{% import "partials/languages/" ~ language ~ ".html" as lang %}
+{% import "partials/languages/en.html" as fallback %}
+{% macro t(key) %}
+  {%- if key == "language" -%}
+    {{- config.extra.html_language | d(language, true) | replace("_", "-") -}}
+  {%- else -%}
+    {{- lang.t(key) or fallback.t(key) or key -}}
+  {%- endif -%}
+{% endmacro %}

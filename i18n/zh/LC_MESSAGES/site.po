@@ -1,0 +1,59 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: gettext-tstrings documentation\n"
+"PO-Revision-Date: 2026-07-30 00:00+0900\n"
+"Last-Translator: gettext-tstrings contributors\n"
+"Language-Team: Simplified Chinese\n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#. gettext-tstrings
+msgid "Safe gettext and Babel integration for Python t-strings."
+msgstr "面向 Python t-string 的安全 gettext 与 Babel 集成。"
+
+#. gettext-tstrings
+msgid "Home"
+msgstr "首页"
+
+#. gettext-tstrings
+msgid "Why t-strings"
+msgstr "为什么选择 t-string"
+
+#. gettext-tstrings
+msgctxt "navigation"
+msgid "Guide"
+msgstr "指南"
+
+#. gettext-tstrings
+msgid "Extraction"
+msgstr "提取"
+
+#. gettext-tstrings
+msgid "Specification"
+msgstr "规范"
+
+#. gettext-tstrings
+msgid "API"
+msgstr "API"
+
+#. gettext-tstrings
+msgid "Switch to dark mode"
+msgstr "切换到深色模式"
+
+#. gettext-tstrings
+msgid "Switch to light mode"
+msgstr "切换到浅色模式"
+
+#. gettext-tstrings
+#, python-brace-format
+msgid "Copyright © 2026 {author} · MIT License"
+msgstr "版权所有 © 2026 {author} · MIT 许可证"
+
+#. gettext-tstrings
+#, python-brace-format
+msgid "Built {n} localized page"
+msgid_plural "Built {n} localized pages"
+msgstr[0] "已构建 {n} 个本地化页面"

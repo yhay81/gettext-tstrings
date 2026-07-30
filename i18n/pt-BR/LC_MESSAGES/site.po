@@ -1,0 +1,60 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: gettext-tstrings documentation\n"
+"PO-Revision-Date: 2026-07-30 00:00+0900\n"
+"Last-Translator: gettext-tstrings contributors\n"
+"Language-Team: Brazilian Portuguese\n"
+"Language: pt_BR\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#. gettext-tstrings
+msgid "Safe gettext and Babel integration for Python t-strings."
+msgstr "Integração segura do gettext e Babel para t-strings do Python."
+
+#. gettext-tstrings
+msgid "Home"
+msgstr "Início"
+
+#. gettext-tstrings
+msgid "Why t-strings"
+msgstr "Por que usar t-strings"
+
+#. gettext-tstrings
+msgctxt "navigation"
+msgid "Guide"
+msgstr "Guia"
+
+#. gettext-tstrings
+msgid "Extraction"
+msgstr "Extração"
+
+#. gettext-tstrings
+msgid "Specification"
+msgstr "Especificação"
+
+#. gettext-tstrings
+msgid "API"
+msgstr "API"
+
+#. gettext-tstrings
+msgid "Switch to dark mode"
+msgstr "Mudar para o modo escuro"
+
+#. gettext-tstrings
+msgid "Switch to light mode"
+msgstr "Mudar para o modo claro"
+
+#. gettext-tstrings
+#, python-brace-format
+msgid "Copyright © 2026 {author} · MIT License"
+msgstr "Copyright © 2026 {author} · Licença MIT"
+
+#. gettext-tstrings
+#, python-brace-format
+msgid "Built {n} localized page"
+msgid_plural "Built {n} localized pages"
+msgstr[0] "Foi gerada {n} página localizada"
+msgstr[1] "Foram geradas {n} páginas localizadas"

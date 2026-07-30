@@ -1,0 +1,65 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: gettext-tstrings documentation\n"
+"PO-Revision-Date: 2026-07-30 00:00+0900\n"
+"Last-Translator: gettext-tstrings contributors\n"
+"Language-Team: Arabic\n"
+"Language: ar\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=6; plural=(n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : "
+"n%100>=3 && n%100<=10 ? 3 : n%100>=11 && n%100<=99 ? 4 : 5);\n"
+
+#. gettext-tstrings
+msgid "Safe gettext and Babel integration for Python t-strings."
+msgstr "تكامل آمن بين gettext وBabel لسلاسل t-string في Python."
+
+#. gettext-tstrings
+msgid "Home"
+msgstr "الرئيسية"
+
+#. gettext-tstrings
+msgid "Why t-strings"
+msgstr "لماذا t-string"
+
+#. gettext-tstrings
+msgctxt "navigation"
+msgid "Guide"
+msgstr "الدليل"
+
+#. gettext-tstrings
+msgid "Extraction"
+msgstr "الاستخراج"
+
+#. gettext-tstrings
+msgid "Specification"
+msgstr "المواصفات"
+
+#. gettext-tstrings
+msgid "API"
+msgstr "API"
+
+#. gettext-tstrings
+msgid "Switch to dark mode"
+msgstr "التبديل إلى الوضع الداكن"
+
+#. gettext-tstrings
+msgid "Switch to light mode"
+msgstr "التبديل إلى الوضع الفاتح"
+
+#. gettext-tstrings
+#, python-brace-format
+msgid "Copyright © 2026 {author} · MIT License"
+msgstr "حقوق النشر © 2026 {author} · رخصة MIT"
+
+#. gettext-tstrings
+#, python-brace-format
+msgid "Built {n} localized page"
+msgid_plural "Built {n} localized pages"
+msgstr[0] "تم إنشاء {n} صفحة مترجمة"
+msgstr[1] "تم إنشاء صفحة مترجمة واحدة ({n})"
+msgstr[2] "تم إنشاء صفحتين مترجمتين ({n})"
+msgstr[3] "تم إنشاء {n} صفحات مترجمة"
+msgstr[4] "تم إنشاء {n} صفحة مترجمة"
+msgstr[5] "تم إنشاء {n} صفحة مترجمة"
