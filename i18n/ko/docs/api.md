@@ -5,7 +5,8 @@ description: "gettext_tstrings의 모든 공개 이름: 함수, Translator, 컨�
 # API
 
 아래 이름은 모두 `gettext_tstrings`에서 내보냅니다. 그 밖의 이름은
-공개 API가 아닙니다.
+공개 API가 아닙니다. 이 페이지는 시그니처 레퍼런스입니다. 각 함수의
+실제 사용 예는 [가이드](guide.md)를 참고하세요.
 
 ## 번역
 

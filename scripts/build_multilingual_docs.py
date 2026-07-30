@@ -43,6 +43,7 @@ class Language:
 class Chrome:
     description: str
     home: str
+    tutorial: str
     comparison: str
     guide: str
     extraction: str
@@ -163,6 +164,7 @@ def _chrome(translations: gettext.NullTranslations) -> Chrome:
     return Chrome(
         description=_(t"Safe gettext and Babel integration for Python t-strings."),
         home=_(t"Home"),
+        tutorial=_(t"Tutorial"),
         comparison=_(t"Why t-strings"),
         guide=_.pgettext("navigation", t"Guide"),
         extraction=_(t"Extraction"),
@@ -177,6 +179,7 @@ def _chrome(translations: gettext.NullTranslations) -> Chrome:
 def _nav(chrome: Chrome) -> str:
     entries = (
         (chrome.home, "index.md"),
+        (chrome.tutorial, "tutorial.md"),
         (chrome.comparison, "comparison.md"),
         (chrome.guide, "guide.md"),
         (chrome.extraction, "extraction.md"),

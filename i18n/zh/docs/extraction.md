@@ -4,6 +4,10 @@ description: "使用 pybabel 提取 t-string 消息，并通过 msgfmt 和内置
 
 # 提取
 
+提取是把源代码中每一条被标记的消息收集进供翻译者使用的 `.pot` 模板的步骤——
+即[教程](tutorial.md)循环中的第 3 步。本页是该步骤的参考：配置、自定义函数名、
+CI 的 strict 模式，以及此后守护目录的各项检查。
+
 提取需要 `babel` extra：
 
 ```console

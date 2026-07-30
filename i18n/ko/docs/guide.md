@@ -4,6 +4,12 @@ description: "런타임 API: 카탈로그 바인딩, 요청별 언어, 지연 �
 
 # 가이드
 
+이 페이지는 런타임 레퍼런스입니다. 카탈로그가 준비된 뒤 *애플리케이션
+코드*가 이 라이브러리로 하는 모든 일을 다룹니다. 표시, 추출, 번역,
+컴파일, 실행이라는 전체 루프를 아직 본 적이 없다면
+[튜토리얼](tutorial.md)이 5분 만에 한 바퀴 안내합니다. 카탈로그 생성과
+검증은 [추출](extraction.md)에서 다룹니다.
+
 ## 카탈로그 바인딩
 
 권장 방식은 gettext의 객체 사용법과 같습니다. 표준 번역 객체를 한 번
@@ -18,13 +24,13 @@ translations = gettext.translation("messages", localedir="locales", languages=["
 _ = Translator(translations)
 
 name = "Ada"
-print(_(t"Hello {name}"))
+print(_(t"Hello {name}"))  # こんにちは Ada
 
 n = 3
-print(_.ngettext(t"One file", t"{n} files", n))
+print(_.ngettext(t"One file", t"{n} files", n))  # picks the right plural form for n
 
 filename = "report.txt"
-print(_.pgettext("button", t"Open {filename}"))
+print(_.pgettext("button", t"Open {filename}"))  # "button" disambiguates homonyms
 ```
 
 모듈 함수는 표준 라이브러리의 이름과 위치 인수를 따릅니다.
@@ -105,7 +111,8 @@ missing; {nombre} is not in the source message
 'Hello Ada'
 ```
 
-경고는 계획과 패턴마다 한 번만 기록됩니다. 테스트와 CI에서는 strict
+경고는 렌더링마다가 아니라 메시지와 패턴마다 한 번만 기록되므로,
+손상된 카탈로그 항목이 로그를 넘치게 하지 않습니다. 테스트와 CI에서는 strict
 모드를 켜세요.
 
 ```python

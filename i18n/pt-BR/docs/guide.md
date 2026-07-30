@@ -4,6 +4,12 @@ description: "API de execução: vínculo de catálogo, idioma por requisição,
 
 # Guia
 
+Esta página é a referência de execução: tudo o que o *código da sua aplicação*
+faz com esta biblioteca quando os catálogos já existem. Se você ainda não viu o
+ciclo completo — marcar, extrair, traduzir, compilar, executar — o
+[tutorial](tutorial.md) o percorre uma vez em cinco minutos; a criação e a
+validação de catálogos são tratadas em [Extração](extraction.md).
+
 ## Vincular um catálogo
 
 A forma recomendada segue o uso orientado a objetos do gettext: vincule uma
@@ -18,13 +24,13 @@ translations = gettext.translation("messages", localedir="locales", languages=["
 _ = Translator(translations)
 
 name = "Ada"
-print(_(t"Hello {name}"))
+print(_(t"Hello {name}"))  # こんにちは Ada
 
 n = 3
-print(_.ngettext(t"One file", t"{n} files", n))
+print(_.ngettext(t"One file", t"{n} files", n))  # picks the right plural form for n
 
 filename = "report.txt"
-print(_.pgettext("button", t"Open {filename}"))
+print(_.pgettext("button", t"Open {filename}"))  # "button" disambiguates homonyms
 ```
 
 As funções do módulo seguem os nomes e argumentos posicionais da biblioteca
@@ -108,8 +114,9 @@ missing; {nombre} is not in the source message
 'Hello Ada'
 ```
 
-O aviso ocorre uma única vez por plano e padrão. Em testes e CI, ative o modo
-estrito:
+O aviso ocorre uma única vez por mensagem e padrão, e não a cada renderização,
+de modo que uma entrada de catálogo inválida não inunda o log. Em testes e CI,
+ative o modo estrito:
 
 ```python
 strict = Translator(translations, strict=True)

@@ -5,6 +5,8 @@ description: "Every name gettext_tstrings exports: functions, the Translator, co
 # API
 
 Everything below is exported from `gettext_tstrings`. Nothing else is public.
+This page is the signature reference; for worked examples of each function,
+see the [guide](guide.md).
 
 ## Translating
 

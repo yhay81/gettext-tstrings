@@ -4,6 +4,12 @@ description: "Extracting t-string messages with pybabel, and how msgfmt and the 
 
 # Extraction
 
+Extraction is the step that collects every marked message out of your source
+code into a `.pot` template for translators — step 3 of the
+[tutorial](tutorial.md)'s loop. This page is the reference for that step:
+configuration, custom function names, strict CI mode, and the checks that
+guard your catalogs afterwards.
+
 Extraction needs the `babel` extra:
 
 ```console

@@ -20,6 +20,10 @@ msgid "Home"
 msgstr "الرئيسية"
 
 #. gettext-tstrings
+msgid "Tutorial"
+msgstr "الدرس التعليمي"
+
+#. gettext-tstrings
 msgid "Why t-strings"
 msgstr "لماذا t-string"
 

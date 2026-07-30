@@ -5,7 +5,8 @@ description: "Todos os nomes públicos de gettext_tstrings: funções, Translato
 # API
 
 Todos os nomes abaixo são exportados por `gettext_tstrings`. Nenhum outro nome
-é público.
+é público. Esta página é a referência de assinaturas; para exemplos práticos de
+cada função, consulte o [guia](guide.md).
 
 ## Tradução
 

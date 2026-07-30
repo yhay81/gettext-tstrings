@@ -4,9 +4,11 @@ description: "The t-string to msgid convention as a small versioned contract, wi
 
 # Specification
 
-The convention this library implements is written down as a small, stable
-contract so that another implementation — an extractor, an IDE, a type checker,
-or a future `pygettext` — can target it and interoperate.
+You can use this library without reading this page — the
+[tutorial](tutorial.md) and [guide](guide.md) cover everyday use. This page is
+for tool authors: the convention the library implements is written down as a
+small, stable contract so that another implementation — an extractor, an IDE,
+a type checker, or a future `pygettext` — can target it and interoperate.
 
 [Read spec v1 :material-arrow-right:](https://github.com/yhay81/gettext-tstrings/blob/main/SPEC.md){ .md-button .md-button--primary }
 

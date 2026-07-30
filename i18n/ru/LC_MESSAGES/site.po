@@ -20,6 +20,10 @@ msgid "Home"
 msgstr "Главная"
 
 #. gettext-tstrings
+msgid "Tutorial"
+msgstr "Учебник"
+
+#. gettext-tstrings
 msgid "Why t-strings"
 msgstr "Зачем нужны t-строки"
 

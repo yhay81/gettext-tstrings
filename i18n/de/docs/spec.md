@@ -4,8 +4,12 @@ description: "Die t-string-zu-msgid-Konvention als versionierter Vertrag mit mas
 
 # Spezifikation
 
-Der Vertrag ist bewusst klein und stabil, damit Extraktoren, IDEs, Typprüfer
-und ein zukünftiges `pygettext` ihn implementieren können.
+Diese Bibliothek lässt sich nutzen, ohne diese Seite zu lesen — das
+[Tutorial](tutorial.md) und die [Anleitung](guide.md) decken den Alltag ab.
+Diese Seite richtet sich an Werkzeugautoren: Der Vertrag ist bewusst klein und
+stabil, damit eine andere Implementierung — ein Extraktor, eine IDE, ein
+Typprüfer oder ein zukünftiges `pygettext` — ihn umsetzen und interoperieren
+kann.
 
 [Spezifikation v1 lesen :material-arrow-right:](https://github.com/yhay81/gettext-tstrings/blob/main/SPEC.md){ .md-button .md-button--primary }
 

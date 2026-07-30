@@ -4,9 +4,12 @@ description: "La convención de t-string a msgid como un contrato pequeño y ver
 
 # Especificación
 
-La convención que implementa esta biblioteca está documentada como un contrato
-pequeño y estable para que otra implementación —un extractor, un IDE, un
-comprobador de tipos o un futuro `pygettext`— pueda adoptarla e interoperar.
+Puedes usar esta biblioteca sin leer esta página: el [tutorial](tutorial.md) y
+la [guía](guide.md) cubren el uso cotidiano. Esta página es para autores de
+herramientas: la convención que implementa la biblioteca está documentada como
+un contrato pequeño y estable para que otra implementación —un extractor, un
+IDE, un comprobador de tipos o un futuro `pygettext`— pueda adoptarla e
+interoperar.
 
 [Leer la especificación v1 :material-arrow-right:](https://github.com/yhay81/gettext-tstrings/blob/main/SPEC.md){ .md-button .md-button--primary }
 

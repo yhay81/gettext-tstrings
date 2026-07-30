@@ -4,6 +4,12 @@ description: "Extracción de mensajes t-string con pybabel y validación de cat�
 
 # Extracción
 
+La extracción es el paso que recopila todos los mensajes marcados en tu código
+fuente en una plantilla `.pot` para los traductores: el paso 3 del ciclo del
+[tutorial](tutorial.md). Esta página es la referencia de ese paso: la
+configuración, los nombres de función propios, el modo estricto para CI y las
+comprobaciones que después protegen tus catálogos.
+
 La extracción necesita el extra `babel`:
 
 ```console

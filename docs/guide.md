@@ -4,6 +4,12 @@ description: "The runtime API: binding a catalog, per-request languages, deferre
 
 # Guide
 
+This page is the runtime reference: everything your *application code* does
+with this library once catalogs exist. If you have not yet seen the full loop
+— mark, extract, translate, compile, run — the [tutorial](tutorial.md) walks
+it once in five minutes; creating and validating catalogs is covered in
+[Extraction](extraction.md).
+
 ## Binding a catalog
 
 The recommended shape mirrors gettext's class-based usage: bind a standard
@@ -18,13 +24,13 @@ translations = gettext.translation("messages", localedir="locales", languages=["
 _ = Translator(translations)
 
 name = "Ada"
-print(_(t"Hello {name}"))
+print(_(t"Hello {name}"))  # こんにちは Ada
 
 n = 3
-print(_.ngettext(t"One file", t"{n} files", n))
+print(_.ngettext(t"One file", t"{n} files", n))  # picks the right plural form for n
 
 filename = "report.txt"
-print(_.pgettext("button", t"Open {filename}"))
+print(_.pgettext("button", t"Open {filename}"))  # "button" disambiguates homonyms
 ```
 
 The module-level functions follow the standard library's names and its
@@ -113,8 +119,8 @@ missing; {nombre} is not in the source message
 'Hello Ada'
 ```
 
-The warning fires once per plan and pattern, not once per render, so a broken
-catalog entry does not flood a log.
+The warning fires once per message and pattern, not once per render, so a
+broken catalog entry does not flood a log.
 
 Opt into failing loudly for tests and CI:
 

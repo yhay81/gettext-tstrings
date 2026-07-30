@@ -4,10 +4,34 @@ description: "Le même message traduisible écrit avec le format %, .format(), l
 
 # Pourquoi les t-strings
 
-Toute méthode qui insère une valeur dans un message traduisible doit répondre à
-la même question : *quelle part du langage de formatage le catalogue
-contrôle-t-il ?* Les quatre réponses ci-dessous diffèrent aussi par l'origine
-des valeurs et par ce qui arrive lorsqu'un catalogue modifie un marqueur.
+Quatre façons d'insérer une valeur dans un message traduisible, comparées sur
+la même phrase. En résumé :
+
+- Avec le **format %**, une lettre supprimée par un traducteur devient un
+  plantage en production.
+- Avec **str.format**, une traduction peut lire les attributs des objets que
+  votre code lui passe — y compris des secrets.
+- Avec les **chaînes `$`** (flufl.i18n), les valeurs sont tirées implicitement
+  des variables de la fonction appelante, et les marqueurs à points atteignent
+  aussi les attributs.
+- Avec les **t-strings**, le formatage reste dans votre code, les traductions
+  sont vérifiées à l'exécution et un catalogue cassé retombe sur le texte
+  source au lieu de planter.
+
+Le reste de cette page en apporte la preuve, une méthode à la fois.
+
+!!! note "Trois parties touchent chaque message traduit"
+
+    Un **catalogue** est le fichier des traductions — `.po` tant que des
+    humains l'éditent, compilé en `.mo` pour que l'application le charge (le
+    [tutoriel](tutorial.md) parcourt les deux). Trois parties touchent chaque
+    message : le **développeur** écrit la chaîne source, un **traducteur**
+    édite le catalogue — souvent sur une plateforme externe, loin de toute
+    revue de code — et l'**application** rend les deux ensemble à l'exécution.
+    Chaque style de formatage ci-dessous répond différemment à la même
+    question : *quelle part du langage de formatage le catalogue
+    contrôle-t-il ?* Dans les exemples, `_` est le nom conventionnel de la
+    fonction de traduction, et `tr` celui de cette bibliothèque.
 
 ## Format %
 
@@ -15,11 +39,14 @@ des valeurs et par ce qui arrive lorsqu'un catalogue modifie un marqueur.
 _("Hello %(name)s") % {"name": name}
 ```
 
+Ce qui peut mal tourner : une seule lettre supprimée dans une traduction fait
+planter le rendu.
+
 La chaîne du catalogue contient la syntaxe printf, notamment une lettre de type
-finale facile à ignorer et qu'une modification d'un caractère peut endommager :
+finale — le `s` de `%(name)s` — facile à ignorer et facile à endommager :
 
 ```pycon
->>> "Hello %(name)" % {"name": "Ada"}
+>>> "Hello %(name)" % {"name": "Ada"}  # the trailing "s" was deleted
 Traceback (most recent call last):
   ...
 ValueError: incomplete format
@@ -36,10 +63,11 @@ _("Hello {name}").format(name=name)
 ```
 
 Il supprime la lettre de type finale tout en conservant un marqueur nommé et
-librement réordonnable.
+librement réordonnable. Ce qui peut mal tourner passe de l'autre côté de
+l'échange : la traduction gagne du pouvoir sur vos objets.
 
-Le problème se trouve de l'autre côté. `str.format` est un petit langage
-d'expressions : l'appliquer à une chaîne autorise cette chaîne à l'utiliser.
+`str.format` est un petit langage d'expressions : l'appliquer à une chaîne
+autorise cette chaîne à l'utiliser.
 
 ```pycon
 >>> "{name.__class__.__mro__}".format(name="Ada")
@@ -49,25 +77,36 @@ d'expressions : l'appliquer à une chaîne autorise cette chaîne à l'utiliser.
 'sk-live-…'
 ```
 
-Un catalogue voyage comme donnée : plateforme de traduction, plusieurs mains,
-retour en `.po`, compilation en `.mo`, parfois import depuis un tiers.
-`.format()` donne à chaque étape la possibilité d'accéder aux attributs des
-objets fournis.
+Remplacez maintenant ces chaînes littérales par ce que renvoie `_()`. Si une
+traduction de `Hello {name}` revient sous la forme `{conf.api_key}`, la rendre
+imprime votre clé d'API — c'est le catalogue, pas votre code, qui a décidé de
+ce qui était lu. Un catalogue n'est pas du code, mais il voyage comme donnée :
+plateforme de traduction, plusieurs mains, retour en `.po`, compilation en
+`.mo`, parfois import depuis un tiers extérieur au projet. `.format()` donne à
+chaque étape de ce trajet la possibilité d'accéder aux attributs des objets
+fournis.
 
 ## Chaînes `$` et flufl.i18n
 
 ```python
+from flufl.i18n import initialize
+
+_ = initialize("example")
+
 name = "Ada"
-_("Hello $name")
+print(_("Hello $name"))  # Hello Ada — the value came from the caller's locals
 ```
 
 Le module standard [`string.Template`][stdlib-template] fournit le langage d'interpolation
 `$name`, mais ne constitue pas en lui-même une API de traduction.
-[`flufl.i18n`][flufl-i18n] associe ce style à la recherche dans les catalogues gettext. Il
-construit l'espace de noms de substitution à partir des variables globales et
-locales de l'appelant ; un mapping `extras` facultatif prend le pas sur les deux.
-La syntaxe destinée aux traducteurs ne comporte ni lettre de type finale ni
-spécificateur de format, et les marqueurs restent librement réordonnables.
+[`flufl.i18n`][flufl-i18n] associe ce style à la recherche dans les catalogues gettext.
+Remarquez que la valeur n'est jamais passée en argument : flufl.i18n construit
+l'espace de noms de substitution à partir des variables globales et locales de
+l'appelant — toutes les variables qui existent au point d'appel sont
+disponibles pour le message. Un mapping `extras` facultatif prend le pas sur
+les deux. La syntaxe destinée aux traducteurs ne comporte ni lettre de type
+finale ni spécificateur de format, et les marqueurs restent librement
+réordonnables.
 
 Une substitution indisponible ne lève pas d'exception. Avec `name = "Ada"` et
 sans `nombre` dans l'espace de noms de l'appelant, une traduction de catalogue
@@ -93,10 +132,12 @@ tr(t"Hello {name}")
 ```
 
 Le catalogue voit toujours `Hello {name}` et reste un catalogue PO/MO ordinaire.
-L'extraction du code source diffère : les outils actuels nécessitent un
-extracteur compatible avec les t-strings, comme celui fourni par ce paquet. Une
-traduction est validée par rapport aux marqueurs du message source puis rendue
-par cette bibliothèque, qui n'accepte que des noms simples.
+La différence tient à ce qu'une traduction *a le droit de dire*, et à qui le
+vérifie.
+
+Cette bibliothèque valide chaque traduction par rapport aux marqueurs du
+message source avant le rendu, et n'accepte que des noms simples, rien
+d'autre. Face à `t"Hello {name}"` :
 
 | Une traduction contenant | est rejetée avec |
 | --- | --- |
@@ -105,30 +146,48 @@ par cette bibliothèque, qui n'accepte que des noms simples.
 | `{0}` | placeholder `{0}` must be a plain name, copied from the source message unchanged |
 | `{nombre}` | translation does not match the source placeholders: `{name}` is missing; `{nombre}` is not in the source message |
 
-Le formatage reste dans le code :
+Rejetée ne veut pas dire plantée : par défaut, la bibliothèque journalise un
+avertissement et rend le texte source, si bien qu'un mauvais catalogue ne fait
+jamais tomber l'application —
+[le contrat que gettext lui-même respecte](guide.md#what-happens-when-a-catalog-is-wrong).
+
+Le formatage reste là où il a été écrit, dans le code :
 
 ```python
 amount = 1234.5
 tr(t"Total: {amount:,.2f}")  # msgid is "Total: {amount}"
 ```
 
-`:,.2f` n'atteint jamais le catalogue.
+`:,.2f` n'atteint jamais le catalogue : aucune traduction ne peut le modifier
+et aucun traducteur n'a à le regarder.
+
+Une dernière différence concerne l'outillage : les t-strings sont une syntaxe
+nouvelle, donc les extraire vers un `.pot` demande aujourd'hui un extracteur
+qui les comprend, comme celui que ce paquet
+[fournit pour Babel](extraction.md).
 
 ## Comparaison
 
 | | `%(name)s` | `.format()` | `flufl.i18n` `$name` | `t"…"` |
 | --- | --- | --- | --- | --- |
-| Marqueur nommé | oui | oui | oui | oui |
-| Réordonnable par le traducteur | oui | oui | oui | oui |
-| Origine des valeurs | mapping explicite | arguments explicites | variables globales et locales de l'appelant, avec un `extras` facultatif prioritaire | interpolations capturées par la t-string |
-| Le catalogue contrôle la conversion de valeur ou le spécificateur de format | oui | oui | non | non |
-| Le catalogue peut demander l'accès à un attribut | non | oui | oui, avec des noms à points | non |
-| Marqueur source supprimé au rendu | omis silencieusement | omis silencieusement | omis silencieusement | motif source entièrement rendu [par défaut](guide.md#what-happens-when-a-catalog-is-wrong) |
-| Marqueur ajouté indisponible au rendu | lève une exception | lève une exception | reste visible | motif source entièrement rendu [par défaut](guide.md#what-happens-when-a-catalog-is-wrong) |
-| Ensemble des marqueurs source vérifié à l'exécution (singulier) | non | non | non | oui |
-| Indicateur de format PO déduit par Babel pour l'exemple | `python-format` | `python-brace-format` | aucun | `python-brace-format` |
-| Utilise des catalogues PO/MO ordinaires | oui | oui | oui | oui |
-| Nécessite un extracteur de code source personnalisé | non | non | non | oui, actuellement |
+| Le marqueur est-il nommé ? | oui | oui | oui | oui |
+| Un traducteur peut-il réordonner les marqueurs ? | oui | oui | oui | oui |
+| D'où viennent les valeurs ? | un mapping explicite | des arguments explicites | les variables locales et globales de l'appelant, plus un `extras` facultatif | les valeurs capturées dans la t-string |
+| Le catalogue peut-il changer le formatage d'une valeur ? | oui | oui | non | non |
+| Le catalogue peut-il fouiller les objets (accès aux attributs) ? | non | oui | oui, avec des noms à points | non |
+| Une traduction *supprime* un marqueur — que rend-on ? | la valeur disparaît silencieusement | la valeur disparaît silencieusement | la valeur disparaît silencieusement | le texte source, avec un avertissement ([par défaut](guide.md#what-happens-when-a-catalog-is-wrong)) |
+| Une traduction *ajoute* un marqueur inconnu — que rend-on ? | une exception | une exception | le marqueur reste visible comme texte | le texte source, avec un avertissement ([par défaut](guide.md#what-happens-when-a-catalog-is-wrong)) |
+| Les marqueurs sont-ils vérifiés au moment du rendu ? | non | non | non | oui (voir ci-dessous) |
+| Quel flag PO Babel déduit-il, pour la validation par les outils existants ? | `python-format` | `python-brace-format` | aucun | `python-brace-format` |
+| Utilise des catalogues PO/MO ordinaires ? | oui | oui | oui | oui |
+| Nécessite un extracteur de code source personnalisé ? | non | non | non | oui, actuellement |
+
+Sur la vérification au rendu : les messages au singulier sont vérifiés pour une
+correspondance exacte des marqueurs. Les messages au pluriel le sont aussi,
+selon la [règle union/intersection](spec.md) qui permet aux formes plurielles
+d'une langue cible de différer de celles de la source ; la vérification plus
+stricte, forme par forme, s'exécute à la compilation des catalogues
+([Extraction](extraction.md)).
 
 La ligne sur l'indicateur de format concerne la validation qui tient compte des
 marqueurs, pas la compatibilité du catalogue. `aucun` signifie que les outils
@@ -139,18 +198,19 @@ gettext standard peuvent toujours lire et compiler le message, mais que
 
 Une f-string ne peut pas du tout être utilisée ainsi : lorsqu'une bibliothèque
 la reçoit, c'est déjà une chaîne terminée, donc la traduire revient à traduire
-un fragment. Les t-strings ([PEP 750]) permettent cette séparation en gardant
-une syntaxe proche des f-strings et en liant explicitement les valeurs. Les
-chaînes `$` offrent déjà une solution concise avec un autre modèle de liaison
-et d'échec. `flufl.i18n` est un paquet mature dont la version actuelle prend en
-charge Python 3.10 ; `gettext-tstrings` est actuellement en phase alpha et les
-t-strings natives lui imposent Python 3.14 comme version minimale.
+un fragment. Les t-strings ([PEP 750]) gardent le texte statique et les valeurs
+séparés, tout en conservant une syntaxe proche des f-strings et une liaison
+explicite des valeurs. Les chaînes `$` offrent déjà une solution concise avec
+un autre modèle de liaison et d'échec. `flufl.i18n` est un paquet mature qui
+fonctionne sur Python 3.10 et suivants ; `gettext-tstrings` est actuellement en
+phase alpha et, les t-strings étant une syntaxe nouvelle, il exige Python 3.14
+ou plus récent.
 
 L'autre coût est la restriction elle-même : une interpolation doit être un nom
 simple.
 
 ```python
-tr(t"Hello {user.name}")  # rejected
+tr(t"Hello {user.name}")  # raises InvalidTemplateError at the call site
 ```
 
 ```python

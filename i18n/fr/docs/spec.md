@@ -4,8 +4,12 @@ description: "La convention t-string vers msgid sous forme de contrat versionné
 
 # Spécification
 
-La convention est un contrat petit et stable afin qu'un extracteur, un IDE, un
-vérificateur de types ou un futur `pygettext` puisse l'implémenter.
+Vous pouvez utiliser cette bibliothèque sans lire cette page — le
+[tutoriel](tutorial.md) et le [guide](guide.md) couvrent l'usage quotidien.
+Cette page s'adresse aux auteurs d'outils : la convention implémentée par la
+bibliothèque est consignée sous forme de contrat petit et stable, afin qu'une
+autre implémentation — un extracteur, un IDE, un vérificateur de types ou un
+futur `pygettext` — puisse la cibler et interopérer.
 
 [Lire la spécification v1 :material-arrow-right:](https://github.com/yhay81/gettext-tstrings/blob/main/SPEC.md){ .md-button .md-button--primary }
 

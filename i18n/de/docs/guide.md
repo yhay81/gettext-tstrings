@@ -4,6 +4,13 @@ description: "Laufzeit-API: Katalogbindung, Sprache pro Anfrage, verzögerte Str
 
 # Anleitung
 
+Diese Seite ist die Laufzeitreferenz: alles, was dein *Anwendungscode* mit
+dieser Bibliothek tut, sobald Kataloge existieren. Wenn du die vollständige
+Schleife — markieren, extrahieren, übersetzen, kompilieren, ausführen — noch
+nicht gesehen hast, geht das [Tutorial](tutorial.md) sie einmal in fünf
+Minuten durch; das Erstellen und Validieren von Katalogen behandelt die
+[Extraktion](extraction.md).
+
 ## Einen Katalog binden
 
 Die empfohlene Form entspricht der objektorientierten gettext-Nutzung: Binde
@@ -19,13 +26,13 @@ translations = gettext.translation("messages", localedir="locales", languages=["
 _ = Translator(translations)
 
 name = "Ada"
-print(_(t"Hello {name}"))
+print(_(t"Hello {name}"))  # こんにちは Ada
 
 n = 3
-print(_.ngettext(t"One file", t"{n} files", n))
+print(_.ngettext(t"One file", t"{n} files", n))  # picks the right plural form for n
 
 filename = "report.txt"
-print(_.pgettext("button", t"Open {filename}"))
+print(_.pgettext("button", t"Open {filename}"))  # "button" disambiguates homonyms
 ```
 
 Die Modulfunktionen folgen den Namen und Positionsargumenten der
@@ -110,7 +117,9 @@ missing; {nombre} is not in the source message
 'Hello Ada'
 ```
 
-Die Warnung erscheint nur einmal pro Plan und Pattern. In Tests und CI sollte
+Die Warnung erscheint nur einmal pro Nachricht und Pattern, nicht einmal pro
+Rendern; ein fehlerhafter Katalogeintrag flutet also kein Log. In Tests und CI
+sollte
 der strikte Modus aktiv sein:
 
 ```python

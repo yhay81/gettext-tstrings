@@ -19,6 +19,10 @@ msgid "Home"
 msgstr "ホーム"
 
 #. gettext-tstrings
+msgid "Tutorial"
+msgstr "チュートリアル"
+
+#. gettext-tstrings
 msgid "Why t-strings"
 msgstr "t-stringを選ぶ理由"
 

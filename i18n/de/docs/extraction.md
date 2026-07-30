@@ -4,6 +4,12 @@ description: "t-string-Nachrichten mit pybabel extrahieren und Kataloge mit msgf
 
 # Extraktion
 
+Extraktion ist der Schritt, der jede markierte Nachricht aus deinem Quellcode
+in eine `.pot`-Vorlage für Übersetzende einsammelt — Schritt 3 der Schleife
+aus dem [Tutorial](tutorial.md). Diese Seite ist die Referenz für diesen
+Schritt: Konfiguration, eigene Funktionsnamen, strikter CI-Modus und die
+Prüfungen, die deine Kataloge danach absichern.
+
 Für die Extraktion wird das `babel`-Extra benötigt:
 
 ```console
