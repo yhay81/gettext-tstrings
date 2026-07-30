@@ -290,6 +290,30 @@ def test_the_documentation_quotes_each_message(
     assert _flatten(quoted) in _prose()
 
 
+def test_markdown_link_targets_include_inline_and_reference_definitions(tmp_path: Path) -> None:
+    page = tmp_path / "page.md"
+    page.write_text(
+        """[Guide](guide.md)
+[Again](guide.md "Guide title")
+  [external]: https://example.test/path
+   [spec]: <spec.md> "Spec title"
+[^note]: footnote.md
+![Alt text](image.png)
+\\[escaped](escaped.md)
+paragraph [not a definition]: prose.md
+    [code]: code.md""",
+        encoding="utf-8",
+    )
+
+    assert _markdown_link_targets(page) == Counter(
+        {
+            "guide.md": 2,
+            "https://example.test/path": 1,
+            "spec.md": 1,
+        },
+    )
+
+
 def test_every_python_block_parses() -> None:
     # t-strings are new syntax and these snippets are never executed, so a typo
     # in one stays invisible until a reader copies it. Parsing is as far as this
