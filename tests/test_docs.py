@@ -298,7 +298,10 @@ def test_site_chrome_catalog_is_complete(language: str) -> None:
     for message in messages.values():
         if not message.pluralizable:
             continue
-        assert all(form not in message.id for form in message.string), (
+        # A pluralizable message's id and string are both sequences of forms.
+        forms = cast("tuple[str, ...]", message.string)
+        source = cast("tuple[str, ...]", message.id)
+        assert all(form not in source for form in forms), (
             f"plural forms left in English: {message.id}"
         )
 
@@ -329,8 +332,9 @@ def test_the_plural_showcase_quotes_real_catalog_forms() -> None:
         with (I18N / language / "LC_MESSAGES" / "site.po").open(encoding="utf-8") as file:
             catalog = read_po(file, locale=LOCALES[language])
         plural = next(message for message in catalog if message.pluralizable)
+        rendered = cast("tuple[str, ...]", plural.string)
         for form in quoted:
-            assert form in plural.string, (language, form)
+            assert form in rendered, (language, form)
 
     pages = [DOCS / "internals.md"]
     pages += [I18N / language / "docs" / "internals.md" for language in LANGUAGES]
