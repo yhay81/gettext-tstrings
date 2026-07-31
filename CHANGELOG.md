@@ -1,5 +1,33 @@
 # Changelog
 
+## 0.1.0a7 - 2026-07-31
+
+- `lazy_gettext` and `lazy_pgettext` accept `strict`, so a deferred string can
+  be validated as loudly as an eager one. A `LazyString` renders wherever it is
+  finally used — inside a template, a form, a log line — and that place rarely
+  knows whether this is a test run or production, so the choice belongs where
+  the message is written. Without it, the only way to learn that a deferred
+  message's translation was damaged was to watch the logger.
+- Grow the documentation site from nine language editions to thirty-five, and
+  from seven pages to eleven. *In production* is the gettext loop as a team
+  runs it, *How it works* rebuilds the library from PEP 750's template object,
+  *Background* says why the project exists with its sources, and *Pitfalls*
+  collects what translating this site into thirty-five languages actually
+  broke — and which of those the library can catch for you.
+- The editions were chosen partly for plural systems, and now span every shape
+  CLDR uses, one form through six: among them Slovenian's dual, Latvian's form
+  for zero alone, Welsh's five forms in an order that puts "other" first, and
+  Irish's five, several of which are spelled alike because no mutation is
+  written on an `l`. *How it works* shows nine of them side by side, pinned by
+  a test to the catalogs they come from.
+- Translate the Icelandic edition, which had reached `main` as ten copies of
+  the English source with only heading anchors added. Every check passed: the
+  code blocks matched because they were the same file, and its catalog was
+  genuinely translated. The check that should have caught it compared whole
+  files, and the pinned anchors were enough to make them differ. It now
+  compares prose, where that edition shared 87% of its sentences with English
+  and every real translation shares between 4% and 8%.
+
 ## 0.1.0a6 - 2026-07-30
 
 - Keep local Zensical and Wrangler state out of source distributions. Builds now
