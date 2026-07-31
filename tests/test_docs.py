@@ -13,7 +13,10 @@ say nothing about whether the surrounding prose is right.
 from __future__ import annotations
 
 import ast
+import importlib.util
+import logging
 import re
+import sys
 from pathlib import Path
 from typing import Any, cast
 
@@ -21,7 +24,7 @@ import pytest
 from babel.messages.extract import DEFAULT_KEYWORDS, extract
 from babel.messages.pofile import read_po
 
-from gettext_tstrings import InvalidTranslationError, compile_template
+from gettext_tstrings import InvalidTranslationError, compile_template, use_translations
 from gettext_tstrings.extract import extract_tstrings
 
 ROOT = Path(__file__).parent.parent
@@ -29,8 +32,47 @@ DOCS = ROOT / "docs"
 I18N = ROOT / "i18n"
 README = ROOT / "README.md"
 SITE_BUILDER = ROOT / "scripts" / "build_multilingual_docs.py"
-LANGUAGES = ("ja", "zh", "es", "fr", "de", "pt-BR", "ko", "ru", "ar")
-LOCALES = {language: ("pt_BR" if language == "pt-BR" else language) for language in LANGUAGES}
+LANGUAGES = (
+    "ja",
+    "zh",
+    "es",
+    "fr",
+    "de",
+    "pt-BR",
+    "ko",
+    "ru",
+    "ar",
+    "it",
+    "pl",
+    "tr",
+    "hi",
+    "id",
+    "vi",
+    "uk",
+    "cs",
+    "nl",
+    "sv",
+    "el",
+    "he",
+    "fa",
+    "th",
+    "is",
+    "zh-Hant",
+    "sl",
+    "bn",
+    "ro",
+    "lv",
+    "cy",
+    "lt",
+    "hu",
+    "ur",
+    "sw",
+    "ga",
+)
+# Babel spells a locale with an underscore, so ``pt-BR`` and ``zh-Hant`` — the
+# URL-shaped tags this repository names its editions by — have to be converted
+# before a catalog can be read against them.
+LOCALES = {language: language.replace("-", "_") for language in LANGUAGES}
 EXTRACTOR = cast("Any", extract_tstrings)
 
 SITE_MESSAGES = {
@@ -38,14 +80,21 @@ SITE_MESSAGES = {
     (None, "Home"),
     (None, "Tutorial"),
     (None, "Why t-strings"),
+    (None, "Background"),
     ("navigation", "Guide"),
     (None, "Extraction"),
+    (None, "In production"),
+    (None, "How it works"),
     (None, "Specification"),
     (None, "API"),
     (None, "Switch to dark mode"),
     (None, "Switch to light mode"),
     (None, "Copyright © 2026 {author} · MIT License"),
     (None, ("Built {n} localized page", "Built {n} localized pages")),
+    (
+        "build report",
+        ("Rendered {n} page in {seconds}s", "Rendered {n} pages in {seconds}s"),
+    ),
 }
 
 MISMATCH = "translation does not match the source placeholders: "
@@ -187,18 +236,41 @@ def test_translated_sites_cover_every_english_page(language: str) -> None:
     assert translated == english
 
 
-@pytest.mark.parametrize("language", LANGUAGES)
-def test_translated_pages_preserve_python_examples(language: str) -> None:
-    def python_blocks(page: Path) -> list[str]:
-        return re.findall(
-            r"\n```python\n(.*?)\n```",
-            page.read_text(encoding="utf-8"),
-            re.DOTALL,
-        )
+# Every fence type whose contents are program input or output, and so must
+# survive translation byte for byte. ``mermaid`` is deliberately absent: its
+# node labels are prose and each edition translates them.
+VERBATIM_FENCES = frozenset(
+    {"python", "pycon", "console", "po", "text", "yaml", "ini", "toml", "json"},
+)
 
+
+def _verbatim_blocks(page: Path) -> list[tuple[str, str]]:
+    """Every verbatim code block on a page, in order, unindented.
+
+    The pattern accepts an indented fence because content tabs indent their
+    blocks — the first version of this check matched only column-zero fences,
+    and the tabbed examples silently escaped it.
+    """
+    blocks: list[tuple[str, str]] = []
+    for match in re.finditer(
+        r"^([ \t]*)```(\w+)\n(.*?)\n\1```$",
+        page.read_text(encoding="utf-8"),
+        re.DOTALL | re.MULTILINE,
+    ):
+        indent, fence, body = match.groups()
+        if fence not in VERBATIM_FENCES:
+            continue
+        if indent:
+            body = "\n".join(line.removeprefix(indent) for line in body.split("\n"))
+        blocks.append((fence, body))
+    return blocks
+
+
+@pytest.mark.parametrize("language", LANGUAGES)
+def test_translated_pages_preserve_verbatim_blocks(language: str) -> None:
     for english in DOCS.glob("*.md"):
         translated = I18N / language / "docs" / english.name
-        assert python_blocks(translated) == python_blocks(english), translated
+        assert _verbatim_blocks(translated) == _verbatim_blocks(english), translated
 
 
 @pytest.mark.parametrize("language", LANGUAGES)
@@ -210,6 +282,186 @@ def test_site_chrome_catalog_is_complete(language: str) -> None:
     assert set(messages) == SITE_MESSAGES
     assert all(message.string and not message.fuzzy for message in messages.values())
     assert all("gettext-tstrings" in message.auto_comments for message in messages.values())
+
+    # Non-empty is not translated: a catalog whose msgstr merely repeats the
+    # msgid passed every check above, and one shipped that way once, as a
+    # scaffolding stub nobody replaced. Short labels may legitimately coincide
+    # ("API" nearly everywhere, "Home" in Italian), so the sentinel is the
+    # full-sentence messages, which no real translation leaves untouched.
+    must_differ = [
+        (None, "Safe gettext and Babel integration for Python t-strings."),
+        (None, "Switch to dark mode"),
+        (None, "Switch to light mode"),
+    ]
+    for key in must_differ:
+        assert messages[key].string != messages[key].id, key
+    for message in messages.values():
+        if not message.pluralizable:
+            continue
+        assert all(form not in message.id for form in message.string), (
+            f"plural forms left in English: {message.id}"
+        )
+
+
+# The plural forms the internals page's showcase table quotes, per catalog.
+# Each one must be a real msgstr in that language's site.po, and each must
+# appear in every edition's internals page — the table is data, not prose.
+QUOTED_PLURAL_FORMS = {
+    "ja": ["ローカライズ済みページを{n}件ビルドしました"],
+    "tr": ["{n} yerelleştirilmiş sayfa oluşturuldu"],
+    "it": ["Generata {n} pagina localizzata", "Generate {n} pagine localizzate"],
+    "ru": [
+        "Собрана {n} локализованная страница",
+        "Собраны {n} локализованные страницы",
+        "Собрано {n} локализованных страниц",
+    ],
+    "pl": [
+        "Zbudowano {n} zlokalizowaną stronę",
+        "Zbudowano {n} zlokalizowane strony",
+        "Zbudowano {n} zlokalizowanych stron",
+    ],
+    "ar": ["تم إنشاء صفحة مترجمة واحدة ({n})", "تم إنشاء {n} صفحات مترجمة"],
+}
+
+
+def test_the_plural_showcase_quotes_real_catalog_forms() -> None:
+    for language, quoted in QUOTED_PLURAL_FORMS.items():
+        with (I18N / language / "LC_MESSAGES" / "site.po").open(encoding="utf-8") as file:
+            catalog = read_po(file, locale=LOCALES[language])
+        plural = next(message for message in catalog if message.pluralizable)
+        for form in quoted:
+            assert form in plural.string, (language, form)
+
+    pages = [DOCS / "internals.md"]
+    pages += [I18N / language / "docs" / "internals.md" for language in LANGUAGES]
+    for page in pages:
+        text = page.read_text(encoding="utf-8")
+        for quoted in QUOTED_PLURAL_FORMS.values():
+            for form in quoted:
+                assert form in text, (page, form)
+
+
+def _slugify(heading: str) -> str:
+    """The anchor python-markdown derives from an English heading.
+
+    This mirrors the toc extension's default slugify: drop everything but word
+    characters, spaces, and hyphens, then collapse runs of whitespace into
+    hyphens. ``%-format`` becomes ``-format`` — the leading hyphen is real.
+    """
+    text = re.sub(r"[^\w\s-]", "", heading).strip().lower()
+    return re.sub(r"\s+", "-", text)
+
+
+def _section_headings(page: Path) -> list[str]:
+    """The ``##`` headings of a page, with fenced code blocks masked out."""
+    text = re.sub(
+        r"^([ \t]*)```\w*\n.*?\n\1```$",
+        "",
+        page.read_text(encoding="utf-8"),
+        flags=re.DOTALL | re.MULTILINE,
+    )
+    return re.findall(r"^## (.+)$", text, re.MULTILINE)
+
+
+@pytest.mark.parametrize("language", LANGUAGES)
+def test_translated_headings_carry_english_anchors(language: str) -> None:
+    # A translated heading auto-generates a slug from its *translated* text,
+    # so every cross-page link into it breaks silently unless the heading pins
+    # the English anchor with an explicit ``{ #… }`` attribute. Requiring the
+    # attribute on every section heading — not only the ones currently linked
+    # to — is what keeps the next new page free to link anywhere.
+    for english in DOCS.glob("*.md"):
+        expected = [_slugify(heading) for heading in _section_headings(english)]
+        translated = I18N / language / "docs" / english.name
+        anchors = [
+            match.group(1) if match else None
+            for match in (
+                re.search(r"\{ #([^ }]+) \}\s*$", heading)
+                for heading in _section_headings(translated)
+            )
+        ]
+        assert anchors == expected, translated
+
+
+def test_every_edition_is_registered_everywhere() -> None:
+    """An edition has to appear in all three registries, or it silently vanishes.
+
+    A language is named in the builder (which builds it), in ``zensical.toml``
+    (which puts it in the language switcher), and in this file's ``LANGUAGES``
+    (which tests it). Adding one to only some of them fails quietly: the site
+    builds an edition nothing checks, or checks one nothing links to. Both
+    happened while these editions were being added.
+    """
+    builder = SITE_BUILDER.read_text(encoding="utf-8")
+    built = set(re.findall(r'ROOT / "i18n" / "([^"]+)" / "docs"', builder))
+    config = (ROOT / "zensical.toml").read_text(encoding="utf-8")
+    switcher = set(re.findall(r'link = "/([^/"]+)/", lang =', config))
+    tested = {language.lower() for language in LANGUAGES}
+
+    assert {code.lower() for code in built} == tested, "builder and tests disagree"
+    assert switcher == tested, "language switcher and tests disagree"
+
+
+def test_every_translated_page_differs_from_english() -> None:
+    """A copied English page passes every other check on this list.
+
+    One edition arrived with eight of its ten pages byte-identical to the
+    source, which the block and catalog checks cannot see — the blocks match
+    perfectly, because they are the same file.
+    """
+    for language in LANGUAGES:
+        for english in DOCS.glob("*.md"):
+            translated = I18N / language / "docs" / english.name
+            assert translated.read_text(encoding="utf-8") != english.read_text(
+                encoding="utf-8",
+            ), translated
+
+
+def _load_site_builder() -> Any:
+    spec = importlib.util.spec_from_file_location("site_builder", SITE_BUILDER)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    # dataclass() resolves annotations through sys.modules, so the module has to
+    # be registered before it executes.
+    sys.modules["site_builder"] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+class _BreaksTheCopyright:
+    """A catalog that damages one placeholder, the way a bad PO edit does."""
+
+    def gettext(self, message: str, /) -> str:
+        if message.startswith("Copyright"):
+            return "Copyright © 2026 {auteur} · Licence MIT"
+        return message
+
+    def ngettext(self, singular: str, plural: str, n: int, /) -> str:
+        return singular if n == 1 else plural
+
+    def pgettext(self, context: str, message: str, /) -> str:
+        return message
+
+    def npgettext(self, context: str, singular: str, plural: str, n: int, /) -> str:
+        return singular if n == 1 else plural
+
+
+def test_the_site_build_fails_on_a_broken_chrome_translation() -> None:
+    # The site's chrome renders through LazyString, which has no strict mode, so
+    # a damaged translation would fall back to English and publish silently. The
+    # builder's logging handler is what closes that gap; without a test, deleting
+    # it would look harmless.
+    builder = _load_site_builder()
+    logger = logging.getLogger("gettext_tstrings")
+    handler = builder._FailOnInvalidTranslation()
+    logger.addHandler(handler)
+    try:
+        with use_translations(_BreaksTheCopyright()), pytest.raises(RuntimeError) as caught:
+            str(builder.COPYRIGHT)
+    finally:
+        logger.removeHandler(handler)
+
+    assert "{auteur} is not in the source message" in str(caught.value)
 
 
 def test_site_catalog_matches_messages_extracted_from_builder() -> None:
