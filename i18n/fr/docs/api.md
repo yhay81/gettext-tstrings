@@ -8,7 +8,7 @@ Tout ce qui suit est exporté par `gettext_tstrings`. Rien d'autre n'est public.
 Cette page est la référence des signatures ; pour des exemples commentés de
 chaque fonction, voir le [guide](guide.md).
 
-## Traduction
+## Traduction { #translating }
 
 Chaque fonction prend sa t-string positionnellement et accepte `translations`
 (contexte, puis fonctions globales de la bibliothèque standard) et `strict`
@@ -34,7 +34,7 @@ Translator(translations, strict=False)
 Il est appelable (`_(t"…")`) et fournit `gettext`, `ngettext`, `pgettext`,
 `npgettext`, `tr` et `ntr`.
 
-## Liaison de contexte
+## Liaison de contexte { #context-binding }
 
 | Nom | Rôle |
 | --- | --- |
@@ -44,7 +44,7 @@ Il est appelable (`_(t"…")`) et fournit `gettext`, `ngettext`, `pgettext`,
 
 La liaison utilise un `ContextVar` et reste sûre en concurrence.
 
-## Chaînes différées
+## Chaînes différées { #deferred-strings }
 
 | Nom | Rôle |
 | --- | --- |
@@ -52,7 +52,7 @@ La liaison utilise un `ContextVar` et reste sûre en concurrence.
 | `lazy_pgettext(context, template, /)` | Variante avec contexte. |
 | `LazyString` | Type renvoyé. Se rend via `str()`, `format()` et les f-strings, se compare à son texte et n'est volontairement pas hashable. |
 
-## Bas niveau
+## Bas niveau { #lower-level }
 
 ### `compile_template(template, /) -> CompiledTemplate`
 
@@ -66,7 +66,7 @@ Compile une t-string en réutilisant son plan statique mis en cache.
 | `.placeholders` | Noms dans l'ordre de première apparition. |
 | `.render(pattern)` | Valide et rend un pattern ; **lève toujours** en cas d'écart. |
 
-## Types et erreurs
+## Types et erreurs { #types-and-errors }
 
 ### `Translations`
 
@@ -91,18 +91,20 @@ Babel le satisfont.
 | `InvalidTemplateError` | La t-string **source** enfreint la convention. |
 | `InvalidTranslationError` | La **traduction** l'enfreint ; le mode souple journalise et rend le texte source. |
 
-## Entry points d'extraction
+## Entry points d'extraction { #extraction-entry-points }
 
 | Groupe | Nom | Utilisé par |
 | --- | --- | --- |
 | `babel.extractors` | `gettext_tstrings` | Le `method` de `babel.cfg` |
 | `babel.checkers` | `gettext_tstrings` | `pybabel compile`, automatiquement |
 
-## Performances
+## Performances { #performance }
 
-Environ 0,4 µs pour un message à un champ sur Apple Silicon, construction de la
-t-string comprise, soit environ 2,5× `gettext(...).format(...)`. Les caches sont
-bornés et ne retiennent jamais les valeurs interpolées.
+Le récit complet — ce qui est mis en cache, sur quoi les caches sont indexés
+et les chiffres mesurés — se trouve dans
+[Le chemin chaud](internals.md#the-hot-path). En bref : la validation est
+mise en cache, jamais sautée, et le rendu entier coûte une fraction de
+microseconde. Exécutez le benchmark sur votre propre machine :
 
 ```console
 uv run python benchmarks/runtime.py

@@ -104,13 +104,10 @@ Registered automatically on install; you refer to them by name, not by import.
 
 ## Performance
 
-Roughly 0.4 µs for a one-field message on Apple Silicon, including constructing
-the t-string itself — about 2.5× a plain `gettext(...).format(...)`. That
-difference buys placeholder validation and safe rendering.
-
-Both caches are bounded and never retain interpolated values; each distinct value
-is formatted at most once per render, even when a translation repeats its
-placeholder. Run the benchmark on your own target:
+The full account — what is cached, what the caches key on, and the measured
+numbers — is [The hot path](internals.md#the-hot-path). The short version:
+validation is cached, never skipped, and the whole render costs a fraction of
+a microsecond. Run the benchmark on your own target:
 
 ```console
 uv run python benchmarks/runtime.py

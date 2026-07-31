@@ -9,11 +9,13 @@ Vous pouvez utiliser cette bibliothèque sans lire cette page — le
 Cette page s'adresse aux auteurs d'outils : la convention implémentée par la
 bibliothèque est consignée sous forme de contrat petit et stable, afin qu'une
 autre implémentation — un extracteur, un IDE, un vérificateur de types ou un
-futur `pygettext` — puisse la cibler et interopérer.
+futur `pygettext` — puisse la cibler et interopérer. Pour les mêmes règles
+expliquées avec leurs raisons, et la manière dont l'implémentation de
+référence les applique, lisez d'abord [Fonctionnement](internals.md).
 
 [Lire la spécification v1 :material-arrow-right:](https://github.com/yhay81/gettext-tstrings/blob/main/SPEC.md){ .md-button .md-button--primary }
 
-## Les règles en un écran
+## Les règles en un écran { #the-rules-in-one-screen }
 
 **Un msgid** concatène les segments littéraux dans l'ordre source et un token
 `{name}` par interpolation. Les accolades littérales sont échappées (`{`
@@ -59,7 +61,7 @@ Ils ne dépendent ni des messages d'erreur ni des types d'exception.
 
 L'implémentation de référence exécute cette suite dans ses propres tests.
 
-## Versionnage
+## Versionnage { #versioning }
 
 Une modification incompatible de la dérivation du msgid ou de la validation
 crée une nouvelle version et un nouveau `conformance/vN.json`. Une clarification

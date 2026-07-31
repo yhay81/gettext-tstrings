@@ -10,9 +10,11 @@ muestra con la salida que realmente produce, para que en cada paso sepas si vas
 por buen camino.
 
 Necesitas Python 3.14 o posterior, porque las t-strings son sintaxis nueva de
-la versión 3.14.
+la versión 3.14. El japonés es el idioma de ejemplo de esta página, pero nada
+depende de esa elección: sustitúyelo por cualquier idioma en el paso 4, donde
+el código de locale `ja` es lo único que lo nombra.
 
-## 1. Instalar
+## 1. Instalar { #1-install }
 
 ```console
 python -m pip install "gettext-tstrings[babel]"
@@ -22,7 +24,7 @@ El extra `[babel]` instala [Babel], la herramienta que recopila tus mensajes en
 archivos de catálogo en el paso 3. Es una herramienta de desarrollo: el código
 de producción renderiza únicamente con la biblioteca estándar.
 
-## 2. Marcar un mensaje en el código
+## 2. Marcar un mensaje en el código { #2-mark-a-message-in-your-code }
 
 Crea `app.py`:
 
@@ -50,7 +52,7 @@ tal cual. Un programa que usa esta biblioteca nunca *requiere* un catálogo para
 funcionar: el inglés (o el idioma de origen que utilices) es el fallback
 incorporado.
 
-## 3. Extraer los mensajes
+## 3. Extraer los mensajes { #3-extract-the-messages }
 
 Los traductores no leen tu código fuente; entre ellos y tú viaja un pequeño
 archivo llamado **catálogo**. El primer paso hacia uno es recopilar todos los
@@ -86,7 +88,7 @@ msgstr ""
 traducción, pero no en este archivo: un `.pot` es una *plantilla*, y el paso
 siguiente la copia una vez por idioma.
 
-## 4. Traducir y compilar
+## 4. Traducir y compilar { #4-translate-and-compile }
 
 Crea el catálogo japonés a partir de la plantilla:
 
@@ -126,40 +128,58 @@ source placeholders: {name} is missing; {nome} is not in the source message
 1 errors encountered.
 ```
 
-## 5. Ejecutarlo
+## 5. Ejecutarlo { #5-run-it }
 
-Apunta `app.py` al catálogo compilado:
+Apunta `app.py` al catálogo compilado. Haz clic en los marcadores para ver qué
+hace cada línea:
 
 ```python
 import gettext
 
 from gettext_tstrings import Translator
 
-_ = Translator(gettext.translation("messages", localedir="locales", languages=["ja"]))
+_ = Translator(gettext.translation("messages", localedir="locales", languages=["ja"]))  # (1)!
 
 name = "Ada"
-print(_(t"Hello {name}"))
+print(_(t"Hello {name}"))  # (2)!
 ```
 
-`_` es el nombre convencional de gettext para «traduce esto»: corto porque
-aparece en todas las cadenas visibles para el usuario. Es la misma función que
-`tr`, vinculada a un catálogo.
+1. La biblioteca estándar carga el `.mo` compilado y `Translator` lo vincula a
+   un invocable. `_` es el nombre convencional de gettext para «traduce
+   esto»: corto porque aparece en todas las cadenas visibles para el usuario.
+   Es la misma función que `tr`, vinculada a un catálogo.
+2. En la llamada: el texto de la t-string se convierte en la clave de búsqueda
+   `Hello {name}`, el catálogo responde `こんにちは {name}`, la respuesta se
+   comprueba contra los marcadores del mensaje de origen y solo entonces se
+   inserta el valor.
 
 ```console
 $ python app.py
 こんにちは Ada
 ```
 
-Ese es el ciclo completo: **marcar → extraer → traducir → compilar →
-ejecutar**. Todo lo demás en este sitio es un refinamiento de uno de esos cinco
-pasos.
+Ese es el ciclo completo, y merece la pena verlo como una sola imagen:
 
-## Próximos pasos
+```mermaid
+flowchart LR
+  mark["1–2 marcar<br>t-strings en el código"] --> extract["3 extraer<br>messages.pot"]
+  extract --> translate["4 traducir<br>ja/…/messages.po"]
+  translate --> compile["4 compilar<br>ja/…/messages.mo"]
+  compile --> run["5 ejecutar<br>こんにちは Ada"]
+```
+
+**Marcar → extraer → traducir → compilar → ejecutar.** Todo lo demás en este
+sitio es un refinamiento de uno de esos cinco pasos.
+
+## Próximos pasos { #where-next }
 
 - [Por qué usar t-strings](comparison.md) — de qué te protege este diseño en
   comparación con `%(name)s`, `.format()` y las cadenas `$`.
 - [Guía](guide.md) — plurales, idiomas por petición, cadenas diferidas y qué
   ocurre en tiempo de ejecución cuando, aun así, un catálogo es incorrecto.
+- [En producción](workflow.md) — este mismo ciclo tal como lo ejecuta un
+  equipo, semana tras semana: actualización de catálogos, puertas de CI y
+  plataformas de traducción.
 - [Extracción](extraction.md) — la referencia completa de `pybabel`: nombres de
   función propios, modo estricto para CI y las comprobaciones que protegen tus
   catálogos.

@@ -10,8 +10,11 @@ wird mit der Ausgabe gezeigt, die er tatsächlich erzeugt — sodass du bei jede
 Schritt weißt, ob du auf Kurs bist.
 
 Du brauchst Python 3.14 oder neuer, denn t-strings sind neue Syntax in 3.14.
+Japanisch ist die Beispielsprache dieser Seite, aber nichts hängt von dieser
+Wahl ab — setze in Schritt 4 eine beliebige Sprache ein; der Locale-Code `ja`
+ist dort das Einzige, was sie benennt.
 
-## 1. Installieren
+## 1. Installieren { #1-install }
 
 ```console
 python -m pip install "gettext-tstrings[babel]"
@@ -21,7 +24,7 @@ Das Extra `[babel]` bringt [Babel] mit, das Werkzeug, das in Schritt 3 deine
 Nachrichten in Katalogdateien einsammelt. Es ist ein Entwicklungswerkzeug:
 Produktionscode rendert allein mit der Standardbibliothek.
 
-## 2. Eine Nachricht im Code markieren
+## 2. Eine Nachricht im Code markieren { #2-mark-a-message-in-your-code }
 
 Erstelle `app.py`:
 
@@ -49,7 +52,7 @@ gerendert. Ein Programm mit dieser Bibliothek *benötigt* nie einen Katalog, um
 zu laufen — Englisch (oder was auch immer deine Quellsprache ist) ist der
 eingebaute Fallback.
 
-## 3. Die Nachrichten extrahieren
+## 3. Die Nachrichten extrahieren { #3-extract-the-messages }
 
 Übersetzende lesen nicht deinen Quellcode; zwischen euch reist eine kleine
 Datei, ein **Katalog**. Der erste Schritt dorthin ist, jede markierte
@@ -85,7 +88,7 @@ msgstr ""
 der Platz für eine Übersetzung — aber nicht in dieser Datei: Eine `.pot` ist
 eine *Vorlage*, und der nächste Schritt kopiert sie einmal pro Sprache.
 
-## 4. Übersetzen und kompilieren
+## 4. Übersetzen und kompilieren { #4-translate-and-compile }
 
 Erzeuge den japanischen Katalog aus der Vorlage:
 
@@ -126,41 +129,58 @@ source placeholders: {name} is missing; {nome} is not in the source message
 1 errors encountered.
 ```
 
-## 5. Ausführen
+## 5. Ausführen { #5-run-it }
 
-Richte `app.py` auf den kompilierten Katalog:
+Richte `app.py` auf den kompilierten Katalog. Klick die Marker an, um zu
+sehen, was jede Zeile tut:
 
 ```python
 import gettext
 
 from gettext_tstrings import Translator
 
-_ = Translator(gettext.translation("messages", localedir="locales", languages=["ja"]))
+_ = Translator(gettext.translation("messages", localedir="locales", languages=["ja"]))  # (1)!
 
 name = "Ada"
-print(_(t"Hello {name}"))
+print(_(t"Hello {name}"))  # (2)!
 ```
 
-`_` ist der konventionelle gettext-Name für „übersetze das“ — kurz, weil er an
-jedem für Nutzer sichtbaren String auftaucht. Es ist dieselbe Funktion wie
-`tr`, gebunden an einen Katalog.
+1. Die Standardbibliothek lädt die kompilierte `.mo`, und `Translator` bindet
+   sie an ein aufrufbares Objekt. `_` ist der konventionelle gettext-Name für
+   „übersetze das“ — kurz, weil er an jedem für Nutzer sichtbaren String
+   auftaucht. Es ist dieselbe Funktion wie `tr`, gebunden an einen Katalog.
+2. Beim Aufruf: Der Text der t-string wird zum Suchschlüssel `Hello {name}`,
+   der Katalog antwortet `こんにちは {name}`, die Antwort wird gegen die
+   Quellplatzhalter geprüft, und erst dann wird der Wert eingesetzt.
 
 ```console
 $ python app.py
 こんにちは Ada
 ```
 
-Das ist die ganze Schleife: **markieren → extrahieren → übersetzen →
-kompilieren → ausführen**. Alles Weitere auf dieser Website verfeinert einen
-dieser fünf Schritte.
+Das ist die ganze Schleife, und es lohnt sich, sie als ein Bild zu sehen:
 
-## Wie es weitergeht
+```mermaid
+flowchart LR
+  mark["1–2 markieren<br>t-strings im Code"] --> extract["3 extrahieren<br>messages.pot"]
+  extract --> translate["4 übersetzen<br>ja/…/messages.po"]
+  translate --> compile["4 kompilieren<br>ja/…/messages.mo"]
+  compile --> run["5 ausführen<br>こんにちは Ada"]
+```
+
+**Markieren → extrahieren → übersetzen → kompilieren → ausführen.** Alles
+Weitere auf dieser Website verfeinert einen dieser fünf Schritte.
+
+## Wie es weitergeht { #where-next }
 
 - [Warum t-strings](comparison.md) — wovor dich dieses Design schützt,
   verglichen mit `%(name)s`, `.format()` und `$`-Strings.
 - [Anleitung](guide.md) — Pluralformen, Sprache pro Anfrage, verzögerte
   Strings und was zur Laufzeit geschieht, wenn ein Katalog doch fehlerhaft
   ist.
+- [Im Produktivbetrieb](workflow.md) — dieselbe Schleife, wie ein Team sie
+  Woche für Woche betreibt: Kataloge aktualisieren, CI-Schranken und
+  Übersetzungsplattformen.
 - [Extraktion](extraction.md) — die vollständige `pybabel`-Referenz: eigene
   Funktionsnamen, strikter CI-Modus und die Prüfungen, die deine Kataloge
   absichern.

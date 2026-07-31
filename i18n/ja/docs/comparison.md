@@ -29,7 +29,7 @@ description: "%形式、.format()、flufl.i18nの$文字列、t-stringで同じ�
     *カタログにフォーマット言語のどこまでを制御させるのか？*
     例中の`_`は翻訳関数の慣習的な名前で、`tr`はこのライブラリの関数です。
 
-## %形式
+## %形式 { #-format }
 
 ```python
 _("Hello %(name)s") % {"name": name}
@@ -52,7 +52,7 @@ GNU `msgfmt --check-format` は検出できますが、メッセージに
 `python-format` フラグがあり、かつカタログがアプリケーションへ届くまでに
 実際にmsgfmtを通る場合に限られます。
 
-## str.format
+## str.format { #strformat }
 
 ```python
 _("Hello {name}").format(name=name)
@@ -82,7 +82,7 @@ _("Hello {name}").format(name=name)
 `.format()` は、この経路のすべての段階に、渡されたオブジェクトの属性へ
 アクセスできる文字列を置くことになります。
 
-## `$`文字列とflufl.i18n
+## `$`文字列とflufl.i18n { #-strings-and-flufli18n }
 
 ```python
 from flufl.i18n import initialize
@@ -117,7 +117,7 @@ flufl.i18nは置換に使う名前空間を呼び出し元のグローバル変�
 `flufl.i18n` 6.0.0を対象とし、`string.Template`のあらゆる使い方を
 表すものではありません。
 
-## t-string
+## t-string { #t-strings }
 
 ```python
 tr(t"Hello {name}")
@@ -156,7 +156,7 @@ tr(t"Total: {amount:,.2f}")  # msgid is "Total: {amount}"
 現在のところt-string対応の抽出器が必要です。このパッケージが
 [Babel向けに提供する](extraction.md)ものはその一つです。
 
-## 比較
+## 比較 { #side-by-side }
 
 | | `%(name)s` | `.format()` | `flufl.i18n` `$name` | `t"…"` |
 | --- | --- | --- | --- | --- |
@@ -182,7 +182,7 @@ tr(t"Total: {amount:,.2f}")  # msgid is "Total: {amount}"
 コンパイルできますが、`msgfmt --check-format`には適用できる
 `$`プレースホルダーの文法がありません。
 
-## 代償
+## 代償 { #what-it-costs }
 
 f-stringをこの方法で使うことはできません。ライブラリが受け取る時点では完成した
 文字列なので、翻訳すると文の断片を翻訳することになります。t-string（[PEP 750]）は
@@ -207,6 +207,10 @@ tr(t"Hello {name}")
 これは実際の制約です。ソース側での値の結び付けや実行時のプレースホルダー検査と
 組み合わせることで、カタログ文字列による式の評価を防ぎ、プレースホルダー名を
 意味のあるものに保ちます。
+
+Pythonがどのようにしてこの岐路へ辿り着いたのか — 10年を隔てた2つのPEP、
+そして答えのないまま閉じられた標準ライブラリの議論 — は、
+[背景](background.md)で出典とともに語られています。
 
   [PEP 750]: https://peps.python.org/pep-0750/
   [stdlib-template]: https://docs.python.org/3/library/string.html#template-strings

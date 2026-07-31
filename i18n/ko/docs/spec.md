@@ -8,11 +8,13 @@ description: "t-string에서 msgid로 변환하는 규약을 버전이 있는 �
 사용법은 [튜토리얼](tutorial.md)과 [가이드](guide.md)에서 다룹니다. 이
 페이지는 도구 작성자를 위한 것입니다. 추출기, IDE, 타입 검사기, 미래의
 `pygettext` 같은 다른 구현이 겨냥하고 상호 운용할 수 있도록, 라이브러리가
-구현하는 규약을 작고 안정된 계약으로 적어 둡니다.
+구현하는 규약을 작고 안정된 계약으로 적어 둡니다. 같은 규칙을 그 이유와
+함께, 그리고 참조 구현이 이를 어떻게 수행하는지와 함께 보려면 먼저
+[동작 원리](internals.md)를 읽으세요.
 
 [명세 v1 읽기 :material-arrow-right:](https://github.com/yhay81/gettext-tstrings/blob/main/SPEC.md){ .md-button .md-button--primary }
 
-## 한 화면으로 보는 규칙
+## 한 화면으로 보는 규칙 { #the-rules-in-one-screen }
 
 **msgid**는 원본 순서의 리터럴 조각과 각 보간의 `{name}` 토큰을
 이어 붙입니다. 리터럴 중괄호는 이스케이프합니다(`{` → `{{`). 이름은
@@ -57,7 +59,7 @@ description: "t-string에서 msgid로 변환하는 규약을 버전이 있는 �
 
 참조 구현은 자체 테스트에서 이 모음을 실행합니다.
 
-## 버전 관리
+## 버전 관리 { #versioning }
 
 msgid 생성이나 검증의 호환되지 않는 변경은 새 버전과
 `conformance/vN.json`을 만듭니다. 결과를 바꾸지 않는 보충 설명은 버전을

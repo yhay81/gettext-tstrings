@@ -14,7 +14,7 @@ CI 的 strict 模式，以及此后守护目录的各项检查。
 python -m pip install "gettext-tstrings[babel]"
 ```
 
-## 工作流
+## 工作流 { #the-workflow }
 
 创建 `babel.cfg`：
 
@@ -31,6 +31,10 @@ pybabel init -i locales/messages.pot -d locales -l ja
 pybabel compile -d locales
 ```
 
+`init` 每种语言只运行一次；此后由 `pybabel update` 把每份新模板并入既有目录。
+这个反复出现的周期——以及其中的 `fuzzy` 条目对一次发布意味着什么——在
+[生产实践](workflow.md#the-cycle-after-the-first-translation)中完整走过一遍。
+
 `gettext_tstrings` extractor 也处理普通的 `_()`、`gettext()` 和 `ngettext()`
 调用，所以一个 mapping 就能覆盖混合 codebase。它识别 `_()`、四个标准 gettext
 名称、`tr()` / `ntr()` 别名，以及延迟翻译用的 `lazy_gettext()` /
@@ -41,7 +45,7 @@ pybabel compile -d locales
     与普通 gettext 调用完全一样，只有向 `pybabel extract` 传入
     `-c "Translators:"` 才会收集翻译者注释。
 
-## 注册自定义函数名
+## 注册自定义函数名 { #registering-your-own-function-names }
 
 === "babel.cfg"
 
@@ -77,7 +81,7 @@ ini 文件提供一个字符串，TOML mapping 提供一个列表；字符串内
     仅支持标准参数顺序：普通调用先放 message；`pgettext` 依次为 context、message；
     `npgettext` 依次为 context、单数、复数。
 
-## 默认健壮
+## 默认健壮 { #robust-by-default }
 
 一个坏文件不会终止整个提取过程：
 
@@ -89,7 +93,7 @@ ini 文件提供一个字符串，TOML mapping 提供一个列表；字符串内
 在 mapping 选项中设置 `strict = true`，可将以上情况全部变成 hard failure；CI
 应当使用这一模式。
 
-## 现有 toolchain 会验证这些目录
+## 现有 toolchain 会验证这些目录 { #your-existing-toolchain-validates-these-catalogs }
 
 Babel 为每条提取消息添加一个标准标志，这一行会激活现有工具中的占位符检查：
 
@@ -135,13 +139,9 @@ match the source placeholders: {n} is missing
 
 !!! danger "`pybabel compile` 仍会写出 `.mo`"
 
-    上面的错误会被报告，退出状态为 `1`，但损坏的目录仍会被编译。先运行
-    `pybabel compile`、再复制 `locales/` 的 pipeline 如果不检查退出状态，就会发布
-    错误翻译。
-
-    ```yaml
-    - run: pybabel compile -d locales   # non-zero exit is the gate
-    ```
+    上面的错误会被报告，退出状态为 `1`，但损坏的目录仍会被编译。只有这个退出
+    状态才能阻止 pipeline 发布它；[CI 把守什么](workflow.md#what-ci-gates)展示了
+    实现这一点的构建步骤。
 
 两种检查并不重复。内置 checker 至少在两处更加严格：
 
@@ -153,7 +153,7 @@ match the source placeholders: {n} is missing
 `msgfmt` 只检查能按 Python brace format 解析的占位符名称。使用 ASCII 名称，可以
 让链中的每个工具都验证消息；本库自身接受所有满足 `str.isidentifier()` 的名称。
 
-## Template 和其他工具
+## Template 和其他工具 { #templates-and-other-tools }
 
 t-string 是 Python 语法，因此本库覆盖 Python source。template 语言继续使用各自的
 i18n——Jinja2 的 `{% trans %}`、Django template tag——以及对应的 Babel extractor。

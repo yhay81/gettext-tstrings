@@ -8,7 +8,7 @@ Todo lo siguiente se exporta desde `gettext_tstrings`. Nada más es público.
 Esta página es la referencia de firmas; para ejemplos prácticos de cada
 función, consulta la [guía](guide.md).
 
-## Traducción
+## Traducción { #translating }
 
 Cada función recibe su t-string como argumento posicional y acepta dos
 argumentos nombrados: `translations` (con fallback primero a la vinculación del
@@ -36,7 +36,7 @@ Translator(translations, strict=False)
 Es invocable (`_(t"…")`) y ofrece `gettext`, `ngettext`, `pgettext`,
 `npgettext` y los alias `tr` / `ntr`.
 
-## Vinculación de contexto
+## Vinculación de contexto { #context-binding }
 
 | Nombre | Finalidad |
 | --- | --- |
@@ -47,7 +47,7 @@ Es invocable (`_(t"…")`) y ofrece `gettext`, `ngettext`, `pgettext`,
 La vinculación es un `ContextVar`, por lo que pertenece a cada contexto y es
 segura con concurrencia.
 
-## Cadenas diferidas
+## Cadenas diferidas { #deferred-strings }
 
 | Nombre | Finalidad |
 | --- | --- |
@@ -55,7 +55,7 @@ segura con concurrencia.
 | `lazy_pgettext(context, template, /)` | La forma con contexto. |
 | `LazyString` | El tipo que devuelven ambas. Se renderiza mediante `str()`, `format()` y f-strings, se compara con su texto y deliberadamente no admite hash. |
 
-## Bajo nivel
+## Bajo nivel { #lower-level }
 
 ### `compile_template(template, /) -> CompiledTemplate`
 
@@ -69,7 +69,7 @@ Compila una t-string reutilizando su plan estático en caché.
 | `.placeholders` | Los nombres de marcador en el orden de su primera aparición. |
 | `.render(pattern)` | Valida y renderiza un pattern. **Siempre lanza** si no coincide. |
 
-## Tipos y errores
+## Tipos y errores { #types-and-errors }
 
 ### `Translations`
 
@@ -95,7 +95,7 @@ lo satisfacen.
 | `InvalidTemplateError` | La t-string de **origen** rompe la convención: una interpolación compleja o un nombre repetido con distinto formato. |
 | `InvalidTranslationError` | La **traducción** la rompe. En el modo lenient predeterminado se registra y se renderiza el texto de origen. |
 
-## Entry points de extracción
+## Entry points de extracción { #extraction-entry-points }
 
 Se registran automáticamente al instalar; se utilizan por nombre, no mediante
 import.
@@ -105,16 +105,12 @@ import.
 | `babel.extractors` | `gettext_tstrings` | El `method` de `babel.cfg` |
 | `babel.checkers` | `gettext_tstrings` | `pybabel compile`, automáticamente |
 
-## Rendimiento
+## Rendimiento { #performance }
 
-Aproximadamente 0,4 µs para un mensaje con un campo en Apple Silicon, incluida
-la construcción de la propia t-string: unas 2,5 veces el coste de
-`gettext(...).format(...)`. Esa diferencia aporta validación de marcadores y
-renderizado seguro.
-
-Ambas cachés tienen límites y nunca retienen valores interpolados. Cada valor
-distinto se formatea como máximo una vez por renderizado, incluso si una
-traducción repite su marcador. Ejecuta el benchmark en tu propio destino:
+El relato completo —qué se cachea, con qué claves y las cifras medidas— está
+en [La ruta caliente](internals.md#the-hot-path). La versión corta: la
+validación se cachea, nunca se omite, y el renderizado completo cuesta una
+fracción de microsegundo. Ejecuta el benchmark en tu propio destino:
 
 ```console
 uv run python benchmarks/runtime.py

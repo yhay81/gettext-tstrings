@@ -16,7 +16,7 @@ A extração requer o extra `babel`:
 python -m pip install "gettext-tstrings[babel]"
 ```
 
-## Fluxo de trabalho
+## Fluxo de trabalho { #the-workflow }
 
 Crie `babel.cfg`:
 
@@ -33,6 +33,11 @@ pybabel init -i locales/messages.pot -d locales -l ja
 pybabel compile -d locales
 ```
 
+O `init` roda uma única vez por idioma; depois disso, o `pybabel update`
+incorpora cada template recém-extraído aos catálogos existentes. Esse ciclo
+recorrente — e o que suas entradas `fuzzy` significam para um release — é
+percorrido em [Em produção](workflow.md#the-cycle-after-the-first-translation).
+
 O extrator também processa `_()`, `gettext()` e `ngettext()`. Um único
 mapeamento cobre código misto, incluindo `tr()`, `ntr()`, `lazy_gettext()` e
 `lazy_pgettext()`.
@@ -42,7 +47,7 @@ mapeamento cobre código misto, incluindo `tr()`, `ntr()`, `lazy_gettext()` e
     Use `-c "Translators:"` para coletar comentários dirigidos a quem traduz,
     como no gettext comum.
 
-## Nomes de função personalizados
+## Nomes de função personalizados { #registering-your-own-function-names }
 
 === "babel.cfg"
 
@@ -73,7 +78,7 @@ lista. As opções cobrem as seis famílias de funções gettext.
 
     Somente a ordem padrão de argumentos é aceita.
 
-## Robusto por padrão
+## Robusto por padrão { #robust-by-default }
 
 - Uma t-string rejeitada é avisada e ignorada.
 - Um arquivo impossível de analisar é isolado da mesma forma.
@@ -81,7 +86,7 @@ lista. As opções cobrem as seis famílias de funções gettext.
 
 Defina `strict = true` para transformar esses avisos em erros na CI.
 
-## Validação com as ferramentas existentes
+## Validação com as ferramentas existentes { #your-existing-toolchain-validates-these-catalogs }
 
 Babel adiciona uma flag padrão:
 
@@ -126,19 +131,17 @@ match the source placeholders: {n} is missing
 
 !!! danger "`pybabel compile` ainda grava o `.mo`"
 
-    O status é `1`, mas o catálogo inválido é compilado. O pipeline deve tratar
-    esse status como uma barreira.
-
-    ```yaml
-    - run: pybabel compile -d locales   # non-zero exit is the gate
-    ```
+    O erro acima é reportado, o status de saída é `1` — e o catálogo inválido é
+    compilado mesmo assim. Só esse status de saída pode impedir um pipeline de
+    publicá-lo; [O que o CI barra](workflow.md#what-ci-gates) mostra o passo de
+    build que faz isso.
 
 As verificações não são redundantes: o checker incluído valida chaves escapadas
 e cada forma plural separadamente, onde msgfmt pode aceitar o arquivo. Nomes
 ASCII permitem que todas as ferramentas participem; a biblioteca aceita
 qualquer `str.isidentifier()`.
 
-## Templates e outras ferramentas
+## Templates e outras ferramentas { #templates-and-other-tools }
 
 t-strings são sintaxe Python. Jinja2 (`{% trans %}`), Django e outros templates
 mantêm seus próprios extratores, alimentando o mesmo catálogo PO.

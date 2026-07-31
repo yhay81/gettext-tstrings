@@ -16,7 +16,7 @@ La extracción necesita el extra `babel`:
 python -m pip install "gettext-tstrings[babel]"
 ```
 
-## El flujo de trabajo
+## El flujo de trabajo { #the-workflow }
 
 Crea `babel.cfg`:
 
@@ -33,6 +33,11 @@ pybabel init -i locales/messages.pot -d locales -l ja
 pybabel compile -d locales
 ```
 
+`init` se ejecuta una sola vez por idioma; a partir de ahí, `pybabel update`
+incorpora cada plantilla nueva a los catálogos existentes. Ese ciclo
+recurrente —y qué significan sus entradas `fuzzy` para una versión— se recorre
+en [En producción](workflow.md#the-cycle-after-the-first-translation).
+
 El extractor `gettext_tstrings` también procesa llamadas ordinarias a `_()`,
 `gettext()` y `ngettext()`, de modo que un solo mapping cubre una base de código
 mixta. Reconoce `_()`, los cuatro nombres estándar de gettext, los alias `tr()` /
@@ -44,7 +49,7 @@ mixta. Reconoce `_()`, los cuatro nombres estándar de gettext, los alias `tr()`
     `-c "Translators:"`, exactamente igual que con las llamadas gettext
     ordinarias.
 
-## Registrar nombres de función propios
+## Registrar nombres de función propios { #registering-your-own-function-names }
 
 === "babel.cfg"
 
@@ -82,7 +87,7 @@ Las opciones son `tr_functions`, `ntr_functions`, `gettext_functions`,
     Solo se admite el orden de argumentos estándar: primero el mensaje; en
     `pgettext`, contexto y mensaje; en `npgettext`, contexto, singular y plural.
 
-## Robusto por defecto
+## Robusto por defecto { #robust-by-default }
 
 Un archivo incorrecto no detiene la ejecución:
 
@@ -95,7 +100,7 @@ Un archivo incorrecto no detiene la ejecución:
 Establece `strict = true` en las opciones del mapping para convertir todos esos
 casos en errores, que es lo apropiado para CI.
 
-## El toolchain existente valida estos catálogos
+## El toolchain existente valida estos catálogos { #your-existing-toolchain-validates-these-catalogs }
 
 Babel marca cada mensaje extraído con un flag estándar. Esa línea activa la
 validación de marcadores en las herramientas que ya utilizas:
@@ -145,13 +150,10 @@ match the source placeholders: {n} is missing
 
 !!! danger "`pybabel compile` escribe el `.mo` de todos modos"
 
-    El error se informa y el estado de salida es `1`, pero el catálogo incorrecto
-    se compila igualmente. Un pipeline que ejecuta `pybabel compile` y después
-    copia `locales/` publicará la traducción incorrecta si no comprueba el estado.
-
-    ```yaml
-    - run: pybabel compile -d locales   # non-zero exit is the gate
-    ```
+    El error anterior se informa, el estado de salida es `1`, y aun así el
+    catálogo incorrecto se compila. Solo ese estado de salida puede impedir que
+    un pipeline lo publique; [Qué controla la CI](workflow.md#what-ci-gates)
+    muestra el paso de compilación que lo permite.
 
 Las dos comprobaciones no son redundantes. El checker incluido es más estricto
 al menos en dos puntos:
@@ -168,7 +170,7 @@ Python. Los nombres ASCII permiten que todas las herramientas de la cadena
 validen el mensaje. La propia biblioteca acepta cualquier nombre para el que
 `str.isidentifier()` sea verdadero.
 
-## Templates y otras herramientas
+## Templates y otras herramientas { #templates-and-other-tools }
 
 Las t-strings son sintaxis de Python, por lo que esta biblioteca cubre código
 Python. Los lenguajes de template siguen usando su propia i18n —`{% trans %}` de

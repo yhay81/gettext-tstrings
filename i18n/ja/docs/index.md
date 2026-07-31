@@ -1,12 +1,17 @@
 ---
 description: "完全なt-stringメッセージをgettextとBabelで翻訳し、書式指定をカタログの外に保ちます。"
+title: "gettext-tstrings"
+hide:
+  - navigation
+  - toc
 ---
 
-# gettext-tstrings
+<div class="home-hero" markdown>
 
-Python 3.14以降のt-stringに対応する、安全なgettext/Babel統合です。
+# 文は一度だけ書く。<br>翻訳は文まるごと。
 
-文はソース言語で一度だけ、値をその場に置いたまま書きます。
+Python 3.14以降のt-stringに対応する、安全なgettext/Babel統合です — 値はその場に
+置いたまま、カタログにはメッセージ全体が渡ります：
 
 ```python
 import gettext
@@ -17,6 +22,16 @@ _ = Translator(gettext.translation("messages", localedir="locales"))
 name = "Ada"
 print(_(t"Hello {name}"))  # with a Japanese catalog: こんにちは Ada
 ```
+
+[チュートリアルを始める :material-arrow-right:](tutorial.md){ .md-button .md-button--primary }
+[t-stringを選ぶ理由](comparison.md){ .md-button }
+
+このサイト自身が、ここに書かれていることを実践しています。ナビゲーション、
+ラベル、複数形に対応したビルドレポートを含むどの言語版も、POカタログから
+[`gettext-tstrings`自身](https://github.com/yhay81/gettext-tstrings/blob/main/scripts/build_multilingual_docs.py)で描画しています。
+{ .home-hero-note }
+
+</div>
 
 カタログには完全な文 `Hello {name}` が渡されます。翻訳では `{name}` の順序を
 変えたり繰り返したりできますが、省略したり、未知の名前を追加したり、独自の
@@ -34,7 +49,7 @@ print(_(t"Hello {name}"))  # with a Japanese catalog: こんにちは Ada
     と読めます。**[チュートリアル](tutorial.md)**では、マーク、抽出、翻訳、
     コンパイル、実行という一連の流れを5分ほどで一巡します。
 
-## 解決する課題
+## 解決する課題 { #the-problem-it-solves }
 
 f-stringはライブラリが受け取る時点ですでに補間済みです。`f"Hello {name}"`は
 `"Hello Ada"`になっており、値の前後の断片を翻訳することは、ほとんどの言語で
@@ -48,7 +63,7 @@ f-stringはライブラリが受け取る時点ですでに補間済みです。
 [バージョン付きの仕様](spec.md)として文書化し、実装を検証する
 [適合性テストスイート](spec.md#conformance)も提供します。
 
-## 採用した設計
+## 採用した設計 { #the-choice-it-makes }
 
 - 文の断片ではなく、常に完全なメッセージを翻訳します。
 - `{name}` のような単純な変数名だけを受け付けます。
@@ -57,7 +72,7 @@ f-stringはライブラリが受け取る時点ですでに補間済みです。
   属性アクセスや書式動作の追加はできません。
 - 一般的なPOT、PO、MOファイルと、それらに対応する既存ツールを再利用します。
 
-## インストール
+## インストール { #install }
 
 ```console
 python -m pip install gettext-tstrings
@@ -73,7 +88,13 @@ Python 3.14以降が必要です。**レンダリングには依存パッケー�
 python -m pip install "gettext-tstrings[babel]"
 ```
 
-## 次に読むページ
+## 次に読むページ { #where-to-go-next }
+
+このページに辿り着く読者は3種類います。初めてのプログラムを翻訳する人、
+実際のプロジェクトへ翻訳を組み込む人、そしてこの仕組みがなぜこの形なのかを
+正確に知りたい人。それぞれに道があります。
+
+**学ぶ** — gettextの経験は前提としません：
 
 <div class="grid cards" markdown>
 
@@ -81,26 +102,39 @@ python -m pip install "gettext-tstrings[babel]"
   動く日本語翻訳まで5ステップ、すべてのコマンドを出力付きで示します。
 - **[t-stringを選ぶ理由](comparison.md)** — 同じメッセージを4通りで記述し、
   `%(name)s`、`.format()`、`$`文字列がそれぞれカタログに何を渡すかを比較します。
+- **[背景](background.md)** — このライブラリが存在する理由。30年にわたる
+  gettext、2つのPEP、そして答えのないまま閉じられた標準ライブラリの議論を
+  辿ります。
+
+</div>
+
+**本格的に使う** — 実務のリファレンス：
+
+<div class="grid cards" markdown>
+
 - **[ガイド](guide.md)** — ランタイムAPI。複数形、リクエストごとの言語、
   遅延文字列、不正なカタログへの対応を説明します。
 - **[抽出](extraction.md)** — `pybabel` のリファレンス。設定、独自の関数名、
   既存ツールが追加コストなしにカタログを検証する仕組みを説明します。
-- **[仕様](spec.md)** — t-stringとmsgidの対応を、機械可読な適合性テストを備えた
-  安定したバージョン付き契約として定義します。
+- **[実運用](workflow.md)** — チームが回すループ。更新サイクル、fuzzy
+  エントリ、CIゲート、翻訳プラットフォーム、Webアプリケーションでの
+  リクエストごとの言語を説明します。
 - **[API](api.md)** — パッケージが公開するすべての要素を1ページにまとめています。
 
 </div>
 
-## このサイト自身で実証
+**理解する** — 原理から実装まで：
 
-このドキュメントは、単に翻訳されたデモではありません。ナビゲーション、
-テーマの文言、著作権表示、複数形に対応したビルド結果を、POカタログから
-`gettext-tstrings` 自身で描画しています。
-[多言語ビルダー](https://github.com/yhay81/gettext-tstrings/blob/main/scripts/build_multilingual_docs.py)は、
-厳格ビルドのたびに文脈付きメッセージ、名前付きプレースホルダー、10言語すべての
-複数形規則を実際に通します。
+<div class="grid cards" markdown>
 
-## 開発状況
+- **[動作原理](internals.md)** — PEP 750のtemplateオブジェクトから
+  レンダリング済み文字列まで、そして検査を安価にするキャッシュを説明します。
+- **[仕様](spec.md)** — t-stringとmsgidの対応を、機械可読な適合性テストを備えた
+  安定したバージョン付き契約として定義します。
+
+</div>
+
+## 開発状況 { #status }
 
 現在はalpha版です。契約は意図的に小さく保たれ、
 [仕様](spec.md)が安定部分です。Python APIは今後変更される可能性があります。
@@ -111,7 +145,7 @@ python -m pip install "gettext-tstrings[babel]"
 [IssueとPull Request](https://github.com/yhay81/gettext-tstrings/issues)を歓迎します。
 alpha版の今こそ、インターフェースを議論する価値があります。
 
-## コミュニティに参加する
+## コミュニティに参加する { #join-the-community }
 
 - 範囲が明確な
   [good first issue](https://github.com/yhay81/gettext-tstrings/issues?q=is%3Aissue%20state%3Aopen%20label%3A%22good%20first%20issue%22)

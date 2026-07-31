@@ -1,0 +1,240 @@
+---
+description: "API часу виконання: прив'язування каталогу, мова на запит, відкладені рядки і як повідомляється про зіпсований переклад."
+---
+
+# Посібник
+
+Ця сторінка — довідник часу виконання: усе, що робить із цією бібліотекою
+ваш *код застосунку*, коли каталоги вже існують. Якщо ви ще не бачили повного
+циклу — позначити, видобути, перекласти, скомпілювати, запустити —
+[підручник](tutorial.md) проходить його раз за п'ять хвилин; створення й
+перевірку каталогів описує [Видобування](extraction.md), а те, як команда
+підтримує обертання циклу — оновлення, CI, платформи перекладу, — сторінка
+[У продакшені](workflow.md).
+
+## Прив'язування каталогу { #binding-a-catalog }
+
+Рекомендована форма віддзеркалює класове використання gettext: прив'яжіть
+стандартний об'єкт перекладів один раз і використовуйте викликаний процесор
+як `_`.
+
+```python
+import gettext
+
+from gettext_tstrings import Translator
+
+translations = gettext.translation("messages", localedir="locales", languages=["ja"])
+_ = Translator(translations)
+
+name = "Ada"
+print(_(t"Hello {name}"))  # こんにちは Ada
+
+n = 3
+print(_.ngettext(t"One file", t"{n} files", n))  # picks the right plural form for n
+
+filename = "report.txt"
+print(_.pgettext("button", t"Open {filename}"))  # "button" disambiguates homonyms
+```
+
+Функції рівня модуля наслідують імена стандартної бібліотеки та її угоду про
+лише позиційні аргументи:
+
+```python
+from gettext_tstrings import gettext, ngettext, npgettext, pgettext
+
+gettext(t"Hello {name}", translations=translations)
+ngettext(t"One file", t"{n} files", n, translations=translations)
+pgettext("button", t"Open {filename}", translations=translations)
+npgettext("inbox", t"One message", t"{n} messages", n, translations=translations)
+```
+
+`tr` і `ntr` — точні псевдоніми `gettext` і `ngettext`.
+
+## Мова на запит { #per-request-language }
+
+Вебфреймворк обирає мову для кожного запиту. Прив'яжіть переклади запиту до
+поточного контексту — і кожен виклик рівня модуля розв'яжеться в цю мову,
+безпечно між конкурентними запитами:
+
+```python
+from gettext_tstrings import tr, use_translations
+
+
+def handle(request):
+    translations = load_translations(request.locale)
+    with use_translations(translations):
+        return render(tr(t"Hello {name}"))
+```
+
+`set_translations(translations)` прив'язує без блока `with` — для
+фреймворків, які самі керують життєвим циклом запиту; `get_translations()`
+читає поточну прив'язку. Явний аргумент `translations=` завжди перемагає
+контекст, а неприв'язаний контекст відкочується до глобально встановлених
+функцій gettext стандартної бібліотеки. Готові приклади для Flask і
+ASGI-проміжного шару — на сторінці
+[У продакшені](workflow.md#binding-a-language-at-runtime).
+
+## Відкладений переклад { #deferred-translation }
+
+t-рядок захоплює свої значення одразу, що неправильно для рядка, визначеного
+під час імпорту, — підпису форми, значення enum, модульної константи, — який
+має відрендеритися тією мовою, що активна в момент його *використання*.
+
+```python
+from gettext_tstrings import lazy_gettext, lazy_pgettext, use_translations
+
+SAVE = lazy_gettext(t"Save changes")  # defined once, at import
+OPEN = lazy_pgettext("button", t"Open file")
+
+with use_translations(japanese):
+    assert str(SAVE) == "変更を保存"  # rendered here, in this language
+```
+
+`LazyString` рендериться через `str()`, `format()` та f-рядки і дорівнює при
+порівнянні своєму відрендереному тексту.
+
+!!! note "Навмисно негешований"
+
+    Текст `LazyString` залежить від активної мови, тож геш змінювався б при
+    перемиканні мови й тихо псував би будь-яку множину чи словник, що його
+    тримає. Якщо потрібен ключ, спершу викличте `str()`.
+
+Форми множини залежать від лічильника часу виконання, тож рендерте їх одразу
+через `ngettext` там, де лічильник відомий.
+
+## Що відбувається, коли каталог хибний { #what-happens-when-a-catalog-is-wrong }
+
+Якщо заповнювачі перекладу не збігаються з джерелом — відсутнє, невідоме чи
+переформатоване поле, що прослизнуло повз перевірку, з відредагованого вручну
+MO, вендорного каталогу чи конвеєра, який пропускає чекер, — типова поведінка
+полягає в тому, щоб відтворити початковий текст, а не кинути виняток. Це
+віддзеркалює власний контракт gettext: поганий каталог ніколи не ламає
+застосунок.
+
+З `Hello {name}`, перекладеним як `こんにちは {nombre}`, рендеринг вдається, а
+в логер `gettext_tstrings` іде одне попередження:
+
+```text
+WARNING gettext_tstrings: invalid translation for msgid 'Hello {name}'; using
+source text: translation does not match the source placeholders: {name} is
+missing; {nombre} is not in the source message
+```
+
+```pycon
+>>> _(t"Hello {name}")
+'Hello Ada'
+```
+
+Попередження спрацьовує один раз на повідомлення і шаблон, а не на кожен
+рендеринг, тож зламаний запис каталогу не затоплює журнал.
+
+Увімкніть гучну відмову для тестів і CI:
+
+```python
+strict = Translator(translations, strict=True)
+tr(t"Hello {name}", translations=translations, strict=True)
+```
+
+Той самий пошук тоді кидає виняток із тим самим реченням, але без половини
+про «using source text»:
+
+```pycon
+>>> strict(t"Hello {name}")
+Traceback (most recent call last):
+  ...
+gettext_tstrings.errors.InvalidTranslationError: translation does not match the
+source placeholders: {name} is missing; {nombre} is not in the source message
+```
+
+## Як читати повідомлення про відмову { #reading-a-failure-message }
+
+Ці повідомлення написані для того, хто може на них подіяти, а для проблеми з
+каталогом це частіше перекладач, ніж програміст. Повідомити лише, що бракує
+`{name}`, — глухий кут, коли читач бачить ці символи просто перед собою; тож
+там, де заповнювач виглядає наявним, але таким не є, повідомлення пояснює
+чому. Проти джерела `Hello {name}` кожен із цих випадків повідомляється під
+заголовком `translation does not match the source placeholders:`
+
+| Переклад каже | Причина, яку він отримує |
+| --- | --- |
+| `こんにちは ｛name｝` | `{name}` is missing (the braces around it are not the ASCII `{` and `}`) |
+| `こんにちは {{name}}` | `{name}` is missing (it is written `{{name}}`, which is how a literal brace is escaped) |
+| `こんにちは name` | `{name}` is missing (the name appears, but not inside braces) |
+| `こんにちは {名前}` | `{name}` is missing; `{名前}` is not in the source message |
+
+Символи, яких не видно, дістають окреме поводження. Нерозривний пробіл
+усередині дужок — це те, що продукує метод введення й не показує жоден
+редактор, тож повідомлення друкує його кодовою точкою, замість називати
+символ, якого читач не знайде:
+
+```text
+placeholder {<U+00A0>name} has a space inside the braces; write {name}
+```
+
+Ім'я, чиї літери змішують системи письма — випадок омогліфів, де кирилична
+`а` невідрізненна від латинської, — показується двічі: раз читабельно і раз
+екрановано, бо лише екранована форма розрізняє їх:
+
+```text
+translation does not match the source placeholders: {name} is missing;
+{nаme} (n\u0430me) is not in the source message
+```
+
+Те саме розрізнення застосовується, коли грецьке чи кириличне ім'я, написане
+цілком однією системою письма, конфліктує з ASCII-іменем джерела, включно з
+однолітерним випадком латинської `a` та кириличної `а`.
+
+## Рендеринг шаблона без каталогу { #rendering-a-pattern-without-a-catalog }
+
+`compile_template` відкриває ту саму машинерію на рівень нижче: він
+перетворює t-рядок на msgid плюс зв'язаний набір значень і рендерить
+будь-який шаблон, який ви йому передасте.
+
+```python
+from gettext_tstrings import compile_template
+
+name = "Ada"
+compiled = compile_template(t"Hello {name}")
+
+compiled.msgid  # "Hello {name}"
+compiled.placeholders  # ("name",)
+compiled.render("こんにちは {name}")  # "こんにちは Ada"
+```
+
+`render` перевіряє за тими самими правилами і при розбіжності **завжди кидає
+виняток**. Поблажливого режиму тут немає: поблажливість існує, щоб пошук у
+*каталозі* міг деградувати до початкового тексту, а шаблону, який ви передали
+самі, нема від чого деградувати.
+
+## Безпека та межі { #safety-and-scope }
+
+Це припустимо:
+
+```python
+tr(t"Hello {name}")
+```
+
+Це відхиляється навмисно:
+
+```python
+tr(t"Hello {user.name}")  # attribute access
+tr(t"Hello {display_name()}")  # a call
+```
+
+Спершу обчисліть осмислене значення:
+
+```python
+name = user.display_name()
+tr(t"Hello {name}")
+```
+
+Обмеження дає стабільні ключі каталогу, дає перекладачам корисні імена й не
+дозволяє перекладеному рядку стати мовою виразів.
+
+Гарантія обмежена *структурою та форматуванням*: переклад ніколи не
+обчислюється й ніколи не може додати доступ до атрибутів, виклики,
+перетворення чи специфікації формату. Дві речі лишаються відповідальністю
+того, хто викликає, — точно як зі stdlib gettext: **екранування**
+відрендереного виводу під його призначення (HTML, оболонка, термінал) і
+**цілісність каталогу**, адже ворожий каталог може повторити заповнювач, щоб
+роздути розмір виводу, — це властиво будь-якій i18n на заповнювачах.

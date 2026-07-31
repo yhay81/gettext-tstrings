@@ -1,0 +1,84 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: gettext-tstrings documentation\n"
+"PO-Revision-Date: 2026-07-31 00:00+0900\n"
+"Last-Translator: gettext-tstrings contributors\n"
+"Language-Team: Bengali\n"
+"Language: bn\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#. gettext-tstrings
+msgid "Safe gettext and Babel integration for Python t-strings."
+msgstr "Python t-strings-এর জন্য নিরাপদ gettext ও Babel ইন্টিগ্রেশন।"
+
+#. gettext-tstrings
+msgid "Home"
+msgstr "হোম"
+
+#. gettext-tstrings
+msgid "Tutorial"
+msgstr "টিউটোরিয়াল"
+
+#. gettext-tstrings
+msgid "Why t-strings"
+msgstr "t-strings কেন"
+
+#. gettext-tstrings
+msgid "Background"
+msgstr "পটভূমি"
+
+#. gettext-tstrings
+msgctxt "navigation"
+msgid "Guide"
+msgstr "গাইড"
+
+#. gettext-tstrings
+msgid "Extraction"
+msgstr "এক্সট্র্যাকশন"
+
+#. gettext-tstrings
+msgid "In production"
+msgstr "প্রোডাকশনে"
+
+#. gettext-tstrings
+msgid "How it works"
+msgstr "এটি কীভাবে কাজ করে"
+
+#. gettext-tstrings
+msgid "Specification"
+msgstr "স্পেসিফিকেশন"
+
+#. gettext-tstrings
+msgid "API"
+msgstr "API"
+
+#. gettext-tstrings
+msgid "Switch to dark mode"
+msgstr "ডার্ক মোডে স্যুইচ করুন"
+
+#. gettext-tstrings
+msgid "Switch to light mode"
+msgstr "লাইট মোডে স্যুইচ করুন"
+
+#. gettext-tstrings
+#, python-brace-format
+msgid "Copyright © 2026 {author} · MIT License"
+msgstr "Copyright © 2026 {author} · MIT লাইসেন্স"
+
+#. gettext-tstrings
+#, python-brace-format
+msgid "Built {n} localized page"
+msgid_plural "Built {n} localized pages"
+msgstr[0] "{n}টি স্থানীয়কৃত পৃষ্ঠা তৈরি হয়েছে"
+msgstr[1] "{n}টি স্থানীয়কৃত পৃষ্ঠা তৈরি হয়েছে"
+
+#. gettext-tstrings
+#, python-brace-format
+msgctxt "build report"
+msgid "Rendered {n} page in {seconds}s"
+msgid_plural "Rendered {n} pages in {seconds}s"
+msgstr[0] "{n}টি পৃষ্ঠা {seconds}s-এ রেন্ডার হয়েছে"
+msgstr[1] "{n}টি পৃষ্ঠা {seconds}s-এ রেন্ডার হয়েছে"

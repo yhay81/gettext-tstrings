@@ -9,11 +9,13 @@ la [guía](guide.md) cubren el uso cotidiano. Esta página es para autores de
 herramientas: la convención que implementa la biblioteca está documentada como
 un contrato pequeño y estable para que otra implementación —un extractor, un
 IDE, un comprobador de tipos o un futuro `pygettext`— pueda adoptarla e
-interoperar.
+interoperar. Para las mismas reglas explicadas con sus razones, y cómo las
+lleva a cabo la implementación de referencia, lee primero
+[Cómo funciona](internals.md).
 
 [Leer la especificación v1 :material-arrow-right:](https://github.com/yhay81/gettext-tstrings/blob/main/SPEC.md){ .md-button .md-button--primary }
 
-## Las reglas en una pantalla
+## Las reglas en una pantalla { #the-rules-in-one-screen }
 
 **Un msgid** es la concatenación, en el orden del código fuente, de los segmentos
 literales y un token `{name}` por interpolación. Las llaves literales se escapan
@@ -75,7 +77,7 @@ Python:
 La implementación de referencia ejecuta la suite como parte de sus propias
 pruebas, por lo que la documentación y el código no pueden divergir en silencio.
 
-## Versionado
+## Versionado { #versioning }
 
 Esta es la especificación v1. Un cambio incompatible en la derivación del msgid
 o la validación de traducciones incrementa la versión y añade un nuevo

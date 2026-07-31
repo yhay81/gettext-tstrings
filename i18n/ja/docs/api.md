@@ -8,7 +8,7 @@ description: "gettext_tstringsが公開する関数、Translator、コンテキ�
 このページはシグネチャのリファレンスです。各関数の具体的な使用例は
 [ガイド](guide.md)を参照してください。
 
-## 翻訳
+## 翻訳 { #translating }
 
 各関数はt-stringを位置専用引数として受け取り、2つのキーワード引数を受け付けます。
 `translations`（コンテキスト束縛、次に標準ライブラリのグローバル関数へfallback）と、
@@ -35,7 +35,7 @@ Translator(translations, strict=False)
 呼び出し可能（`_(t"…")`）で、`gettext`、`ngettext`、`pgettext`、
 `npgettext`と、`tr` / `ntr`のaliasを持ちます。
 
-## コンテキスト束縛
+## コンテキスト束縛 { #context-binding }
 
 | 名前 | 用途 |
 | --- | --- |
@@ -45,7 +45,7 @@ Translator(translations, strict=False)
 
 束縛には`ContextVar`を使うためコンテキストごとに独立し、並行実行でも安全です。
 
-## 遅延文字列
+## 遅延文字列 { #deferred-strings }
 
 | 名前 | 用途 |
 | --- | --- |
@@ -53,7 +53,7 @@ Translator(translations, strict=False)
 | `lazy_pgettext(context, template, /)` | コンテキスト付きの形式です。 |
 | `LazyString` | 上記2関数の戻り値です。`str()`と`format()`、f-stringでレンダリングされ、表示文字列と等値比較でき、意図的にhash不能です。 |
 
-## 低レベルAPI
+## 低レベルAPI { #lower-level }
 
 ### `compile_template(template, /) -> CompiledTemplate`
 
@@ -67,7 +67,7 @@ Translator(translations, strict=False)
 | `.placeholders` | 最初に現れた順のプレースホルダー名です。 |
 | `.render(pattern)` | 1つのパターンを検証してレンダリングします。不一致では**常に例外を送出**します。 |
 
-## 型と例外
+## 型と例外 { #types-and-errors }
 
 ### `Translations`
 
@@ -92,7 +92,7 @@ class Translations(Protocol):
 | `InvalidTemplateError` | **ソース**t-stringが規約に違反した場合です。複雑な補間や、同じ名前を異なる書式で繰り返した場合などです。 |
 | `InvalidTranslationError` | **翻訳**が規約に違反した場合です。既定のlenientモードではログへ記録し、ソース文字列をレンダリングします。 |
 
-## 抽出entry point
+## 抽出entry point { #extraction-entry-points }
 
 インストール時に自動登録されます。importではなく名前で参照します。
 
@@ -101,15 +101,12 @@ class Translations(Protocol):
 | `babel.extractors` | `gettext_tstrings` | `babel.cfg`の`method` |
 | `babel.checkers` | `gettext_tstrings` | `pybabel compile`（自動） |
 
-## 性能
+## 性能 { #performance }
 
-Apple Siliconでは、t-string自体の生成を含む1フィールドのメッセージが約0.4 µsです。
-単純な`gettext(...).format(...)`の約2.5倍です。この差によって、
-プレースホルダー検証と安全なレンダリングを実現します。
-
-どちらのキャッシュも上限があり、補間された値を保持しません。翻訳がプレースホルダーを
-繰り返しても、異なる値は1回のレンダリングにつきそれぞれ最大1回だけ書式化されます。
-対象環境でベンチマークを実行できます。
+何がキャッシュされるか、キャッシュのキーは何か、計測された数値はいくつか —
+その全容は[ホットパス](internals.md#the-hot-path)にあります。要点だけ言えば、
+検証はキャッシュされ、省略されることはなく、レンダリング全体のコストは
+1マイクロ秒の何分の一かです。対象環境でベンチマークを実行できます。
 
 ```console
 uv run python benchmarks/runtime.py

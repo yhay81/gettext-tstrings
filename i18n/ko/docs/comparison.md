@@ -30,7 +30,7 @@ description: "% 포맷, .format(), flufl.i18n $ 문자열, t-string으로 같은
     언어를 어디까지 제어해야 하는가?* 예제에서 `_`는 번역 함수의
     관례적인 이름이고 `tr`은 이 라이브러리의 이름입니다.
 
-## % 포맷
+## % 포맷 { #-format }
 
 ```python
 _("Hello %(name)s") % {"name": name}
@@ -53,7 +53,7 @@ PO 편집기의 한 글자 수정이 프로덕션의 traceback이 됩니다. GNU
 메시지에 한하고, 카탈로그가 애플리케이션으로 가는 길에 실제로 msgfmt를
 거칠 때만 가능합니다.
 
-## str.format
+## str.format { #strformat }
 
 ```python
 _("Hello {name}").format(name=name)
@@ -83,7 +83,7 @@ API 키를 출력합니다. 무엇을 읽을지 결정한 것은 코드가 아�
 `.format()`은 그 여정의 모든 단계에 전달한 객체의 속성 접근 권한을
 줍니다.
 
-## `$` 문자열과 flufl.i18n
+## `$` 문자열과 flufl.i18n { #-strings-and-flufli18n }
 
 ```python
 from flufl.i18n import initialize
@@ -118,7 +118,7 @@ flufl.i18n은 호출자의 전역 변수와 지역 변수로 치환 네임스페
 아래 비교는 `flufl.i18n` 6.0.0을 설명하며 `string.Template`의 모든 가능한
 사용법을 설명하는 것은 아닙니다.
 
-## t-string
+## t-string { #t-strings }
 
 ```python
 tr(t"Hello {name}")
@@ -158,7 +158,7 @@ tr(t"Total: {amount:,.2f}")  # msgid is "Total: {amount}"
 추출하려면 현재는 이 패키지가 [Babel용으로 제공](extraction.md)하는 것과
 같은 t-string 인식 추출기가 필요합니다.
 
-## 나란히 비교
+## 나란히 비교 { #side-by-side }
 
 | | `%(name)s` | `.format()` | `flufl.i18n` `$name` | `t"…"` |
 | --- | --- | --- | --- | --- |
@@ -183,7 +183,7 @@ tr(t"Total: {amount:,.2f}")  # msgid is "Total: {amount}"
 관한 것입니다. `없음`은 표준 gettext 도구가 여전히 메시지를 읽고 컴파일하지만
 `msgfmt --check-format`이 적용할 `$` 플레이스홀더 문법은 없다는 뜻입니다.
 
-## 비용
+## 비용 { #what-it-costs }
 
 f-string은 이 방법으로 전혀 사용할 수 없습니다. 어떤 라이브러리가 보기 전에
 이미 완성된 문자열이므로 이를 번역하면 조각을 번역하게 됩니다. t-string
@@ -207,6 +207,10 @@ tr(t"Hello {name}")
 이는 실제 제약입니다. 소스 측 값 연결 및 런타임 플레이스홀더 검사와 결합해
 카탈로그 문자열이 표현식을 평가하지 못하게 하고 플레이스홀더 이름을 의미 있게
 유지합니다.
+
+Python이 이 갈림길에 도달한 경위 — 10년 간격의 두 PEP, 그리고 답 없이
+닫힌 표준 라이브러리 논의 — 는 [배경](background.md)에서 출처와 함께
+다룹니다.
 
   [PEP 750]: https://peps.python.org/pep-0750/
   [stdlib-template]: https://docs.python.org/3/library/string.html#template-strings

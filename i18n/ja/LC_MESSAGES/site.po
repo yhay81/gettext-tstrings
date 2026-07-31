@@ -27,6 +27,10 @@ msgid "Why t-strings"
 msgstr "t-stringを選ぶ理由"
 
 #. gettext-tstrings
+msgid "Background"
+msgstr "背景"
+
+#. gettext-tstrings
 msgctxt "navigation"
 msgid "Guide"
 msgstr "ガイド"
@@ -34,6 +38,14 @@ msgstr "ガイド"
 #. gettext-tstrings
 msgid "Extraction"
 msgstr "抽出"
+
+#. gettext-tstrings
+msgid "In production"
+msgstr "実運用"
+
+#. gettext-tstrings
+msgid "How it works"
+msgstr "動作原理"
 
 #. gettext-tstrings
 msgid "Specification"
@@ -61,3 +73,10 @@ msgstr "Copyright © 2026 {author} · MITライセンス"
 msgid "Built {n} localized page"
 msgid_plural "Built {n} localized pages"
 msgstr[0] "ローカライズ済みページを{n}件ビルドしました"
+
+#. gettext-tstrings
+#, python-brace-format
+msgctxt "build report"
+msgid "Rendered {n} page in {seconds}s"
+msgid_plural "Rendered {n} pages in {seconds}s"
+msgstr[0] "{n}ページを{seconds}秒で描画しました"

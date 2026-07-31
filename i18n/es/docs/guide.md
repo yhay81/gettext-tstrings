@@ -9,9 +9,11 @@ Esta página es la referencia de tiempo de ejecución: todo lo que hace el
 catálogos. Si aún no has visto el ciclo completo —marcar, extraer, traducir,
 compilar, ejecutar—, el [tutorial](tutorial.md) lo recorre una vez en cinco
 minutos; la creación y validación de catálogos se trata en
-[Extracción](extraction.md).
+[Extracción](extraction.md), y cómo un equipo mantiene el ciclo en marcha
+—ciclos de actualización, CI, plataformas de traducción— se explica en
+[En producción](workflow.md).
 
-## Vincular un catálogo
+## Vincular un catálogo { #binding-a-catalog }
 
 La forma recomendada refleja el uso de gettext basado en clases: vincula una vez
 un objeto de traducción estándar y utiliza el procesador invocable como `_`.
@@ -48,7 +50,7 @@ npgettext("inbox", t"One message", t"{n} messages", n, translations=translations
 
 `tr` y `ntr` son alias exactos de `gettext` y `ngettext`.
 
-## Idioma por petición
+## Idioma por petición { #per-request-language }
 
 Un framework web elige un idioma para cada petición. Vincula las traducciones de
 la petición al contexto actual y todas las llamadas de módulo se resolverán en
@@ -68,9 +70,11 @@ def handle(request):
 que administran el ciclo de vida por su cuenta; `get_translations()` lee la
 vinculación actual. Un argumento `translations=` explícito siempre prevalece
 sobre el contexto. Si no hay vinculación, se utilizan las funciones gettext
-instaladas globalmente en la biblioteca estándar.
+instaladas globalmente en la biblioteca estándar. Hay ejemplos completos para
+Flask y middleware ASGI en la página
+[En producción](workflow.md#binding-a-language-at-runtime).
 
-## Traducción diferida
+## Traducción diferida { #deferred-translation }
 
 Una t-string captura sus valores de inmediato. Eso no sirve para una cadena
 definida durante el import —una etiqueta de formulario, un valor enum o una
@@ -142,7 +146,7 @@ gettext_tstrings.errors.InvalidTranslationError: translation does not match the
 source placeholders: {name} is missing; {nombre} is not in the source message
 ```
 
-## Leer un mensaje de error
+## Leer un mensaje de error { #reading-a-failure-message }
 
 Estos mensajes están escritos para quien pueda resolver el problema, que en un
 catálogo suele ser un traductor más que un programador. Indicar solo que falta
@@ -179,7 +183,7 @@ La misma distinción se aplica cuando un nombre escrito por completo en griego o
 cirílico entra en conflicto con un nombre ASCII, incluido el caso de una sola
 letra `a` latina / `а` cirílica.
 
-## Renderizar un pattern sin catálogo
+## Renderizar un pattern sin catálogo { #rendering-a-pattern-without-a-catalog }
 
 `compile_template` expone el mismo mecanismo un nivel más abajo: convierte una
 t-string en su msgid y un conjunto vinculado de valores, y renderiza cualquier
@@ -201,7 +205,7 @@ existe modo lenient: se utiliza para que una búsqueda de *catálogo* pueda volv
 al texto de origen, y un pattern proporcionado directamente no tiene origen al
 que volver.
 
-## Seguridad y alcance
+## Seguridad y alcance { #safety-and-scope }
 
 Esto es válido:
 

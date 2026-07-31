@@ -64,6 +64,66 @@
 }
 
 /*
+ * The home page hero. Home hides both sidebars (its `hide:` front matter), so
+ * without a bound the article would run the full grid width and every prose
+ * line below the hero would grow too long to read; the :has() rule caps the
+ * column on that one page and recentres it. Everything else is scoped under
+ * .home-hero and cannot leak onto other pages.
+ */
+.md-main:has(.home-hero) .md-content {
+  margin-inline: auto;
+  max-width: 46rem;
+}
+
+.home-hero {
+  margin: 1.2rem auto 2.8rem;
+  text-align: center;
+}
+
+.md-typeset .home-hero h1 {
+  color: var(--md-default-fg-color);
+  font-size: 2.6em;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
+  margin-bottom: 0.5em;
+}
+
+.home-hero > p {
+  font-size: 0.9rem;
+  margin-inline: auto;
+  max-width: 32rem;
+}
+
+.home-hero .highlight {
+  margin-inline: auto;
+  max-width: 34rem;
+  text-align: left;
+}
+
+/* The code sample keeps LTR order inside the RTL edition's centred hero. */
+[dir="rtl"] .home-hero .highlight {
+  direction: ltr;
+}
+
+.md-typeset .home-hero .md-button {
+  margin: 0.4rem 0.25rem 0;
+}
+
+.home-hero .home-hero-note {
+  color: var(--md-default-fg-color--light);
+  font-size: 0.7rem;
+  margin-top: 1.4rem;
+  max-width: 32rem;
+}
+
+@media screen and (max-width: 44.984375em) {
+  .md-typeset .home-hero h1 {
+    font-size: 2em;
+  }
+}
+
+/*
  * A translation icon alone is too easy to read as an action rather than a
  * language menu. Keep the current language visible in a compact, familiar
  * select-shaped control.

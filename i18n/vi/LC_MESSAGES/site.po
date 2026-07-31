@@ -1,0 +1,82 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: gettext-tstrings documentation\n"
+"PO-Revision-Date: 2026-07-31 00:00+0700\n"
+"Last-Translator: gettext-tstrings contributors\n"
+"Language-Team: Vietnamese\n"
+"Language: vi\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#. gettext-tstrings
+msgid "Safe gettext and Babel integration for Python t-strings."
+msgstr "Tích hợp gettext và Babel an toàn cho t-string của Python."
+
+#. gettext-tstrings
+msgid "Home"
+msgstr "Trang chủ"
+
+#. gettext-tstrings
+msgid "Tutorial"
+msgstr "Hướng dẫn nhập môn"
+
+#. gettext-tstrings
+msgid "Why t-strings"
+msgstr "Vì sao chọn t-string"
+
+#. gettext-tstrings
+msgid "Background"
+msgstr "Bối cảnh"
+
+#. gettext-tstrings
+msgctxt "navigation"
+msgid "Guide"
+msgstr "Cẩm nang"
+
+#. gettext-tstrings
+msgid "Extraction"
+msgstr "Trích xuất"
+
+#. gettext-tstrings
+msgid "In production"
+msgstr "Vận hành thực tế"
+
+#. gettext-tstrings
+msgid "How it works"
+msgstr "Cách hoạt động"
+
+#. gettext-tstrings
+msgid "Specification"
+msgstr "Đặc tả"
+
+#. gettext-tstrings
+msgid "API"
+msgstr "API"
+
+#. gettext-tstrings
+msgid "Switch to dark mode"
+msgstr "Chuyển sang chế độ tối"
+
+#. gettext-tstrings
+msgid "Switch to light mode"
+msgstr "Chuyển sang chế độ sáng"
+
+#. gettext-tstrings
+#, python-brace-format
+msgid "Copyright © 2026 {author} · MIT License"
+msgstr "Bản quyền © 2026 {author} · Giấy phép MIT"
+
+#. gettext-tstrings
+#, python-brace-format
+msgid "Built {n} localized page"
+msgid_plural "Built {n} localized pages"
+msgstr[0] "Đã dựng {n} trang bản địa hóa"
+
+#. gettext-tstrings
+#, python-brace-format
+msgctxt "build report"
+msgid "Rendered {n} page in {seconds}s"
+msgid_plural "Rendered {n} pages in {seconds}s"
+msgstr[0] "Đã kết xuất {n} trang trong {seconds}s"

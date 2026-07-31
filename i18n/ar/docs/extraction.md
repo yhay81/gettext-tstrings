@@ -16,7 +16,7 @@ description: "استخراج رسائل t-string عبر pybabel والتحقق �
 python -m pip install "gettext-tstrings[babel]"
 ```
 
-## سير العمل
+## سير العمل { #the-workflow }
 
 أنشئ `babel.cfg`:
 
@@ -33,6 +33,11 @@ pybabel init -i locales/messages.pot -d locales -l ja
 pybabel compile -d locales
 ```
 
+يُنفَّذ `init` مرة واحدة لكل لغة؛ وبعد ذلك يدمج `pybabel update` كل قالب
+جديد في الكتالوجات الموجودة. تلك الدورة المتكررة — وما تعنيه إدخالات
+`fuzzy` فيها لأي إصدار — مشروحة خطوة بخطوة في
+[في الإنتاج](workflow.md#the-cycle-after-the-first-translation).
+
 يعالج المستخرج أيضاً `_()` و`gettext()` و`ngettext()`. لذلك يغطي تعيين واحد
 الشيفرة المختلطة، بما فيها `tr()` و`ntr()` و`lazy_gettext()` و
 `lazy_pgettext()`.
@@ -42,7 +47,7 @@ pybabel compile -d locales
     مرر `-c "Translators:"` لجمع التعليقات الموجهة للمترجمين، كما في gettext
     العادي.
 
-## أسماء دوال مخصصة
+## أسماء دوال مخصصة { #registering-your-own-function-names }
 
 === "babel.cfg"
 
@@ -73,7 +78,7 @@ pybabel compile -d locales
 
     لا يُدعم إلا ترتيب الوسائط القياسي.
 
-## متين افتراضياً
+## متين افتراضياً { #robust-by-default }
 
 - يُحذر من t-string المرفوضة ثم تُتجاوز.
 - يُعزل الملف الذي لا يمكن تحليله بالطريقة نفسها.
@@ -81,7 +86,7 @@ pybabel compile -d locales
 
 استخدم `strict = true` لتحويل هذه التحذيرات إلى أخطاء في CI.
 
-## التحقق بسلسلة الأدوات الحالية
+## التحقق بسلسلة الأدوات الحالية { #your-existing-toolchain-validates-these-catalogs }
 
 يضيف Babel علماً قياسياً:
 
@@ -126,18 +131,16 @@ match the source placeholders: {n} is missing
 
 !!! danger "يكتب `pybabel compile` ملف `.mo` رغم ذلك"
 
-    تكون حالة الخروج `1`، لكن الكتالوج غير الصالح يُترجم أيضاً. يجب أن يعامل
-    خط CI هذه الحالة كحاجز.
-
-    ```yaml
-    - run: pybabel compile -d locales   # non-zero exit is the gate
-    ```
+    يُبلَّغ عن الخطأ أعلاه وتكون حالة الخروج `1` — ومع ذلك يُجمَّع الكتالوج
+    المعطوب. حالة الخروج تلك وحدها هي ما يستطيع منع خط الأنابيب من شحنه؛
+    وتعرض [ما تحرسه CI](workflow.md#what-ci-gates) خطوة البناء التي تتيح
+    ذلك.
 
 الفحوص ليست مكررة: يتحقق المدقق المرفق من الأقواس المهربة ومن كل صيغة جمع
 منفصلة حيث قد يقبل msgfmt الملف. تسمح أسماء ASCII لكل الأدوات بالمشاركة،
 بينما تقبل المكتبة نفسها كل اسم يحقق `str.isidentifier()`.
 
-## القوالب والأدوات الأخرى
+## القوالب والأدوات الأخرى { #templates-and-other-tools }
 
 t-strings صيغة Python. تحتفظ Jinja2 (`{% trans %}`) وDjango والقوالب الأخرى
 بمستخرجاتها، ويمكنها الكتابة إلى كتالوج PO نفسه.

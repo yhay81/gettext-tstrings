@@ -24,7 +24,7 @@ description: "用 %-format、.format()、flufl.i18n $-string 和 t-string 编写
     同一个问题给出了不同回答：*目录可以控制格式语言的多少部分？* 在示例中，
     `_` 是翻译函数的约定名称，`tr` 是本库使用的名称。
 
-## %-format
+## %-format { #-format }
 
 ```python
 _("Hello %(name)s") % {"name": name}
@@ -46,7 +46,7 @@ ValueError: incomplete format
 `msgfmt --check-format` 的确能捕获它，但前提是消息带有 `python-format` 标志，
 并且目录在进入应用程序前确实经过 msgfmt。
 
-## str.format
+## str.format { #strformat }
 
 ```python
 _("Hello {name}").format(name=name)
@@ -72,7 +72,7 @@ _("Hello {name}").format(name=name)
 以 `.po` 返回，编译成 `.mo`，有时甚至直接从外部项目引入。`.format()` 让这条路径
 上的每个环节都有机会通过字符串访问你传入对象的属性。
 
-## `$`-string 与 flufl.i18n
+## `$`-string 与 flufl.i18n { #-strings-and-flufli18n }
 
 ```python
 from flufl.i18n import initialize
@@ -101,7 +101,7 @@ print(_("Hello $name"))  # Hello Ada — the value came from the caller's locals
 调用方的栈帧也成为目录替换命名空间的一部分。下面比较的是 `flufl.i18n` 6.0.0，
 而不是 `string.Template` 的所有可能用法。
 
-## t-string
+## t-string { #t-strings }
 
 ```python
 tr(t"Hello {name}")
@@ -135,7 +135,7 @@ tr(t"Total: {amount:,.2f}")  # msgid is "Total: {amount}"
 还有一个区别在于工具链：t-string 是新语法，因此目前把它们提取进 `.pot` 需要
 能够识别 t-string 的提取器，例如本包[为 Babel 提供](extraction.md)的那个。
 
-## 并排比较
+## 并排比较 { #side-by-side }
 
 | | `%(name)s` | `.format()` | `flufl.i18n` `$name` | `t"…"` |
 | --- | --- | --- | --- | --- |
@@ -159,7 +159,7 @@ tr(t"Total: {amount:,.2f}")  # msgid is "Total: {amount}"
 gettext 工具仍能读取和编译消息，但 `msgfmt --check-format` 没有可应用的
 `$` 占位符语法。
 
-## 代价
+## 代价 { #what-it-costs }
 
 f-string 完全无法这样使用——任何库看到它时，它已经是一条完成的字符串，因此翻译它
 意味着翻译片段。t-string（[PEP 750]）在保持类似 f-string 的语法和显式值绑定的
@@ -181,6 +181,9 @@ tr(t"Hello {name}")
 
 这是一项真实的约束。它与源代码侧的值绑定和运行时占位符检查一起，防止目录字符串
 求值表达式，并保持占位符名称具有实际意义。
+
+Python 如何走到这个十字路口——相隔十年的两个 PEP，以及无果而终的标准库讨论——
+在[项目背景](background.md)中连同来源一并讲述。
 
   [PEP 750]: https://peps.python.org/pep-0750/
   [stdlib-template]: https://docs.python.org/3/library/string.html#template-strings

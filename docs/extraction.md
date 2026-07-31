@@ -33,6 +33,11 @@ pybabel init -i locales/messages.pot -d locales -l ja
 pybabel compile -d locales
 ```
 
+`init` runs once per language; after that, `pybabel update` folds each fresh
+template into the existing catalogs. That recurring cycle — and what its
+`fuzzy` entries mean for a release — is walked through in
+[In production](workflow.md#the-cycle-after-the-first-translation).
+
 The `gettext_tstrings` extractor also handles ordinary `_()`, `gettext()`, and
 `ngettext()` calls, so one mapping covers a mixed codebase. It recognizes `_()`,
 the four standard gettext names, the `tr()` / `ntr()` aliases, and the deferred
@@ -143,13 +148,10 @@ match the source placeholders: {n} is missing
 
 !!! danger "`pybabel compile` still writes the `.mo`"
 
-    The error above is reported, the exit status is `1` — and the broken catalog
-    is compiled anyway. A pipeline that runs `pybabel compile` and then copies
-    `locales/` will ship the bad translation unless it checks the exit status.
-
-    ```yaml
-    - run: pybabel compile -d locales   # non-zero exit is the gate
-    ```
+    The error above is reported, the exit status is `1` — and the broken
+    catalog is compiled anyway. Only that exit status can stop a pipeline
+    from shipping it; [What CI gates](workflow.md#what-ci-gates) shows the
+    build step that lets it.
 
 The two checks are not redundant. The shipped checker is the stricter party in at
 least two places:

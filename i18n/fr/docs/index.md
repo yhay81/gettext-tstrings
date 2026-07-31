@@ -1,13 +1,17 @@
 ---
 description: "Traduisez des messages t-string complets avec gettext et Babel, sans confier le formatage au catalogue."
+title: "gettext-tstrings"
+hide:
+  - navigation
+  - toc
 ---
 
-# gettext-tstrings
+<div class="home-hero" markdown>
 
-Une intégration sûre de gettext et Babel pour les t-strings de Python 3.14+.
+# Écrivez la phrase une seule fois.<br>Traduisez-la tout entière.
 
-Écrivez la phrase une seule fois, dans votre langue source, avec la valeur en
-place :
+Une intégration sûre de gettext et Babel pour les t-strings de Python 3.14+ —
+la valeur reste en place, et le catalogue voit le message complet :
 
 ```python
 import gettext
@@ -18,6 +22,17 @@ _ = Translator(gettext.translation("messages", localedir="locales"))
 name = "Ada"
 print(_(t"Hello {name}"))  # with a Japanese catalog: こんにちは Ada
 ```
+
+[Commencer le tutoriel :material-arrow-right:](tutorial.md){ .md-button .md-button--primary }
+[Pourquoi les t-strings](comparison.md){ .md-button }
+
+Ce site pratique ce qu'il documente : chaque édition linguistique —
+navigation, libellés et rapport de build avec pluriels — est rendue depuis
+des catalogues PO par
+[`gettext-tstrings` lui-même](https://github.com/yhay81/gettext-tstrings/blob/main/scripts/build_multilingual_docs.py).
+{ .home-hero-note }
+
+</div>
 
 Le catalogue reçoit la phrase complète `Hello {name}`. Une traduction peut
 réordonner ou répéter `{name}` ; elle ne peut ni le supprimer, ni en inventer
@@ -36,7 +51,7 @@ un catalogue cassé retombe sur le texte source au lieu de planter.
     **[tutoriel](tutorial.md)** parcourt tout le chemin — marquer, extraire,
     traduire, compiler, exécuter — en cinq minutes environ.
 
-## Le problème résolu
+## Le problème résolu { #the-problem-it-solves }
 
 Une f-string est déjà interpolée lorsqu'une bibliothèque la reçoit —
 `f"Hello {name}"` est devenue `"Hello Ada"`, et traduire les fragments autour
@@ -52,7 +67,7 @@ en message. Cette bibliothèque fixe cette convention, la documente dans une
 [spécification versionnée](spec.md) et fournit une
 [suite de conformité](spec.md#conformance).
 
-## Les choix effectués
+## Les choix effectués { #the-choice-it-makes }
 
 - Traduire des messages complets, jamais des fragments de phrase.
 - N'accepter que des noms simples comme `{name}`.
@@ -61,7 +76,7 @@ en message. Cette bibliothèque fixe cette convention, la documente dans une
   l'accès aux attributs ni l'ajout de formatage.
 - Réutiliser les fichiers POT, PO et MO ainsi que leurs outils habituels.
 
-## Installation
+## Installation { #install }
 
 ```console
 python -m pip install gettext-tstrings
@@ -77,7 +92,14 @@ l'environnement qui exécute `pybabel`, généralement le développement ou la C
 python -m pip install "gettext-tstrings[babel]"
 ```
 
-## Pour continuer
+## Pour continuer { #where-to-go-next }
+
+Trois profils de lecteurs arrivent ici : la personne qui traduit son premier
+programme, celle qui intègre la traduction dans un vrai projet, et celle qui
+veut savoir exactement pourquoi la mécanique a cette forme. Chacun a son
+chemin.
+
+**L'apprendre** — aucune expérience de gettext supposée :
 
 <div class="grid cards" markdown>
 
@@ -87,27 +109,41 @@ python -m pip install "gettext-tstrings[babel]"
 - **[Pourquoi les t-strings](comparison.md)** — le même message écrit de
   quatre façons et ce que `%(name)s`, `.format()` et les chaînes `$` confient
   chacun au catalogue.
+- **[Contexte](background.md)** — pourquoi cette bibliothèque existe : trente
+  ans de gettext, deux PEP et la discussion sur la bibliothèque standard close
+  sans réponse.
+
+</div>
+
+**L'utiliser pour de bon** — les références de travail :
+
+<div class="grid cards" markdown>
+
 - **[Guide](guide.md)** — l'API d'exécution : pluriels, langue par requête,
   chaînes différées et gestion d'un catalogue incorrect.
 - **[Extraction](extraction.md)** — la référence `pybabel` : configuration,
   noms de fonctions personnalisés et comment les outils existants valident ces
   catalogues gratuitement.
-- **[Spécification](spec.md)** — convention t-string ↔ msgid stable, versionnée
-  et accompagnée d'une suite de conformité lisible par machine.
+- **[En production](workflow.md)** — la boucle telle qu'une équipe la fait
+  tourner : le cycle de mise à jour, les entrées fuzzy, les barrières de CI,
+  les plateformes de traduction et la langue par requête dans une application
+  web.
 - **[API](api.md)** — tout ce que le paquet exporte, sur une seule page.
 
 </div>
 
-## Ce site l'utilise réellement
+**Le comprendre** — des principes à l'implémentation :
 
-Cette documentation n'est pas une simple démonstration traduite. Sa navigation,
-les libellés du thème, la ligne de copyright et le rapport de build avec
-pluriels sont rendus depuis des catalogues PO par `gettext-tstrings`. Le
-[builder multilingue](https://github.com/yhay81/gettext-tstrings/blob/main/scripts/build_multilingual_docs.py)
-exerce les messages contextualisés, les marqueurs nommés et les règles de
-pluriel des dix langues à chaque build strict.
+<div class="grid cards" markdown>
 
-## État
+- **[Fonctionnement](internals.md)** — de l'objet template de la PEP 750 à la
+  chaîne rendue, et les caches qui rendent la vérification bon marché.
+- **[Spécification](spec.md)** — convention t-string ↔ msgid stable, versionnée
+  et accompagnée d'une suite de conformité lisible par machine.
+
+</div>
+
+## État { #status }
 
 Le projet est en alpha. Le contrat reste volontairement réduit et la
 [spécification](spec.md) en est la partie stable ; l'API Python peut encore
@@ -118,7 +154,7 @@ tests sur toutes les versions prises en charge.
 Les [issues et pull requests](https://github.com/yhay81/gettext-tstrings/issues)
 sont bienvenues : une alpha est le bon moment pour discuter de l'interface.
 
-## Rejoindre la communauté
+## Rejoindre la communauté { #join-the-community }
 
 - Choisissez une
   [good first issue](https://github.com/yhay81/gettext-tstrings/issues?q=is%3Aissue%20state%3Aopen%20label%3A%22good%20first%20issue%22).

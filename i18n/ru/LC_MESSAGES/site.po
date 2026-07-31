@@ -28,6 +28,10 @@ msgid "Why t-strings"
 msgstr "Зачем нужны t-строки"
 
 #. gettext-tstrings
+msgid "Background"
+msgstr "Предыстория"
+
+#. gettext-tstrings
 msgctxt "navigation"
 msgid "Guide"
 msgstr "Руководство"
@@ -35,6 +39,14 @@ msgstr "Руководство"
 #. gettext-tstrings
 msgid "Extraction"
 msgstr "Извлечение"
+
+#. gettext-tstrings
+msgid "In production"
+msgstr "В продакшене"
+
+#. gettext-tstrings
+msgid "How it works"
+msgstr "Как это работает"
 
 #. gettext-tstrings
 msgid "Specification"
@@ -64,3 +76,12 @@ msgid_plural "Built {n} localized pages"
 msgstr[0] "Собрана {n} локализованная страница"
 msgstr[1] "Собраны {n} локализованные страницы"
 msgstr[2] "Собрано {n} локализованных страниц"
+
+#. gettext-tstrings
+#, python-brace-format
+msgctxt "build report"
+msgid "Rendered {n} page in {seconds}s"
+msgid_plural "Rendered {n} pages in {seconds}s"
+msgstr[0] "Отрендерена {n} страница за {seconds} с"
+msgstr[1] "Отрендерены {n} страницы за {seconds} с"
+msgstr[2] "Отрендерено {n} страниц за {seconds} с"

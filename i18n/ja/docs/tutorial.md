@@ -9,8 +9,11 @@ description: "空のディレクトリから日本語で挨拶するプログラ
 出力付きで示します。各ステップで、正しく進んでいるかを確認できます。
 
 Python 3.14以降が必要です。t-stringは3.14で導入された新しい構文だからです。
+このページでは例の対象言語として日本語を使いますが、この選択に依存するものは
+何もありません。ステップ4で任意の言語に置き換えられます。そこで使うロケール
+コード`ja`が、日本語を指名する唯一の箇所です。
 
-## 1. インストール
+## 1. インストール { #1-install }
 
 ```console
 python -m pip install "gettext-tstrings[babel]"
@@ -20,7 +23,7 @@ python -m pip install "gettext-tstrings[babel]"
 カタログファイルへ集めるツールです。これは開発時のツールであり、本番コードの
 レンダリングは標準ライブラリだけで動きます。
 
-## 2. コード内のメッセージをマークする
+## 2. コード内のメッセージをマークする { #2-mark-a-message-in-your-code }
 
 `app.py`を作成します。
 
@@ -46,7 +49,7 @@ Hello Ada
 このライブラリを使うプログラムの実行に、カタログが*必須*になることはありません。
 英語（あるいはあなたのソース言語）が組み込みのfallbackです。
 
-## 3. メッセージを抽出する
+## 3. メッセージを抽出する { #3-extract-the-messages }
 
 翻訳者はソースコードを読みません。あなたと翻訳者の間を行き来するのは、
 **カタログ**と呼ばれる小さなファイルです。その第一歩は、マークされたすべての
@@ -82,7 +85,7 @@ msgstr ""
 このファイルには書き込みません。`.pot`は*template*であり、次のステップで
 言語ごとにコピーします。
 
-## 4. 翻訳してコンパイルする
+## 4. 翻訳してコンパイルする { #4-translate-and-compile }
 
 templateから日本語カタログを作成します。
 
@@ -121,39 +124,56 @@ source placeholders: {name} is missing; {nome} is not in the source message
 1 errors encountered.
 ```
 
-## 5. 実行する
+## 5. 実行する { #5-run-it }
 
-`app.py`をコンパイル済みカタログへ向けます。
+`app.py`をコンパイル済みカタログへ向けます。各行が何をしているかは、
+マーカーをクリックすると確認できます。
 
 ```python
 import gettext
 
 from gettext_tstrings import Translator
 
-_ = Translator(gettext.translation("messages", localedir="locales", languages=["ja"]))
+_ = Translator(gettext.translation("messages", localedir="locales", languages=["ja"]))  # (1)!
 
 name = "Ada"
-print(_(t"Hello {name}"))
+print(_(t"Hello {name}"))  # (2)!
 ```
 
-`_`は「これを翻訳する」を表すgettextの慣習的な名前です。ユーザー向けの
-すべての文字列に付くため、短くなっています。`tr`と同じ関数を、1つのカタログへ
-束縛したものです。
+1. 標準ライブラリがコンパイル済みの`.mo`を読み込み、`Translator`がそれを
+   呼び出し可能な関数へ束縛します。`_`は「これを翻訳する」を表すgettextの
+   慣習的な名前です。ユーザー向けのすべての文字列に付くため、短くなって
+   います。`tr`と同じ関数を、1つのカタログへ束縛したものです。
+2. 呼び出しの時点で：t-stringのテキストが検索key `Hello {name}`になり、
+   カタログが`こんにちは {name}`と答え、その答えがソースのプレースホルダーに
+   対して検査され、そのあとで初めて値が挿入されます。
 
 ```console
 $ python app.py
 こんにちは Ada
 ```
 
-これがループの全体です。**マーク → 抽出 → 翻訳 → コンパイル → 実行**。
-このサイトの他のページはすべて、この5ステップのいずれかを掘り下げたものです。
+これがループの全体であり、1枚の絵として見ておく価値があります。
 
-## 次に読むページ
+```mermaid
+flowchart LR
+  mark["1–2 マーク<br>コード内のt-string"] --> extract["3 抽出<br>messages.pot"]
+  extract --> translate["4 翻訳<br>ja/…/messages.po"]
+  translate --> compile["4 コンパイル<br>ja/…/messages.mo"]
+  compile --> run["5 実行<br>こんにちは Ada"]
+```
+
+**マーク → 抽出 → 翻訳 → コンパイル → 実行。** このサイトの他のページは
+すべて、この5ステップのいずれかを掘り下げたものです。
+
+## 次に読むページ { #where-next }
 
 - [t-stringを選ぶ理由](comparison.md) — この設計が何から守ってくれるのかを、
   `%(name)s`、`.format()`、`$`文字列と比較します。
 - [ガイド](guide.md) — 複数形、リクエストごとの言語、遅延文字列、それでも
   カタログが不正だったときに実行時に何が起こるかを説明します。
+- [実運用](workflow.md) — この同じループを、チームが毎週回し続ける形で
+  説明します。カタログの更新、CIゲート、翻訳プラットフォーム。
 - [抽出](extraction.md) — `pybabel`の完全なリファレンス。独自の関数名、
   CI向けのstrictモード、カタログを守る検証を説明します。
 

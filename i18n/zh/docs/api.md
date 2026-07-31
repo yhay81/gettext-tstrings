@@ -7,7 +7,7 @@ description: "gettext_tstrings 导出的全部名称：函数、Translator、上
 以下内容全部由 `gettext_tstrings` 导出，其他内容均不是公共 API。
 本页是签名参考；每个函数的完整示例请参阅[指南](guide.md)。
 
-## 翻译
+## 翻译 { #translating }
 
 每个函数都以位置参数接收 t-string，并接受两个关键字参数：`translations`
 （依次回退到上下文绑定和标准库全局函数）以及 `strict`
@@ -33,7 +33,7 @@ Translator(translations, strict=False)
 它可调用（`_(t"…")`），并提供 `gettext`、`ngettext`、`pgettext`、
 `npgettext` 以及 `tr` / `ntr` 别名。
 
-## 上下文绑定
+## 上下文绑定 { #context-binding }
 
 | 名称 | 用途 |
 | --- | --- |
@@ -43,7 +43,7 @@ Translator(translations, strict=False)
 
 绑定使用 `ContextVar`，因此按上下文隔离，并发时安全。
 
-## 延迟字符串
+## 延迟字符串 { #deferred-strings }
 
 | 名称 | 用途 |
 | --- | --- |
@@ -51,7 +51,7 @@ Translator(translations, strict=False)
 | `lazy_pgettext(context, template, /)` | 带上下文的形式。 |
 | `LazyString` | 两者的返回值。通过 `str()`、`format()` 和 f-string 渲染，可与渲染文本比较，并刻意设为不可哈希。 |
 
-## 底层 API
+## 底层 API { #lower-level }
 
 ### `compile_template(template, /) -> CompiledTemplate`
 
@@ -65,7 +65,7 @@ Translator(translations, strict=False)
 | `.placeholders` | 按首次出现顺序排列的占位符名称。 |
 | `.render(pattern)` | 验证并渲染一个 pattern；不匹配时**始终抛出异常**。 |
 
-## 类型和错误
+## 类型和错误 { #types-and-errors }
 
 ### `Translations`
 
@@ -90,7 +90,7 @@ class Translations(Protocol):
 | `InvalidTemplateError` | **源** t-string 违反约定，例如复杂插值，或以不同格式重复同一名称。 |
 | `InvalidTranslationError` | **翻译**违反约定。默认 lenient 模式会记录日志并渲染源文本。 |
 
-## 提取 entry point
+## 提取 entry point { #extraction-entry-points }
 
 安装时自动注册；通过名称引用，而不是 import。
 
@@ -99,13 +99,11 @@ class Translations(Protocol):
 | `babel.extractors` | `gettext_tstrings` | `babel.cfg` 中的 `method` |
 | `babel.checkers` | `gettext_tstrings` | `pybabel compile`（自动） |
 
-## 性能
+## 性能 { #performance }
 
-在 Apple Silicon 上，单字段消息约为 0.4 µs，其中包括构造 t-string 本身——约为普通
-`gettext(...).format(...)` 的 2.5 倍。这一差异换来了占位符验证和安全渲染。
-
-两个缓存都有上限，且绝不保留插值后的值。即使翻译重复占位符，每个不同的值在一次
-渲染中也最多格式化一次。可在自己的目标环境运行基准：
+完整说明——缓存了什么、缓存以什么为键，以及实测数字——见
+[热路径](internals.md#the-hot-path)。简而言之：验证会被缓存但绝不跳过，整个渲染
+只需不到一微秒。可在自己的目标环境运行基准：
 
 ```console
 uv run python benchmarks/runtime.py

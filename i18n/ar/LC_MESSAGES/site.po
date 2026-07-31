@@ -28,6 +28,10 @@ msgid "Why t-strings"
 msgstr "لماذا t-string"
 
 #. gettext-tstrings
+msgid "Background"
+msgstr "الخلفية"
+
+#. gettext-tstrings
 msgctxt "navigation"
 msgid "Guide"
 msgstr "الدليل"
@@ -35,6 +39,14 @@ msgstr "الدليل"
 #. gettext-tstrings
 msgid "Extraction"
 msgstr "الاستخراج"
+
+#. gettext-tstrings
+msgid "In production"
+msgstr "في الإنتاج"
+
+#. gettext-tstrings
+msgid "How it works"
+msgstr "كيف تعمل"
 
 #. gettext-tstrings
 msgid "Specification"
@@ -67,3 +79,15 @@ msgstr[2] "تم إنشاء صفحتين مترجمتين ({n})"
 msgstr[3] "تم إنشاء {n} صفحات مترجمة"
 msgstr[4] "تم إنشاء {n} صفحة مترجمة"
 msgstr[5] "تم إنشاء {n} صفحة مترجمة"
+
+#. gettext-tstrings
+#, python-brace-format
+msgctxt "build report"
+msgid "Rendered {n} page in {seconds}s"
+msgid_plural "Rendered {n} pages in {seconds}s"
+msgstr[0] "تم عرض {n} صفحة في {seconds}ث"
+msgstr[1] "تم عرض صفحة واحدة ({n}) في {seconds}ث"
+msgstr[2] "تم عرض صفحتين ({n}) في {seconds}ث"
+msgstr[3] "تم عرض {n} صفحات في {seconds}ث"
+msgstr[4] "تم عرض {n} صفحة في {seconds}ث"
+msgstr[5] "تم عرض {n} صفحة في {seconds}ث"

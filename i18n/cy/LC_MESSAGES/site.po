@@ -1,0 +1,90 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: gettext-tstrings documentation\n"
+"PO-Revision-Date: 2026-07-31 00:00+0900\n"
+"Last-Translator: gettext-tstrings contributors\n"
+"Language-Team: Welsh\n"
+"Language: cy\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=5; plural=(n==1 ? 1 : n==2 ? 2 : n==3 ? 3 : n==6 ? 4 : 0);\n"
+
+#. gettext-tstrings
+msgid "Safe gettext and Babel integration for Python t-strings."
+msgstr "Integreiddio diogel â gettext a Babel ar gyfer llinynnau-t Python."
+
+#. gettext-tstrings
+msgid "Home"
+msgstr "Hafan"
+
+#. gettext-tstrings
+msgid "Tutorial"
+msgstr "Tiwtorial"
+
+#. gettext-tstrings
+msgid "Why t-strings"
+msgstr "Pam llinynnau-t"
+
+#. gettext-tstrings
+msgid "Background"
+msgstr "Cefndir"
+
+#. gettext-tstrings
+msgctxt "navigation"
+msgid "Guide"
+msgstr "Canllaw"
+
+#. gettext-tstrings
+msgid "Extraction"
+msgstr "Echdynnu"
+
+#. gettext-tstrings
+msgid "In production"
+msgstr "Mewn cynhyrchu"
+
+#. gettext-tstrings
+msgid "How it works"
+msgstr "Sut mae'n gweithio"
+
+#. gettext-tstrings
+msgid "Specification"
+msgstr "Manyleb"
+
+#. gettext-tstrings
+msgid "API"
+msgstr "API"
+
+#. gettext-tstrings
+msgid "Switch to dark mode"
+msgstr "Newid i'r modd tywyll"
+
+#. gettext-tstrings
+msgid "Switch to light mode"
+msgstr "Newid i'r modd golau"
+
+#. gettext-tstrings
+#, python-brace-format
+msgid "Copyright © 2026 {author} · MIT License"
+msgstr "Hawlfraint © 2026 {author} · Trwydded MIT"
+
+#. gettext-tstrings
+#, python-brace-format
+msgid "Built {n} localized page"
+msgid_plural "Built {n} localized pages"
+msgstr[0] "Adeiladwyd {n} tudalen wedi'i lleoleiddio"
+msgstr[1] "Adeiladwyd {n} dudalen wedi'i lleoleiddio"
+msgstr[2] "Adeiladwyd {n} dudalen wedi'i lleoleiddio"
+msgstr[3] "Adeiladwyd {n} tudalen wedi'i lleoleiddio"
+msgstr[4] "Adeiladwyd {n} thudalen wedi'i lleoleiddio"
+
+#. gettext-tstrings
+#, python-brace-format
+msgctxt "build report"
+msgid "Rendered {n} page in {seconds}s"
+msgid_plural "Rendered {n} pages in {seconds}s"
+msgstr[0] "Rendrwyd {n} tudalen mewn {seconds}s"
+msgstr[1] "Rendrwyd {n} dudalen mewn {seconds}s"
+msgstr[2] "Rendrwyd {n} dudalen mewn {seconds}s"
+msgstr[3] "Rendrwyd {n} tudalen mewn {seconds}s"
+msgstr[4] "Rendrwyd {n} thudalen mewn {seconds}s"

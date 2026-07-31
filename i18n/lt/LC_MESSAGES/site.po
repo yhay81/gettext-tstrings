@@ -1,0 +1,86 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: gettext-tstrings documentation\n"
+"PO-Revision-Date: 2026-07-31 00:00+0900\n"
+"Last-Translator: gettext-tstrings contributors\n"
+"Language-Team: Lithuanian\n"
+"Language: lt\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+
+#. gettext-tstrings
+msgid "Safe gettext and Babel integration for Python t-strings."
+msgstr "Saugi gettext ir Babel integracija Python t-eilutėms."
+
+#. gettext-tstrings
+msgid "Home"
+msgstr "Pradžia"
+
+#. gettext-tstrings
+msgid "Tutorial"
+msgstr "Pamoka"
+
+#. gettext-tstrings
+msgid "Why t-strings"
+msgstr "Kodėl t-eilutės"
+
+#. gettext-tstrings
+msgid "Background"
+msgstr "Ištakos"
+
+#. gettext-tstrings
+msgctxt "navigation"
+msgid "Guide"
+msgstr "Vadovas"
+
+#. gettext-tstrings
+msgid "Extraction"
+msgstr "Ištraukimas"
+
+#. gettext-tstrings
+msgid "In production"
+msgstr "Realioje aplinkoje"
+
+#. gettext-tstrings
+msgid "How it works"
+msgstr "Kaip tai veikia"
+
+#. gettext-tstrings
+msgid "Specification"
+msgstr "Specifikacija"
+
+#. gettext-tstrings
+msgid "API"
+msgstr "API"
+
+#. gettext-tstrings
+msgid "Switch to dark mode"
+msgstr "Perjungti į tamsųjį režimą"
+
+#. gettext-tstrings
+msgid "Switch to light mode"
+msgstr "Perjungti į šviesųjį režimą"
+
+#. gettext-tstrings
+#, python-brace-format
+msgid "Copyright © 2026 {author} · MIT License"
+msgstr "Autorių teisės © 2026 {author} · MIT licencija"
+
+#. gettext-tstrings
+#, python-brace-format
+msgid "Built {n} localized page"
+msgid_plural "Built {n} localized pages"
+msgstr[0] "Sukurtas {n} lokalizuotas puslapis"
+msgstr[1] "Sukurti {n} lokalizuoti puslapiai"
+msgstr[2] "Sukurta {n} lokalizuotų puslapių"
+
+#. gettext-tstrings
+#, python-brace-format
+msgctxt "build report"
+msgid "Rendered {n} page in {seconds}s"
+msgid_plural "Rendered {n} pages in {seconds}s"
+msgstr[0] "Atvaizduotas {n} puslapis per {seconds} s"
+msgstr[1] "Atvaizduoti {n} puslapiai per {seconds} s"
+msgstr[2] "Atvaizduota {n} puslapių per {seconds} s"

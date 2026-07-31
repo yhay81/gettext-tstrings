@@ -1,0 +1,88 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: gettext-tstrings documentation\n"
+"PO-Revision-Date: 2026-07-31 00:00+0900\n"
+"Last-Translator: gettext-tstrings contributors\n"
+"Language-Team: Slovenian\n"
+"Language: sl\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=4; plural=(n%100==1 ? 0 : n%100==2 ? 1 : n%100==3 || n%100==4 ? 2 : 3);\n"
+
+#. gettext-tstrings
+msgid "Safe gettext and Babel integration for Python t-strings."
+msgstr "Varna integracija gettexta in Babela za pythonske t-nize."
+
+#. gettext-tstrings
+msgid "Home"
+msgstr "Domov"
+
+#. gettext-tstrings
+msgid "Tutorial"
+msgstr "Vadnica"
+
+#. gettext-tstrings
+msgid "Why t-strings"
+msgstr "Zakaj t-nizi"
+
+#. gettext-tstrings
+msgid "Background"
+msgstr "Ozadje"
+
+#. gettext-tstrings
+msgctxt "navigation"
+msgid "Guide"
+msgstr "Vodnik"
+
+#. gettext-tstrings
+msgid "Extraction"
+msgstr "Ekstrakcija"
+
+#. gettext-tstrings
+msgid "In production"
+msgstr "V produkciji"
+
+#. gettext-tstrings
+msgid "How it works"
+msgstr "Kako deluje"
+
+#. gettext-tstrings
+msgid "Specification"
+msgstr "Specifikacija"
+
+#. gettext-tstrings
+msgid "API"
+msgstr "API"
+
+#. gettext-tstrings
+msgid "Switch to dark mode"
+msgstr "Preklopi na temni način"
+
+#. gettext-tstrings
+msgid "Switch to light mode"
+msgstr "Preklopi na svetli način"
+
+#. gettext-tstrings
+#, python-brace-format
+msgid "Copyright © 2026 {author} · MIT License"
+msgstr "Copyright © 2026 {author} · Licenca MIT"
+
+#. gettext-tstrings
+#, python-brace-format
+msgid "Built {n} localized page"
+msgid_plural "Built {n} localized pages"
+msgstr[0] "Zgrajena {n} lokalizirana stran"
+msgstr[1] "Zgrajeni {n} lokalizirani strani"
+msgstr[2] "Zgrajene {n} lokalizirane strani"
+msgstr[3] "Zgrajenih {n} lokaliziranih strani"
+
+#. gettext-tstrings
+#, python-brace-format
+msgctxt "build report"
+msgid "Rendered {n} page in {seconds}s"
+msgid_plural "Rendered {n} pages in {seconds}s"
+msgstr[0] "Izrisana {n} stran v {seconds} s"
+msgstr[1] "Izrisani {n} strani v {seconds} s"
+msgstr[2] "Izrisane {n} strani v {seconds} s"
+msgstr[3] "Izrisanih {n} strani v {seconds} s"

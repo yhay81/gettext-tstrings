@@ -1,0 +1,82 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: gettext-tstrings documentation\n"
+"PO-Revision-Date: 2026-07-31 00:00+0900\n"
+"Last-Translator: gettext-tstrings contributors\n"
+"Language-Team: Thai\n"
+"Language: th\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#. gettext-tstrings
+msgid "Safe gettext and Babel integration for Python t-strings."
+msgstr "การผสาน gettext และ Babel อย่างปลอดภัยสำหรับ t-string ของ Python"
+
+#. gettext-tstrings
+msgid "Home"
+msgstr "หน้าแรก"
+
+#. gettext-tstrings
+msgid "Tutorial"
+msgstr "บทแนะนำ"
+
+#. gettext-tstrings
+msgid "Why t-strings"
+msgstr "ทำไมต้อง t-string"
+
+#. gettext-tstrings
+msgid "Background"
+msgstr "ความเป็นมา"
+
+#. gettext-tstrings
+msgctxt "navigation"
+msgid "Guide"
+msgstr "คู่มือ"
+
+#. gettext-tstrings
+msgid "Extraction"
+msgstr "การสกัดข้อความ"
+
+#. gettext-tstrings
+msgid "In production"
+msgstr "การใช้งานจริง"
+
+#. gettext-tstrings
+msgid "How it works"
+msgstr "หลักการทำงาน"
+
+#. gettext-tstrings
+msgid "Specification"
+msgstr "ข้อกำหนด"
+
+#. gettext-tstrings
+msgid "API"
+msgstr "API"
+
+#. gettext-tstrings
+msgid "Switch to dark mode"
+msgstr "สลับเป็นโหมดมืด"
+
+#. gettext-tstrings
+msgid "Switch to light mode"
+msgstr "สลับเป็นโหมดสว่าง"
+
+#. gettext-tstrings
+#, python-brace-format
+msgid "Copyright © 2026 {author} · MIT License"
+msgstr "สงวนลิขสิทธิ์ © 2026 {author} · สัญญาอนุญาต MIT"
+
+#. gettext-tstrings
+#, python-brace-format
+msgid "Built {n} localized page"
+msgid_plural "Built {n} localized pages"
+msgstr[0] "สร้างหน้าที่แปลเป็นภาษาท้องถิ่นแล้ว {n} หน้า"
+
+#. gettext-tstrings
+#, python-brace-format
+msgctxt "build report"
+msgid "Rendered {n} page in {seconds}s"
+msgid_plural "Rendered {n} pages in {seconds}s"
+msgstr[0] "เรนเดอร์ {n} หน้าใน {seconds}s"

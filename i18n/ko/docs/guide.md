@@ -8,9 +8,11 @@ description: "런타임 API: 카탈로그 바인딩, 요청별 언어, 지연 �
 코드*가 이 라이브러리로 하는 모든 일을 다룹니다. 표시, 추출, 번역,
 컴파일, 실행이라는 전체 루프를 아직 본 적이 없다면
 [튜토리얼](tutorial.md)이 5분 만에 한 바퀴 안내합니다. 카탈로그 생성과
-검증은 [추출](extraction.md)에서 다룹니다.
+검증은 [추출](extraction.md)에서 다루며, 팀이 루프를 계속 돌리는 방법 —
+업데이트 주기, CI, 번역 플랫폼 — 은 [프로덕션에서](workflow.md)가
+다룹니다.
 
-## 카탈로그 바인딩
+## 카탈로그 바인딩 { #binding-a-catalog }
 
 권장 방식은 gettext의 객체 사용법과 같습니다. 표준 번역 객체를 한 번
 바인딩하고 호출 가능한 프로세서를 `_`로 사용합니다.
@@ -46,7 +48,7 @@ npgettext("inbox", t"One message", t"{n} messages", n, translations=translations
 
 `tr`, `ntr`은 각각 `gettext`, `ngettext`의 정확한 별칭입니다.
 
-## 요청별 언어
+## 요청별 언어 { #per-request-language }
 
 웹 프레임워크는 요청마다 언어를 고릅니다. 번역을 현재 컨텍스트에
 바인딩하면 동시 요청에서도 모든 모듈 호출이 각 요청의 언어를 사용합니다.
@@ -64,9 +66,11 @@ def handle(request):
 프레임워크가 생명주기를 관리한다면 `set_translations()`로 블록 없이
 바인딩하고 `get_translations()`로 읽습니다. 명시한 `translations=`가 항상
 우선합니다. 바인딩이 없으면 표준 라이브러리의 전역 gettext 함수가
-fallback입니다.
+fallback입니다. Flask와 ASGI 미들웨어의 실전 예제는
+[프로덕션에서](workflow.md#binding-a-language-at-runtime) 페이지에
+있습니다.
 
-## 지연 번역
+## 지연 번역 { #deferred-translation }
 
 t-string은 값을 즉시 캡처합니다. import 때 정의한 레이블, enum, 상수를
 실제 *사용 시점*의 활성 언어로 렌더링하려면 지연 문자열을 사용하세요.
@@ -130,7 +134,7 @@ gettext_tstrings.errors.InvalidTranslationError: translation does not match the
 source placeholders: {name} is missing; {nombre} is not in the source message
 ```
 
-## 오류 메시지 읽기
+## 오류 메시지 읽기 { #reading-a-failure-message }
 
 메시지는 눈에 보이는 플레이스홀더가 왜 유효하지 않은지도 설명합니다.
 
@@ -158,7 +162,7 @@ translation does not match the source placeholders: {name} is missing;
 그리스어 또는 키릴 문자로만 된 이름과 ASCII 이름의 충돌도 같은 방식으로
 처리합니다.
 
-## 카탈로그 없이 패턴 렌더링
+## 카탈로그 없이 패턴 렌더링 { #rendering-a-pattern-without-a-catalog }
 
 `compile_template`은 msgid와 바인딩된 값을 만들고 패턴을 렌더링합니다.
 
@@ -176,7 +180,7 @@ compiled.render("こんにちは {name}")  # "こんにちは Ada"
 `render`는 같은 규칙으로 검증하며 불일치하면 **항상 예외를 냅니다**.
 카탈로그 조회가 없으므로 fallback도 없습니다.
 
-## 보안과 범위
+## 보안과 범위 { #safety-and-scope }
 
 유효:
 

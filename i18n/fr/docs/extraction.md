@@ -16,7 +16,7 @@ L'extraction nécessite l'extra `babel` :
 python -m pip install "gettext-tstrings[babel]"
 ```
 
-## Workflow
+## Workflow { #the-workflow }
 
 Créez `babel.cfg` :
 
@@ -33,6 +33,12 @@ pybabel init -i locales/messages.pot -d locales -l ja
 pybabel compile -d locales
 ```
 
+`init` ne s'exécute qu'une fois par langue ; ensuite, `pybabel update`
+fusionne chaque modèle frais dans les catalogues existants. Ce cycle
+récurrent — et ce que ses entrées `fuzzy` signifient pour une release — est
+détaillé dans
+[En production](workflow.md#the-cycle-after-the-first-translation).
+
 L'extracteur traite aussi `_()`, `gettext()` et `ngettext()`. Un seul mapping
 couvre donc un code mixte, y compris `tr()`, `ntr()`, `lazy_gettext()` et
 `lazy_pgettext()`.
@@ -42,7 +48,7 @@ couvre donc un code mixte, y compris `tr()`, `ntr()`, `lazy_gettext()` et
     Passez `-c "Translators:"` pour collecter les commentaires destinés aux
     traducteurs, comme avec gettext ordinaire.
 
-## Noms de fonctions personnalisés
+## Noms de fonctions personnalisés { #registering-your-own-function-names }
 
 === "babel.cfg"
 
@@ -73,7 +79,7 @@ liste. Les options couvrent les six familles de fonctions gettext.
 
     Seul l'ordre d'arguments standard est pris en charge.
 
-## Robuste par défaut
+## Robuste par défaut { #robust-by-default }
 
 - Une t-string refusée est signalée puis ignorée.
 - Un fichier impossible à parser est ignoré de la même façon.
@@ -82,7 +88,7 @@ liste. Les options couvrent les six familles de fonctions gettext.
 Utilisez `strict = true` pour transformer ces avertissements en erreurs dans la
 CI.
 
-## Validation par le toolchain existant
+## Validation par le toolchain existant { #your-existing-toolchain-validates-these-catalogs }
 
 Babel ajoute un flag standard :
 
@@ -127,19 +133,18 @@ match the source placeholders: {n} is missing
 
 !!! danger "`pybabel compile` écrit quand même le `.mo`"
 
-    Le statut est `1`, mais le catalogue incorrect est tout de même compilé.
-    Une pipeline doit traiter ce statut comme une barrière.
-
-    ```yaml
-    - run: pybabel compile -d locales   # non-zero exit is the gate
-    ```
+    L'erreur ci-dessus est signalée, le statut de sortie est `1` — et le
+    catalogue cassé est tout de même compilé. Seul ce statut de sortie peut
+    empêcher une pipeline de le livrer ;
+    [Ce que la CI verrouille](workflow.md#what-ci-gates) montre l'étape de
+    build qui s'en charge.
 
 Les contrôles ne sont pas redondants : le checker fourni valide les accolades
 échappées et chaque forme plurielle séparément, là où msgfmt peut accepter le
 fichier. Des noms ASCII permettent à tous les outils de participer ; la
 bibliothèque accepte tout `str.isidentifier()`.
 
-## Templates et autres outils
+## Templates et autres outils { #templates-and-other-tools }
 
 Les t-strings sont de la syntaxe Python. Jinja2 (`{% trans %}`), Django et les
 autres templates conservent leurs extracteurs, tout en alimentant le même

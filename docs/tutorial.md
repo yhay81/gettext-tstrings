@@ -10,6 +10,9 @@ output it actually produces — so at each step you know whether you are on
 track.
 
 You need Python 3.14 or newer, because t-strings are new syntax in 3.14.
+Japanese is this page's example target, but nothing depends on that choice —
+substitute any language in step 4, where the locale code `ja` is the only
+thing that names it.
 
 ## 1. Install
 
@@ -125,30 +128,45 @@ source placeholders: {name} is missing; {nome} is not in the source message
 
 ## 5. Run it
 
-Point `app.py` at the compiled catalog:
+Point `app.py` at the compiled catalog. Click the markers to see what each
+line is doing:
 
 ```python
 import gettext
 
 from gettext_tstrings import Translator
 
-_ = Translator(gettext.translation("messages", localedir="locales", languages=["ja"]))
+_ = Translator(gettext.translation("messages", localedir="locales", languages=["ja"]))  # (1)!
 
 name = "Ada"
-print(_(t"Hello {name}"))
+print(_(t"Hello {name}"))  # (2)!
 ```
 
-`_` is the conventional gettext name for "translate this" — short because it
-appears on every user-facing string. It is the same function as `tr`, bound to
-one catalog.
+1. The standard library loads the compiled `.mo`, and `Translator` binds it
+   to a callable. `_` is the conventional gettext name for "translate this" —
+   short because it appears on every user-facing string. It is the same
+   function as `tr`, bound to one catalog.
+2. At the call: the t-string's text becomes the lookup key `Hello {name}`,
+   the catalog answers `こんにちは {name}`, the answer is checked against the
+   source placeholders, and only then is the value put in.
 
 ```console
 $ python app.py
 こんにちは Ada
 ```
 
-That is the whole loop: **mark → extract → translate → compile → run**.
-Everything else on this site is a refinement of one of those five steps.
+That is the whole loop, and it is worth seeing as one picture:
+
+```mermaid
+flowchart LR
+  mark["1–2 mark<br>t-strings in code"] --> extract["3 extract<br>messages.pot"]
+  extract --> translate["4 translate<br>ja/…/messages.po"]
+  translate --> compile["4 compile<br>ja/…/messages.mo"]
+  compile --> run["5 run<br>こんにちは Ada"]
+```
+
+**Mark → extract → translate → compile → run.** Everything else on this site
+is a refinement of one of those five steps.
 
 ## Where next
 
@@ -156,6 +174,8 @@ Everything else on this site is a refinement of one of those five steps.
   compared to `%(name)s`, `.format()`, and `$`-strings.
 - [Guide](guide.md) — plurals, per-request languages, deferred strings, and
   what happens at runtime when a catalog is wrong anyway.
+- [In production](workflow.md) — this same loop as a team runs it, week after
+  week: updating catalogs, CI gates, and translation platforms.
 - [Extraction](extraction.md) — the full `pybabel` reference: custom function
   names, strict CI mode, and the checks that guard your catalogs.
 

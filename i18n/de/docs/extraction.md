@@ -16,7 +16,7 @@ Für die Extraktion wird das `babel`-Extra benötigt:
 python -m pip install "gettext-tstrings[babel]"
 ```
 
-## Workflow
+## Workflow { #the-workflow }
 
 Erstelle `babel.cfg`:
 
@@ -33,6 +33,12 @@ pybabel init -i locales/messages.pot -d locales -l ja
 pybabel compile -d locales
 ```
 
+`init` läuft einmal pro Sprache; danach arbeitet `pybabel update` jede
+frische Vorlage in die vorhandenen Kataloge ein. Diesen wiederkehrenden
+Zyklus — und was seine `fuzzy`-Einträge für ein Release bedeuten — geht
+[Im Produktivbetrieb](workflow.md#the-cycle-after-the-first-translation)
+Schritt für Schritt durch.
+
 Der Extraktor verarbeitet auch `_()`, `gettext()` und `ngettext()`. Ein Mapping
 deckt daher gemischten Code einschließlich `tr()`, `ntr()`, `lazy_gettext()` und
 `lazy_pgettext()` ab.
@@ -42,7 +48,7 @@ deckt daher gemischten Code einschließlich `tr()`, `ntr()`, `lazy_gettext()` un
     Mit `-c "Translators:"` werden Hinweise für Übersetzende wie bei normalem
     gettext eingesammelt.
 
-## Eigene Funktionsnamen
+## Eigene Funktionsnamen { #registering-your-own-function-names }
 
 === "babel.cfg"
 
@@ -73,7 +79,7 @@ Listen an. Die Optionen decken alle sechs gettext-Funktionsfamilien ab.
 
     Nur die Standardreihenfolge der Argumente wird unterstützt.
 
-## Standardmäßig robust
+## Standardmäßig robust { #robust-by-default }
 
 - Eine abgelehnte t-string wird gemeldet und übersprungen.
 - Eine nicht parsbare Datei wird genauso isoliert.
@@ -81,7 +87,7 @@ Listen an. Die Optionen decken alle sechs gettext-Funktionsfamilien ab.
 
 Mit `strict = true` werden diese Warnungen in CI zu Fehlern.
 
-## Validierung mit vorhandenen Werkzeugen
+## Validierung mit vorhandenen Werkzeugen { #your-existing-toolchain-validates-these-catalogs }
 
 Babel fügt ein Standard-Flag hinzu:
 
@@ -127,19 +133,18 @@ match the source placeholders: {n} is missing
 
 !!! danger "`pybabel compile` schreibt die `.mo` trotzdem"
 
-    Der Exitstatus ist `1`, der ungültige Katalog wird jedoch kompiliert.
-    Eine Pipeline muss den Status als harte Schranke behandeln.
-
-    ```yaml
-    - run: pybabel compile -d locales   # non-zero exit is the gate
-    ```
+    Der Fehler oben wird gemeldet, der Exitstatus ist `1` — und der defekte
+    Katalog wird trotzdem kompiliert. Nur dieser Exitstatus kann eine
+    Pipeline davon abhalten, ihn auszuliefern;
+    [Was CI absichert](workflow.md#what-ci-gates) zeigt den Build-Schritt,
+    der das leistet.
 
 Die Prüfungen sind nicht redundant: Der mitgelieferte Checker validiert
 maskierte Klammern und jede Pluralform einzeln, auch wenn msgfmt die Datei
 akzeptiert. ASCII-Namen lassen alle Werkzeuge mitprüfen; die Bibliothek selbst
 akzeptiert jedes `str.isidentifier()`.
 
-## Templates und andere Werkzeuge
+## Templates und andere Werkzeuge { #templates-and-other-tools }
 
 t-strings sind Python-Syntax. Jinja2 (`{% trans %}`), Django und andere
 Templates behalten ihre eigenen Extraktoren und schreiben dennoch in denselben
