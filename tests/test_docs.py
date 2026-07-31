@@ -216,7 +216,17 @@ def _markdown_link_targets(page: Path) -> Counter[str]:
     return targets
 
 
-def test_markdown_link_targets_ignore_text_translation_and_wrapping(tmp_path: Path) -> None:
+def test_markdown_link_targets_read_real_links_and_survive_translation(tmp_path: Path) -> None:
+    """What the parity check counts, and what it must not count.
+
+    The fixture carries both halves at once. Inline links and reference
+    definitions are targets; a footnote, an image, an escaped bracket, a colon
+    in ordinary prose and an indented code line are not, and each of those is
+    something a translated page really contains. The two pages then differ in
+    every way a translation is allowed to differ — the text, and where a line
+    wraps, which a translator changes because the words changed length — and
+    still have to agree.
+    """
     english = tmp_path / "english.md"
     translated = tmp_path / "translated.md"
     english.write_text(
@@ -288,30 +298,6 @@ def test_the_documentation_quotes_each_message(
     # failure name the case rather than an index.
     assert translation and message
     assert _flatten(quoted) in _prose()
-
-
-def test_markdown_link_targets_include_inline_and_reference_definitions(tmp_path: Path) -> None:
-    page = tmp_path / "page.md"
-    page.write_text(
-        """[Guide](guide.md)
-[Again](guide.md "Guide title")
-  [external]: https://example.test/path
-   [spec]: <spec.md> "Spec title"
-[^note]: footnote.md
-![Alt text](image.png)
-\\[escaped](escaped.md)
-paragraph [not a definition]: prose.md
-    [code]: code.md""",
-        encoding="utf-8",
-    )
-
-    assert _markdown_link_targets(page) == Counter(
-        {
-            "guide.md": 2,
-            "https://example.test/path": 1,
-            "spec.md": 1,
-        },
-    )
 
 
 def test_every_python_block_parses() -> None:
