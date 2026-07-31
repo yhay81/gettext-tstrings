@@ -16,6 +16,7 @@ nav = [
   { "Guide" = "guide.md" },
   { "Extraction" = "extraction.md" },
   { "In production" = "workflow.md" },
+  { "Pitfalls" = "pitfalls.md" },
   { "How it works" = "internals.md" },
   { "Specification" = "spec.md" },
   { "API" = "api.md" },

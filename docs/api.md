@@ -49,8 +49,8 @@ The binding is a `ContextVar`, so it is per-context and safe under concurrency.
 
 | Name | Purpose |
 | --- | --- |
-| `lazy_gettext(template, /)` | Defer a translation to first use. |
-| `lazy_pgettext(context, template, /)` | The contextual form. |
+| `lazy_gettext(template, /, *, strict=False)` | Defer a translation to first use. |
+| `lazy_pgettext(context, template, /, *, strict=False)` | The contextual form. |
 | `LazyString` | What both return. Renders through `str()` and `format()`, compares equal to its text, and is deliberately unhashable. |
 
 ## Lower-level
