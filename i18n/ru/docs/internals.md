@@ -136,8 +136,11 @@ localized pages` — две английские ветви, — а издани
 | Японский | 1 | `ローカライズ済みページを{n}件ビルドしました` |
 | Турецкий | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` — дважды, одинаково: турецкие существительные остаются в единственном числе после числительного |
 | Итальянский | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` — причастие согласуется в роде и числе |
+| Латышский | 3 | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` — третья форма только для **нуля** |
 | Русский | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
 | Польский | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
+| Словенский | 4 | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` — вторая форма **двойственного числа**, ровно для двух |
+| Ирландский | 5 | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` — один, два, 3–6, 7–10 и остальные; основа чередуется, но *leathanach* начинается на `l`, а на этой букве ирландские мутации не пишутся, поэтому несколько форм совпадают |
 | Арабский | 6 | среди них `تم إنشاء صفحة مترجمة واحدة ({n})` ровно для одного и `تم إنشاء {n} صفحات مترجمة` для нескольких |
 
 Каждая строка — живая запись в `i18n/*/LC_MESSAGES/site.po` этого

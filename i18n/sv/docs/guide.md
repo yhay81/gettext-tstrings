@@ -100,6 +100,19 @@ lika med sin renderade text.
     ändras vid ett språkbyte och i tysthet korrumpera varje mängd eller
     ordbok som håller den. Anropa `str()` först om du behöver en nyckel.
 
+`strict` avgörs där meddelandet skrivs, inte där det renderas:
+
+```python
+SAVE = lazy_gettext(t"Save changes", strict=True)
+```
+
+En uppskjuten sträng renderas där den till slut används — inuti en mall, ett
+formulär, en loggrad — och den platsen vet sällan om detta är en testkörning
+eller produktion. Att skicka med `strict=True` vid definitionen är det som
+låter samma val mellan
+[högljutt i CI och överseende i produktion](#what-happens-when-a-catalog-is-wrong)
+gälla även för en sträng som inte renderas på sin anropsplats.
+
 Pluralformer beror på ett antal vid körning, så rendera dem ivrigt med
 `ngettext` där antalet är känt.
 

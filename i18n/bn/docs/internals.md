@@ -129,8 +129,11 @@ msgid           'Total: {amount}'
 | জাপানি | 1 | `ローカライズ済みページを{n}件ビルドしました` |
 | তুর্কি | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` — দুবার, হুবহু একই: সংখ্যার পরে তুর্কি বিশেষ্য একবচনেই থাকে |
 | ইতালীয় | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` — কৃদন্তটি লিঙ্গ ও বচনে মেলে |
+| লাতভীয় | 3 | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` — তৃতীয় রূপটি **কেবল শূন্যের জন্য** |
 | রুশ | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
 | পোলিশ | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
+| স্লোভেনীয় | 4 | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` — দ্বিতীয়টি একটি **দ্বিবচন**, ঠিক দুইয়ের জন্য |
+| আইরিশ | 5 | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` — এক, দুই, ৩–৬, ৭–১০, আর বাকিটা; ধাতুটি বদলায়, কিন্তু *leathanach* শুরু হয় `l` দিয়ে, যার উপর আইরিশের কোনও বিকারই লেখা হয় না, তাই কয়েকটি রূপ মিলে যায় |
 | আরবি | 6 | তাদের মধ্যে ঠিক একটির জন্য `تم إنشاء صفحة مترجمة واحدة ({n})` আর কয়েকটির জন্য `تم إنشاء {n} صفحات مترجمة` |
 
 প্রতিটি সারিই এই রিপোজিটরির `i18n/*/LC_MESSAGES/site.po`-তে একটি জীবন্ত

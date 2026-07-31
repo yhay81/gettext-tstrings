@@ -44,6 +44,10 @@ msgid "In production"
 msgstr "Στην παραγωγή"
 
 #. gettext-tstrings
+msgid "Pitfalls"
+msgstr "Παγίδες"
+
+#. gettext-tstrings
 msgid "How it works"
 msgstr "Πώς λειτουργεί"
 

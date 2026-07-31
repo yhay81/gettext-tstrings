@@ -99,6 +99,19 @@ compara como igual a su texto renderizado.
     cambiar de idioma, corrompería silenciosamente cualquier set o dict que lo
     contuviera. Llama primero a `str()` si necesitas una clave.
 
+`strict` se decide donde se escribe el mensaje, no donde se renderiza:
+
+```python
+SAVE = lazy_gettext(t"Save changes", strict=True)
+```
+
+Una cadena diferida se renderiza allí donde acaba usándose —dentro de una
+plantilla, un formulario o una línea de log— y ese lugar rara vez sabe si se
+trata de una ejecución de pruebas o de producción. Pasar `strict=True` en la
+definición es lo que permite aplicar la misma elección
+[estricta en CI, permisiva en producción](#what-happens-when-a-catalog-is-wrong)
+a una cadena que no se renderiza en su punto de llamada.
+
 Las formas plurales dependen de una cantidad en tiempo de ejecución, así que se
 renderizan inmediatamente con `ngettext` donde se conoce esa cantidad.
 

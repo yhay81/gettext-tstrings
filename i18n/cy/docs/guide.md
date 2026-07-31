@@ -99,6 +99,20 @@ cymharu'n gyfartal â'i destun wedi'i rendro.
     hash yn newid ar draws newid iaith ac yn llygru'n dawel unrhyw set neu
     ddict sy'n ei ddal. Galwch `str()` yn gyntaf os oes angen allwedd arnoch.
 
+Caiff `strict` ei benderfynu lle y caiff y neges ei hysgrifennu, nid lle y mae'n
+rendro:
+
+```python
+SAVE = lazy_gettext(t"Save changes", strict=True)
+```
+
+Mae llinyn gohiriedig yn rendro lle bynnag y caiff ei ddefnyddio yn y pen draw —
+y tu mewn i dempled, i ffurflen, i linell log — ac anaml y bydd y lle hwnnw'n
+gwybod ai rhediad prawf ai cynhyrchu yw hwn. Pasio `strict=True` wrth y
+diffiniad yw'r hyn sy'n gadael i'r un dewis
+[uchel yn CI, goddefgar mewn cynhyrchu](#what-happens-when-a-catalog-is-wrong)
+fod yn berthnasol i linyn nad yw'n cael ei rendro wrth ei safle galw.
+
 Mae ffurfiau lluosog yn dibynnu ar gyfrif adeg rhedeg, felly rendrwch y rheini'n
 awchus gydag `ngettext` lle gwyddys y cyfrif.
 

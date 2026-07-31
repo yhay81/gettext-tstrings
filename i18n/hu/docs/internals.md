@@ -137,8 +137,11 @@ számú üzenetet — két angol ágat —, a webhely kiadásai pedig ezt az egy
 | japán | 1 | `ローカライズ済みページを{n}件ビルドしました` |
 | török | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` — kétszer, azonosan: a török főnevek számnév után egyes számban maradnak |
 | olasz | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` — a melléknévi igenév nemben és számban egyeztetve |
+| lett | 3 | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` — a harmadik alak **kizárólag a nullára** való |
 | orosz | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
 | lengyel | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
+| szlovén | 4 | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` — a második **kettes szám**, pontosan kettőre |
+| ír | 5 | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` — egy, kettő, 3–6, 7–10 és a többi; a szótő váltakozik, de a *leathanach* `l`-lel kezdődik, amelyre az ír nyelv egyik mutációt sem írja ki, így több alak egybeesik |
 | arab | 6 | köztük `تم إنشاء صفحة مترجمة واحدة ({n})` pontosan egyre és `تم إنشاء {n} صفحات مترجمة` néhányra |
 
 Minden sor élő bejegyzés ennek a tárolónak az `i18n/*/LC_MESSAGES/site.po`

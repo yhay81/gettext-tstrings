@@ -44,6 +44,10 @@ msgid "In production"
 msgstr "프로덕션에서"
 
 #. gettext-tstrings
+msgid "Pitfalls"
+msgstr "함정"
+
+#. gettext-tstrings
 msgid "How it works"
 msgstr "동작 원리"
 

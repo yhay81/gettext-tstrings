@@ -131,8 +131,11 @@ vienos iki šešių formų:
 | Japonų | 1 | `ローカライズ済みページを{n}件ビルドしました` |
 | Turkų | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` — du kartus, identiškai: turkiški daiktavardžiai po skaitvardžio lieka vienaskaitos |
 | Italų | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` — dalyvis derinamas gimine ir skaičiumi |
+| Latvių | 3 | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` — trečioji forma skirta **vien tik nuliui** |
 | Rusų | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
 | Lenkų | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
+| Slovėnų | 4 | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` — antroji yra **dviskaita**, lygiai dviem |
+| Airių | 5 | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` — vienam, dviem, 3–6, 7–10 ir likusiems; kamienas kaitaliojasi, bet *leathanach* prasideda `l`, kurios jokia airiška mutacija nerašo, tad kelios formos sutampa |
 | Arabų | 6 | tarp jų `تم إنشاء صفحة مترجمة واحدة ({n})` lygiai vienam ir `تم إنشاء {n} صفحات مترجمة` keliems |
 
 Kiekviena eilutė yra gyvas įrašas šios saugyklos

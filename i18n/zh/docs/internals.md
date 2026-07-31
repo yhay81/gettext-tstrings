@@ -111,8 +111,11 @@ msgid           'Total: {amount}'
 | 日语 | 1 | `ローカライズ済みページを{n}件ビルドしました` |
 | 土耳其语 | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` ——两次、完全相同：土耳其语名词在数词之后保持单数 |
 | 意大利语 | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` ——分词随性与数一致变化 |
+| 拉脱维亚语 | 3 | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` ——第三种形式**专用于零** |
 | 俄语 | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
 | 波兰语 | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
+| 斯洛文尼亚语 | 4 | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` ——第二种是**双数**，恰好用于二 |
+| 爱尔兰语 | 5 | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` ——分别对应一、二、3–6、7–10 以及其余；词干会交替，但 *leathanach* 以 `l` 开头，而爱尔兰语的任何辅音变化都不在 `l` 上书写，因此有几种形式彼此重合 |
 | 阿拉伯语 | 6 | 其中包括表示恰好一个的 `تم إنشاء صفحة مترجمة واحدة ({n})` 和表示少数几个的 `تم إنشاء {n} صفحات مترجمة` |
 
 每一行都是本仓库 `i18n/*/LC_MESSAGES/site.po` 中的真实条目，由

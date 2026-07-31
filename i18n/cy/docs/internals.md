@@ -136,8 +136,11 @@ unrhyw le rhwng un ffurf a chwech:
 | Japaneg | 1 | `ローカライズ済みページを{n}件ビルドしました` |
 | Twrceg | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` — ddwywaith, yr un fath: mae enwau Twrceg yn aros yn unigol ar ôl rhifolyn |
 | Eidaleg | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` — mae'r rhangymeriad yn cytuno o ran cenedl a rhif |
+| Latfieg | 3 | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` — ar gyfer **sero'n unig** y mae'r drydedd ffurf |
 | Rwseg | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
 | Pwyleg | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
+| Slofeneg | 4 | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` — **deuol** yw'r ail, ar gyfer union ddau |
+| Gwyddeleg | 5 | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` — un, dau, 3–6, 7–10, a'r gweddill; mae'r bôn yn amrywio ond mae *leathanach* yn dechrau ag `l`, nad yw'r un treiglad Gwyddeleg yn ei ysgrifennu, felly mae sawl ffurf yn cyd-daro |
 | Arabeg | 6 | yn eu plith `تم إنشاء صفحة مترجمة واحدة ({n})` ar gyfer union un a `تم إنشاء {n} صفحات مترجمة` ar gyfer ychydig |
 
 Mae pob rhes yn gofnod byw yn `i18n/*/LC_MESSAGES/site.po` y storfa hon, wedi'i

@@ -44,6 +44,10 @@ msgid "In production"
 msgstr "در محیط عملیاتی"
 
 #. gettext-tstrings
+msgid "Pitfalls"
+msgstr "دام‌ها"
+
+#. gettext-tstrings
 msgid "How it works"
 msgstr "چگونه کار می‌کند"
 

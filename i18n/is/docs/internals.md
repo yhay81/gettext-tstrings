@@ -1,22 +1,23 @@
 ---
-description: "From PEP 750's template object to the rendered string: msgid derivation, translation validation, rendering, diagnostics, and the caches that make the safety cheap."
+description: "Frá sniðmátshlutnum í PEP 750 að birta strengnum: leiðsla msgid-a, athugun þýðinga, birting, greiningarskilaboð og skyndiminnin sem gera öryggið ódýrt."
 ---
 
-# How it works
+# Hvernig þetta virkar
 
-Nothing on this page is required to use the library — the [tutorial](tutorial.md)
-and [guide](guide.md) cover that. This page rebuilds the library from first
-principles instead: what a t-string actually is, how a msgid falls out of it,
-what makes a translation valid, and how the implementation makes all that
-checking cost tenths of a microsecond. Read it if you are curious, if you want
-to contribute, or if you plan to [implement the convention yourself](#reimplementing-it).
+Ekkert á þessari síðu er nauðsynlegt til að nota safnið —
+[kennsluefnið](tutorial.md) og [handbókin](guide.md) sjá um það. Þessi síða
+byggir safnið þess í stað upp á nýtt frá grunnreglum: hvað t-strengur er í
+raun og veru, hvernig msgid dettur út úr honum, hvað gerir þýðingu gilda, og
+hvernig útfærslan lætur alla þá athugun kosta tíundu hluta úr míkrósekúndu.
+Lestu hana ef þú ert forvitinn, ef þig langar að leggja til, eða ef þú
+hyggst [útfæra venjuna sjálfur](#reimplementing-it).
 
-## What a t-string actually is { #what-a-t-string-actually-is }
+## Hvað t-strengur er í raun og veru { #what-a-t-string-actually-is }
 
-An f-string produces a `str`, and produces it immediately — by the time any
-function receives it, the value has been interpolated and the sentence is
-sealed. A t-string ([PEP 750]) has the same syntax and the same eager
-evaluation of its expressions, but produces a different type:
+f-strengur framleiðir `str`, og framleiðir hann samstundis — um leið og
+eitthvert fall tekur við honum er búið að skeyta gildinu inn og setningin er
+innsigluð. t-strengur ([PEP 750]) hefur sömu málskipan og reiknar segðir
+sínar jafn snemma, en framleiðir aðra tegund:
 
 ```pycon
 >>> name = "Ada"
@@ -26,8 +27,8 @@ evaluation of its expressions, but produces a different type:
 Template(strings=('Hello ', '!'), interpolations=(Interpolation('Ada', 'name', None, ''),))
 ```
 
-That `Template` object keeps the parts a catalog pipeline needs, still
-separated:
+Þessi `Template`-hlutur heldur þeim hlutum sem þýðingaskrárkeðja þarf, enn
+aðskildum:
 
 ```pycon
 >>> template = t"Total: {amount:,.2f}"
@@ -41,25 +42,26 @@ separated:
 ',.2f'
 ```
 
-- `strings` — the literal text around the interpolations, in order.
-- For each interpolation: the **expression** as source text (`'amount'`), its
-  evaluated **value** (`1234.5`), and any **conversion** (`!r`) and
-  **format spec** (`,.2f`) — carried separately instead of applied.
+- `strings` — fasti textinn kringum innskeytingarnar, í röð.
+- Fyrir hverja innskeytingu: **segðin** sem frumtexti (`'amount'`), útreiknað
+  **gildi** hennar (`1234.5`), og hver sú **umbreyting** (`!r`) og
+  **sniðlýsing** (`,.2f`) sem er til staðar — borin með fremur en beitt.
 
-Everything this library does is a disciplined consumption of that structure.
-The language already made the one separation i18n needs — static text apart
-from values — so the library never parses your source code and never guesses
-where a value sits inside a sentence. What remains is three decisions: how the
-structure becomes a catalog key, what a translation of that key may say, and
-how the two render back together.
+Allt sem þetta safn gerir er öguð neysla þeirrar byggingar. Málið hafði þegar
+gert þann eina aðskilnað sem i18n þarf — fastan texta frá gildum — svo að
+safnið þáttar aldrei frumkóðann þinn og giskar aldrei á hvar gildi situr inni
+í setningu. Eftir standa þrjár ákvarðanir: hvernig byggingin verður að lykli
+þýðingaskrár, hvað þýðing á þeim lykli má segja, og hvernig þau tvö birtast
+saman aftur.
 
-## From template to msgid { #from-template-to-msgid }
+## Frá sniðmáti að msgid { #from-template-to-msgid }
 
-A msgid — the key a catalog is indexed by — is derived from the template's
-*static* parts only. Walk `strings` and `interpolations` in source order;
-brace-escape each literal segment (`{` becomes `{{`); for each interpolation,
-emit one `{name}` token, where `name` is the expression text with surrounding
-whitespace stripped. From `t"Total: {amount:,.2f}"`:
+Msgid — lykillinn sem þýðingaskrá er skrásett eftir — er leitt eingöngu af
+*föstu* hlutum sniðmátsins. Gakktu gegnum `strings` og `interpolations` í röð
+frumtextans; escape-ritaðu slaufusviga í hverjum föstum bút (`{` verður
+`{{`); gefðu út eitt `{name}`-tákn fyrir hverja innskeytingu, þar sem `name`
+er texti segðarinnar með bilum í kring skorin af. Út frá
+`t"Total: {amount:,.2f}"`:
 
 ```text
 strings         ('Total: ', '')
@@ -67,182 +69,191 @@ interpolations  expression 'amount'   conversion None   format_spec ',.2f'
 msgid           'Total: {amount}'
 ```
 
-Each part of that rule has a reason:
+Hver hluti þeirrar reglu á sér ástæðu:
 
-- **The expression must be a plain name** — `str.isidentifier()` is true and
-  it is not a Python keyword. `t"Hello {user.name}"` is rejected at the call
-  site. A msgid is a *key*: it has to come out identical on every run and
-  every extraction, and it is read by translators, so the placeholder must be
-  a stable, meaningful word — not a code fragment that invites the catalog to
-  become an expression language.
-- **The conversion and format spec never enter the msgid.** Translators
-  should not have to read `:,.2f`, and no translation should be able to
-  change it. The corollary is worth knowing: tightening `:,.2f` to `:,.0f`
-  in your code changes no msgid, so it invalidates no translation in any
-  language. The catalog key tracks *what the sentence says*, not how the
-  value is formatted.
-- **A repeated name must repeat its formatting exactly.**
-  `t"{x:.2f} vs {x:.3f}"` is rejected, because both occurrences collapse into
-  the same `{x}` token and the msgid could no longer say which formatting a
-  render should use.
-- **The empty msgid is never looked up**, because gettext reserves it for the
-  catalog's own metadata header. `t""` renders as `""` without touching the
-  catalog.
+- **Segðin verður að vera bert nafn** — `str.isidentifier()` er satt og það
+  er ekki lykilorð í Python. `t"Hello {user.name}"` er hafnað á kallstaðnum.
+  Msgid er *lykill*: hann verður að koma eins út í hverri keyrslu og hverjum
+  útdrætti, og þýðendur lesa hann, svo staðgengillinn verður að vera stöðugt,
+  merkingarbært orð — ekki kóðabútur sem býður þýðingaskránni að verða að
+  segðamáli.
+- **Umbreytingin og sniðlýsingin komast aldrei inn í msgid-ið.** Þýðendur
+  eiga ekki að þurfa að lesa `:,.2f`, og engin þýðing á að geta breytt því.
+  Fylgisetningin er þess virði að vita: að herða `:,.2f` í `:,.0f` í kóðanum
+  þínum breytir engu msgid-i, svo það ógildir enga þýðingu á neinu tungumáli.
+  Lykill þýðingaskrárinnar fylgir *því sem setningin segir*, ekki því hvernig
+  gildið er sniðið.
+- **Endurtekið nafn verður að endurtaka snið sitt nákvæmlega.**
+  `t"{x:.2f} vs {x:.3f}"` er hafnað, því bæði tilvikin falla saman í sama
+  `{x}`-táknið og msgid-ið gæti ekki lengur sagt hvaða snið birting ætti að
+  nota.
+- **Tóma msgid-ið er aldrei flett upp**, því gettext tekur það frá fyrir
+  lýsigagnahaus þýðingaskrárinnar sjálfrar. `t""` birtist sem `""` án þess að
+  snerta þýðingaskrána.
 
-The full rule set, including edge cases this page skips, is
+Allt reglusafnið, þar með talin jaðartilvik sem þessi síða sleppir, er
 [SPEC §2](https://github.com/yhay81/gettext-tstrings/blob/main/SPEC.md).
 
-## What a translation may say { #what-a-translation-may-say }
+## Hvað þýðing má segja { #what-a-translation-may-say }
 
-A pattern coming back from a catalog is parsed with `string.Formatter` — the
-same parser `str.format` uses. The grammar is deliberately borrowed rather
-than invented: a pattern this library accepts is one the wider ecosystem
-already understands. Then two checks apply.
+Mynstur sem kemur til baka úr þýðingaskrá er þáttað með `string.Formatter` —
+sama þáttaranum og `str.format` notar. Málfræðin er fengin að láni af ásettu
+ráði fremur en fundin upp: mynstur sem þetta safn tekur við er mynstur sem
+vistkerfið í kring skilur nú þegar. Síðan eru tvær athuganir gerðar.
 
-**Shape:** every field must be a bare `{name}`. A conversion or format spec —
-including the explicitly empty `{name:}` — is rejected, as are positional
-fields (`{0}`, `{}`) and whitespace-padded names (`{ name }`). The last one
-matters more than it looks: `str.format` and GNU `msgfmt` both reject
-`{ name }`, so accepting it here would produce catalogs that no other tool in
-the chain can validate.
+**Lag:** hver reitur verður að vera bert `{name}`. Umbreytingu eða sniðlýsingu
+— þar með talið hinu beinlínis tóma `{name:}` — er hafnað, og sömuleiðis
+reitum eftir stöðu (`{0}`, `{}`) og nöfnum með bilum í kring (`{ name }`). Það
+síðasta skiptir meira máli en sýnist: bæði `str.format` og GNU `msgfmt` hafna
+`{ name }`, svo að taka við því hér myndi framleiða þýðingaskrár sem ekkert
+annað tól í keðjunni getur staðfest.
 
-**Names:** the pattern's placeholder set is compared against the source's.
-For a singular message every source name is *required* and nothing else is
-*allowed*. For a plural message the two branches are merged:
+**Nöfn:** mengi staðgengla mynstursins er borið saman við mengi frumtextans.
+Fyrir eintöluskilaboð er hvert nafn frumtextans *áskilið* og ekkert annað
+*leyfilegt*. Fyrir fleirtöluskilaboð eru greinarnar tvær sameinaðar:
 
-- **allowed** = the union of both branches' names
-- **required** = their intersection
+- **leyfilegt** = sammengi nafnanna í báðum greinum
+- **áskilið** = sniðmengi þeirra
 
-So against `t"One file"` / `t"{n} files"`, the name `n` is allowed in a
-translation of either form but required of neither. That asymmetry is what
-lets a target language's plural system differ from the source's — Japanese
-translates both branches with one form that probably uses `{n}`; a language
-with more forms than English may need `{n}` in a form where English has none.
+Þannig að gagnvart `t"One file"` / `t"{n} files"` er nafnið `n` leyfilegt í
+þýðingu hvorrar myndar sem er en áskilið í hvorugri. Það ójafnvægi er það sem
+leyfir fleirtölukerfi markmálsins að vera annað en frummálsins — japanska
+þýðir báðar greinarnar með einni mynd sem notar líklega `{n}`; mál með fleiri
+myndir en enskan gæti þurft `{n}` í mynd þar sem enskan hefur enga.
 
-None of that is hypothetical: this site's own chrome catalog carries the
-plural message `Built {n} localized page` / `Built {n} localized pages` — two
-English branches — and the site's editions translate that one message into
-anywhere from one form to six:
+Ekkert af þessu er tilgáta: viðmótsþýðingaskrá þessa vefs sjálfs ber
+fleirtöluskilaboðin `Built {n} localized page` / `Built {n} localized pages`
+— tvær enskar greinar — og útgáfur vefsins þýða þau einu skilaboð yfir í allt
+frá einni mynd upp í sex:
 
-| Catalog | Forms | The translations, in form order |
+| Þýðingaskrá | Myndir | Þýðingarnar, í röð myndanna |
 | --- | --- | --- |
-| Japanese | 1 | `ローカライズ済みページを{n}件ビルドしました` |
-| Turkish | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` — twice, identically: Turkish nouns stay singular after a numeral |
-| Italian | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` — the participle agrees in gender and number |
-| Russian | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
-| Polish | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
-| Arabic | 6 | among them `تم إنشاء صفحة مترجمة واحدة ({n})` for exactly one and `تم إنشاء {n} صفحات مترجمة` for a few |
+| Japanska | 1 | `ローカライズ済みページを{n}件ビルドしました` |
+| Tyrkneska | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` — tvisvar, alveg eins: tyrknesk nafnorð standa í eintölu á eftir töluorði |
+| Ítalska | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` — lýsingarhátturinn samræmist í kyni og tölu |
+| Lettneska | 3 | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` — þriðja myndin er **fyrir núllið eitt** |
+| Rússneska | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
+| Pólska | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
+| Slóvenska | 4 | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` — önnur myndin er **tvítala**, fyrir nákvæmlega tvö |
+| Írska | 5 | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` — einn, tveir, 3–6, 7–10 og afgangurinn; stofninn víxlast, en *leathanach* byrjar á `l`, sem engin írsk framstöðubreyting ritar, svo nokkrar myndir falla saman |
+| Arabíska | 6 | meðal þeirra `تم إنشاء صفحة مترجمة واحدة ({n})` fyrir nákvæmlega einn og `تم إنشاء {n} صفحات مترجمة` fyrir fáeina |
 
-Every row is a live entry in this repository's `i18n/*/LC_MESSAGES/site.po`,
-rendered by the [multilingual build](index.md) on every release — and a test
-pins this table to those catalogs, so the two cannot drift apart.
+Hver einasta lína er lifandi færsla í `i18n/*/LC_MESSAGES/site.po` þessarar
+geymslu, birt af [fjöltyngdu byggingunni](index.md) við hverja útgáfu — og
+próf festir þessa töflu við þær þýðingaskrár, svo að þær tvær geta ekki rekið
+í sundur.
 
-Within those bounds, reordering and repetition are deliberately
-unconstrained. Both are grammatically necessary in real languages, and
-restricting occurrence counts would reject correct translations to no
-security benefit: a translation still cannot *evaluate* anything, because no
-evaluation path exists — placeholders are looked up by name in the template's
-already-computed values, never fed to `eval`, `getattr`, or `str.format`
-itself.
+Innan þeirra marka eru víxlun og endurtekning óheftar af ásettu ráði. Hvort
+tveggja er málfræðilega nauðsynlegt í raunverulegum tungumálum, og að takmarka
+fjölda tilvika myndi hafna réttum þýðingum án nokkurs öryggisávinnings: þýðing
+getur eftir sem áður ekki *reiknað* neitt út, því engin reikningsleið er til —
+staðgenglum er flett upp eftir nafni í þeim gildum sniðmátsins sem þegar hafa
+verið reiknuð, þeir eru aldrei matreiddir ofan í `eval`, `getattr` eða
+`str.format` sjálft.
 
-## Rendering { #rendering }
+## Birting { #rendering }
 
-Rendering a validated pattern is a walk over its chunks: emit each literal
-part, and for each placeholder, take the interpolation's captured value and
-apply the *source-side* conversion and format spec — `format(convert(value,
-conversion), format_spec)`. Two guarantees are kept while doing it:
+Að birta athugað mynstur er ganga gegnum búta þess: gefðu út hvern fastan
+hluta, og taktu fyrir hvern staðgengil það gildi sem innskeytingin greip og
+beittu umbreytingunni og sniðlýsingunni *frá hlið frumtextans* —
+`format(convert(value, conversion), format_spec)`. Tveimur ábyrgðum er haldið
+á meðan:
 
-- **Each distinct value is formatted at most once per render**, even when the
-  translation repeats a placeholder. Repetition changes how often the result
-  is inserted, not how often your `__format__` runs.
-- **For plurals, a placeholder reads the branch that defined it.** A name
-  present in both branches reads the value captured by the branch the
-  *source* language selects (`singular` when `n == 1`, else `plural`); a
-  branch-specific name always reads its own branch, even when the target
-  language's plural rules made it available in another form.
+- **Hvert ólíkt gildi er sniðið í mesta lagi einu sinni í hverri birtingu**,
+  jafnvel þegar þýðingin endurtekur staðgengil. Endurtekning breytir því hve
+  oft niðurstaðan er sett inn, ekki því hve oft `__format__` þitt keyrir.
+- **Í fleirtölu les staðgengill þá grein sem skilgreindi hann.** Nafn sem er
+  til í báðum greinum les það gildi sem greinin sem *frummálið* velur greip
+  (`singular` þegar `n == 1`, annars `plural`); nafn sem tilheyrir einni grein
+  les alltaf sína eigin grein, jafnvel þegar fleirtölureglur markmálsins gerðu
+  það aðgengilegt í annarri mynd.
 
-When validation fails at render time, the response is split by who supplied
-the pattern. A pattern that came out of a *catalog* degrades: log one warning
-and render the source text, keeping gettext's contract that a broken catalog
-never takes the application down ([the guide shows both modes](guide.md#what-happens-when-a-catalog-is-wrong)).
-A pattern the caller passed in directly — `CompiledTemplate.render` — always
-raises, because there is no source text to degrade *from*; leniency exists
-for catalog lookups, not for arguments.
+Þegar athugun bregst við birtingu ræðst svarið af því hver lagði mynstrið til.
+Mynstur sem kom úr *þýðingaskrá* hrörnar: skráðu eina viðvörun og birtu
+frumtextann, og haltu þar með samningi gettext um að biluð þýðingaskrá felli
+aldrei forritið
+([handbókin sýnir báða hamina](guide.md#what-happens-when-a-catalog-is-wrong)).
+Mynstur sem kallandinn rétti beint inn — `CompiledTemplate.render` — varpar
+alltaf, því enginn frumtexti er til að hrörna *frá*; eftirgefanleikinn er til
+fyrir uppflettingar í þýðingaskrá, ekki fyrir viðföng.
 
-## Diagnostics are part of the design { #diagnostics-are-part-of-the-design }
+## Greiningarskilaboð eru hluti af hönnuninni { #diagnostics-are-part-of-the-design }
 
-A placeholder error usually lands in front of a translator, not a
-programmer, and often in a file where the problem is invisible. Saying
-`{name} is missing` to someone who can see those exact characters in their
-editor is a dead end, so the messages are computed with three rules:
+Villa í staðgengli lendir yfirleitt fyrir framan þýðanda, ekki forritara, og
+oft í skrá þar sem vandinn er ósýnilegur. Að segja `{name} is missing` við
+einhvern sem sér einmitt þá stafi í ritlinum sínum er blindgata, svo að
+skilaboðin eru reiknuð eftir þremur reglum:
 
-- A name containing an **invisible character** — a no-break space an input
-  method produced, a zero-width space — is printed with that character
-  replaced by its code point, in place: `{<U+00A0>name}`. The reader needs to
-  see *where*.
-- A name whose letters **mix writing systems**, the homoglyph case, is shown
-  twice — once readably, once escaped — because `{nаme}` with a Cyrillic
-  `а` is indistinguishable from `{name}` in print, and the escaped form
-  `(nаme)` is the only spelling that tells them apart.
-- Everything else is shown **as written**. `{名前}` and `{café}` are ordinary
-  names; escaping them would leave the reader unable to find what was meant.
+- Nafn sem inniheldur **ósýnilegan staf** — fast bil sem innsláttaraðferð
+  framleiddi, núllbreitt bil — er prentað með þeim staf skiptum út fyrir
+  kóðapunkt sinn, á staðnum: `{<U+00A0>name}`. Lesandinn þarf að sjá *hvar*.
+- Nafn þar sem stafirnir **blanda ritkerfum**, samstöfunartilvikið, er sýnt
+  tvisvar — einu sinni læsilega, einu sinni með escape-ritun — því `{nаme}`
+  með kýrillísku `а` er ógreinanlegt frá `{name}` á prenti, og
+  escape-myndin `(nаme)` er eina ritmyndin sem greinir þau að.
+- Allt annað er sýnt **eins og það er ritað**. `{名前}` og `{café}` eru
+  venjuleg nöfn; að escape-rita þau myndi skilja lesandann eftir ófæran um að
+  finna það sem átt var við.
 
-On the same principle, a "missing" placeholder that *looks* present gets its
-absence explained — full-width braces from an East Asian input method,
-`{{name}}` doubling from an escaping round trip, the name outside any braces.
-The [guide's failure-reading table](guide.md#reading-a-failure-message) shows
-each of these messages verbatim.
+Eftir sömu grunnreglu fær staðgengill sem „vantar“ en *sýnist* vera til
+staðar fjarveru sína útskýrða — breiðir slaufusvigar úr austur-asískri
+innsláttaraðferð, `{{name}}`-tvöföldun úr escape-ritun fram og til baka,
+nafnið utan allra slaufusviga.
+[Villulestrartafla handbókarinnar](guide.md#reading-a-failure-message) sýnir
+hver þessara skilaboða orðrétt.
 
-## The hot path { #the-hot-path }
+## Heita leiðin { #the-hot-path }
 
-All of the above happens on every translated string an application renders,
-so the implementation is built around one idea: **validation is never
-skipped, so validation must be what gets cached.**
+Allt ofangreint gerist við hvern þýddan streng sem forrit birtir, svo að
+útfærslan er byggð kringum eina hugmynd: **athuguninni er aldrei sleppt, svo
+athugunin er það sem verður að geyma í skyndiminni.**
 
 ```mermaid
 flowchart LR
-  T["t-string"] --> S{"structure<br>seen before?"}
-  S -- "hit" --> G["catalog lookup<br>by cached msgid"]
-  S -- "miss" --> D["derive msgid,<br>cache the plan"] --> G
-  G --> V{"pattern<br>seen before?"}
-  V -- "hit" --> R["render"]
-  V -- "miss" --> C["validate,<br>cache the verdict"] --> R
+  T["t-strengur"] --> S{"bygging<br>séð áður?"}
+  S -- "hittir" --> G["uppfletting í þýðingaskrá<br>eftir msgid úr skyndiminni"]
+  S -- "geigar" --> D["leiða msgid,<br>geyma áætlunina"] --> G
+  G --> V{"mynstur<br>séð áður?"}
+  V -- "hittir" --> R["birta"]
+  V -- "geigar" --> C["athuga,<br>geyma úrskurðinn"] --> R
 ```
 
-Three caches, one per stage:
+Þrjú skyndiminni, eitt fyrir hvert stig:
 
-- **A plan per call-site structure.** The template's `strings` tuple — an
-  object the interpreter already built — is the cache key, so a lookup
-  allocates nothing. On a hit, each interpolation's expression, conversion,
-  and format spec is still compared against the recorded ones: two call sites
-  that share literal text but differ in formatting (`t"{x:.2f}"` against
-  `t"{x:.3f}"`) must not collide, and that comparison is the price of using a
-  key the interpreter hands over for free.
-- **A verdict per pattern.** The first time a catalog answers with a given
-  pattern, it is parsed and validated; the result — a compiled render plan,
-  or a record of invalidity — is kept on the plan. Every later render of that
-  message reaches it in one dictionary lookup. Invalid patterns are
-  remembered too, which is why a broken catalog entry warns once rather than
-  on every render.
-- **A merged plan per plural pair**, holding the union/intersection sets so
-  the branch arithmetic happens once per message, not once per call.
+- **Áætlun fyrir hverja byggingu kallstaðar.** `strings`-rúnan úr sniðmátinu
+  — hlutur sem túlkurinn hefur þegar smíðað — er lykill skyndiminnisins, svo
+  uppfletting frátekur ekkert minni. Þegar hún hittir eru segð, umbreyting og
+  sniðlýsing hverrar innskeytingar eftir sem áður bornar saman við þær sem
+  skráðar voru: tveir kallstaðir sem deila föstum texta en eru ólíkir í sniði
+  (`t"{x:.2f}"` andspænis `t"{x:.3f}"`) mega ekki rekast á, og sá samanburður
+  er verðið fyrir að nota lykil sem túlkurinn réttir manni ókeypis.
+- **Úrskurður fyrir hvert mynstur.** Í fyrsta sinn sem þýðingaskrá svarar með
+  tilteknu mynstri er það þáttað og athugað; niðurstaðan — vistþýdd
+  birtingaráætlun, eða skráning um ógildi — er geymd á áætluninni. Sérhver
+  síðari birting þeirra skilaboða nær í hana með einni uppflettingu í
+  orðabók. Ógild mynstur eru líka munuð, og þess vegna varar biluð færsla í
+  þýðingaskrá við einu sinni fremur en við hverja birtingu.
+- **Sameinuð áætlun fyrir hvert fleirtölupar**, sem geymir sammengis- og
+  sniðmengismengin svo að greinareikningurinn fari fram einu sinni fyrir hver
+  skilaboð, ekki einu sinni í hverju kalli.
 
-Every cache is bounded, and none retains interpolated *values* — only static
-structure and pattern text. The result, measured by
+Sérhvert skyndiminni er takmarkað, og ekkert þeirra heldur eftir innskeyttum
+*gildum* — aðeins fastri byggingu og texta mynstra. Niðurstaðan, mæld af
 [`benchmarks/runtime.py`](https://github.com/yhay81/gettext-tstrings/blob/main/benchmarks/runtime.py):
-roughly 0.4 µs for a one-field message including the construction of the
-t-string itself, about 2.5× a plain `gettext(...).format(...)` that checks
-nothing. The commentary at the top of
+um það bil 0,4 µs fyrir skilaboð með einum reit, að meðtalinni smíði
+t-strengsins sjálfs, eða um 2,5× á við bert `gettext(...).format(...)` sem
+athugar ekkert. Athugasemdirnar efst í
 [`core.py`](https://github.com/yhay81/gettext-tstrings/blob/main/src/gettext_tstrings/core.py)
-records the individual measurements behind that shape.
+skrá einstöku mælingarnar að baki þessari mynd.
 
-## Reimplementing it { #reimplementing-it }
+## Að útfæra það upp á nýtt { #reimplementing-it }
 
-None of the above is private lore: the convention is written down as
-[spec v1](spec.md), and its machine-readable
-[conformance suite](spec.md#conformance) lets an extractor, an IDE plugin, or
-an implementation in another language check itself against every rule this
-page explained. This implementation runs the suite in its own tests, which is
-what keeps this page, the spec, and the code from drifting apart in silence.
+Ekkert af ofangreindu er leynileg vitneskja: venjan er skrifuð niður sem
+[forskrift v1](spec.md), og vélleseinlegu [samræmisprófin](spec.md#conformance)
+gera útdráttartóli, viðbót við þróunarumhverfi eða útfærslu í öðru
+forritunarmáli kleift að athuga sjálft sig gagnvart hverri þeirri reglu sem
+þessi síða útskýrði. Þessi útfærsla keyrir prófmengið í sínum eigin prófum,
+og það er það sem kemur í veg fyrir að þessi síða, forskriftin og kóðinn reki
+hljóðlaust í sundur.
 
   [PEP 750]: https://peps.python.org/pep-0750/

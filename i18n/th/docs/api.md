@@ -50,8 +50,8 @@ Translator(translations, strict=False)
 
 | ชื่อ | จุดประสงค์ |
 | --- | --- |
-| `lazy_gettext(template, /)` | เลื่อนการแปลออกไปจนถึงการใช้ครั้งแรก |
-| `lazy_pgettext(context, template, /)` | รูปแบบที่มีคอนเท็กซ์ |
+| `lazy_gettext(template, /, *, strict=False)` | เลื่อนการแปลออกไปจนถึงการใช้ครั้งแรก |
+| `lazy_pgettext(context, template, /, *, strict=False)` | รูปแบบที่มีคอนเท็กซ์ |
 | `LazyString` | สิ่งที่ทั้งสองฟังก์ชันคืนค่า เรนเดอร์ผ่าน `str()` และ `format()` เปรียบเทียบเท่ากับข้อความของมัน และแฮชไม่ได้โดยตั้งใจ |
 
 ## ระดับล่าง { #lower-level }

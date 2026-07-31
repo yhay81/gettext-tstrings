@@ -135,8 +135,11 @@ site vertalen dat ene bericht in één tot wel zes vormen:
 | Japans | 1 | `ローカライズ済みページを{n}件ビルドしました` |
 | Turks | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` — twee keer, identiek: Turkse zelfstandige naamwoorden blijven enkelvoud na een telwoord |
 | Italiaans | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` — het deelwoord congrueert in geslacht en getal |
+| Lets | 3 | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` — de derde vorm is **alleen voor nul** |
 | Russisch | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
 | Pools | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
+| Sloveens | 4 | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` — de tweede is een **dualis**, voor precies twee |
+| Iers | 5 | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` — één, twee, 3–6, 7–10 en de rest; de stam wisselt, maar *leathanach* begint met `l`, waarop geen enkele Ierse mutatie geschreven wordt, zodat verschillende vormen samenvallen |
 | Arabisch | 6 | waaronder `تم إنشاء صفحة مترجمة واحدة ({n})` voor precies één en `تم إنشاء {n} صفحات مترجمة` voor enkele |
 
 Elke rij is een levende entry in `i18n/*/LC_MESSAGES/site.po` van deze

@@ -99,6 +99,19 @@ hulingana sawa na maandishi yake yaliyoonyeshwa.
     ingebadilika lugha inapobadilishwa na kuharibu kimyakimya seti au kamusi
     yoyote inayoishikilia. Ita `str()` kwanza ikiwa unahitaji ufunguo.
 
+`strict` huamuliwa mahali ujumbe unapoandikwa, si mahali unapoonyeshwa:
+
+```python
+SAVE = lazy_gettext(t"Save changes", strict=True)
+```
+
+Mfuatano ulioahirishwa huonyeshwa popote unapotumika hatimaye — ndani ya
+kiolezo, fomu, au mstari wa kumbukumbu — na mahali hapo mara chache hujua kama
+huu ni mzunguko wa majaribio au ni uzalishaji. Kupitisha `strict=True` pale
+mfuatano unapobainishwa ndiko kunakoruhusu chaguo lilelile la
+[kelele katika CI, upole katika uzalishaji](#what-happens-when-a-catalog-is-wrong)
+litumike kwa mfuatano ambao hauonyeshwi mahali unapoitwa.
+
 Maumbo ya wingi hutegemea idadi ya wakati wa utekelezaji, hivyo yaonyeshe hayo
 papo hapo kwa `ngettext` mahali idadi inapojulikana.
 

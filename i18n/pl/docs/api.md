@@ -51,8 +51,8 @@ współbieżności.
 
 | Nazwa | Cel |
 | --- | --- |
-| `lazy_gettext(template, /)` | Odrocz tłumaczenie do pierwszego użycia. |
-| `lazy_pgettext(context, template, /)` | Forma z kontekstem. |
+| `lazy_gettext(template, /, *, strict=False)` | Odrocz tłumaczenie do pierwszego użycia. |
+| `lazy_pgettext(context, template, /, *, strict=False)` | Forma z kontekstem. |
 | `LazyString` | To, co obie zwracają. Renderuje się przez `str()` i `format()`, jest równy swojemu tekstowi i celowo niehashowalny. |
 
 ## Niższy poziom { #lower-level }

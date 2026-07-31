@@ -137,8 +137,11 @@ traducono quell'unico messaggio in un numero di forme che va da una a sei:
 | Giapponese | 1 | `ローカライズ済みページを{n}件ビルドしました` |
 | Turco | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` — due volte, identica: i sostantivi turchi restano al singolare dopo un numerale |
 | Italiano | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` — il participio concorda in genere e numero |
+| Lettone | 3 | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` — la terza forma è per **il solo zero** |
 | Russo | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
 | Polacco | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
+| Sloveno | 4 | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` — la seconda è un **duale**, per esattamente due |
+| Irlandese | 5 | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` — uno, due, 3–6, 7–10 e il resto; il tema alterna, ma *leathanach* inizia per `l`, che nessuna mutazione irlandese scrive, così diverse forme coincidono |
 | Arabo | 6 | tra cui `تم إنشاء صفحة مترجمة واحدة ({n})` per esattamente uno e `تم إنشاء {n} صفحات مترجمة` per pochi |
 
 Ogni riga è una voce viva nei `i18n/*/LC_MESSAGES/site.po` di questo

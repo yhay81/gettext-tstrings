@@ -1,17 +1,17 @@
 ---
-description: "The gettext loop as a team runs it: the recurring update cycle, fuzzy entries, CI gates, translation platforms, and per-request languages in a web application."
+description: "Gettext-hringrásin eins og teymi keyrir hana: endurtekna uppfærsluferlið, fuzzy-færslur, CI-hlið, þýðingavettvangar og tungumál eftir beiðni í vefforriti."
 ---
 
-# In production
+# Í rekstri
 
-The [tutorial](tutorial.md) runs the loop once, alone, on a program with one
-message. On a real project the loop keeps turning: messages change after they
-have been translated, the translator works elsewhere and on their own
-schedule, and a compiled catalog ships with every release. This page is that
-practice — what stays in the repository, what travels, what CI must gate, and
-where the runtime binds a language.
+[Kennsluefnið](tutorial.md) keyrir hringrásina einu sinni, í einrúmi, á
+forriti með einum skilaboðum. Í raunverulegu verkefni heldur hringrásin
+áfram að snúast: skilaboð breytast eftir að þau hafa verið þýdd, þýðandinn
+vinnur annars staðar og á sínum eigin tíma, og vistþýdd þýðingaskrá fylgir
+hverri útgáfu. Þessi síða er sú iðja — hvað dvelur í geymslunni, hvað
+ferðast, hvað CI verður að stöðva, og hvar keyrslutíminn bindur tungumál.
 
-## The shape of a project { #the-shape-of-a-project }
+## Lag verkefnisins { #the-shape-of-a-project }
 
 ```text
 myapp/
@@ -25,36 +25,37 @@ myapp/
     └── de/LC_MESSAGES/messages.po
 ```
 
-Commit `babel.cfg`, the `.pot` template, and every `.po` — they are the
-sources of the translation build, and their diffs are how you review
-translation changes. The compiled `.mo` files are build artifacts: produce
-them in CI or at packaging time rather than committing them, so a `.po` and
-its `.mo` can never disagree about what ships.
+Settu `babel.cfg`, `.pot`-sniðmátið og hverja `.po`-skrá í útgáfustýringu —
+þær eru frumgögn þýðingabyggingarinnar, og mismunur þeirra er leiðin til að
+lesa yfir breytingar á þýðingum. Vistþýddu `.mo`-skrárnar eru afurðir
+byggingar: búðu þær til í CI eða við pökkun fremur en að festa þær í
+geymsluna, svo að `.po`-skrá og `.mo`-skrá hennar geti aldrei verið
+ósammála um hvað fer út.
 
-One file has a role in each direction: the `.pot` carries your messages *out*
-to translators, the `.po` files carry translations *back*. Everything below
-is the traffic between those two.
+Ein skrá gegnir hlutverki í hvora átt: `.pot` ber skilaboðin þín *út* til
+þýðenda, `.po`-skrárnar bera þýðingarnar *til baka*. Allt hér að neðan er
+umferðin milli þeirra tveggja.
 
 ```mermaid
 flowchart LR
-  code["source code<br>t-string call sites"] -->|"pybabel extract"| pot["messages.pot"]
-  pot -->|"pybabel update"| po["one .po per language"]
-  po --> tr["translator<br>or platform"]
+  code["frumkóði<br>kallstaðir t-strengja"] -->|"pybabel extract"| pot["messages.pot"]
+  pot -->|"pybabel update"| po["ein .po fyrir hvert tungumál"]
+  po --> tr["þýðandi<br>eða vettvangur"]
   tr --> po
-  po -->|"pybabel compile (CI)"| mo[".mo files"]
-  mo --> app["application<br>at runtime"]
+  po -->|"pybabel compile (CI)"| mo[".mo-skrár"]
+  mo --> app["forrit<br>á keyrslutíma"]
 ```
 
-## The cycle after the first translation { #the-cycle-after-the-first-translation }
+## Ferlið eftir fyrstu þýðinguna { #the-cycle-after-the-first-translation }
 
-The tutorial's `pybabel init` runs once per language, ever. From then on the
-working cycle is **extract → update → translate → compile**, and its center
-is `pybabel update`, which folds a fresh template into the existing catalogs
-without discarding the translations already in them.
+`pybabel init` úr kennsluefninu keyrir einu sinni fyrir hvert tungumál, í eitt
+skipti fyrir öll. Upp frá því er vinnuferlið **draga út → uppfæra → þýða →
+vistþýða**, og miðja þess er `pybabel update`, sem fellir nýtt sniðmát inn í
+þýðingaskrárnar sem fyrir eru án þess að fleygja þýðingunum sem þegar eru í
+þeim.
 
-Suppose the greeting `Hello {name}` — already translated as
-`こんにちは {name}` — is reworded in code to `Welcome back, {name}`. Extract
-and update:
+Segjum að kveðjan `Hello {name}` — þegar þýdd sem `こんにちは {name}` — sé
+endurorðuð í kóðanum í `Welcome back, {name}`. Dragðu út og uppfærðu:
 
 ```console
 $ pybabel extract -F babel.cfg -c "Translators:" -o locales/messages.pot .
@@ -64,7 +65,7 @@ $ pybabel update -i locales/messages.pot -d locales
 updating catalog locales/ja/LC_MESSAGES/messages.po based on locales/messages.pot
 ```
 
-The Japanese catalog now contains:
+Japanska þýðingaskráin inniheldur nú:
 
 ```po
 #. gettext-tstrings
@@ -74,11 +75,11 @@ msgid "Welcome back, {name}"
 msgstr "こんにちは {name}"
 ```
 
-Babel noticed the new msgid resembles a removed one and paired it with the
-old translation — but flagged the pair **fuzzy**: a machine's guess awaiting
-a human. The flag has teeth. `pybabel compile` **excludes fuzzy entries from
-the `.mo`**, so until a translator confirms the pair, the application renders
-the new English text rather than a stale Japanese one:
+Babel tók eftir að nýja msgid-ið líkist einu sem var fjarlægt og paraði það
+við gömlu þýðinguna — en merkti parið **fuzzy**: ágiskun vélar sem bíður
+manneskju. Flaggið hefur tennur. `pybabel compile` **skilur fuzzy-færslur
+undan `.mo`-skránni**, svo að þar til þýðandi staðfestir parið birtir forritið
+nýja enska textann fremur en úreltan japanskan:
 
 ```console
 $ pybabel compile -d locales
@@ -87,29 +88,29 @@ $ python app.py
 Welcome back, Ada
 ```
 
-A changed message therefore degrades the same way a broken one does — to the
-source language, never to an outdated translation. The translator's part of
-the cycle is to revise the `msgstr` and delete the `fuzzy` flag; the next
-compile picks the entry up.
+Breytt skilaboð hrörna því á sama hátt og biluð — yfir í frummálið, aldrei
+yfir í úrelta þýðingu. Hlutur þýðandans í ferlinu er að endurskoða `msgstr`
+og eyða `fuzzy`-flagginu; næsta vistþýðing tekur færsluna með.
 
-!!! note "Placeholder names are part of the message's identity"
+!!! note "Nöfn staðgengla eru hluti af auðkenni skilaboðanna"
 
-    The msgid is the catalog key, and the placeholder's *name* is inside it —
-    so renaming a variable in code (`name` → `user_name`) changes the msgid
-    and sends every language's translation of it back through the fuzzy
-    cycle. Name interpolated variables as words a translator will understand,
-    and rename them only for a reason.
+    Msgid-ið er lykill þýðingaskrárinnar og *nafn* staðgengilsins er inni í
+    því — svo að endurnefna breytu í kóðanum (`name` → `user_name`) breytir
+    msgid-inu og sendir þýðingu þess á hverju tungumáli aftur gegnum
+    fuzzy-hringinn. Gefðu innskeyttum breytum nöfn sem eru orð sem þýðandi
+    skilur, og endurnefndu þær aðeins ef ástæða er til.
 
-    Formatting is the mirror image: `!r` and `:.2f` are [not part of the
-    msgid](internals.md#from-template-to-msgid), so tightening `{amount:,.2f}`
-    to `{amount:,.0f}` changes nothing in any catalog. Rewording the
-    *sentence*, of course, is a real change — that is the cycle above.
+    Sniðið er spegilmynd þessa: `!r` og `:.2f` eru
+    [ekki hluti af msgid-inu](internals.md#from-template-to-msgid), svo að
+    herða `{amount:,.2f}` í `{amount:,.0f}` breytir engu í neinni
+    þýðingaskrá. Að endurorða *setninguna* er auðvitað raunveruleg breyting —
+    það er ferlið hér að ofan.
 
-## What CI gates { #what-ci-gates }
+## Hvað CI stöðvar { #what-ci-gates }
 
-Three failures are worth a red build: the catalogs fell behind the code, a
-translation broke a placeholder, or a broken entry slipped through to the
-runtime. One step per failure:
+Þrjár bilanir eru rauðrar byggingar virði: þýðingaskrárnar drógust aftur úr
+kóðanum, þýðing skemmdi staðgengil, eða biluð færsla slapp alla leið á
+keyrslutímann. Eitt skref fyrir hverja bilun:
 
 ```yaml
 - run: pybabel extract -F babel.cfg -c "Translators:" -o locales/messages.pot .
@@ -118,20 +119,22 @@ runtime. One step per failure:
 - run: pytest
 ```
 
-`pybabel update --check` rewrites nothing and exits non-zero when a catalog
-is out of date with the freshly extracted template — the guard against
-merging code whose messages nobody re-extracted. `pybabel compile` runs the
-placeholder checks of both Babel and this package's
-[registered checker](extraction.md#your-existing-toolchain-validates-these-catalogs).
+`pybabel update --check` endurskrifar ekkert og lýkur með stöðu frábrugðinni
+núlli þegar þýðingaskrá er ekki í takt við nýútdregna sniðmátið — vörnin gegn
+því að sameina kóða þar sem enginn dró skilaboðin út að nýju.
+`pybabel compile` keyrir athuganir Babel á staðgenglum og
+[skráða athugarann](extraction.md#your-existing-toolchain-validates-these-catalogs)
+úr þessum pakka.
 
-!!! bug "`--check` cannot gate a catalog that uses contexts"
+!!! bug "`--check` getur ekki stöðvað þýðingaskrá sem notar samhengi"
 
-    On Babel 2.18.0, `pybabel update --check` reports **every** catalog
-    containing a `msgctxt` as out of date, on every run, no matter how current
-    it is. The comparison runs through `Catalog.is_identical`, which looks each
-    message up by the key it is stored under — and for a contextual message
-    that key is the `(id, context)` pair, which `Catalog.get` does not accept.
-    The lookup returns nothing, and the catalogs never compare equal:
+    Í Babel 2.18.0 tilkynnir `pybabel update --check` **hverja** þýðingaskrá
+    sem inniheldur `msgctxt` sem úrelta, í hverri einustu keyrslu, hversu
+    fersk sem hún er. Samanburðurinn fer gegnum `Catalog.is_identical`, sem
+    flettir hverjum skilaboðum upp eftir þeim lykli sem þau eru geymd undir —
+    og fyrir skilaboð með samhengi er sá lykill parið `(id, context)`, sem
+    `Catalog.get` tekur ekki við. Uppflettingin skilar engu, og
+    þýðingaskrárnar reynast aldrei jafnar:
 
     ```pycon
     >>> from babel.messages.catalog import Catalog
@@ -142,25 +145,26 @@ placeholder checks of both Babel and this package's
     False
     ```
 
-    So if you use `pgettext` or `npgettext` at all — and disambiguating a
-    homonym is the reason they exist — this step fails open in the worst way:
-    always red, so a team turns it off, so nothing gates staleness. Until it is
-    fixed upstream, compare the message sets yourself. Reading the template and
-    each catalog with `babel.messages.pofile.read_po` and comparing
-    `{(m.context, m.id) for m in catalog if m.id}` is the whole check, and it is
-    what [this site's own build](index.md) does.
+    Svo að ef þú notar `pgettext` eða `npgettext` yfirleitt — og að greina
+    samhljóða orð að er einmitt ástæðan fyrir tilvist þeirra — þá bilar þetta
+    skref á versta veg: alltaf rautt, svo teymið slekkur á því, svo ekkert
+    stöðvar úreldingu. Þar til þetta er lagað hjá upprunaverkefninu skaltu
+    bera skilaboðamengin saman sjálfur. Að lesa sniðmátið og hverja
+    þýðingaskrá með `babel.messages.pofile.read_po` og bera saman
+    `{(m.context, m.id) for m in catalog if m.id}` er öll athugunin, og það er
+    það sem [bygging þessa vefs sjálfs](index.md) gerir.
 
-!!! danger "Check the exit status, not the log"
+!!! danger "Athugaðu lokastöðuna, ekki atburðaskrána"
 
-    `pybabel compile` reports each placeholder error, exits non-zero — **and
-    writes the `.mo` anyway**. A pipeline that compiles and then copies
-    `locales/` into an image ships the broken catalog unless the non-zero
-    exit actually stops it. Letting the step fail the build, as above, is the
-    entire fix.
+    `pybabel compile` tilkynnir hverja staðgengilsvillu, lýkur með stöðu
+    frábrugðinni núlli — **og skrifar `.mo`-skrána hvort eð er**. Keðja sem
+    vistþýðir og afritar svo `locales/` inn í ímynd sendir bilaða
+    þýðingaskrá frá sér nema lokastaðan stöðvi hana raunverulega. Að láta
+    skrefið fella bygginguna, eins og hér að ofan, er öll lausnin.
 
-The last line is your ordinary test suite, with one habit added: somewhere in
-it, render at least one message per shipped language through a strict
-translator —
+Síðasta línan er venjulega prófmengið þitt, með einum vana bætt við:
+einhvers staðar í því skaltu birta að minnsta kosti ein skilaboð fyrir hvert
+tungumál sem fer út, gegnum strangan þýðanda —
 
 ```python
 import gettext
@@ -175,19 +179,19 @@ def test_catalogs_render(language: str) -> None:
     assert _(t"Welcome back, {name}")
 ```
 
-— because `strict=True` [raises where production would silently fall back](guide.md#what-happens-when-a-catalog-is-wrong),
-and a runtime render is the one check that sees the catalog exactly as the
-application will, `.mo` and all.
+— því að `strict=True` [varpar þar sem rekstur myndi falla hljóðlaust til baka](guide.md#what-happens-when-a-catalog-is-wrong),
+og birting á keyrslutíma er eina athugunin sem sér þýðingaskrána nákvæmlega
+eins og forritið mun sjá hana, `.mo` og allt.
 
-## Working with translators and platforms { #working-with-translators-and-platforms }
+## Að vinna með þýðendum og vettvöngum { #working-with-translators-and-platforms }
 
-The `.po` file is the interchange format of the whole gettext world, which is
-the reason this library reuses it: handing translation off means handing over
-a file, whether the recipient is a colleague with a PO editor or a platform
-like Weblate or Crowdin. Three things make the handoff work well:
+`.po`-skráin er skiptisniðið í öllum gettext-heiminum, og það er ástæðan
+fyrir því að þetta safn endurnýtir hana: að rétta þýðinguna áfram þýðir að
+rétta skrá, hvort sem viðtakandinn er samstarfsmaður með PO-ritil eða
+vettvangur á borð við Weblate eða Crowdin. Þrennt gerir afhendinguna góða:
 
-**Say what the message is for.** A comment in the code travels with the
-message — that is what the `-c "Translators:"` flag collects:
+**Segðu til hvers skilaboðin eru.** Athugasemd í kóðanum ferðast með
+skilaboðunum — það er einmitt það sem flaggið `-c "Translators:"` safnar:
 
 ```python
 from gettext_tstrings import tr
@@ -206,37 +210,39 @@ msgid "Welcome back, {name}"
 msgstr ""
 ```
 
-A translator sees that comment in their editor, next to the message, on the
-other side of the world. It is the cheapest quality lever in the entire
-workflow. For a word that is its own homonym — "Open" the button versus
-"Open" the state — give the message a [context](guide.md#binding-a-catalog)
-with `pgettext`, which becomes a visible `msgctxt` in the catalog.
+Þýðandi sér þá athugasemd í ritli sínum, við hliðina á skilaboðunum, hinum
+megin á hnettinum. Það er ódýrasta gæðastöngin í allri hringrásinni. Fyrir
+orð sem er samhljóða sjálfu sér — „Open“ sem hnappur andspænis „Open“ sem
+ástand — gefðu skilaboðunum [samhengi](guide.md#binding-a-catalog) með
+`pgettext`, sem verður að sýnilegu `msgctxt` í þýðingaskránni.
 
-**Let the platform validate placeholders.** Every message extracted from a
-t-string carries the `python-brace-format` flag, and that one line is what
-switches on placeholder QA in tools you do not control — Weblate documents
-the check, commercial platforms key their own on the same flag, and
-`msgfmt --check-format` enforces it in any GNU pipeline. The details, and
-what the bundled checker catches beyond them, are on the
-[extraction page](extraction.md#your-existing-toolchain-validates-these-catalogs).
+**Láttu vettvanginn staðfesta staðgenglana.** Hver þau skilaboð sem dregin
+eru út úr t-streng bera `python-brace-format`-flaggið, og sú eina lína er það
+sem kveikir á gæðaathugun staðgengla í tólum sem þú ræður engu um — Weblate
+skjalfestir athugunina, viðskiptavettvangar lykla sína eigin á sama flagg, og
+`msgfmt --check-format` framfylgir henni í hverri GNU-keðju. Smáatriðin, og
+hvað meðfylgjandi athugarinn grípur umfram þau, eru á
+[útdráttarsíðunni](extraction.md#your-existing-toolchain-validates-these-catalogs).
 
-**Trust the safety net exactly as far as it goes.** Whatever comes back from
-a platform is still data entering your build; the CI gates above are what
-turn "the platform probably checked this" into "this cannot ship broken".
+**Treystu öryggisnetinu nákvæmlega jafn langt og það nær.** Hvað sem kemur
+til baka frá vettvangi eru enn gögn á leið inn í bygginguna þína; CI-hliðin
+hér að ofan eru það sem breytir „vettvangurinn athugaði þetta líklega“ í
+„þetta getur ekki farið út bilað“.
 
-## Binding a language at runtime { #binding-a-language-at-runtime }
+## Að binda tungumál á keyrslutíma { #binding-a-language-at-runtime }
 
-Everything so far produces catalogs. The remaining decision is where the
-application selects one, and it has one honest answer: bind once per
-*scope of a language* — the process for a CLI, the request for a web service.
+Allt hingað til framleiðir þýðingaskrár. Ákvörðunin sem eftir stendur er hvar
+forritið velur eina, og hún á sér eitt heiðarlegt svar: bittu einu sinni fyrir
+hvert *gildissvið tungumáls* — ferlið fyrir skipanalínutól, beiðnina fyrir
+vefþjónustu.
 
-=== "One process, one language"
+=== "Eitt ferli, eitt tungumál"
 
-    A command-line tool or desktop application reads the user's environment
-    once, at startup. Passing no `languages=` lets the standard library
-    negotiate from `LANGUAGE`, `LC_ALL`, `LC_MESSAGES`, and `LANG`;
-    `fallback=True` returns a null catalog — source text — rather than
-    raising when none of them matches a catalog you ship.
+    Skipanalínutól eða skjáborðsforrit les umhverfi notandans einu sinni, við
+    ræsingu. Að gefa ekkert `languages=` lætur staðalsafnið semja út frá
+    `LANGUAGE`, `LC_ALL`, `LC_MESSAGES` og `LANG`; `fallback=True` skilar
+    tómri þýðingaskrá — frumtextanum — fremur en að varpa þegar ekkert
+    þeirra stemmir við þýðingaskrá sem þú sendir með.
 
     ```python
     import gettext
@@ -251,11 +257,11 @@ application selects one, and it has one honest answer: bind once per
 
 === "Flask"
 
-    A web application decides per request. Load each catalog once at import,
-    then bind the negotiated one to the context before the view runs —
-    [`set_translations`](guide.md#per-request-language) is context-local, so
-    concurrent requests in different languages never see each other's
-    binding.
+    Vefforrit ákveður fyrir hverja beiðni. Lestu hverja þýðingaskrá inn einu
+    sinni við innflutning, bittu svo þá sem samið var um við samhengið áður en
+    sýnin keyrir — [`set_translations`](guide.md#per-request-language) er
+    bundið samhenginu, svo samhliða beiðnir á ólíkum tungumálum sjá aldrei
+    bindingu hver annarrar.
 
     ```python
     import gettext
@@ -287,12 +293,13 @@ application selects one, and it has one honest answer: bind once per
         return tr(t"Welcome back, {name}")
     ```
 
-=== "ASGI middleware"
+=== "ASGI-millilag"
 
-    Under async frameworks — FastAPI, Starlette, and anything else ASGI —
-    wrap the request in [`use_translations`](guide.md#per-request-language):
-    the binding lives in a `ContextVar`, which async task switching
-    preserves per request.
+    Undir ósamstilltum umgjörðum — FastAPI, Starlette og hverju öðru sem
+    talar ASGI — vefðu beiðnina inn í
+    [`use_translations`](guide.md#per-request-language): bindingin býr í
+    `ContextVar`, sem skipting milli ósamstilltra verka varðveitir fyrir
+    hverja beiðni.
 
     ```python
     import gettext
@@ -319,45 +326,46 @@ application selects one, and it has one honest answer: bind once per
             return await call_next(request)
     ```
 
-    `negotiate_language` stands for your Accept-Language parsing — most
-    frameworks or their ecosystems provide one; what matters here is the
-    binding around `call_next`.
+    `negotiate_language` stendur fyrir þáttun þína á Accept-Language — flestar
+    umgjarðir eða vistkerfi þeirra leggja slíkt til; það sem skiptir máli hér
+    er bindingin utan um `call_next`.
 
-Two runtime habits complete the picture. Strings created at import time — a
-form label, an enum's display name — must not capture whatever language was
-active during import; define them with
-[`lazy_gettext`](guide.md#deferred-translation) and they render in the
-language active at *use*. And route the `gettext_tstrings` logger somewhere a
-human looks: its warnings are the lenient mode reporting a translation that
-slipped past every gate, one line per broken message rather than one per
-render.
+Tveir vanar á keyrslutíma fullkomna myndina. Strengir sem verða til við
+innflutning — merking á eyðublaði, birtingarnafn í talnaupptalningu — mega
+ekki grípa það tungumál sem var virkt við innflutninginn; skilgreindu þá með
+[`lazy_gettext`](guide.md#deferred-translation) og þeir birtast á því
+tungumáli sem er virkt við *notkun*. Og beindu atburðaskrárriti
+`gettext_tstrings` þangað sem manneskja lítur: viðvaranir þess eru
+eftirgefanlegi hamurinn að tilkynna þýðingu sem slapp gegnum hvert hlið, ein
+lína fyrir hver biluð skilaboð fremur en ein fyrir hverja birtingu.
 
-## Shipping { #shipping }
+## Að senda frá sér { #shipping }
 
-Production needs the package, the `.mo` files, and nothing else. Babel is a
-development and CI dependency — keep `gettext-tstrings[babel]` out of the
-production image and install the bare package there; rendering runs on the
-standard library alone. Compile catalogs in the same build that produces the
-artifact you deploy, so the `.mo` files inside it are exactly the reviewed
-`.po` files, and nothing compiled on someone's laptop ever ships.
+Rekstur þarf pakkann, `.mo`-skrárnar og ekkert annað. Babel er háð eining
+þróunar og CI — haltu `gettext-tstrings[babel]` utan rekstrarímyndarinnar og
+settu bera pakkann upp þar; birting keyrir á staðalsafninu einu saman.
+Vistþýddu þýðingaskrár í sömu byggingu og framleiðir afurðina sem þú setur
+upp, svo að `.mo`-skrárnar inni í henni séu nákvæmlega þær `.po`-skrár sem
+lesnar voru yfir, og ekkert sem vistþýtt var á fartölvu einhvers fari nokkurn
+tíma út.
 
-Before a release, the checklist this page reduces to:
+Fyrir útgáfu er gátlistinn sem þessi síða þjappast í:
 
-- `pybabel update --check` passes — no message changed without the catalogs
-  hearing about it.
-- `pybabel compile` gates the build on its exit status.
-- Remaining `fuzzy` entries are intentional — each one renders as source
-  text until a translator confirms it.
-- The test suite renders each shipped language once with `strict=True`.
-- The production artifact contains `.mo` files and no Babel.
-- The `gettext_tstrings` logger is routed to monitoring.
+- `pybabel update --check` stenst — engum skilaboðum var breytt án þess að
+  þýðingaskrárnar frétti af því.
+- `pybabel compile` lætur lokastöðu sína stöðva bygginguna.
+- Þær `fuzzy`-færslur sem eftir standa eru ásetningur — hver þeirra birtist
+  sem frumtexti þar til þýðandi staðfestir hana.
+- Prófmengið birtir hvert tungumál sem fer út einu sinni með `strict=True`.
+- Rekstrarafurðin inniheldur `.mo`-skrár og ekkert Babel.
+- Atburðaskrárriti `gettext_tstrings` er beint í vöktun.
 
-## Where next { #where-next }
+## Hvert næst { #where-next }
 
-- [Extraction](extraction.md) — the reference for the tooling half of this
-  page: mapping options, custom function names, strict mode, and every
-  checker.
-- [Guide](guide.md) — the runtime half: plurals, contexts, deferred strings,
-  and the failure modes in detail.
-- [How it works](internals.md) — why the msgid looks the way it does, and
-  what validation actually checks.
+- [Útdráttur](extraction.md) — uppflettiritið um tólahelming þessarar síðu:
+  valkostir vörpunar, eigin fallanöfn, strangur hamur og hver einasti
+  athugari.
+- [Handbók](guide.md) — keyrslutímahelmingurinn: fleirtala, samhengi,
+  frestaðir strengir og bilanahamirnir í smáatriðum.
+- [Hvernig þetta virkar](internals.md) — hvers vegna msgid-ið lítur út eins
+  og það gerir, og hvað athugunin skoðar í raun.

@@ -94,6 +94,19 @@ with use_translations(japanese):
     O texto depende do idioma. Um hash mutável corromperia silenciosamente um
     set ou dict. Para obter uma chave, chame `str()` primeiro.
 
+`strict` é decidido onde a mensagem é escrita, não onde ela é renderizada:
+
+```python
+SAVE = lazy_gettext(t"Save changes", strict=True)
+```
+
+Uma string adiada é renderizada onde quer que ela acabe sendo usada — dentro de
+um template, de um formulário, de uma linha de log — e esse lugar raramente sabe
+se aquilo é uma execução de teste ou produção. Passar `strict=True` na definição
+é o que permite aplicar a mesma escolha [rígida na CI, tolerante em
+produção](#what-happens-when-a-catalog-is-wrong) a uma string que não é
+renderizada no ponto em que é chamada.
+
 Plurais dependem do número em tempo de execução; renderize-os imediatamente com
 `ngettext`.
 

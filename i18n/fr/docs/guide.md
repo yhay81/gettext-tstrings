@@ -97,6 +97,19 @@ son texte.
     Son texte dépend de la langue. Un hash qui change corromprait silencieusement
     un set ou un dict. Appelez d'abord `str()` pour obtenir une clé.
 
+`strict` se décide là où le message est écrit, pas là où il est rendu :
+
+```python
+SAVE = lazy_gettext(t"Save changes", strict=True)
+```
+
+Une chaîne différée se rend là où elle finit par être utilisée — dans un
+gabarit, un formulaire, une ligne de log — et cet endroit sait rarement s'il
+s'agit d'une exécution de test ou de la production. Passer `strict=True` à la
+définition est ce qui permet d'appliquer le même choix [bruyant en CI,
+indulgent en production](#what-happens-when-a-catalog-is-wrong) à une chaîne
+qui n'est pas rendue sur son site d'appel.
+
 Les pluriels dépendent du nombre à l'exécution : rendez-les immédiatement avec
 `ngettext`.
 

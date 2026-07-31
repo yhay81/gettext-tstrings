@@ -99,6 +99,20 @@ równy swojemu wyrenderowanemu tekstowi.
     przy przełączeniu języka i po cichu psuł każdy zbiór lub słownik, który
     go przechowuje. Jeśli potrzebujesz klucza, najpierw wywołaj `str()`.
 
+O `strict` decyduje się tam, gdzie komunikat jest zapisany, a nie tam, gdzie
+się renderuje:
+
+```python
+SAVE = lazy_gettext(t"Save changes", strict=True)
+```
+
+Łańcuch odroczony renderuje się tam, gdzie zostanie ostatecznie użyty — w
+szablonie, w formularzu, w linii logu — a to miejsce rzadko wie, czy jest to
+przebieg testowy, czy produkcja. Przekazanie `strict=True` przy definicji
+pozwala zastosować ten sam wybór [głośno w CI, łagodnie w
+produkcji](#what-happens-when-a-catalog-is-wrong) do łańcucha, który nie
+renderuje się w miejscu swojego wywołania.
+
 Formy liczby mnogiej zależą od licznika znanego w czasie działania, więc
 renderuj je zachłannie przez `ngettext` tam, gdzie licznik jest znany.
 

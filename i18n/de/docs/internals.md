@@ -139,8 +139,11 @@ der Website übersetzen diese eine Nachricht in eine bis sechs Formen:
 | Japanisch | 1 | `ローカライズ済みページを{n}件ビルドしました` |
 | Türkisch | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` — zweimal, identisch: türkische Substantive bleiben nach einem Zahlwort im Singular |
 | Italienisch | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` — das Partizip kongruiert in Genus und Numerus |
+| Lettisch | 3 | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` — die dritte Form gilt **allein der Null** |
 | Russisch | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
 | Polnisch | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
+| Slowenisch | 4 | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` — die zweite ist ein **Dual**, für genau zwei |
+| Irisch | 5 | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` — eins, zwei, 3–6, 7–10 und der Rest; der Stamm wechselt, doch *leathanach* beginnt mit `l`, das keine irische Mutation schreibt, sodass mehrere Formen zusammenfallen |
 | Arabisch | 6 | darunter `تم إنشاء صفحة مترجمة واحدة ({n})` für genau eins und `تم إنشاء {n} صفحات مترجمة` für wenige |
 
 Jede Zeile ist ein echter Eintrag in `i18n/*/LC_MESSAGES/site.po` dieses

@@ -51,8 +51,8 @@ concorrenza.
 
 | Nome | Scopo |
 | --- | --- |
-| `lazy_gettext(template, /)` | Rinvia una traduzione al primo uso. |
-| `lazy_pgettext(context, template, /)` | La forma con contesto. |
+| `lazy_gettext(template, /, *, strict=False)` | Rinvia una traduzione al primo uso. |
+| `lazy_pgettext(context, template, /, *, strict=False)` | La forma con contesto. |
 | `LazyString` | Ciò che entrambe restituiscono. Si rende attraverso `str()` e `format()`, risulta uguale al suo testo nei confronti ed è deliberatamente non hashabile. |
 
 ## Livello più basso { #lower-level }

@@ -51,8 +51,8 @@ utendaji sambamba.
 
 | Jina | Kusudi |
 | --- | --- |
-| `lazy_gettext(template, /)` | Ahirisha tafsiri hadi matumizi ya kwanza. |
-| `lazy_pgettext(context, template, /)` | Umbo lenye muktadha. |
+| `lazy_gettext(template, /, *, strict=False)` | Ahirisha tafsiri hadi matumizi ya kwanza. |
+| `lazy_pgettext(context, template, /, *, strict=False)` | Umbo lenye muktadha. |
 | `LazyString` | Kile ambacho zote mbili hurudisha. Huonyeshwa kupitia `str()` na `format()`, hulingana sawa na maandishi yake, nayo haihifadhiki kwa makusudi. |
 
 ## Ngazi ya chini { #lower-level }

@@ -51,8 +51,8 @@ segura con concurrencia.
 
 | Nombre | Finalidad |
 | --- | --- |
-| `lazy_gettext(template, /)` | Difiere una traducción hasta el primer uso. |
-| `lazy_pgettext(context, template, /)` | La forma con contexto. |
+| `lazy_gettext(template, /, *, strict=False)` | Difiere una traducción hasta el primer uso. |
+| `lazy_pgettext(context, template, /, *, strict=False)` | La forma con contexto. |
 | `LazyString` | El tipo que devuelven ambas. Se renderiza mediante `str()`, `format()` y f-strings, se compara con su texto y deliberadamente no admite hash. |
 
 ## Bajo nivel { #lower-level }

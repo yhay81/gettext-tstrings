@@ -99,6 +99,20 @@ svému vykreslenému textu.
     přepnutí jazyka změnil a potichu poškodil každou množinu nebo slovník,
     které jej drží. Potřebujete-li klíč, zavolejte nejprve `str()`.
 
+O `strict` se rozhoduje tam, kde je zpráva napsána, ne tam, kde se
+vykresluje:
+
+```python
+SAVE = lazy_gettext(t"Save changes", strict=True)
+```
+
+Odložený řetězec se vykreslí až tam, kde je nakonec použit — v šabloně, ve
+formuláři, v řádku logu — a toto místo zřídka ví, zda jde o testovací běh,
+nebo o produkci. Předání `strict=True` při definici je to, co umožňuje
+uplatnit tutéž volbu
+[hlasitě v CI, shovívavě v produkci](#what-happens-when-a-catalog-is-wrong)
+i na řetězec, který se nevykresluje v místě svého volání.
+
 Tvary množného čísla závisejí na počtu známém až za běhu, proto je
 vykreslujte okamžitě pomocí `ngettext` tam, kde je počet znám.
 

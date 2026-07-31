@@ -51,8 +51,8 @@ lygiagretumo sąlygomis.
 
 | Vardas | Paskirtis |
 | --- | --- |
-| `lazy_gettext(template, /)` | Atidėti vertimą iki pirmojo panaudojimo. |
-| `lazy_pgettext(context, template, /)` | Kontekstinė forma. |
+| `lazy_gettext(template, /, *, strict=False)` | Atidėti vertimą iki pirmojo panaudojimo. |
+| `lazy_pgettext(context, template, /, *, strict=False)` | Kontekstinė forma. |
 | `LazyString` | Tai, ką grąžina abi. Atvaizduojama per `str()` ir `format()`, lygybėje prilygsta savo tekstui ir tyčia neturi maišos. |
 
 ## Žemesnis lygmuo { #lower-level }

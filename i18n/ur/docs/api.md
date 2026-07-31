@@ -51,8 +51,8 @@ Translator(translations, strict=False)
 
 | نام | مقصد |
 | --- | --- |
-| `lazy_gettext(template, /)` | ترجمے کو پہلے استعمال تک مؤخر کر دیتا ہے۔ |
-| `lazy_pgettext(context, template, /)` | اس کی سیاقی صورت۔ |
+| `lazy_gettext(template, /, *, strict=False)` | ترجمے کو پہلے استعمال تک مؤخر کر دیتا ہے۔ |
+| `lazy_pgettext(context, template, /, *, strict=False)` | اس کی سیاقی صورت۔ |
 | `LazyString` | جو دونوں لوٹاتے ہیں۔ `str()` اور `format()` کے ذریعے رینڈر ہوتی ہے، اپنے متن کے برابر موازنہ کرتی ہے، اور جان بوجھ کر ناقابلِ ہیش ہے۔ |
 
 ## نچلی سطح { #lower-level }

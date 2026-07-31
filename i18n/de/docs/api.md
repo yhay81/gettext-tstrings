@@ -47,8 +47,8 @@ Die Bindung nutzt `ContextVar` und ist nebenläufigkeitssicher.
 
 | Name | Aufgabe |
 | --- | --- |
-| `lazy_gettext(template, /)` | Verschiebt die Übersetzung bis zur Nutzung. |
-| `lazy_pgettext(context, template, /)` | Variante mit Kontext. |
+| `lazy_gettext(template, /, *, strict=False)` | Verschiebt die Übersetzung bis zur Nutzung. |
+| `lazy_pgettext(context, template, /, *, strict=False)` | Variante mit Kontext. |
 | `LazyString` | Wird über `str()`, `format()` und f-strings gerendert, vergleicht sich mit Text und ist absichtlich nicht hashbar. |
 
 ## Low-Level-API { #lower-level }

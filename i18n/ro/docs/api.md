@@ -50,8 +50,8 @@ Legarea este o `ContextVar`, deci este per context și sigură sub concurență.
 
 | Nume | Scop |
 | --- | --- |
-| `lazy_gettext(template, /)` | Amână o traducere până la prima utilizare. |
-| `lazy_pgettext(context, template, /)` | Forma cu context. |
+| `lazy_gettext(template, /, *, strict=False)` | Amână o traducere până la prima utilizare. |
+| `lazy_pgettext(context, template, /, *, strict=False)` | Forma cu context. |
 | `LazyString` | Ce returnează amândouă. Se randează prin `str()` și `format()`, se compară egal cu textul său și este intenționat nehashabil. |
 
 ## Nivel mai jos { #lower-level }

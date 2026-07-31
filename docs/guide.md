@@ -96,6 +96,18 @@ equal to its rendered text.
     across a language switch and quietly corrupt any set or dict holding it.
     Call `str()` first if you need a key.
 
+`strict` is decided where the message is written, not where it renders:
+
+```python
+SAVE = lazy_gettext(t"Save changes", strict=True)
+```
+
+A deferred string renders wherever it is finally used — inside a template, a
+form, a log line — and that place rarely knows whether this is a test run or
+production. Passing `strict=True` at the definition is what lets the same
+[loud-in-CI, lenient-in-production](#what-happens-when-a-catalog-is-wrong)
+choice apply to a string that is not rendered at its call site.
+
 Plural forms depend on a runtime count, so render those eagerly with `ngettext`
 where the count is known.
 

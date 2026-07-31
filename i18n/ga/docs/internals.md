@@ -141,8 +141,11 @@ teachtaireacht amháin sin go dtí idir foirm amháin agus sé cinn:
 | Seapáinis | 1 | `ローカライズ済みページを{n}件ビルドしました` |
 | Tuircis | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` — faoi dhó, mar an gcéanna: fanann ainmfhocail na Tuircise san uatha i ndiaidh uimhreach |
 | Iodáilis | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` — réitíonn an rangabháil in inscne agus in uimhir |
+| Laitvis | 3 | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` — níl an tríú foirm ann ach do **nialas amháin** |
 | Rúisis | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
 | Polainnis | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
+| Slóivéinis | 4 | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` — is **déach** í an dara ceann, do dhá cheann go beacht |
+| Gaeilge | 5 | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` — a haon, a dó, 3–6, 7–10, agus an chuid eile; malartaíonn an gas, ach tosaíonn *leathanach* le `l`, litir nach scríobhtar aon athrú tosaigh Gaeilge uirthi, agus mar sin tagann roinnt foirmeacha le chéile |
 | Araibis | 6 | ina measc `تم إنشاء صفحة مترجمة واحدة ({n})` do cheann amháin go beacht agus `تم إنشاء {n} صفحات مترجمة` do bheagán |
 
 Is iontráil bheo é gach ró in `i18n/*/LC_MESSAGES/site.po` na stórlainne seo,

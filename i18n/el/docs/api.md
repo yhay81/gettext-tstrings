@@ -51,8 +51,8 @@ Translator(translations, strict=False)
 
 | Όνομα | Σκοπός |
 | --- | --- |
-| `lazy_gettext(template, /)` | Αναβάλλει μια μετάφραση ώς την πρώτη χρήση. |
-| `lazy_pgettext(context, template, /)` | Η μορφή με συγκείμενο. |
+| `lazy_gettext(template, /, *, strict=False)` | Αναβάλλει μια μετάφραση ώς την πρώτη χρήση. |
+| `lazy_pgettext(context, template, /, *, strict=False)` | Η μορφή με συγκείμενο. |
 | `LazyString` | Αυτό που επιστρέφουν και οι δύο. Αποδίδεται μέσω `str()` και `format()`, συγκρίνεται ίση με το κείμενό της, και είναι σκόπιμα μη κατακερματίσιμη. |
 
 ## Χαμηλότερο επίπεδο { #lower-level }

@@ -51,8 +51,8 @@ agus tá sé sábháilte faoi chomhuainíocht.
 
 | Ainm | Cuspóir |
 | --- | --- |
-| `lazy_gettext(template, /)` | Cuir aistriúchán ar athló go dtí an chéad úsáid. |
-| `lazy_pgettext(context, template, /)` | An fhoirm chomhthéacsúil. |
+| `lazy_gettext(template, /, *, strict=False)` | Cuir aistriúchán ar athló go dtí an chéad úsáid. |
+| `lazy_pgettext(context, template, /, *, strict=False)` | An fhoirm chomhthéacsúil. |
 | `LazyString` | An rud a fhilleann an dá cheann. Rindreáileann sé trí `str()` agus `format()`, bíonn sé cothrom lena théacs i gcomparáid, agus níl hais air d'aon ghnó. |
 
 ## Leibhéal níos ísle { #lower-level }

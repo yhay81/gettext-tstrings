@@ -49,8 +49,8 @@ Translator(translations, strict=False)
 
 | Имя | Назначение |
 | --- | --- |
-| `lazy_gettext(template, /)` | Откладывает перевод до использования. |
-| `lazy_pgettext(context, template, /)` | Вариант с контекстом. |
+| `lazy_gettext(template, /, *, strict=False)` | Откладывает перевод до использования. |
+| `lazy_pgettext(context, template, /, *, strict=False)` | Вариант с контекстом. |
 | `LazyString` | Рендерится через `str()`, `format()` и f-строки, сравнивается с текстом и намеренно не хешируется. |
 
 ## Низкий уровень { #lower-level }

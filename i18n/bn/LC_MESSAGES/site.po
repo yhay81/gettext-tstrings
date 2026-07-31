@@ -44,6 +44,10 @@ msgid "In production"
 msgstr "প্রোডাকশনে"
 
 #. gettext-tstrings
+msgid "Pitfalls"
+msgstr "সাধারণ ভুল"
+
+#. gettext-tstrings
 msgid "How it works"
 msgstr "এটি কীভাবে কাজ করে"
 

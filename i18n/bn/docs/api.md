@@ -50,8 +50,8 @@ Translator(translations, strict=False)
 
 | নাম | উদ্দেশ্য |
 | --- | --- |
-| `lazy_gettext(template, /)` | একটি অনুবাদকে প্রথম ব্যবহার পর্যন্ত পিছিয়ে দেয়। |
-| `lazy_pgettext(context, template, /)` | তার context-যুক্ত রূপ। |
+| `lazy_gettext(template, /, *, strict=False)` | একটি অনুবাদকে প্রথম ব্যবহার পর্যন্ত পিছিয়ে দেয়। |
+| `lazy_pgettext(context, template, /, *, strict=False)` | তার context-যুক্ত রূপ। |
 | `LazyString` | দুটিই যা ফেরায়। `str()` ও `format()`-এর মধ্য দিয়ে রেন্ডার হয়, নিজের টেক্সটের সমান হিসেবে তুলনায় ধরা পড়ে, আর ইচ্ছাকৃতভাবেই unhashable। |
 
 ## নিচের স্তর { #lower-level }

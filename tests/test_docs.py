@@ -24,7 +24,12 @@ import pytest
 from babel.messages.extract import DEFAULT_KEYWORDS, extract
 from babel.messages.pofile import read_po
 
-from gettext_tstrings import InvalidTranslationError, compile_template, use_translations
+from gettext_tstrings import (
+    InvalidTranslationError,
+    compile_template,
+    lazy_gettext,
+    use_translations,
+)
 from gettext_tstrings.extract import extract_tstrings
 
 ROOT = Path(__file__).parent.parent
@@ -84,6 +89,7 @@ SITE_MESSAGES = {
     ("navigation", "Guide"),
     (None, "Extraction"),
     (None, "In production"),
+    (None, "Pitfalls"),
     (None, "How it works"),
     (None, "Specification"),
     (None, "API"),
@@ -96,6 +102,9 @@ SITE_MESSAGES = {
         ("Rendered {n} page in {seconds}s", "Rendered {n} pages in {seconds}s"),
     ),
 }
+
+# Interpolated by the lenient-warning test; the name is part of the msgid.
+author = "Yusuke Hayashi"
 
 MISMATCH = "translation does not match the source placeholders: "
 
@@ -323,6 +332,21 @@ QUOTED_PLURAL_FORMS = {
         "Zbudowano {n} zlokalizowane strony",
         "Zbudowano {n} zlokalizowanych stron",
     ],
+    "lv": [
+        "Izveidota {n} lokalizēta lapa",
+        "Izveidotas {n} lokalizētas lapas",
+        "Izveidots {n} lokalizētu lapu",
+    ],
+    "sl": [
+        "Zgrajena {n} lokalizirana stran",
+        "Zgrajeni {n} lokalizirani strani",
+        "Zgrajene {n} lokalizirane strani",
+        "Zgrajenih {n} lokaliziranih strani",
+    ],
+    "ga": [
+        "Tógadh {n} leathanach logánaithe",
+        "Tógadh {n} leathanaigh logánaithe",
+    ],
     "ar": ["تم إنشاء صفحة مترجمة واحدة ({n})", "تم إنشاء {n} صفحات مترجمة"],
 }
 
@@ -356,6 +380,16 @@ def _slugify(heading: str) -> str:
     return re.sub(r"\s+", "-", text)
 
 
+def _english_anchor(heading: str) -> str:
+    """The anchor an English heading actually renders with.
+
+    A heading that pins its own ``{ #… }`` attribute keeps that value; every
+    other heading gets the slug python-markdown derives from its text.
+    """
+    explicit = re.search(r"\{ #([^ }]+) \}\s*$", heading)
+    return explicit.group(1) if explicit else _slugify(heading)
+
+
 def _section_headings(page: Path) -> list[str]:
     """The ``##`` headings of a page, with fenced code blocks masked out."""
     text = re.sub(
@@ -375,7 +409,7 @@ def test_translated_headings_carry_english_anchors(language: str) -> None:
     # attribute on every section heading — not only the ones currently linked
     # to — is what keeps the next new page free to link anywhere.
     for english in DOCS.glob("*.md"):
-        expected = [_slugify(heading) for heading in _section_headings(english)]
+        expected = [_english_anchor(heading) for heading in _section_headings(english)]
         translated = I18N / language / "docs" / english.name
         anchors = [
             match.group(1) if match else None
@@ -406,19 +440,40 @@ def test_every_edition_is_registered_everywhere() -> None:
     assert switcher == tested, "language switcher and tests disagree"
 
 
-def test_every_translated_page_differs_from_english() -> None:
-    """A copied English page passes every other check on this list.
+def _prose_lines(text: str) -> list[str]:
+    """The sentences of a page: no code blocks, no anchor attributes, no scraps.
 
-    One edition arrived with eight of its ten pages byte-identical to the
-    source, which the block and catalog checks cannot see — the blocks match
-    perfectly, because they are the same file.
+    Code blocks are excluded because they *must* match English byte for byte.
+    Anchor attributes are excluded because every translated heading carries the
+    English one, so they differ on every page whether or not anything was
+    translated. Short lines are excluded because table rules, list bullets and
+    link definitions coincide across languages for reasons that say nothing.
     """
+    text = re.sub(r"^([ \t]*)```\w*\n.*?\n\1```$", "", text, flags=re.DOTALL | re.MULTILINE)
+    text = re.sub(r"\s*\{ #[^}]+ \}", "", text)
+    return [line.strip() for line in text.splitlines() if len(line.strip()) > 20]
+
+
+def test_every_edition_is_actually_translated() -> None:
+    """An English page with the anchors pinned on is not a translation.
+
+    Comparing whole files was not enough. One edition reached ``main`` as ten
+    copies of the English source with only ``{ #anchor }`` attributes added —
+    every other check passed, because the code blocks matched (they were the
+    same file) and the catalog was genuinely translated. Comparing the prose
+    separates them cleanly: that edition shared 87% of its sentences with
+    English, and every real translation shares between 4% and 8% — the lines
+    that legitimately coincide, like URLs and quoted program output.
+    """
+    limit = 0.25
     for language in LANGUAGES:
+        shared = total = 0
         for english in DOCS.glob("*.md"):
-            translated = I18N / language / "docs" / english.name
-            assert translated.read_text(encoding="utf-8") != english.read_text(
-                encoding="utf-8",
-            ), translated
+            source = set(_prose_lines(english.read_text(encoding="utf-8")))
+            lines = _prose_lines((I18N / language / "docs" / english.name).read_text("utf-8"))
+            total += len(lines)
+            shared += sum(1 for line in lines if line in source)
+        assert shared / total < limit, f"{language} is {shared / total:.0%} English prose"
 
 
 def _load_site_builder() -> Any:
@@ -450,18 +505,30 @@ class _BreaksTheCopyright:
         return singular if n == 1 else plural
 
 
-def test_the_site_build_fails_on_a_broken_chrome_translation() -> None:
-    # The site's chrome renders through LazyString, which has no strict mode, so
-    # a damaged translation would fall back to English and publish silently. The
-    # builder's logging handler is what closes that gap; without a test, deleting
-    # it would look harmless.
+def test_the_site_chrome_refuses_a_broken_translation() -> None:
+    # The chrome asks for strict=True, so a damaged translation stops the build
+    # where it is rendered rather than falling back to English and publishing.
+    builder = _load_site_builder()
+
+    with use_translations(_BreaksTheCopyright()), pytest.raises(InvalidTranslationError) as caught:
+        str(builder.COPYRIGHT)
+
+    assert "{auteur} is not in the source message" in str(caught.value)
+
+
+def test_the_site_build_fails_on_a_lenient_warning() -> None:
+    # What the chrome's strict mode does not cover is everything rendered the
+    # way an application renders it — the build report, deliberately lenient so
+    # the site exercises the default path. The handler is what keeps that
+    # leniency honest here; without a test, deleting it would look harmless.
     builder = _load_site_builder()
     logger = logging.getLogger("gettext_tstrings")
     handler = builder._FailOnInvalidTranslation()
     logger.addHandler(handler)
+    lenient = lazy_gettext(t"Copyright © 2026 {author} · MIT License")
     try:
         with use_translations(_BreaksTheCopyright()), pytest.raises(RuntimeError) as caught:
-            str(builder.COPYRIGHT)
+            str(lenient)
     finally:
         logger.removeHandler(handler)
 

@@ -132,8 +132,11 @@ mmoja katika kuanzia umbo moja hadi sita:
 | Kijapani | 1 | `ローカライズ済みページを{n}件ビルドしました` |
 | Kituruki | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` — mara mbili, ikiwa ileile: nomino za Kituruki hubaki katika umoja baada ya nambari |
 | Kiitaliano | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` — shirikishi hukubaliana katika jinsia na idadi |
+| Kilatvia | 3 | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` — umbo la tatu ni kwa ajili ya **sifuri pekee** |
 | Kirusi | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
 | Kipolandi | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
+| Kislovenia | 4 | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` — la pili ni umbo la **uwili**, kwa mbili hasa |
+| Kiayalandi | 5 | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` — moja, mbili, 3–6, 7–10, na zilizosalia; shina hubadilikabadilika lakini *leathanach* huanza na `l`, herufi ambayo hakuna ubadilikaji wa Kiayalandi unaoiandika, hivyo maumbo kadhaa hufanana |
 | Kiarabu | 6 | miongoni mwayo `تم إنشاء صفحة مترجمة واحدة ({n})` kwa moja hasa na `تم إنشاء {n} صفحات مترجمة` kwa chache |
 
 Kila safu ni ingizo hai ndani ya `i18n/*/LC_MESSAGES/site.po` ya hazina hii,

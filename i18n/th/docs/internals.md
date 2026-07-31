@@ -76,8 +76,11 @@ msgid           'Total: {amount}'
 | ญี่ปุ่น | 1 | `ローカライズ済みページを{n}件ビルドしました` |
 | ตุรกี | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` — สองครั้ง เหมือนกันทุกตัวอักษร: คำนามภาษาตุรกีคงรูปเอกพจน์เมื่อตามหลังตัวเลข |
 | อิตาลี | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` — กริยารูป participle ผันตามเพศและพจน์ |
+| ลัตเวีย | 3 | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` — รูปที่สามมีไว้สำหรับ**ศูนย์เท่านั้น** |
 | รัสเซีย | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
 | โปแลนด์ | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
+| สโลวีเนีย | 4 | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` — รูปที่สองคือ**ทวิพจน์ (dual)** สำหรับสองหน่วยพอดี |
+| ไอริช | 5 | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` — หนึ่ง สอง 3–6 7–10 และที่เหลือ; ก้านคำสลับรูปไปมา แต่ *leathanach* ขึ้นต้นด้วย `l` ซึ่งไม่มีการกลายเสียงต้นคำ (mutation) ของภาษาไอริชแบบใดเขียนออกมา หลายรูปจึงพ้องกัน |
 | อาหรับ | 6 | ในจำนวนนั้นมี `تم إنشاء صفحة مترجمة واحدة ({n})` สำหรับหนึ่งหน้าพอดี และ `تم إنشاء {n} صفحات مترجمة` สำหรับจำนวนไม่กี่หน้า |
 
 ทุกแถวคือรายการที่มีอยู่จริงใน `i18n/*/LC_MESSAGES/site.po` ของรีโพซิทอรีนี้ ถูกเรนเดอร์โดย[การ build หลายภาษา](index.md)ในทุกรีลีส — และมีการทดสอบตรึงตารางนี้เข้ากับแคตตาล็อกเหล่านั้น ทั้งสองจึงไม่มีทางลอยห่างออกจากกัน

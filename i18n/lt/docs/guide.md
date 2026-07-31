@@ -98,6 +98,19 @@ prilygsta savo atvaizduotam tekstui.
     perjungus kalbą ir tyliai sugadintų bet kurią ją laikančią aibę ar žodyną.
     Jei reikia rakto, pirma iškvieskite `str()`.
 
+`strict` nusprendžiama ten, kur pranešimas parašomas, o ne ten, kur jis
+atvaizduojamas:
+
+```python
+SAVE = lazy_gettext(t"Save changes", strict=True)
+```
+
+Atidėta eilutė atvaizduojama ten, kur galiausiai panaudojama — šablone, formoje,
+žurnalo įraše — o ta vieta retai žino, ar tai testų paleidimas, ar reali
+aplinka. Perdavus `strict=True` apibrėžimo vietoje, tas pats
+[garsiai CI, atlaidžiai realioje aplinkoje](#what-happens-when-a-catalog-is-wrong)
+pasirinkimas galioja ir eilutei, kuri atvaizduojama ne savo kvietimo vietoje.
+
 Daugiskaitos formos priklauso nuo veikimo meto skaičiaus, todėl jas
 atvaizduokite iš karto su `ngettext` ten, kur skaičius žinomas.
 

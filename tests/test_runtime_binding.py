@@ -5,6 +5,7 @@ import gettext
 import pytest
 
 from gettext_tstrings import (
+    InvalidTranslationError,
     LazyString,
     Translations,
     get_translations,
@@ -106,6 +107,43 @@ def test_lazy_string_is_unhashable() -> None:
     with pytest.raises(TypeError, match="unhashable"):
         {label}  # noqa: B018
     assert str(label) in {"Save"}  # an explicit str() can still be used as a key
+
+
+def test_lazy_strings_can_be_strict() -> None:
+    # A deferred string renders wherever it is used, which is rarely a place
+    # that knows whether this is a test run or production. The choice therefore
+    # belongs where the message is written, and without it a damaged catalog
+    # entry could only ever be reported through the logger.
+    name = "Ada"
+    broken = StubTranslations({"Hello {name}": "Bonjour {nom}"})
+
+    lenient = lazy_gettext(t"Hello {name}")
+    strict = lazy_gettext(t"Hello {name}", strict=True)
+
+    with use_translations(broken):
+        assert str(lenient) == "Hello Ada"
+        with pytest.raises(InvalidTranslationError):
+            str(strict)
+
+
+def test_lazy_pgettext_can_be_strict() -> None:
+    filename = "report.txt"
+    broken = StubTranslations({("button", "Open {filename}"): "Ouvrir {fichier}"})
+
+    strict = lazy_pgettext("button", t"Open {filename}", strict=True)
+
+    with use_translations(broken), pytest.raises(InvalidTranslationError):
+        str(strict)
+
+
+def test_lazy_strings_stay_lenient_by_default() -> None:
+    # The default matches every other entry point: a broken catalog renders the
+    # source text rather than taking the application down.
+    name = "Ada"
+    broken = StubTranslations({"Hello {name}": "Bonjour {nom}"})
+
+    with use_translations(broken):
+        assert str(lazy_gettext(t"Hello {name}")) == "Hello Ada"
 
 
 def test_translations_protocol_is_runtime_checkable() -> None:

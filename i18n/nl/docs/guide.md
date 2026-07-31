@@ -100,6 +100,19 @@ aan zijn gerenderde tekst.
     stilletjes corrumperen. Roep eerst `str()` aan als je een sleutel nodig
     hebt.
 
+`strict` wordt beslist waar het bericht geschreven wordt, niet waar het
+rendert:
+
+```python
+SAVE = lazy_gettext(t"Save changes", strict=True)
+```
+
+Een uitgestelde string rendert waar hij uiteindelijk gebruikt wordt — in een
+template, een formulier, een logregel — en die plek weet zelden of dit een
+testrun of productie is. `strict=True` meegeven bij de definitie is wat
+dezelfde keuze [luid in CI, mild in productie](#what-happens-when-a-catalog-is-wrong)
+laat gelden voor een string die niet op zijn aanroepplek gerenderd wordt.
+
 Meervoudsvormen hangen af van een runtime-telling, dus render die gretig met
 `ngettext` waar de telling bekend is.
 

@@ -51,8 +51,8 @@ samtidighet.
 
 | Namn | Syfte |
 | --- | --- |
-| `lazy_gettext(template, /)` | Skjut upp en översättning till första användning. |
-| `lazy_pgettext(context, template, /)` | Den kontextuella formen. |
+| `lazy_gettext(template, /, *, strict=False)` | Skjut upp en översättning till första användning. |
+| `lazy_pgettext(context, template, /, *, strict=False)` | Den kontextuella formen. |
 | `LazyString` | Vad båda returnerar. Renderar genom `str()` och `format()`, jämförs lika med sin text, och är avsiktligt ohashbar. |
 
 ## Lägre nivå { #lower-level }

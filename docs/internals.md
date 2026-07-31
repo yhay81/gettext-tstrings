@@ -129,8 +129,11 @@ anywhere from one form to six:
 | Japanese | 1 | `ローカライズ済みページを{n}件ビルドしました` |
 | Turkish | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` — twice, identically: Turkish nouns stay singular after a numeral |
 | Italian | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` — the participle agrees in gender and number |
+| Latvian | 3 | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` — the third form is for **zero alone** |
 | Russian | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
 | Polish | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
+| Slovenian | 4 | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` — the second is a **dual**, for exactly two |
+| Irish | 5 | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` — one, two, 3–6, 7–10, and the rest; the stem alternates but *leathanach* begins with `l`, which no Irish mutation writes, so several forms coincide |
 | Arabic | 6 | among them `تم إنشاء صفحة مترجمة واحدة ({n})` for exactly one and `تم إنشاء {n} صفحات مترجمة` for a few |
 
 Every row is a live entry in this repository's `i18n/*/LC_MESSAGES/site.po`,

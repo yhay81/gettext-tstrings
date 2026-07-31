@@ -121,8 +121,11 @@ msgid           'Total: {amount}'
 | اليابانية | 1 | `ローカライズ済みページを{n}件ビルドしました` |
 | التركية | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` — مرتين بالصيغة نفسها: فالأسماء في التركية تبقى مفردة بعد العدد |
 | الإيطالية | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` — يتطابق اسم المفعول في الجنس والعدد |
+| اللاتفية | 3 | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` — الصيغة الثالثة **للصفر وحده** |
 | الروسية | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
 | البولندية | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
+| السلوفينية | 4 | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` — الثانية **مثنّى**، للاثنين بالضبط |
+| الأيرلندية | 5 | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` — للواحد، وللاثنين، ولـ3–6، ولـ7–10، وللبقية؛ يتناوب الجذع لكن *leathanach* تبدأ بحرف `l`، ولا يُكتب على `l` أيٌّ من التغيّرات الاستهلالية في الأيرلندية، فتتطابق عدة صيغ |
 | العربية | 6 | من بينها `تم إنشاء صفحة مترجمة واحدة ({n})` عندما يكون العدد واحداً بالضبط و`تم إنشاء {n} صفحات مترجمة` للعدد القليل |
 
 كل صف هو مُدخل حي في `i18n/*/LC_MESSAGES/site.po` في هذا المستودع، يعرضه

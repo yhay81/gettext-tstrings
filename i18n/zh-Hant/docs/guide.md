@@ -88,6 +88,17 @@ with use_translations(japanese):
     `LazyString` 的文字取決於當前語言，因此雜湊值會在切換語言時改變，並悄悄
     破壞任何持有它的 set 或 dict。需要當作 key 時，請先呼叫 `str()`。
 
+`strict` 由訊息*被寫下*的地方決定，而不是由它渲染的地方決定：
+
+```python
+SAVE = lazy_gettext(t"Save changes", strict=True)
+```
+
+一個延遲字串會在它最終被使用的任何地方渲染——在模板裡、在表單裡、在某行日誌
+裡——而那個地方很少知道這次究竟是測試執行還是正式環境。在定義處傳入
+`strict=True`，正是讓同一套[在 CI 大聲、在正式環境寬容](#what-happens-when-a-catalog-is-wrong)
+的取捨，也能套用到一個並非在其呼叫點渲染的字串上。
+
 複數形式取決於執行階段的數量，所以請在已知數量之處以 `ngettext` 立即渲染。
 
 ## 目錄出錯時會發生什麼事 { #what-happens-when-a-catalog-is-wrong }

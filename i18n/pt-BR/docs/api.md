@@ -48,8 +48,8 @@ O vínculo usa `ContextVar` e é seguro em concorrência.
 
 | Nome | Função |
 | --- | --- |
-| `lazy_gettext(template, /)` | Adia a tradução até o uso. |
-| `lazy_pgettext(context, template, /)` | Variante com contexto. |
+| `lazy_gettext(template, /, *, strict=False)` | Adia a tradução até o uso. |
+| `lazy_pgettext(context, template, /, *, strict=False)` | Variante com contexto. |
 | `LazyString` | Renderiza por `str()`, `format()` e f-strings, compara-se ao texto e não é hashable de propósito. |
 
 ## Baixo nível { #lower-level }

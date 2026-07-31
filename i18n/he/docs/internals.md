@@ -121,8 +121,11 @@ msgid           'Total: {amount}'
 | יפנית | 1 | `ローカライズ済みページを{n}件ビルドしました` |
 | טורקית | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` — פעמיים, זהה לחלוטין: שמות עצם בטורקית נשארים ביחיד אחרי מספר |
 | איטלקית | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` — הבינוני מותאם במין ובמספר |
+| לטבית | 3 | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` — הצורה השלישית היא **לאפס בלבד** |
 | רוסית | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
 | פולנית | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
+| סלובנית | 4 | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` — השנייה היא **זוגי**, לשניים בדיוק |
+| אירית | 5 | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` — אחד, שניים, 3–6, 7–10 וכל השאר; הגזע מתחלף, אבל *leathanach* מתחילה ב-`l`, ואף מוטציה אירית אינה נכתבת עליה, ולכן כמה צורות מתלכדות |
 | ערבית | 6 | ביניהן `تم إنشاء صفحة مترجمة واحدة ({n})` לאחד בדיוק ו-`تم إنشاء {n} صفحات مترجمة` לכמה |
 
 כל שורה היא רשומה חיה ב-`i18n/*/LC_MESSAGES/site.po` של המאגר הזה,

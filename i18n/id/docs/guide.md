@@ -100,6 +100,19 @@ membandingkan sama dengan teks hasil rendernya.
     atau dict mana pun yang menyimpannya. Panggil `str()` lebih dulu jika Anda
     memerlukan sebuah kunci.
 
+`strict` ditentukan di tempat pesan itu ditulis, bukan di tempat ia dirender:
+
+```python
+SAVE = lazy_gettext(t"Save changes", strict=True)
+```
+
+Sebuah string tertunda dirender di mana pun ia akhirnya dipakai — di dalam
+sebuah templat, sebuah formulir, sebuah baris log — dan tempat itu jarang tahu
+apakah ini sebuah jalannya pengujian atau produksi. Meneruskan `strict=True`
+pada definisinya adalah yang membuat pilihan yang sama —
+[lantang di CI, longgar di produksi](#what-happens-when-a-catalog-is-wrong) —
+berlaku untuk string yang tidak dirender di tempat pemanggilannya.
+
 Bentuk jamak bergantung pada hitungan saat runtime, jadi render itu secara
 langsung dengan `ngettext` di tempat hitungannya diketahui.
 

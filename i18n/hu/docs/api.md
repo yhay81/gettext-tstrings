@@ -51,8 +51,8 @@ mellett.
 
 | Név | Mire való |
 | --- | --- |
-| `lazy_gettext(template, /)` | Egy fordítás elhalasztása az első használatig. |
-| `lazy_pgettext(context, template, /)` | A kontextusos alak. |
+| `lazy_gettext(template, /, *, strict=False)` | Egy fordítás elhalasztása az első használatig. |
+| `lazy_pgettext(context, template, /, *, strict=False)` | A kontextusos alak. |
 | `LazyString` | Amit mindkettő visszaad. A `str()` és a `format()` révén jelenik meg, egyenlőnek bizonyul a szövegével, és szándékosan nem hashelhető. |
 
 ## Alacsonyabb szint { #lower-level }

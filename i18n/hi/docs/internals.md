@@ -130,8 +130,11 @@ msgid           'Total: {amount}'
 | जापानी | 1 | `ローカライズ済みページを{n}件ビルドしました` |
 | तुर्की | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` — दो बार, बिल्कुल एक जैसा: संख्यावाचक के बाद तुर्की संज्ञाएँ एकवचन ही रहती हैं |
 | इतालवी | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` — कृदंत लिंग और वचन में मेल खाता है |
+| लातवियाई | 3 | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` — तीसरा रूप **केवल शून्य** के लिए है |
 | रूसी | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
 | पोलिश | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
+| स्लोवेनियाई | 4 | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` — दूसरा **द्विवचन** है, ठीक दो के लिए |
+| आयरिश | 5 | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` — एक, दो, 3–6, 7–10, और शेष; धातु बदलती है पर *leathanach* `l` से शुरू होता है, जिस पर आयरिश का कोई भी आदि-विकार लिखा नहीं जाता, इसलिए कई रूप आपस में मिल जाते हैं |
 | अरबी | 6 | जिनमें ठीक एक के लिए `تم إنشاء صفحة مترجمة واحدة ({n})` और कुछेक के लिए `تم إنشاء {n} صفحات مترجمة` शामिल हैं |
 
 हर पंक्ति इस रिपॉज़िटरी की `i18n/*/LC_MESSAGES/site.po` में एक जीवित

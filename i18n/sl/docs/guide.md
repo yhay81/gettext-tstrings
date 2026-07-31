@@ -97,6 +97,18 @@ izrisanemu besedilu.
     zgostitev ob zamenjavi jezika spremenila in tiho pokvarila vsako množico ali
     slovar, ki ga hrani. Če potrebujete ključ, najprej pokličite `str()`.
 
+O `strict` se odloči tam, kjer je sporočilo zapisano, ne tam, kjer se izriše:
+
+```python
+SAVE = lazy_gettext(t"Save changes", strict=True)
+```
+
+Odloženi niz se izriše tam, kjer je nazadnje uporabljen — znotraj predloge,
+obrazca, dnevniške vrstice —, in to mesto le redko ve, ali gre za testni tek ali
+za produkcijo. Prav `strict=True` ob določitvi je tisto, kar omogoči, da ista
+izbira [glasno v CI, prizanesljivo v produkciji](#what-happens-when-a-catalog-is-wrong)
+velja tudi za niz, ki se ne izriše na svojem klicnem mestu.
+
 Množinske oblike so odvisne od števila med izvajanjem, zato jih tam, kjer je
 število znano, izrišite takoj z `ngettext`.
 

@@ -1,31 +1,31 @@
 ---
-description: "Extracting t-string messages with pybabel, and how msgfmt and the bundled Babel checker validate the catalogs."
+description: "Að draga t-string-skilaboð út með pybabel, og hvernig msgfmt og meðfylgjandi Babel-athugari staðfesta þýðingaskrárnar."
 ---
 
-# Extraction
+# Útdráttur
 
-Extraction is the step that collects every marked message out of your source
-code into a `.pot` template for translators — step 3 of the
-[tutorial](tutorial.md)'s loop. This page is the reference for that step:
-configuration, custom function names, strict CI mode, and the checks that
-guard your catalogs afterwards.
+Útdráttur er skrefið sem safnar hverjum merktum skilaboðum úr frumkóðanum
+þínum í `.pot`-sniðmát fyrir þýðendur — skref 3 í hringrás
+[kennsluefnisins](tutorial.md). Þessi síða er uppflettiritið um það skref:
+stillingar, eigin fallanöfn, strangur CI-hamur og athuganirnar sem gæta
+þýðingaskránna þinna á eftir.
 
-Extraction needs the `babel` extra:
+Útdráttur þarf `babel`-aukapakkann:
 
 ```console
 python -m pip install "gettext-tstrings[babel]"
 ```
 
-## The workflow { #the-workflow }
+## Hringrásin { #the-workflow }
 
-Create `babel.cfg`:
+Búðu til `babel.cfg`:
 
 ```ini
 [gettext_tstrings: **.py]
 encoding = utf-8
 ```
 
-Then use the ordinary Babel commands:
+Notaðu svo venjulegu Babel-skipanirnar:
 
 ```console
 pybabel extract -F babel.cfg -c "Translators:" -o locales/messages.pot .
@@ -33,22 +33,23 @@ pybabel init -i locales/messages.pot -d locales -l ja
 pybabel compile -d locales
 ```
 
-`init` runs once per language; after that, `pybabel update` folds each fresh
-template into the existing catalogs. That recurring cycle — and what its
-`fuzzy` entries mean for a release — is walked through in
-[In production](workflow.md#the-cycle-after-the-first-translation).
+`init` keyrir einu sinni fyrir hvert tungumál; eftir það fellir
+`pybabel update` hvert nýtt sniðmát inn í þýðingaskrárnar sem fyrir eru. Það
+endurtekna ferli — og hvað `fuzzy`-færslur þess þýða fyrir útgáfu — er gengið
+gegnum í [Í rekstri](workflow.md#the-cycle-after-the-first-translation).
 
-The `gettext_tstrings` extractor also handles ordinary `_()`, `gettext()`, and
-`ngettext()` calls, so one mapping covers a mixed codebase. It recognizes `_()`,
-the four standard gettext names, the `tr()` / `ntr()` aliases, and the deferred
-`lazy_gettext()` / `lazy_pgettext()`.
+Útdráttartólið `gettext_tstrings` ræður líka við venjuleg köll á `_()`,
+`gettext()` og `ngettext()`, svo ein vörpun dugar fyrir blandaðan kóðagrunn.
+Það þekkir `_()`, gettext-nöfnin fjögur, samheitin `tr()` / `ntr()` og
+frestuðu `lazy_gettext()` / `lazy_pgettext()`.
 
-!!! warning "`-c` is not optional"
+!!! warning "`-c` er ekki valfrjálst"
 
-    `pybabel extract` only collects translator comments when you pass
-    `-c "Translators:"`, exactly as it does for ordinary gettext calls.
+    `pybabel extract` safnar athugasemdum til þýðenda aðeins þegar þú gefur
+    `-c "Translators:"`, nákvæmlega eins og það gerir fyrir venjuleg
+    gettext-köll.
 
-## Registering your own function names { #registering-your-own-function-names }
+## Að skrá þín eigin fallanöfn { #registering-your-own-function-names }
 
 === "babel.cfg"
 
@@ -68,40 +69,41 @@ the four standard gettext names, the `tr()` / `ntr()` aliases, and the deferred
     ntr_functions = ["ntr"]
     ```
 
-An ini file gives one string, a TOML mapping gives a list, and within a string
-either whitespace or commas separate the names. All four spellings work.
+Ini-skrá gefur einn streng, TOML-vörpun gefur lista, og innan strengs skilja
+annaðhvort bil eða kommur nöfnin að. Allar fjórar ritmyndirnar virka.
 
-The options are `tr_functions`, `ntr_functions`, `gettext_functions`,
-`ngettext_functions`, `pgettext_functions`, and `npgettext_functions`.
+Valkostirnir eru `tr_functions`, `ntr_functions`, `gettext_functions`,
+`ngettext_functions`, `pgettext_functions` og `npgettext_functions`.
 
-!!! danger "`-k` does not reach a t-string"
+!!! danger "`-k` nær ekki til t-strengs"
 
-    A custom helper such as `mytr(t"…")` has to be named in one of the options
-    above. Babel's `--keyword` machinery cannot read a t-string literal, so
-    `pybabel extract -k mytr` finds nothing and says nothing — the messages are
-    simply absent from the POT. `-k` keeps working for the ordinary gettext
-    calls extracted alongside.
+    Eigin hjálparfall á borð við `mytr(t"…")` verður að nefna í einum
+    valkostanna hér að ofan. `--keyword`-vélbúnaður Babel getur ekki lesið
+    t-strengsfasta, svo `pybabel extract -k mytr` finnur ekkert og segir
+    ekkert — skilaboðin eru einfaldlega fjarverandi úr POT-skránni. `-k`
+    virkar áfram fyrir venjulegu gettext-köllin sem eru dregin út samhliða.
 
-    Only the standard argument order is supported: message first, context then
-    message for `pgettext`, context then singular then plural for `npgettext`.
+    Aðeins staðlaða viðfangaröðin er studd: skilaboð fyrst, samhengi og svo
+    skilaboð fyrir `pgettext`, samhengi og svo eintala og svo fleirtala
+    fyrir `npgettext`.
 
-## Robust by default { #robust-by-default }
+## Þolið sjálfgefið { #robust-by-default }
 
-One bad file does not end the run:
+Ein léleg skrá bindur ekki enda á keyrsluna:
 
-- A t-string the extractor rejects — attribute access, an expression, a wrong
-  argument — is reported as a warning and skipped.
-- A file that will not parse is skipped the same way.
-- So is a file that only `tokenize` refuses while `ast` accepts it, which Babel's
-  own pass would otherwise abort on.
+- t-strengur sem útdráttartólið hafnar — aðgangur að eigindi, segð, rangt
+  viðfang — er tilkynntur sem viðvörun og honum sleppt.
+- Skrá sem lætur ekki þátta sig fær sömu meðferð.
+- Sömuleiðis skrá sem aðeins `tokenize` hafnar meðan `ast` tekur við henni,
+  en á henni myndi eigin yfirferð Babel annars stöðvast.
 
-Set `strict = true` in the mapping options to turn every one of those into a hard
-failure instead, which is what you want in CI.
+Settu `strict = true` í valkosti vörpunarinnar til að breyta hverju og einu
+þessara í harða bilun í staðinn, sem er það sem þú vilt í CI.
 
-## Your existing toolchain validates these catalogs { #your-existing-toolchain-validates-these-catalogs }
+## Tólakeðjan sem þú átt fyrir staðfestir þessar þýðingaskrár { #your-existing-toolchain-validates-these-catalogs }
 
-Babel marks every extracted message with a standard flag, and that one line is
-what activates placeholder checking in the tools you already run:
+Babel merkir hver útdregin skilaboð með stöðluðu flaggi, og sú eina lína er
+það sem virkjar athugun staðgengla í tólunum sem þú keyrir nú þegar:
 
 ```po
 #. gettext-tstrings
@@ -111,8 +113,7 @@ msgid "Hello {name}"
 msgstr ""
 ```
 
-Translate it as `こんにちは {nombre}` and the mistake is caught without any
-configuration:
+Þýddu það sem `こんにちは {nombre}` og mistökin nást án nokkurra stillinga:
 
 ```console
 $ msgfmt --check-format -o /dev/null locales/ja/LC_MESSAGES/messages.po
@@ -121,15 +122,16 @@ locales/ja/LC_MESSAGES/messages.po:25: a format specification for argument
 msgfmt: found 1 fatal error
 ```
 
-Weblate documents the same check as [Python brace format][weblate-checks], and
-the commercial platforms have their own placeholder QA keyed on the same flag.
-Their behaviour is theirs; the two tools below are the ones verified here.
+Weblate skjalfestir sömu athugun sem [Python brace format][weblate-checks], og
+viðskiptavettvangarnir eru með sína eigin gæðaathugun á staðgenglum sem er
+lyklað á sama flagg. Hegðun þeirra er þeirra mál; tólin tvö hér að neðan eru
+þau sem hafa verið staðfest hér.
 
   [weblate-checks]: https://docs.weblate.org/en/latest/user/checks.html
 
-On top of that, the package registers a Babel **checker**, so `pybabel compile`
-applies the specification's rules to every message carrying the
-`gettext-tstrings` marker comment:
+Ofan á það skráir pakkinn **athugara** hjá Babel, svo að `pybabel compile`
+beitir reglum forskriftarinnar á hver þau skilaboð sem bera
+`gettext-tstrings`-merkiathugasemdina:
 
 ```console
 $ pybabel compile -d locales -l ja
@@ -138,41 +140,45 @@ source placeholders: {name} is missing; {nombre} is not in the source message
 1 errors encountered.
 ```
 
-For a plural message the pointer names the form, because the line number Babel
-reports is the msgid's and a Russian block has three `msgstr` below it:
+Fyrir fleirtöluskilaboð nefnir vísirinn myndina, því línunúmerið sem Babel
+tilkynnir er línunúmer msgid-sins og rússnesk blokk hefur þrjú `msgstr` þar
+fyrir neðan:
 
 ```console
 error: locales/ru/LC_MESSAGES/messages.po:31: msgstr[1]: translation does not
 match the source placeholders: {n} is missing
 ```
 
-!!! danger "`pybabel compile` still writes the `.mo`"
+!!! danger "`pybabel compile` skrifar `.mo`-skrána eftir sem áður"
 
-    The error above is reported, the exit status is `1` — and the broken
-    catalog is compiled anyway. Only that exit status can stop a pipeline
-    from shipping it; [What CI gates](workflow.md#what-ci-gates) shows the
-    build step that lets it.
+    Villan hér að ofan er tilkynnt, lokastaðan er `1` — og bilaða
+    þýðingaskráin er vistþýdd hvort eð er. Aðeins sú lokastaða getur stöðvað
+    keðju frá því að senda hana frá sér;
+    [Hvað CI stöðvar](workflow.md#what-ci-gates) sýnir byggingarskrefið sem
+    leyfir það.
 
-The two checks are not redundant. The shipped checker is the stricter party in at
-least two places:
+Athuganirnar tvær eru ekki óþarfa endurtekning. Meðfylgjandi athugarinn er
+strangari aðilinn á að minnsta kosti tveimur stöðum:
 
-- A msgid whose only braces are escaped (`Config {{raw}} only`) never gets the
-  `python-brace-format` flag, so no external tool validates it at all.
-- Plural forms are checked one by one. `msgfmt --check-format` reads the very
-  file above and exits `0`; a form that drops a placeholder its siblings keep is
-  accepted there and rejected here.
+- Msgid þar sem einu slaufusvigarnir eru escape-ritaðir
+  (`Config {{raw}} only`) fær aldrei `python-brace-format`-flaggið, svo að
+  ekkert utanaðkomandi tól staðfestir það yfirleitt.
+- Fleirtölumyndir eru athugaðar hver fyrir sig. `msgfmt --check-format` les
+  einmitt skrána hér að ofan og lýkur með `0`; mynd sem sleppir staðgengli
+  sem systkini hennar halda er samþykkt þar og hafnað hér.
 
-`msgfmt` only checks placeholder names it can parse as Python brace format, so
-ASCII names keep every tool in the chain able to validate the message. The
-library itself accepts any `str.isidentifier()` name.
+`msgfmt` athugar aðeins nöfn staðgengla sem það getur þáttað sem
+brace-snið Pythons, svo að ASCII-nöfn halda hverju tóli í keðjunni færu um að
+staðfesta skilaboðin. Safnið sjálft tekur við hvaða nafni sem er þar sem
+`str.isidentifier()` er satt.
 
-## Templates and other tools { #templates-and-other-tools }
+## Sniðmát og önnur tól { #templates-and-other-tools }
 
-t-strings are Python syntax, so this library covers Python source. Template
-languages keep using their own i18n — Jinja2's `{% trans %}`, Django's template
-tags — and Babel's extractors for them. Everything feeds the same PO catalog, so
-one translation workflow still covers a mixed codebase.
+t-strengir eru málskipan Pythons, svo þetta safn nær yfir Python-frumkóða.
+Sniðmátsmál nota áfram sína eigin i18n — `{% trans %}` í Jinja2, sniðmátsmerki
+Django — og útdráttartól Babel fyrir þau. Allt rennur í sömu PO-þýðingaskrána,
+svo ein þýðingahringrás nær áfram yfir blandaðan kóðagrunn.
 
-`pygettext` cannot parse t-strings today, which is why extraction goes through
-Babel. The convention is written down in the [specification](spec.md) so that
-another extractor, or a future `pygettext`, can target it.
+`pygettext` getur ekki þáttað t-strengi í dag, og þess vegna fer útdráttur
+gegnum Babel. Venjan er skrifuð niður í [forskriftinni](spec.md) svo að annað
+útdráttartól, eða `pygettext` framtíðarinnar, geti miðað við hana.

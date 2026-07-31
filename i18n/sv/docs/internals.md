@@ -132,8 +132,11 @@ sidramverket bär pluralmeddelandet `Built {n} localized page` /
 | Japanska | 1 | `ローカライズ済みページを{n}件ビルドしました` |
 | Turkiska | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` — två gånger, identiskt: turkiska substantiv förblir i singular efter ett räkneord |
 | Italienska | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` — participet kongruerar i genus och numerus |
+| Lettiska | 3 | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` — den tredje formen gäller **enbart noll** |
 | Ryska | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
 | Polska | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
+| Slovenska | 4 | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` — den andra är ett **dualis**, för exakt två |
+| Iriska | 5 | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` — en, två, 3–6, 7–10 och resten; stammen växlar, men *leathanach* börjar på `l`, som ingen irisk mutation skrivs ut på, så flera former sammanfaller |
 | Arabiska | 6 | bland dem `تم إنشاء صفحة مترجمة واحدة ({n})` för exakt en och `تم إنشاء {n} صفحات مترجمة` för några få |
 
 Varje rad är en levande post i det här förrådets

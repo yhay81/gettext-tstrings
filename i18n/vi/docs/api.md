@@ -51,8 +51,8 @@ chạy đồng thời.
 
 | Tên | Mục đích |
 | --- | --- |
-| `lazy_gettext(template, /)` | Trì hoãn một bản dịch đến lần dùng đầu tiên. |
-| `lazy_pgettext(context, template, /)` | Dạng có ngữ cảnh. |
+| `lazy_gettext(template, /, *, strict=False)` | Trì hoãn một bản dịch đến lần dùng đầu tiên. |
+| `lazy_pgettext(context, template, /, *, strict=False)` | Dạng có ngữ cảnh. |
 | `LazyString` | Kiểu mà cả hai hàm trả về. Kết xuất qua `str()` và `format()`, so sánh bằng với văn bản của nó, và cố ý không thể băm. |
 
 ## Tầng thấp hơn { #lower-level }

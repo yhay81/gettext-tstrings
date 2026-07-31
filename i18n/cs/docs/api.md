@@ -51,8 +51,8 @@ souběžnosti.
 
 | Název | Účel |
 | --- | --- |
-| `lazy_gettext(template, /)` | Odloží překlad do prvního použití. |
-| `lazy_pgettext(context, template, /)` | Kontextová podoba. |
+| `lazy_gettext(template, /, *, strict=False)` | Odloží překlad do prvního použití. |
+| `lazy_pgettext(context, template, /, *, strict=False)` | Kontextová podoba. |
 | `LazyString` | To, co obě vracejí. Vykresluje se přes `str()` a `format()`, je roven svému textu a je záměrně nehashovatelný. |
 
 ## Nižší úroveň { #lower-level }
