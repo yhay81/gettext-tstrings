@@ -9,17 +9,27 @@ edit_uri = "edit/main/docs/"
 copyright = "Copyright &copy; 2026 Yusuke Hayashi &middot; MIT License"
 
 nav = [
-  { "Home" = "index.md" },
-  { "Tutorial" = "tutorial.md" },
-  { "Why t-strings" = "comparison.md" },
-  { "Background" = "background.md" },
-  { "Guide" = "guide.md" },
-  { "Extraction" = "extraction.md" },
-  { "In production" = "workflow.md" },
-  { "Pitfalls" = "pitfalls.md" },
-  { "How it works" = "internals.md" },
-  { "Specification" = "spec.md" },
-  { "API" = "api.md" },
+  { "Start here" = [
+    { "Home" = "index.md" },
+    { "Tutorial" = "tutorial.md" },
+    { "Why t-strings" = "comparison.md" },
+  ] },
+  { "Use it" = [
+    { "Guide" = "guide.md" },
+    { "Extraction" = "extraction.md" },
+    { "In production" = "workflow.md" },
+    { "Migration" = "migration.md" },
+    { "For translators" = "translators.md" },
+  ] },
+  { "Understand it" = [
+    { "Background" = "background.md" },
+    { "Pitfalls" = "pitfalls.md" },
+    { "How it works" = "internals.md" },
+  ] },
+  { "Reference" = [
+    { "API" = "api.md" },
+    { "Specification" = "spec.md" },
+  ] },
 ]
 
 extra_css = ["stylesheets/python.css"]
