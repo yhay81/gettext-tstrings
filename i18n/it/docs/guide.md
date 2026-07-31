@@ -267,6 +267,8 @@ gettext_tstrings.errors.InvalidTranslationError: translation does not match the
 source placeholders: {name} is missing; {nombre} is not in the source message
 ```
 
+Gli esempi sono in [Per traduttori](translators.md#reading-a-failure-message).
+
 ## Rendere un pattern senza un catalogo { #rendering-a-pattern-without-a-catalog }
 
 `compile_template` espone lo stesso meccanismo un livello più in basso:
