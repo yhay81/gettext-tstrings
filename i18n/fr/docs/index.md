@@ -8,12 +8,12 @@ hide:
 
 <div class="home-hero" markdown>
 
-# Traduisez des messages entiers,<br>pas des fragments de phrase.
+# Traduisez des messages complets<br>avec les t-strings de Python
 
 `gettext-tstrings` relie les t-strings de Python 3.14+ aux catalogues gettext
 standard et à l'outillage Babel. Les valeurs et le formatage restent dans le
-code applicatif ; le catalogue détient un message complet avec de simples
-marqueurs `{name}` :
+code applicatif ; les traducteurs travaillent avec des messages complets et de
+simples marqueurs `{name}` :
 
 ```python
 import gettext
@@ -25,10 +25,16 @@ name = "Ada"
 print(_(t"Hello {name}"))  # with a Japanese catalog: こんにちは Ada
 ```
 
-[Commencer le tutoriel :material-arrow-right:](tutorial.md){ .md-button .md-button--primary }
+Le catalogue contient `Hello {name}`. Une traduction peut déplacer ou répéter
+`{name}`. Si elle supprime, renomme ou reformate le marqueur, la validation du
+catalogue signale l'erreur. Si une entrée invalide atteint malgré tout la
+production, la bibliothèque journalise un avertissement et rend le message
+source au lieu de planter.
+
+[Commencer le tutoriel de cinq minutes :material-arrow-right:](tutorial.md){ .md-button .md-button--primary }
 [Comparer les alternatives](comparison.md){ .md-button }
 
-Alpha · Python 3.14+ · catalogues PO/MO ordinaires · aucune dépendance à l'exécution
+Alpha · Python 3.14+ · catalogues PO/MO standard · aucune dépendance tierce à l'exécution
 { .home-facts }
 
 Ce site pratique ce qu'il documente : chaque édition linguistique —
@@ -59,17 +65,16 @@ même msgid, si bien que les traductions existantes survivent au changement —
 
 ## Ce que le catalogue a le droit de dire { #what-the-catalog-may-say }
 
-Le catalogue reçoit le message complet `Hello {name}`. Une traduction peut
-réordonner ou répéter `{name}`, et peut réécrire tous les autres mots autour de
-lui. Elle ne peut ni supprimer le marqueur, ni en inventer un nouveau, ni
-passer à travers lui pour atteindre vos objets, ni attacher son propre
+**Une traduction ne peut pas changer la structure du message qu'elle traduit.**
+Voilà toute la promesse, et tout le reste de ce site en découle. Une traduction
+peut réordonner ou répéter `{name}`, et peut réécrire tous les autres mots
+autour de lui. Elle ne peut ni supprimer le marqueur, ni en inventer un nouveau,
+ni passer à travers lui pour atteindre vos objets, ni attacher son propre
 formatage.
 
-Voilà toute la promesse : **une traduction ne peut pas changer la structure du
-message qu'elle traduit.** La bibliothèque le vérifie à l'entrée — quand les
-catalogues sont compilés — puis à nouveau au moment du rendu ; une entrée cassée
-qui atteindrait malgré tout la production journalise un avertissement et rend le
-message source au lieu de planter.
+La bibliothèque le vérifie à l'entrée — quand les catalogues sont compilés —
+puis à nouveau au moment du rendu, ce qui fait la différence entre une erreur
+trouvée en revue et une erreur trouvée par un utilisateur.
 
 !!! note "gettext est nouveau pour vous ? Tout le workflow en quatre phrases"
 

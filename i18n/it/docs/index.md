@@ -8,11 +8,11 @@ hide:
 
 <div class="home-hero" markdown>
 
-# Traduci messaggi interi,<br>non frammenti di stringa.
+# Traduci messaggi completi<br>con le t-string di Python
 
 `gettext-tstrings` collega le t-string di Python 3.14+ ai normali cataloghi
 gettext e agli strumenti di Babel. Valori e formattazione restano nel codice
-applicativo; il catalogo contiene un messaggio completo con semplici
+applicativo; i traduttori lavorano con messaggi completi e semplici
 segnaposto `{name}`:
 
 ```python
@@ -25,10 +25,16 @@ name = "Ada"
 print(_(t"Hello {name}"))  # with a Japanese catalog: こんにちは Ada
 ```
 
-[Inizia il tutorial :material-arrow-right:](tutorial.md){ .md-button .md-button--primary }
+Il catalogo contiene `Hello {name}`. Una traduzione può spostare o ripetere
+`{name}`. Se lo elimina, lo rinomina o ne cambia la formattazione, la
+validazione del catalogo segnala l'errore. Se una voce non valida arriva
+comunque in produzione, la libreria registra un avviso e rende il messaggio
+sorgente invece di andare in crash.
+
+[Inizia il tutorial di cinque minuti :material-arrow-right:](tutorial.md){ .md-button .md-button--primary }
 [Confronta le alternative](comparison.md){ .md-button }
 
-Alpha · Python 3.14+ · normali cataloghi PO/MO · nessuna dipendenza a runtime
+Alpha · Python 3.14+ · cataloghi PO/MO standard · nessuna dipendenza a runtime di terze parti
 { .home-facts }
 
 Questo sito mette in pratica ciò che documenta: ogni edizione linguistica —
@@ -58,16 +64,16 @@ stesso msgid, quindi le traduzioni esistenti sopravvivono al cambio —
 
 ## Che cosa può dire il catalogo { #what-the-catalog-may-say }
 
-Il catalogo riceve il messaggio completo `Hello {name}`. Una traduzione può
-riordinare o ripetere `{name}`, e può riscrivere ogni altra parola attorno a
-esso. Non può eliminare il segnaposto, inventarne uno nuovo, passarci
-attraverso per arrivare ai tuoi oggetti o aggiungere formattazione propria.
+**Una traduzione non può cambiare la struttura del messaggio che traduce.**
+Questa è tutta la promessa, e il resto di questo sito ne discende. Una
+traduzione può riordinare o ripetere `{name}`, e può riscrivere ogni altra
+parola attorno a esso. Non può eliminare il segnaposto, inventarne uno nuovo,
+passarci attraverso per arrivare ai tuoi oggetti o aggiungere formattazione
+propria.
 
-Questa è tutta la promessa: **una traduzione non può cambiare la struttura del
-messaggio che traduce.** La libreria lo verifica all'ingresso — quando i
-cataloghi vengono compilati — e di nuovo al momento del rendering; una voce
-danneggiata che arriva comunque in produzione registra un avviso e rende il
-messaggio sorgente invece di andare in crash.
+La libreria lo verifica all'ingresso — quando i cataloghi vengono compilati —
+e di nuovo al momento del rendering, che è la differenza tra un errore trovato
+in revisione e un errore trovato da un utente.
 
 !!! note "Nuovo a gettext? L'intero flusso di lavoro in quattro frasi"
 

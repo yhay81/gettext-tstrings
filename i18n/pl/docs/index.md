@@ -8,12 +8,12 @@ hide:
 
 <div class="home-hero" markdown>
 
-# Tłumacz całe komunikaty,<br>nie fragmenty łańcuchów.
+# Tłumacz kompletne komunikaty<br>z t-stringami Pythona
 
 `gettext-tstrings` łączy t-stringi Pythona 3.14+ ze standardowymi katalogami
 gettext i narzędziami Babel. Wartości i formatowanie zostają w kodzie
-aplikacji; katalog trzyma kompletny komunikat z prostymi symbolami zastępczymi
-`{name}`:
+aplikacji; tłumacze pracują z kompletnymi komunikatami i prostymi symbolami
+zastępczymi `{name}`:
 
 ```python
 import gettext
@@ -25,10 +25,16 @@ name = "Ada"
 print(_(t"Hello {name}"))  # with a Japanese catalog: こんにちは Ada
 ```
 
-[Rozpocznij samouczek :material-arrow-right:](tutorial.md){ .md-button .md-button--primary }
+Katalog zawiera `Hello {name}`. Tłumaczenie może przenieść `{name}` albo je
+powtórzyć. Jeśli usunie, przemianuje lub przeformatuje symbol zastępczy,
+walidacja katalogu zgłosi błąd. Jeśli błędny wpis mimo to trafi na produkcję,
+biblioteka loguje ostrzeżenie i renderuje komunikat źródłowy zamiast powodować
+awarię.
+
+[Rozpocznij pięciominutowy samouczek :material-arrow-right:](tutorial.md){ .md-button .md-button--primary }
 [Porównaj alternatywy](comparison.md){ .md-button }
 
-Alfa · Python 3.14+ · zwykłe katalogi PO/MO · brak zależności w czasie działania
+Alfa · Python 3.14+ · standardowe katalogi PO/MO · brak zewnętrznych zależności w czasie działania
 { .home-facts }
 
 Ta strona praktykuje to, co dokumentuje: każda wersja językowa —
@@ -57,16 +63,15 @@ zmianę — [Migracja](migration.md) prowadzi przez całe przejście.
 
 ## Co wolno powiedzieć katalogowi { #what-the-catalog-may-say }
 
-Katalog otrzymuje kompletny komunikat `Hello {name}`. Tłumaczenie może zmieniać
-kolejność `{name}` albo je powtarzać i może przepisać każde inne słowo wokół
-niego. Nie może pominąć symbolu zastępczego, wymyślić nowego, sięgnąć przez
-niego do Twoich obiektów ani dołączyć własnego formatowania.
+**Tłumaczenie nie może zmienić struktury komunikatu, który tłumaczy.** Na tym
+polega cała obietnica, a reszta tej strony z niej wynika. Tłumaczenie może
+zmieniać kolejność `{name}` albo je powtarzać i może przepisać każde inne słowo
+wokół niego. Nie może pominąć symbolu zastępczego, wymyślić nowego, sięgnąć
+przez niego do Twoich obiektów ani dołączyć własnego formatowania.
 
-Na tym polega cała obietnica: **tłumaczenie nie może zmienić struktury
-komunikatu, który tłumaczy.** Biblioteka sprawdza to na wejściu — przy
-kompilacji katalogów — i ponownie w czasie renderowania; uszkodzony wpis, który
-mimo to trafi na produkcję, loguje ostrzeżenie i renderuje tekst źródłowy
-zamiast powodować awarię.
+Biblioteka sprawdza to na wejściu — przy kompilacji katalogów — i ponownie w
+czasie renderowania, a to właśnie różnica między błędem znalezionym w przeglądzie
+a błędem znalezionym przez użytkownika.
 
 !!! note "gettext to dla Ciebie nowość? Cały przepływ pracy w czterech zdaniach"
 

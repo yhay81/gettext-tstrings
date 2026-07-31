@@ -8,12 +8,12 @@ hide:
 
 <div class="home-hero" markdown>
 
-# Übersetze ganze Nachrichten,<br>keine String-Fragmente.
+# Vollständige Nachrichten übersetzen<br>mit den t-strings von Python
 
 `gettext-tstrings` verbindet die t-strings von Python 3.14+ mit gewöhnlichen
 gettext-Katalogen und dem Babel-Werkzeug. Werte und Formatierung bleiben im
-Anwendungscode; der Katalog enthält eine vollständige Nachricht mit einfachen
-`{name}`-Platzhaltern:
+Anwendungscode; übersetzende Personen arbeiten mit vollständigen Nachrichten und
+einfachen `{name}`-Platzhaltern:
 
 ```python
 import gettext
@@ -25,10 +25,16 @@ name = "Ada"
 print(_(t"Hello {name}"))  # with a Japanese catalog: こんにちは Ada
 ```
 
-[Tutorial starten :material-arrow-right:](tutorial.md){ .md-button .md-button--primary }
+Der Katalog enthält `Hello {name}`. Eine Übersetzung darf `{name}` umstellen oder
+wiederholen. Entfernt, benennt oder formatiert sie den Platzhalter um, meldet die
+Katalogprüfung den Fehler. Schafft es ein ungültiger Eintrag trotzdem in die
+Produktion, protokolliert die Bibliothek eine Warnung und rendert die
+Ursprungsnachricht, statt abzustürzen.
+
+[Das Fünf-Minuten-Tutorial starten :material-arrow-right:](tutorial.md){ .md-button .md-button--primary }
 [Die Alternativen vergleichen](comparison.md){ .md-button }
 
-Alpha · Python 3.14+ · gewöhnliche PO/MO-Kataloge · keine Laufzeitabhängigkeiten
+Alpha · Python 3.14+ · standardkonforme PO/MO-Kataloge · keine Laufzeitabhängigkeiten von Dritten
 { .home-facts }
 
 Diese Website praktiziert, was sie dokumentiert: Jede Sprachausgabe —
@@ -59,17 +65,16 @@ denselben msgid, sodass vorhandene Übersetzungen den Wechsel überleben — die
 
 ## Was der Katalog sagen darf { #what-the-catalog-may-say }
 
-Der Katalog erhält die vollständige Nachricht `Hello {name}`. Eine Übersetzung
-darf `{name}` umstellen oder wiederholen und darf jedes andere Wort darum herum
-neu schreiben. Sie darf den Platzhalter nicht entfernen, keinen neuen erfinden,
-nicht durch ihn hindurch auf deine Objekte zugreifen und keine eigene
-Formatierung anhängen.
+**Eine Übersetzung kann die Struktur der Nachricht, die sie übersetzt, nicht
+verändern.** Das ist das ganze Versprechen, und der Rest dieser Website folgt
+daraus. Eine Übersetzung darf `{name}` umstellen oder wiederholen und darf jedes
+andere Wort darum herum neu schreiben. Sie darf den Platzhalter nicht entfernen,
+keinen neuen erfinden, nicht durch ihn hindurch auf deine Objekte zugreifen und
+keine eigene Formatierung anhängen.
 
-Das ist das ganze Versprechen: **eine Übersetzung kann die Struktur der
-Nachricht, die sie übersetzt, nicht verändern.** Die Bibliothek prüft das auf
-dem Weg hinein — wenn Kataloge kompiliert werden — und noch einmal beim Rendern;
-ein fehlerhafter Eintrag, der es trotzdem in die Produktion schafft, protokolliert
-eine Warnung und rendert die Ursprungsnachricht, statt abzustürzen.
+Die Bibliothek prüft das auf dem Weg hinein — wenn Kataloge kompiliert werden —
+und noch einmal beim Rendern, und das ist der Unterschied zwischen einem Fehler,
+der im Review gefunden wird, und einem, den eine nutzende Person findet.
 
 !!! note "Neu bei gettext? Der ganze Workflow in vier Sätzen"
 

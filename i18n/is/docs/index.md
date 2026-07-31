@@ -8,12 +8,12 @@ hide:
 
 <div class="home-hero" markdown>
 
-# Þýddu heil skilaboð,<br>ekki strengjabúta.
+# Þýddu heil skilaboð<br>með t-strengjum í Python
 
 `gettext-tstrings` tengir t-strengi í Python 3.14+ við staðlaðar
 gettext-þýðingaskrár og Babel-tólakeðjuna. Gildi og snið haldast í
-forritskóðanum; þýðingaskráin geymir heil skilaboð með einföldum
-`{name}`-staðgenglum:
+forritskóðanum; þýðendur vinna með heil skilaboð og einfalda
+`{name}`-staðgengla:
 
 ```python
 import gettext
@@ -25,11 +25,17 @@ name = "Ada"
 print(_(t"Hello {name}"))  # with a Japanese catalog: こんにちは Ada
 ```
 
-[Byrjaðu á kennsluefninu :material-arrow-right:](tutorial.md){ .md-button .md-button--primary }
+Þýðingaskráin geymir `Hello {name}`. Þýðing má færa `{name}` til eða
+endurtaka hann. Fjarlægi hún staðgengilinn, endurnefni hann eða breyti sniði
+hans, tilkynnir athugun þýðingaskrárinnar villuna. Komist ógild færsla engu að
+síður í rekstur skráir safnið viðvörun og birtir frumtextaskilaboðin í stað
+þess að hrynja.
+
+[Byrjaðu á fimm mínútna kennsluefninu :material-arrow-right:](tutorial.md){ .md-button .md-button--primary }
 [Berðu saman valkostina](comparison.md){ .md-button }
 
-Alfa · Python 3.14+ · venjulegar PO/MO-þýðingaskrár · engar háðar einingar á
-keyrslutíma
+Alfa · Python 3.14+ · staðlaðar PO/MO-þýðingaskrár · engar háðar einingar frá
+þriðja aðila á keyrslutíma
 { .home-facts }
 
 Þessi vefur fer sjálfur eftir því sem hann kennir: hver einasta
@@ -59,15 +65,15 @@ msgid, svo að núverandi þýðingar lifa skiptin af —
 
 ## Hvað þýðingaskráin má segja { #what-the-catalog-may-say }
 
-Þýðingaskráin tekur við heilum skilaboðum, `Hello {name}`. Þýðing má víxla
-`{name}` til eða endurtaka hann, og má umskrifa hvert annað orð í kringum
-hann. Hún má ekki sleppa staðgenglinum, búa til nýjan, seilast gegnum hann inn
-í hlutina þína eða hengja við sitt eigið snið.
+**Þýðing getur ekki breytt gerð þeirra skilaboða sem hún þýðir.** Það er allt
+loforðið, og allt annað á þessum vef leiðir af því. Þýðing má víxla `{name}`
+til eða endurtaka hann, og má umskrifa hvert annað orð í kringum hann. Hún má
+ekki sleppa staðgenglinum, búa til nýjan, seilast gegnum hann inn í hlutina
+þína eða hengja við sitt eigið snið.
 
-Það er allt loforðið: **þýðing getur ekki breytt gerð þeirra skilaboða sem hún
-þýðir.** Safnið athugar það á leiðinni inn — þegar þýðingaskrár eru vistþýddar
-— og aftur við birtingu; biluð færsla sem kemst engu að síður í rekstur skráir
-viðvörun og birtir frumtextaskilaboðin í stað þess að hrynja.
+Safnið athugar það á leiðinni inn — þegar þýðingaskrár eru vistþýddar — og
+aftur við birtingu, sem er munurinn á mistökum sem finnast við yfirlestur og
+mistökum sem notandi finnur.
 
 !!! note "Nýliði í gettext? Öll hringrásin í fjórum setningum"
 

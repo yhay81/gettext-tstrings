@@ -8,11 +8,12 @@ hide:
 
 <div class="home-hero" markdown>
 
-# Terjemahkan pesan utuh,<br>bukan penggalan string.
+# Terjemahkan pesan lengkap<br>dengan t-string Python
 
 `gettext-tstrings` menghubungkan t-string Python 3.14+ ke katalog gettext
 standar dan perkakas Babel. Nilai dan pemformatan tetap di kode aplikasi;
-katalog memegang pesan lengkap dengan placeholder `{name}` yang sederhana:
+penerjemah bekerja dengan pesan lengkap dan placeholder `{name}` yang
+sederhana:
 
 ```python
 import gettext
@@ -24,10 +25,16 @@ name = "Ada"
 print(_(t"Hello {name}"))  # with a Japanese catalog: こんにちは Ada
 ```
 
-[Mulai tutorial :material-arrow-right:](tutorial.md){ .md-button .md-button--primary }
+Katalog memuat `Hello {name}`. Sebuah terjemahan boleh memindahkan atau
+mengulang `{name}`. Bila ia menghilangkan, mengganti nama, atau mengubah
+pemformatan placeholder itu, validasi katalog melaporkan kesalahannya. Bila
+sebuah entri tak sah tetap sampai ke produksi, pustaka ini mencatat sebuah
+peringatan dan merender pesan sumbernya alih-alih membuat aplikasi crash.
+
+[Mulai tutorial lima menit :material-arrow-right:](tutorial.md){ .md-button .md-button--primary }
 [Bandingkan alternatifnya](comparison.md){ .md-button }
 
-Alpha · Python 3.14+ · katalog PO/MO biasa · tanpa dependensi runtime
+Alpha · Python 3.14+ · katalog PO/MO standar · tanpa dependensi runtime pihak ketiga
 { .home-facts }
 
 Situs ini mempraktikkan apa yang didokumentasikannya: setiap edisi bahasa —
@@ -58,17 +65,16 @@ msgid yang sama, sehingga terjemahan yang ada selamat melewati peralihannya —
 
 ## Apa yang boleh dikatakan katalog { #what-the-catalog-may-say }
 
-Katalog menerima pesan lengkap `Hello {name}`. Sebuah terjemahan boleh
-mengurutkan ulang atau mengulang `{name}`, dan boleh menulis ulang setiap kata
-lain di sekelilingnya. Ia tidak boleh menghilangkan placeholder-nya, mengarang
-yang baru, menjangkau lewat placeholder itu ke dalam objek Anda, atau
-menambahkan pemformatan sendiri.
+**Sebuah terjemahan tidak dapat mengubah struktur pesan yang
+diterjemahkannya.** Itulah keseluruhan janjinya, dan selebihnya situs ini
+mengikuti darinya. Sebuah terjemahan boleh mengurutkan ulang atau mengulang
+`{name}`, dan boleh menulis ulang setiap kata lain di sekelilingnya. Ia tidak
+boleh menghilangkan placeholder-nya, mengarang yang baru, menjangkau lewat
+placeholder itu ke dalam objek Anda, atau menambahkan pemformatan sendiri.
 
-Itulah keseluruhan janjinya: **sebuah terjemahan tidak dapat mengubah struktur
-pesan yang diterjemahkannya.** Pustaka ini memeriksanya saat masuk — ketika
-katalog dikompilasi — dan sekali lagi saat perenderan; entri rusak yang tetap
-sampai ke produksi mencatat sebuah peringatan dan merender pesan sumbernya
-alih-alih membuat aplikasi crash.
+Pustaka ini memeriksanya saat masuk — ketika katalog dikompilasi — dan sekali
+lagi saat perenderan, dan itulah bedanya antara kekeliruan yang ditemukan di
+peninjauan dan kekeliruan yang ditemukan oleh seorang pengguna.
 
 !!! note "Baru mengenal gettext? Seluruh alur kerjanya dalam empat kalimat"
 

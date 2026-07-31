@@ -8,11 +8,11 @@ hide:
 
 <div class="home-hero" markdown>
 
-# Translate whole messages,<br>not string fragments.
+# Translate complete messages<br>with Python t-strings
 
 `gettext-tstrings` connects Python 3.14+ t-strings to standard gettext
 catalogs and Babel tooling. Values and formatting stay in application code;
-the catalog holds a complete message with simple `{name}` placeholders:
+translators work with complete messages and simple `{name}` placeholders:
 
 ```python
 import gettext
@@ -24,10 +24,15 @@ name = "Ada"
 print(_(t"Hello {name}"))  # with a Japanese catalog: こんにちは Ada
 ```
 
-[Start the tutorial :material-arrow-right:](tutorial.md){ .md-button .md-button--primary }
+The catalog contains `Hello {name}`. A translation may move or repeat `{name}`.
+If it removes, renames, or reformats the placeholder, catalog validation reports
+the error. If an invalid entry still reaches production, the library logs a
+warning and renders the source message instead of crashing.
+
+[Start the five-minute tutorial :material-arrow-right:](tutorial.md){ .md-button .md-button--primary }
 [Compare the alternatives](comparison.md){ .md-button }
 
-Alpha · Python 3.14+ · ordinary PO/MO catalogs · no runtime dependencies
+Alpha · Python 3.14+ · standard PO/MO catalogs · no third-party runtime dependencies
 { .home-facts }
 
 This site practices what it documents: every language edition —
@@ -56,15 +61,15 @@ survive the switch — [Migration](migration.md) walks the whole move.
 
 ## What the catalog may say
 
-The catalog receives the complete message `Hello {name}`. A translation may
+**A translation cannot change the structure of the message it translates.** That
+is the whole promise, and the rest of this site follows from it. A translation may
 reorder or repeat `{name}`, and may rewrite every other word around it. It may
 not drop the placeholder, invent a new one, reach through it into your objects,
 or attach formatting of its own.
 
-That is the whole promise: **a translation cannot change the structure of the
-message it translates.** The library checks it on the way in — when catalogs
-are compiled — and again at render time; a broken entry that reaches production
-anyway logs a warning and renders the source message instead of crashing.
+The library checks that on the way in — when catalogs are compiled — and again
+at render time, which is the difference between a mistake found in review and a
+mistake found by a user.
 
 !!! note "New to gettext? The whole workflow in four sentences"
 

@@ -8,11 +8,11 @@ hide:
 
 <div class="home-hero" markdown>
 
-# Översätt hela meddelanden,<br>inte strängfragment.
+# Översätt kompletta meddelanden<br>med t-strings i Python
 
 `gettext-tstrings` kopplar samman t-strings i Python 3.14+ med vanliga
 gettext-kataloger och Babel-verktyg. Värden och formatering stannar i
-applikationskoden; katalogen får ett komplett meddelande med enkla
+applikationskoden; översättarna arbetar med kompletta meddelanden och enkla
 `{name}`-platshållare:
 
 ```python
@@ -25,10 +25,16 @@ name = "Ada"
 print(_(t"Hello {name}"))  # with a Japanese catalog: こんにちは Ada
 ```
 
-[Starta handledningen :material-arrow-right:](tutorial.md){ .md-button .md-button--primary }
+Katalogen innehåller `Hello {name}`. En översättning får flytta om eller
+upprepa `{name}`. Om den utelämnar, byter namn på eller formaterar om
+platshållaren rapporterar katalogvalideringen felet. Om en ogiltig post ändå
+når produktion loggar biblioteket en varning och renderar källmeddelandet i
+stället för att krascha.
+
+[Starta den femminuterslånga handledningen :material-arrow-right:](tutorial.md){ .md-button .md-button--primary }
 [Jämför alternativen](comparison.md){ .md-button }
 
-Alfa · Python 3.14+ · vanliga PO/MO-kataloger · inga körningsberoenden
+Alfa · Python 3.14+ · standardiserade PO/MO-kataloger · inga körningsberoenden från tredje part
 { .home-facts }
 
 Den här webbplatsen praktiserar vad den dokumenterar: varje språkutgåva —
@@ -58,16 +64,15 @@ går igenom hela flytten.
 
 ## Vad katalogen får säga { #what-the-catalog-may-say }
 
-Katalogen tar emot det kompletta meddelandet `Hello {name}`. En översättning
-får flytta om eller upprepa `{name}`, och får skriva om varenda annat ord runt
-omkring. Den får inte utelämna platshållaren, hitta på en ny, sträcka sig genom
-den in i dina objekt eller lägga till egen formatering.
+**En översättning kan inte ändra strukturen på det meddelande den översätter.**
+Det är hela löftet, och resten av den här webbplatsen följer av det. En
+översättning får flytta om eller upprepa `{name}`, och får skriva om varenda
+annat ord runt omkring. Den får inte utelämna platshållaren, hitta på en ny,
+sträcka sig genom den in i dina objekt eller lägga till egen formatering.
 
-Det är hela löftet: **en översättning kan inte ändra strukturen på det
-meddelande den översätter.** Biblioteket kontrollerar det på vägen in — när
-kataloger kompileras — och igen vid rendering; en trasig post som ändå når
-produktion loggar en varning och renderar källmeddelandet i stället för att
-krascha.
+Biblioteket kontrollerar det på vägen in — när kataloger kompileras — och igen
+vid rendering, vilket är skillnaden mellan ett misstag som hittas i granskning
+och ett misstag som hittas av en användare.
 
 !!! note "Ny på gettext? Hela arbetsflödet i fyra meningar"
 

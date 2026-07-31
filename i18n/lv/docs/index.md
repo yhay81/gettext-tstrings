@@ -8,11 +8,11 @@ hide:
 
 <div class="home-hero" markdown>
 
-# Tulkojiet veselus ziņojumus,<br>nevis virkņu fragmentus.
+# Tulkojiet pilnus ziņojumus<br>ar Python t-virknēm
 
 `gettext-tstrings` savieno Python 3.14+ t-virknes ar standarta gettext
 katalogiem un Babel rīkiem. Vērtības un formatējums paliek lietotnes kodā;
-katalogs tur pilnu ziņojumu ar vienkāršiem `{name}` vietturiem:
+tulkotāji strādā ar pilniem ziņojumiem un vienkāršiem `{name}` vietturiem:
 
 ```python
 import gettext
@@ -24,10 +24,15 @@ name = "Ada"
 print(_(t"Hello {name}"))  # with a Japanese catalog: こんにちは Ada
 ```
 
-[Sākt pamācību :material-arrow-right:](tutorial.md){ .md-button .md-button--primary }
+Katalogs satur `Hello {name}`. Tulkojums drīkst `{name}` pārvietot vai
+atkārtot. Ja tas vietturi nomet, pārdēvē vai pārformatē, katalogu validācija
+ziņo par kļūdu. Ja nederīgs ieraksts tomēr nonāk produkcijā, bibliotēka
+ieraksta brīdinājumu un renderē avota ziņojumu, nevis avarē.
+
+[Sākt piecu minūšu pamācību :material-arrow-right:](tutorial.md){ .md-button .md-button--primary }
 [Salīdziniet alternatīvas](comparison.md){ .md-button }
 
-Alfa · Python 3.14+ · parasti PO/MO katalogi · nav izpildlaika atkarību
+Alfa · Python 3.14+ · standarta PO/MO katalogi · nav trešo pušu izpildlaika atkarību
 { .home-facts }
 
 Šī vietne praktizē to, ko dokumentē: katrs valodas izdevums — navigācija,
@@ -56,15 +61,15 @@ pārmaiņu pārdzīvo — [Migrācija](migration.md) izstaigā visu pāreju.
 
 ## Ko katalogs drīkst pateikt { #what-the-catalog-may-say }
 
-Katalogs saņem pilnu ziņojumu `Hello {name}`. Tulkojums drīkst `{name}`
+**Tulkojums nespēj mainīt tā ziņojuma struktūru, kuru tas tulko.** Tāds ir viss
+solījums, un no tā izriet viss pārējais šajā vietnē. Tulkojums drīkst `{name}`
 pārkārtot vai atkārtot un drīkst pārrakstīt katru citu vārdu tam apkārt. Tas
 nedrīkst vietturi nomest, izdomāt jaunu, caur to sniegties jūsu objektos vai
 pievienot tam savu formatējumu.
 
-Tāds ir viss solījums: **tulkojums nespēj mainīt tā ziņojuma struktūru, kuru
-tas tulko.** Bibliotēka to pārbauda ceļā iekšā — kad katalogi tiek kompilēti —
-un vēlreiz renderēšanas brīdī; sabojāts ieraksts, kas tomēr nonāk produkcijā,
-ieraksta brīdinājumu un renderē avota ziņojumu, nevis avarē.
+Bibliotēka to pārbauda ceļā iekšā — kad katalogi tiek kompilēti — un vēlreiz
+renderēšanas brīdī, un tieši tā ir atšķirība starp kļūdu, kas atrasta
+pārskatīšanā, un kļūdu, ko atrod lietotājs.
 
 !!! note "Vai gettext jums ir jaunums? Visa darbplūsma četros teikumos"
 

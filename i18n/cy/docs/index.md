@@ -8,11 +8,12 @@ hide:
 
 <div class="home-hero" markdown>
 
-# Cyfieithwch negeseuon cyfan,<br>nid darnau o linynnau.
+# Cyfieithwch negeseuon cyflawn<br>â llinynnau-t Python
 
 Mae `gettext-tstrings` yn cysylltu llinynnau-t Python 3.14+ â chatalogau
 gettext safonol ac offer Babel. Mae gwerthoedd a fformatio'n aros yng nghod y
-rhaglen; mae'r catalog yn dal neges gyflawn â dalwyr lle `{name}` syml:
+rhaglen; mae cyfieithwyr yn gweithio â negeseuon cyflawn a dalwyr lle `{name}`
+syml:
 
 ```python
 import gettext
@@ -24,10 +25,16 @@ name = "Ada"
 print(_(t"Hello {name}"))  # with a Japanese catalog: こんにちは Ada
 ```
 
-[Dechrau'r tiwtorial :material-arrow-right:](tutorial.md){ .md-button .md-button--primary }
+Mae'r catalog yn cynnwys `Hello {name}`. Caiff cyfieithiad symud neu ailadrodd
+`{name}`. Os yw'n ei ddileu, yn ei ailenwi, neu'n ei ailfformatio, mae dilysu'r
+catalog yn adrodd y gwall. Os yw cofnod annilys yn cyrraedd cynhyrchu beth
+bynnag, mae'r llyfrgell yn cofnodi rhybudd ac yn rendro'r neges ffynhonnell yn
+lle chwalu.
+
+[Dechrau'r tiwtorial pum munud :material-arrow-right:](tutorial.md){ .md-button .md-button--primary }
 [Cymharwch y dewisiadau eraill](comparison.md){ .md-button }
 
-Alffa · Python 3.14+ · catalogau PO/MO cyffredin · dim dibyniaethau rhedeg
+Alffa · Python 3.14+ · catalogau PO/MO safonol · dim dibyniaethau rhedeg trydydd parti
 { .home-facts }
 
 Mae'r wefan hon yn ymarfer yr hyn y mae'n ei ddogfennu: mae pob argraffiad
@@ -57,15 +64,15 @@ msgid, felly mae'r cyfieithiadau sy'n bodoli'n goroesi'r newid — mae
 
 ## Yr hyn y caiff y catalog ei ddweud { #what-the-catalog-may-say }
 
-Mae'r catalog yn derbyn y neges gyflawn `Hello {name}`. Caiff cyfieithiad
+**Ni all cyfieithiad newid strwythur y neges y mae'n ei chyfieithu.** Dyna'r
+addewid cyfan, ac o hynny y daw gweddill y wefan hon. Caiff cyfieithiad
 aildrefnu neu ailadrodd `{name}`, a chaiff ailysgrifennu pob gair arall o'i
 amgylch. Ni chaiff ollwng y daliwr lle, dyfeisio un newydd, estyn drwyddo i
 mewn i'ch gwrthrychau, na chysylltu fformatio o'i ben a'i bastwn ei hun.
 
-Dyna'r addewid cyfan: **ni all cyfieithiad newid strwythur y neges y mae'n ei
-chyfieithu.** Mae'r llyfrgell yn ei wirio ar y ffordd i mewn — pan grynhoir
-catalogau — ac eto adeg rendro; mae cofnod toredig sy'n cyrraedd cynhyrchu beth
-bynnag yn cofnodi rhybudd ac yn rendro'r neges ffynhonnell yn lle chwalu.
+Mae'r llyfrgell yn gwirio hynny ar y ffordd i mewn — pan grynhoir catalogau —
+ac eto adeg rendro, sef y gwahaniaeth rhwng camgymeriad a ganfyddir mewn
+adolygiad a chamgymeriad a ganfyddir gan ddefnyddiwr.
 
 !!! note "Gettext yn newydd i chi? Y llif gwaith cyfan mewn pedair brawddeg"
 

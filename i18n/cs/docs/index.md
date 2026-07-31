@@ -8,12 +8,12 @@ hide:
 
 <div class="home-hero" markdown>
 
-# Překládejte celé zprávy,<br>ne útržky řetězců.
+# Překládejte kompletní zprávy<br>pomocí t-stringů Pythonu
 
 `gettext-tstrings` propojuje t-stringy Pythonu 3.14+ se standardními
 katalogy gettextu a s nástroji Babelu. Hodnoty i formátování zůstávají
-v kódu aplikace; katalog drží kompletní zprávu s jednoduchými zástupnými
-symboly `{name}`:
+v kódu aplikace; překladatelé pracují s kompletními zprávami a
+jednoduchými zástupnými symboly `{name}`:
 
 ```python
 import gettext
@@ -25,10 +25,16 @@ name = "Ada"
 print(_(t"Hello {name}"))  # with a Japanese catalog: こんにちは Ada
 ```
 
-[Začněte tutoriálem :material-arrow-right:](tutorial.md){ .md-button .md-button--primary }
+Katalog obsahuje `Hello {name}`. Překlad smí `{name}` přesunout nebo
+zopakovat. Pokud zástupný symbol odstraní, přejmenuje nebo přeformátuje,
+validace katalogu ohlásí chybu. Pokud se neplatný záznam přesto dostane do
+produkce, knihovna zaloguje varování a vykreslí zdrojovou zprávu, místo aby
+způsobila pád.
+
+[Začněte pětiminutovým tutoriálem :material-arrow-right:](tutorial.md){ .md-button .md-button--primary }
 [Porovnejte si alternativy](comparison.md){ .md-button }
 
-Alfa · Python 3.14+ · obyčejné katalogy PO/MO · žádné běhové závislosti
+Alfa · Python 3.14+ · standardní katalogy PO/MO · žádné běhové závislosti třetích stran
 { .home-facts }
 
 Tento web praktikuje to, co dokumentuje: každá jazyková edice —
@@ -57,15 +63,15 @@ přežijí — [Migrace](migration.md) provází celým přesunem.
 
 ## Co smí katalog říct { #what-the-catalog-may-say }
 
-Katalog dostává kompletní zprávu `Hello {name}`. Překlad smí `{name}`
-přeuspořádat nebo zopakovat a smí přepsat každé ostatní slovo kolem něj.
-Nesmí zástupný symbol vypustit, vymyslet si nový, sahat skrz něj do vašich
-objektů ani k němu připojit vlastní formátování.
+**Překlad nemůže změnit strukturu zprávy, kterou překládá.** To je celý ten
+slib a zbytek tohoto webu z něj plyne. Překlad smí `{name}` přeuspořádat nebo
+zopakovat a smí přepsat každé ostatní slovo kolem něj. Nesmí zástupný symbol
+vypustit, vymyslet si nový, sahat skrz něj do vašich objektů ani k němu
+připojit vlastní formátování.
 
-To je celý ten slib: **překlad nemůže změnit strukturu zprávy, kterou
-překládá.** Knihovna to kontroluje na vstupu — při kompilaci katalogů — a
-znovu při vykreslování; rozbitý záznam, který se přesto dostane do produkce,
-zaloguje varování a vykreslí zdrojovou zprávu, místo aby způsobil pád.
+Knihovna to kontroluje na vstupu — při kompilaci katalogů — a znovu při
+vykreslování, a v tom je rozdíl mezi chybou nalezenou při revizi a chybou
+nalezenou uživatelem.
 
 !!! note "gettext je pro vás novinka? Celý pracovní postup ve čtyřech větách"
 
