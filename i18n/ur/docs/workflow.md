@@ -171,6 +171,7 @@ import gettext
 
 from gettext_tstrings import Translator
 
+
 def test_catalogs_render(language: str) -> None:
     translations = gettext.translation("messages", localedir="locales", languages=[language])
     _ = Translator(translations, strict=True)
@@ -281,10 +282,12 @@ msgstr ""
 
     app = Flask(__name__)
 
+
     @app.before_request
     def bind_language() -> None:
         language = request.accept_languages.best_match(LANGUAGES) or "en"
         set_translations(CATALOGS[language])
+
 
     @app.get("/")
     def home() -> str:
@@ -315,6 +318,7 @@ msgstr ""
     }
 
     app = FastAPI()
+
 
     @app.middleware("http")
     async def bind_language(request: Request, call_next):

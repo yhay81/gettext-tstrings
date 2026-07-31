@@ -166,6 +166,7 @@ import gettext
 
 from gettext_tstrings import Translator
 
+
 def test_catalogs_render(language: str) -> None:
     translations = gettext.translation("messages", localedir="locales", languages=[language])
     _ = Translator(translations, strict=True)
@@ -275,10 +276,12 @@ Weblateはこの検査を文書化しており、商用プラットフォーム�
 
     app = Flask(__name__)
 
+
     @app.before_request
     def bind_language() -> None:
         language = request.accept_languages.best_match(LANGUAGES) or "en"
         set_translations(CATALOGS[language])
+
 
     @app.get("/")
     def home() -> str:
@@ -309,6 +312,7 @@ Weblateはこの検査を文書化しており、商用プラットフォーム�
     }
 
     app = FastAPI()
+
 
     @app.middleware("http")
     async def bind_language(request: Request, call_next):
