@@ -210,6 +210,10 @@ That is a real constraint. Together with source-side value binding and runtime
 placeholder checking, it prevents catalog strings from evaluating expressions
 and keeps placeholder names meaningful.
 
+How Python arrived at this crossroads — two PEPs ten years apart, and the
+stdlib discussion that closed without an answer — is told with sources on
+[Background](background.md).
+
   [PEP 750]: https://peps.python.org/pep-0750/
   [stdlib-template]: https://docs.python.org/3/library/string.html#template-strings
   [flufl-i18n]: https://flufli18n.readthedocs.io/en/stable/

@@ -1,12 +1,17 @@
 ---
 description: "Translate complete t-string messages through gettext and Babel, with the formatting kept out of the catalog."
+title: "gettext-tstrings"
+hide:
+  - navigation
+  - toc
 ---
 
-# gettext-tstrings
+<div class="home-hero" markdown>
 
-Safe gettext and Babel integration for Python 3.14+ t-strings.
+# Write the sentence once.<br>Translate it whole.
 
-Write the sentence once, in your source language, with the value in place:
+Safe gettext and Babel integration for Python 3.14+ t-strings — the value
+stays in place, and the catalog sees the whole message:
 
 ```python
 import gettext
@@ -17,6 +22,17 @@ _ = Translator(gettext.translation("messages", localedir="locales"))
 name = "Ada"
 print(_(t"Hello {name}"))  # with a Japanese catalog: こんにちは Ada
 ```
+
+[Start the tutorial :material-arrow-right:](tutorial.md){ .md-button .md-button--primary }
+[Why t-strings](comparison.md){ .md-button }
+
+This site practices what it documents: every language edition —
+navigation, labels, and the plural-aware build report — is rendered from PO
+catalogs by
+[`gettext-tstrings` itself](https://github.com/yhay81/gettext-tstrings/blob/main/scripts/build_multilingual_docs.py).
+{ .home-hero-note }
+
+</div>
 
 The catalog receives the complete sentence `Hello {name}`. A translation may
 reorder or repeat `{name}`; it may not drop it, invent one, or attach
@@ -78,31 +94,49 @@ python -m pip install "gettext-tstrings[babel]"
 
 ## Where to go next
 
+Three kinds of readers arrive here: someone translating their first program,
+someone wiring translation into a real project, and someone who wants to know
+exactly why the machinery is shaped this way. Each has a path.
+
+**Learning it** — no gettext experience assumed:
+
 <div class="grid cards" markdown>
 
 - **[Tutorial](tutorial.md)** — start here: an empty directory to a running
   Japanese translation in five steps, every command shown with its output.
 - **[Why t-strings](comparison.md)** — the same message written four ways, and
   what `%(name)s`, `.format()`, and `$`-strings each hand to the catalog.
+- **[Background](background.md)** — why this library exists: thirty years of
+  gettext, two PEPs, and the stdlib discussion that closed without an answer.
+
+</div>
+
+**Using it in earnest** — the working references:
+
+<div class="grid cards" markdown>
+
 - **[Guide](guide.md)** — the runtime API: plurals, per-request languages,
   deferred strings, and what happens when a catalog is wrong.
 - **[Extraction](extraction.md)** — the `pybabel` reference: configuration,
   custom function names, and how existing tools validate these catalogs for
   free.
-- **[Specification](spec.md)** — the t-string ↔ msgid convention as a stable,
-  versioned contract, with a machine-readable conformance suite.
+- **[In production](workflow.md)** — the loop as a team runs it: the update
+  cycle, fuzzy entries, CI gates, translation platforms, and per-request
+  languages in a web application.
 - **[API](api.md)** — everything the package exports, on one page.
 
 </div>
 
-## Dogfooded by this site
+**Understanding it** — from principles to implementation:
 
-This documentation is not just a translated demo. Its navigation, theme
-labels, copyright line, and plural-aware build report are rendered from PO
-catalogs by `gettext-tstrings` itself. The
-[multilingual builder](https://github.com/yhay81/gettext-tstrings/blob/main/scripts/build_multilingual_docs.py)
-exercises contextual messages, named placeholders, and the plural rules of all
-ten languages on every strict build.
+<div class="grid cards" markdown>
+
+- **[How it works](internals.md)** — from PEP 750's template object to the
+  rendered string, and the caches that make the checking cheap.
+- **[Specification](spec.md)** — the t-string ↔ msgid convention as a stable,
+  versioned contract, with a machine-readable conformance suite.
+
+</div>
 
 ## Status
 

@@ -8,7 +8,8 @@ This page is the runtime reference: everything your *application code* does
 with this library once catalogs exist. If you have not yet seen the full loop
 — mark, extract, translate, compile, run — the [tutorial](tutorial.md) walks
 it once in five minutes; creating and validating catalogs is covered in
-[Extraction](extraction.md).
+[Extraction](extraction.md), and how a team keeps the loop turning — update
+cycles, CI, translation platforms — is [In production](workflow.md).
 
 ## Binding a catalog
 
@@ -67,7 +68,8 @@ def handle(request):
 that manage the request lifecycle themselves; `get_translations()` reads the
 current binding. An explicit `translations=` argument always wins over the
 context, and an unbound context falls back to the standard library's globally
-installed gettext functions.
+installed gettext functions. Worked examples for Flask and ASGI middleware
+are on the [In production](workflow.md#binding-a-language-at-runtime) page.
 
 ## Deferred translation
 
