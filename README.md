@@ -18,7 +18,18 @@ Safe gettext integration for Python 3.14+ t-strings, with first-class
 [Português (Brasil)](https://gettext-tstrings.yhay81.com/pt-br/) ·
 [한국어](https://gettext-tstrings.yhay81.com/ko/) ·
 [Русский](https://gettext-tstrings.yhay81.com/ru/) ·
-[العربية](https://gettext-tstrings.yhay81.com/ar/)
+[العربية](https://gettext-tstrings.yhay81.com/ar/) — and 26 more editions,
+from the language picker in the site header.
+
+The site is built from PO catalogs by this library itself. Start with the
+[tutorial](https://gettext-tstrings.yhay81.com/tutorial/), keep the
+[guide](https://gettext-tstrings.yhay81.com/guide/) and
+[extraction reference](https://gettext-tstrings.yhay81.com/extraction/) open
+while you work, follow
+[migration](https://gettext-tstrings.yhay81.com/migration/) if you already have
+catalogs, and hand
+[For translators](https://gettext-tstrings.yhay81.com/translators/) to whoever
+edits the `.po` files.
 
 ```python
 import gettext
@@ -137,6 +148,19 @@ tr(t"Total: {amount:,.2f}")
 # msgid: "Total: {amount}"
 ```
 
+That keeps formatting under application control, but it is *fixed* formatting,
+not localized formatting: `{amount:,.2f}` produces `1,234.50` in every
+language, while German writes `1.234,50` and Hindi groups digits differently.
+This library decides *where* a value lands in a translated message; numbers,
+currencies, dates, and units belong to Babel, applied before the call:
+
+```python
+from babel.numbers import format_currency
+
+total = format_currency(amount, "EUR", locale=locale)
+tr(t"Your order comes to {total}")
+```
+
 ## Per-request language
 
 Web frameworks pick a language per request. Bind the request's translations to
@@ -159,6 +183,25 @@ the current binding. An explicit `translations=` argument always wins over the
 context. A bound `Translator` is the alternative when you prefer to thread one
 object through your call sites explicitly.
 
+Bindings nest, so one request can render more than one language — a page for
+the reader plus a notification to an account set to another — and leaving the
+inner block restores the outer one:
+
+```python
+with use_translations(reader):
+    page = tr(t"Hello {name}")
+    with use_translations(recipient):
+        notice = tr(t"Hello {name}")  # the recipient's language
+    footer = tr(t"Hello {name}")  # the reader's again
+```
+
+The binding is a `ContextVar`, so it follows async tasks. Whether a bare
+`threading.Thread` or `ThreadPoolExecutor.submit` inherits it depends on
+`sys.flags.thread_inherit_context` — true by default on free-threaded builds,
+false everywhere else — so pass the context explicitly rather than depending on
+the default (`pool.submit(contextvars.copy_context().run, render)`);
+`asyncio.to_thread` already does this.
+
 ## Deferred (lazy) translation
 
 A t-string captures its values eagerly, which is wrong for a string defined at
@@ -177,8 +220,18 @@ with use_translations(japanese):
 ```
 
 A `LazyString` renders through `str()`, `format()`, and f-strings, and compares
-equal to its rendered text. Plural forms depend on a runtime count, so render
-those eagerly with `ngettext` where the count is known.
+equal to its rendered text. It is deliberately unhashable: its text depends on
+the active language, so a hash would change across a language switch and
+quietly corrupt any set or dict holding it — call `str()` first if you need a
+key. Plural forms depend on a runtime count, so render those eagerly with
+`ngettext` where the count is known.
+
+Both deferred functions accept `strict`, decided where the message is written
+rather than where it renders:
+
+```python
+SAVE = lazy_gettext(t"Save changes", strict=True)
+```
 
 ## Broken catalogs never crash a render
 
@@ -321,7 +374,10 @@ caught without any extra configuration:
 
 - **The Babel checker shipped with this package** applies the stricter t-string
   rules during `pybabel compile`: no translation-side conversions or format
-  specs, and the plural required/allowed placeholder sets.
+  specs, and the plural required/allowed placeholder sets. Like GNU
+  `msgfmt --check-format`, it skips `fuzzy` entries — `pybabel compile` leaves
+  those out of the `.mo`, so a broken one never reaches a render, and clearing
+  the flag is what submits an entry for checking.
 
 Beyond those two, the flag is a documented PO convention rather than something
 this project can vouch for: Weblate documents a [Python brace format
@@ -411,11 +467,21 @@ t-string→msgid convention is written down as a small, versioned contract in
 
 ## Status
 
-The project is an alpha. Its core contract is small on purpose; the
-[specification](SPEC.md) is the stable reference. Before a stable release it will
-add broader language fixtures, sustained performance tracking, API review from
-gettext/Babel users, and compatibility testing against every supported Python
-and Babel release.
+| | |
+| --- | --- |
+| Package version | 0.1.0a7 |
+| API stability | alpha — the Python API may still change |
+| [Specification](SPEC.md) | v1, with a conformance suite |
+| Python | 3.14 and newer; tested on 3.14, 3.14t (free-threaded), and 3.15 |
+| Babel | 2.18 or newer, and only where `pybabel` runs |
+| Runtime dependencies | none — the standard library's `gettext` |
+| Catalog format | ordinary POT, PO, and MO |
+| Changes | [CHANGELOG.md](CHANGELOG.md) |
+
+The core contract is small on purpose; the [specification](SPEC.md) is the
+stable reference. Before a stable release it will add broader language
+fixtures, sustained performance tracking, API review from gettext/Babel users,
+and compatibility testing against every supported Python and Babel release.
 
 ## Community
 
