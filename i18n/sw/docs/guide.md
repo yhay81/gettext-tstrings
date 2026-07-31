@@ -115,6 +115,53 @@ litumike kwa mfuatano ambao hauonyeshwi mahali unapoitwa.
 Maumbo ya wingi hutegemea idadi ya wakati wa utekelezaji, hivyo yaonyeshe hayo
 papo hapo kwa `ngettext` mahali idadi inapojulikana.
 
+## Lugha kadhaa kwa wakati mmoja { #several-languages-at-once }
+
+Ombi moja mara nyingi huhitaji lugha zaidi ya moja: ukurasa unaoonyeshwa kwa
+msomaji ambao pia hupanga foleni arifa kwenda akaunti iliyowekwa lugha nyingine,
+au muhtasari unaomnukuu kila mshiriki kwa lugha yake mwenyewe. Ufungaji huwekwa
+ndani kwa ndani, na kutoka kwenye kizuizi cha ndani hurejesha kile cha nje.
+
+```python
+with use_translations(reader):
+    page = tr(t"Hello {name}")
+    with use_translations(recipient):
+        notice = tr(t"Hello {name}")  # the recipient's language
+    footer = tr(t"Hello {name}")  # the reader's again
+```
+
+Kwenye orodha ya wapokeaji, mifuatano iliyoahirishwa ndiyo hufanya kazi: ujumbe
+huandikwa mara moja tu, wakati wa kuingiza moduli, nao huonyeshwa mara moja kwa
+kila lugha.
+
+```python
+SUBJECT = lazy_gettext(t"Your order shipped")
+
+for user in users:
+    with use_translations(load_translations(user.locale)):
+        send(user.email, str(SUBJECT))
+```
+
+Ufungaji ni `ContextVar`, si rundo lililoshikiliwa kwenye kitu
+kinachoshirikiwa, hivyo maombi yanayopishana hayawezi kuchukua lugha ya
+mwenzake — ikiwa ni pamoja na hali ambapo *yanatoka* kwenye vizuizi vyake kwa
+mpangilio uleule yalioingia, ambao ndio mpishano ambao rundo la kusukuma
+huukosea. Kupakia katalogi kwa kila lugha ni jambo rahisi:
+`gettext.translation()` huchanganua kila `.mo` mara moja na hutoa nakala
+zinazoshiriki katalogi iliyochanganuliwa.
+
+!!! warning "Uzi wa kufanyia kazi huanza bila kufungwa"
+
+    `threading.Thread` ya kawaida, au `ThreadPoolExecutor.submit`, huanza na
+    muktadha mpya na hairithi ufungaji — wito hurejea kwenye katalogi ya
+    gettext ya jumla ya mchakato. Beba muktadha kwa uwazi:
+
+    ```python
+    pool.submit(contextvars.copy_context().run, render)
+    ```
+
+    `asyncio.to_thread` tayari hufanya hivi kwa niaba yako.
+
 ## Kinachotokea katalogi inapokuwa na kasoro { #what-happens-when-a-catalog-is-wrong }
 
 Ikiwa vishika nafasi vya tafsiri havilingani na vya chanzo — uga uliokosekana,

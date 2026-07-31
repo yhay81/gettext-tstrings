@@ -123,6 +123,44 @@ behöver ett attribut, samtidigt som det gör anroparens stackram till en del
 av katalogens substitutionsnamnrymd. Jämförelsen nedan beskriver
 `flufl.i18n` 6.0.0, inte varje möjlig användning av `string.Template`.
 
+Det besvarar också en fråga som de två andra formateringsstilarna lämnar helt
+åt applikationen: *vilket* språk som är det aktuella, och hur man byter. Ett
+[applikationsobjekt][application object] håller en stack av språk,
+`_.push(code)` och `_.pop()` flyttar den, `with _.using(code):` nästlar, och
+en [strategi][strategy] hittar katalogen för en språkkod så att applikationen
+aldrig hanterar katalogobjekt själv. En server som måste producera text på mer
+än ett språk under en och samma arbetsenhet — en sida för läsaren, en
+avisering till någon vars konto är inställt annorlunda — är fallet det här
+finns till för.
+
+Stacken bor på det applikationsobjektet, som hela processen delar. Två
+överlappande förfrågningar delar därför en och samma stack, och block som inte
+är strikt nästlade *i tiden* räcker varandra fel språk:
+
+```python
+async def greet(code, delay):
+    with _.using(code):
+        await asyncio.sleep(delay)
+        return _("Hello $name")
+
+
+async def main():
+    return await asyncio.gather(greet("fr", 0.01), greet("ja", 0.02))
+```
+
+```pycon
+>>> asyncio.run(main())  # "fr" entered first and left first, so it read "ja" off the top
+['こんにちは Ada', 'Bonjour Ada']
+```
+
+Det här biblioteket behåller samma förmåga — bindningar nästlar och rullas
+tillbaka på samma sätt — i en `ContextVar` i stället för i en delad stack, så
+flätningen ovan löses upp per uppgift. Motsvarigheterna finns på
+[Flera språk samtidigt](guide.md#several-languages-at-once). Vad det inte
+tillhandahåller är uppslagningen från språkkod till katalog: du skickar in ett
+översättningsobjekt, vilket i det vanliga fallet är ett enda anrop till
+`gettext.translation()`, och standardbiblioteket cachar den tolkade katalogen.
+
 ## t-strings { #t-strings }
 
 ```python
@@ -178,6 +216,7 @@ extraktor, som den detta paket
 | Vilken PO-flagga härleder Babel, för befintliga verktyg att validera? | `python-format` | `python-brace-format` | ingen | `python-brace-format` |
 | Använder vanliga PO/MO-kataloger? | ja | ja | ja | ja |
 | Behöver en egen källextraktor? | nej | nej | nej | ja, för närvarande |
+| Var bor "det aktuella språket"? | där applikationen lägger det | där applikationen lägger det | en stack av språkkoder på det delade applikationsobjektet | en `ContextVar`, per uppgift eller förfrågan |
 
 Om kontrollen vid rendering: singularmeddelanden kontrolleras mot en exakt
 platshållarmatchning. Pluralmeddelanden kontrolleras också, mot
@@ -227,3 +266,5 @@ stdlib-diskussionen som stängdes utan svar — berättas med källor på
   [documented behavior]: https://flufli18n.readthedocs.io/en/stable/using.html#substitutions-and-placeholders
   [custom Template]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_substitute.py
   [translator]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_translator.py
+  [application object]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_application.py
+  [strategy]: https://flufli18n.readthedocs.io/en/stable/strategies.html

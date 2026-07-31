@@ -117,6 +117,43 @@ flufl.i18nは置換に使う名前空間を呼び出し元のグローバル変�
 `flufl.i18n` 6.0.0を対象とし、`string.Template`のあらゆる使い方を
 表すものではありません。
 
+さらに`flufl.i18n`は、他の2つの書式スタイルが完全にアプリケーション任せに
+している問いにも答えます。*どの*言語がいま有効で、それをどう切り替えるか、という
+問いです。[アプリケーションオブジェクト][application object]が言語のスタックを保持し、
+`_.push(code)`と`_.pop()`がそれを動かし、`with _.using(code):`が入れ子を作ります。
+そして[strategy]が言語コードからカタログを見つけるため、アプリケーション自身が
+カタログオブジェクトを扱うことはありません。1つの作業単位のあいだに複数の言語で
+テキストを生成しなければならないサーバー — 読み手向けのページと、設定言語の異なる
+誰かへの通知 — こそ、この仕組みが存在する理由です。
+
+そのスタックはアプリケーションオブジェクト上にあり、プロセス全体がそれを共有します。
+したがって重なり合う2つのリクエストは1つのスタックを共有し、*時間的に*厳密な
+入れ子になっていないブロックは、互いに誤った言語を渡し合います。
+
+```python
+async def greet(code, delay):
+    with _.using(code):
+        await asyncio.sleep(delay)
+        return _("Hello $name")
+
+
+async def main():
+    return await asyncio.gather(greet("fr", 0.01), greet("ja", 0.02))
+```
+
+```pycon
+>>> asyncio.run(main())  # "fr" entered first and left first, so it read "ja" off the top
+['こんにちは Ada', 'Bonjour Ada']
+```
+
+このライブラリは同じ機能 — 束縛は同じように入れ子になり、同じように巻き戻ります —
+を、共有スタックではなく`ContextVar`の中に置きます。そのため上記の交錯はタスクごとに
+解決されます。対応する書き方は
+[複数の言語を同時に扱う](guide.md#several-languages-at-once)にあります。
+提供しないのは言語コードからカタログへの検索です。渡すのは翻訳オブジェクトで、
+よくある場合は`gettext.translation()`の呼び出し1回で得られ、解析済みカタログは
+標準ライブラリがキャッシュします。
+
 ## t-string { #t-strings }
 
 ```python
@@ -171,6 +208,7 @@ tr(t"Total: {amount:,.2f}")  # msgid is "Total: {amount}"
 | 既存ツールの検証用にBabelが推論するPOフラグは？ | `python-format` | `python-brace-format` | なし | `python-brace-format` |
 | 通常のPO/MOカタログを使用するか？ | はい | はい | はい | はい |
 | 独自のソース抽出器が必要か？ | いいえ | いいえ | いいえ | 現時点では、はい |
+| 「現在の言語」はどこに置かれるか？ | アプリケーションが置いた場所 | アプリケーションが置いた場所 | 共有アプリケーションオブジェクト上にある言語コードのスタック | `ContextVar`（タスクまたはリクエストごと） |
 
 レンダリング時の検査について：単数形メッセージはプレースホルダーの完全一致を
 検査します。複数形メッセージも、対象言語の複数形がソース言語と異なることを
@@ -218,3 +256,5 @@ Pythonがどのようにしてこの岐路へ辿り着いたのか — 10年を�
   [文書化された挙動]: https://flufli18n.readthedocs.io/en/stable/using.html#substitutions-and-placeholders
   [独自Template]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_substitute.py
   [translator]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_translator.py
+  [application object]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_application.py
+  [strategy]: https://flufli18n.readthedocs.io/en/stable/strategies.html

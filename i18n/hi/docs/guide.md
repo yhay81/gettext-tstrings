@@ -115,6 +115,53 @@ SAVE = lazy_gettext(t"Save changes", strict=True)
 बहुवचन रूप रनटाइम की गिनती पर निर्भर करते हैं, इसलिए उन्हें वहीं `ngettext`
 से तुरंत रेंडर करें जहाँ गिनती ज्ञात हो।
 
+## एक साथ कई भाषाएँ { #several-languages-at-once }
+
+एक ही request को अक्सर एक से अधिक भाषाएँ चाहिए होती हैं: पाठक के लिए रेंडर
+किया गया पेज, जो साथ ही किसी ऐसे खाते के लिए सूचना क़तार में डालता है जो किसी
+दूसरी भाषा पर सेट है; या कोई डाइजेस्ट जो हर प्रतिभागी को उसी की भाषा में
+उद्धृत करता है। bindings नेस्ट होती हैं, और भीतरी ब्लॉक छोड़ते ही बाहरी वाली
+बहाल हो जाती है।
+
+```python
+with use_translations(reader):
+    page = tr(t"Hello {name}")
+    with use_translations(recipient):
+        notice = tr(t"Hello {name}")  # the recipient's language
+    footer = tr(t"Hello {name}")  # the reader's again
+```
+
+प्राप्तकर्ताओं की सूची पर विलंबित स्ट्रिंग्स ही काम कर देती हैं: संदेश एक ही
+बार, import पर लिखा जाता है, और हर भाषा के लिए एक बार रेंडर होता है।
+
+```python
+SUBJECT = lazy_gettext(t"Your order shipped")
+
+for user in users:
+    with use_translations(load_translations(user.locale)):
+        send(user.email, str(SUBJECT))
+```
+
+binding एक `ContextVar` है, किसी साझा ऑब्जेक्ट पर रखा स्टैक नहीं, इसलिए
+अतिव्यापी requests एक-दूसरे की भाषा नहीं उठा सकते — उस स्थिति में भी नहीं जब
+वे अपने ब्लॉक उसी क्रम में *छोड़ते* हैं जिस क्रम में उनमें घुसे थे, और यही वह
+अंतर्ग्रथन है जिसे pushdown स्टैक ग़लत कर देता है। प्रति भाषा कैटलॉग लोड करना
+सस्ता है: `gettext.translation()` हर `.mo` को एक बार पार्स करता है और ऐसी
+प्रतियाँ देता है जो वही पार्स किया हुआ कैटलॉग साझा करती हैं।
+
+!!! warning "कोई worker thread अनबाउंड शुरू होता है"
+
+    कोई नंगा `threading.Thread`, या `ThreadPoolExecutor.submit`, एक ताज़ा
+    context के साथ शुरू होता है और binding विरासत में नहीं लेता — कॉल
+    process-वैश्विक gettext कैटलॉग पर फ़ॉलबैक कर जाती है। context को स्पष्ट
+    रूप से साथ ले जाएँ:
+
+    ```python
+    pool.submit(contextvars.copy_context().run, render)
+    ```
+
+    `asyncio.to_thread` यह आपके लिए पहले से कर देता है।
+
 ## कैटलॉग ग़लत होने पर क्या होता है { #what-happens-when-a-catalog-is-wrong }
 
 यदि अनुवाद के placeholders स्रोत से मेल नहीं खाते — कोई ग़ायब, अज्ञात, या

@@ -119,6 +119,43 @@ when a message needs an attribute, while also making the caller's frame part
 of the catalog's substitution namespace. The comparison below describes
 `flufl.i18n` 6.0.0, not every possible use of `string.Template`.
 
+It also answers a question the other two formatting styles leave entirely to
+the application: *which* language is current, and how to change it. An
+[application object] keeps a stack of languages, `_.push(code)` and `_.pop()`
+move it, `with _.using(code):` nests, and a [strategy] finds the catalog for a
+language code so the application never handles catalog objects itself. A server
+that has to produce text in more than one language during a single unit of work
+— a page for the reader, a notification for someone whose account is set
+differently — is the case this exists for.
+
+The stack lives on that application object, which the whole process shares. Two
+overlapping requests therefore share one stack, and blocks that are not
+strictly nested *in time* hand each other the wrong language:
+
+```python
+async def greet(code, delay):
+    with _.using(code):
+        await asyncio.sleep(delay)
+        return _("Hello $name")
+
+
+async def main():
+    return await asyncio.gather(greet("fr", 0.01), greet("ja", 0.02))
+```
+
+```pycon
+>>> asyncio.run(main())  # "fr" entered first and left first, so it read "ja" off the top
+['こんにちは Ada', 'Bonjour Ada']
+```
+
+This library keeps the same capability — bindings nest and unwind the same way
+— in a `ContextVar` instead of a shared stack, so the interleaving above
+resolves per task. The equivalents are on
+[Several languages at once](guide.md#several-languages-at-once). What it does
+not supply is the language-code-to-catalog lookup: you pass a translations
+object, which for the common case is one `gettext.translation()` call, and the
+standard library caches the parsed catalog.
+
 ## t-strings
 
 ```python
@@ -172,6 +209,7 @@ this package [provides for Babel](extraction.md).
 | Which PO flag does Babel infer, for existing tools to validate? | `python-format` | `python-brace-format` | none | `python-brace-format` |
 | Uses ordinary PO/MO catalogs? | yes | yes | yes | yes |
 | Needs a custom source extractor? | no | no | no | yes, currently |
+| Where does "the current language" live? | wherever the application puts it | wherever the application puts it | a stack of language codes on the shared application object | a `ContextVar`, per task or request |
 
 On the render-time check: singular messages are checked for an exact
 placeholder match. Plural messages are checked too, against the
@@ -220,3 +258,5 @@ stdlib discussion that closed without an answer — is told with sources on
   [documented behavior]: https://flufli18n.readthedocs.io/en/stable/using.html#substitutions-and-placeholders
   [custom Template]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_substitute.py
   [translator]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_translator.py
+  [application object]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_application.py
+  [strategy]: https://flufli18n.readthedocs.io/en/stable/strategies.html

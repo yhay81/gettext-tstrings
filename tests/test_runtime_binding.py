@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+import asyncio
+import contextvars
 import gettext
+import threading
 
 import pytest
 
@@ -39,6 +42,67 @@ def test_use_translations_binds_and_restores_context() -> None:
         assert get_translations() is ja
     assert tr(t"Hello {name}") == "Hello Ada"
     assert get_translations() is None
+
+
+def test_language_contexts_nest_and_unwind() -> None:
+    # Rendering several languages in one call stack — a reply quoted in the
+    # recipient's language inside a page rendered in the reader's — needs the
+    # inner block to restore the outer one exactly.
+    name = "Ada"
+    ja = StubTranslations({"Hello {name}": "{name}さん、こんにちは"})
+    fr = StubTranslations({"Hello {name}": "Bonjour {name}"})
+
+    with use_translations(ja):
+        with use_translations(fr):
+            assert tr(t"Hello {name}") == "Bonjour Ada"
+        assert tr(t"Hello {name}") == "Adaさん、こんにちは"
+    assert get_translations() is None
+
+
+def test_concurrent_tasks_do_not_share_a_language() -> None:
+    # The binding is a ContextVar rather than a stack on a shared object, so two
+    # requests that overlap cannot pick up each other's language. The delays
+    # make the tasks leave their blocks in the order they entered them, which is
+    # exactly the interleaving a pushdown stack gets wrong.
+    name = "Ada"
+    catalogs = {
+        "ja": StubTranslations({"Hello {name}": "{name}さん、こんにちは"}),
+        "fr": StubTranslations({"Hello {name}": "Bonjour {name}"}),
+    }
+
+    async def request(language: str, delay: float) -> str:
+        with use_translations(catalogs[language]):
+            await asyncio.sleep(delay)
+            return tr(t"Hello {name}")
+
+    async def both() -> list[str]:
+        return list(await asyncio.gather(request("ja", 0.01), request("fr", 0.02)))
+
+    assert asyncio.run(both()) == ["Adaさん、こんにちは", "Bonjour Ada"]
+
+
+def test_a_worker_thread_starts_from_an_unbound_context() -> None:
+    # A bare thread begins with a fresh context, so it does not inherit the
+    # binding; contextvars.copy_context() is what carries it across. Pinned
+    # because it is the one hand-off where the documented behaviour surprises
+    # people, and because asyncio.to_thread copies the context for you.
+    name = "Ada"
+    ja = StubTranslations({"Hello {name}": "{name}さん、こんにちは"})
+    rendered: dict[str, str] = {}
+
+    def render(key: str) -> None:
+        rendered[key] = tr(t"Hello {name}")
+
+    with use_translations(ja):
+        bare = threading.Thread(target=render, args=("bare",))
+        bare.start()
+        bare.join()
+
+        carried = threading.Thread(target=contextvars.copy_context().run, args=(render, "carried"))
+        carried.start()
+        carried.join()
+
+    assert rendered == {"bare": "Hello Ada", "carried": "Adaさん、こんにちは"}
 
 
 def test_explicit_translations_override_the_context() -> None:

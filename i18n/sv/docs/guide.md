@@ -116,6 +116,51 @@ gälla även för en sträng som inte renderas på sin anropsplats.
 Pluralformer beror på ett antal vid körning, så rendera dem ivrigt med
 `ngettext` där antalet är känt.
 
+## Flera språk samtidigt { #several-languages-at-once }
+
+En och samma förfrågan behöver ofta mer än ett språk: en sida renderad för
+läsaren som också köar en avisering till ett konto inställt på ett annat, eller
+ett sammandrag som citerar varje deltagare på deras eget. Bindningar nästlar,
+och att lämna det inre blocket återställer det yttre.
+
+```python
+with use_translations(reader):
+    page = tr(t"Hello {name}")
+    with use_translations(recipient):
+        notice = tr(t"Hello {name}")  # the recipient's language
+    footer = tr(t"Hello {name}")  # the reader's again
+```
+
+Över en lista av mottagare gör uppskjutna strängar jobbet: meddelandet skrivs
+en gång, vid importtillfället, och renderas en gång per språk.
+
+```python
+SUBJECT = lazy_gettext(t"Your order shipped")
+
+for user in users:
+    with use_translations(load_translations(user.locale)):
+        send(user.email, str(SUBJECT))
+```
+
+Bindningen är en `ContextVar`, inte en stack som hålls på ett delat objekt, så
+förfrågningar som överlappar inte kan plocka upp varandras språk — inklusive
+fallet där de *lämnar* sina block i den ordning de gick in i dem, vilket är den
+flätning en pushdown-stack får om bakfoten. Att läsa in en katalog per språk är
+billigt: `gettext.translation()` tolkar varje `.mo` en gång och delar ut kopior
+som delar den tolkade katalogen.
+
+!!! warning "En arbetstråd startar obunden"
+
+    En naken `threading.Thread`, eller `ThreadPoolExecutor.submit`, börjar med
+    en färsk kontext och ärver inte bindningen — anropet faller tillbaka till
+    den processglobala gettext-katalogen. Bär över kontexten explicit:
+
+    ```python
+    pool.submit(contextvars.copy_context().run, render)
+    ```
+
+    `asyncio.to_thread` gör redan detta åt dig.
+
 ## Vad som händer när en katalog är fel { #what-happens-when-a-catalog-is-wrong }
 
 Om en översättnings platshållare inte matchar källan — ett saknat, okänt

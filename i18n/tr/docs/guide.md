@@ -114,6 +114,51 @@ yerinde render edilmeyen bir dizgi için de geçerli olmasını sağlayan şeydi
 Çoğul biçimler çalışma zamanındaki bir sayıya bağlıdır; onları, sayının
 bilindiği yerde `ngettext` ile hevesle render edin.
 
+## Aynı anda birden fazla dil { #several-languages-at-once }
+
+Tek bir isteğin çoğu zaman birden fazla dile ihtiyacı olur: okur için render
+edilen ve aynı zamanda başka bir dile ayarlanmış bir hesaba bildirim kuyruğa
+alan bir sayfa ya da her katılımcıdan kendi dilinde alıntı yapan bir özet.
+Bağlamalar iç içe geçer ve içteki bloktan çıkmak dıştakini geri getirir.
+
+```python
+with use_translations(reader):
+    page = tr(t"Hello {name}")
+    with use_translations(recipient):
+        notice = tr(t"Hello {name}")  # the recipient's language
+    footer = tr(t"Hello {name}")  # the reader's again
+```
+
+Bir alıcı listesi üzerinde işi ertelenmiş dizgiler görür: mesaj bir kez, içe
+aktarma anında yazılır ve her dil için bir kez render edilir.
+
+```python
+SUBJECT = lazy_gettext(t"Your order shipped")
+
+for user in users:
+    with use_translations(load_translations(user.locale)):
+        send(user.email, str(SUBJECT))
+```
+
+Bağlama, paylaşılan bir nesne üzerinde tutulan bir yığın değil bir
+`ContextVar`dır; bu yüzden üst üste binen istekler birbirinin dilini
+kapamaz — bloklarından, girdikleri sırayla *çıktıkları* durum da dahil; ki
+bu, aşağı itmeli bir yığının yanlış yaptığı geçişmedir. Dil başına katalog
+yüklemek ucuzdur: `gettext.translation()` her `.mo` dosyasını bir kez
+ayrıştırır ve ayrıştırılmış kataloğu paylaşan kopyalar dağıtır.
+
+!!! warning "Bir işçi iş parçacığı bağsız başlar"
+
+    Yalın bir `threading.Thread` ya da `ThreadPoolExecutor.submit`, taze bir
+    bağlamla başlar ve bağlamayı devralmaz — çağrı, sürecin küresel gettext
+    kataloğuna geri düşer. Bağlamı açıkça taşıyın:
+
+    ```python
+    pool.submit(contextvars.copy_context().run, render)
+    ```
+
+    `asyncio.to_thread` bunu sizin için zaten yapar.
+
 ## Bir katalog yanlış olduğunda ne olur { #what-happens-when-a-catalog-is-wrong }
 
 Bir çevirinin yer tutucuları kaynağa uymuyorsa — doğrulamadan sıyrılmış

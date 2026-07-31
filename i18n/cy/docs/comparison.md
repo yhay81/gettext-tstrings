@@ -126,6 +126,45 @@ gwneud ffrâm y galwr yn rhan o ofod enwau amnewid y catalog. Mae'r gymhariaeth
 isod yn disgrifio `flufl.i18n` 6.0.0, nid pob defnydd posibl o
 `string.Template`.
 
+Mae hefyd yn ateb cwestiwn y mae'r ddwy arddull fformatio arall yn ei adael yn
+gyfan gwbl i'r rhaglen: *pa* iaith sy'n gyfredol, a sut i'w newid. Mae
+[gwrthrych rhaglen][application object] yn cadw pentwr o ieithoedd, mae
+`_.push(code)` a `_.pop()` yn ei symud, mae `with _.using(code):` yn nythu, ac
+mae [strategaeth][strategy] yn dod o hyd i'r catalog ar gyfer cod iaith fel nad
+yw'r rhaglen byth yn trin gwrthrychau catalog ei hun. Gweinydd sy'n gorfod
+cynhyrchu testun mewn mwy nag un iaith yn ystod un uned waith — tudalen i'r
+darllenydd, hysbysiad i rywun y mae ei gyfrif wedi'i osod yn wahanol — yw'r
+achos y mae hyn yn bodoli ar ei gyfer.
+
+Mae'r pentwr yn byw ar y gwrthrych rhaglen hwnnw, sy'n cael ei rannu gan y
+broses gyfan. Felly mae dau gais sy'n gorgyffwrdd yn rhannu un pentwr, ac mae
+blociau nad ydynt wedi'u nythu'n llym *mewn amser* yn rhoi'r iaith anghywir i'w
+gilydd:
+
+```python
+async def greet(code, delay):
+    with _.using(code):
+        await asyncio.sleep(delay)
+        return _("Hello $name")
+
+
+async def main():
+    return await asyncio.gather(greet("fr", 0.01), greet("ja", 0.02))
+```
+
+```pycon
+>>> asyncio.run(main())  # "fr" entered first and left first, so it read "ja" off the top
+['こんにちは Ada', 'Bonjour Ada']
+```
+
+Mae'r llyfrgell hon yn cadw'r un gallu — mae rhwymiadau'n nythu ac yn dad-nythu
+yn yr un modd — mewn `ContextVar` yn lle pentwr a rennir, felly mae'r cydblethu
+uchod yn datrys fesul tasg. Mae'r cyfatebiaethau ar
+[Sawl iaith ar unwaith](guide.md#several-languages-at-once). Yr hyn nad yw'n ei
+gyflenwi yw'r chwiliad o god iaith i gatalog: rydych yn pasio gwrthrych
+cyfieithiadau, sef un alwad `gettext.translation()` ar gyfer yr achos cyffredin,
+ac mae'r llyfrgell safonol yn cadw'r catalog wedi'i barsio yn y storfa.
+
 ## llinynnau-t { #t-strings }
 
 ```python
@@ -182,6 +221,7 @@ linynnau-t, megis yr un y mae'r pecyn hwn yn ei
 | Pa faner PO y mae Babel yn ei chasglu, i offer sy'n bodoli eu dilysu? | `python-format` | `python-brace-format` | dim | `python-brace-format` |
 | A yw'n defnyddio catalogau PO/MO cyffredin? | ie | ie | ie | ie |
 | A oes angen echdynnwr ffynhonnell pwrpasol? | na | na | na | ie, ar hyn o bryd |
+| Ble mae "yr iaith gyfredol" yn byw? | lle bynnag y mae'r rhaglen yn ei roi | lle bynnag y mae'r rhaglen yn ei roi | pentwr o godau iaith ar y gwrthrych rhaglen a rennir | `ContextVar`, fesul tasg neu gais |
 
 Ynghylch y gwiriad adeg rendro: gwirir negeseuon unigol am gyfatebiaeth union o
 ddalwyr lle. Gwirir negeseuon lluosog hefyd, yn erbyn y
@@ -230,3 +270,5 @@ ffynonellau ar [Gefndir](background.md).
   [ymddygiad dogfenedig]: https://flufli18n.readthedocs.io/en/stable/using.html#substitutions-and-placeholders
   [Template pwrpasol]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_substitute.py
   [chyfieithydd]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_translator.py
+  [application object]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_application.py
+  [strategy]: https://flufli18n.readthedocs.io/en/stable/strategies.html

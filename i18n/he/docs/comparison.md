@@ -117,6 +117,42 @@ gettext. שימו לב שהערך לעולם אינו מועבר: flufl.i18n ב�
 שמות ההצבה של הקטלוג. ההשוואה להלן מתארת את `flufl.i18n` 6.0.0, לא כל
 שימוש אפשרי ב-`string.Template`.
 
+היא גם עונה על שאלה ששני סגנונות הפורמט האחרים מותירים כולה לאפליקציה: *איזו*
+שפה פעילה כרגע, ואיך משנים אותה. [אובייקט האפליקציה][application object]
+מחזיק מחסנית של שפות, `_.push(code)` ו-`_.pop()` מזיזים אותה,
+`with _.using(code):` מקנן, ו[אסטרטגיה][strategy] מאתרת את הקטלוג המתאים לקוד
+שפה, כך שהאפליקציה עצמה לעולם אינה מטפלת באובייקטי קטלוג. שרת שנדרש להפיק
+טקסט ביותר משפה אחת בתוך יחידת עבודה אחת — עמוד עבור הקורא, התראה למישהו
+שחשבונו מוגדר אחרת — הוא המקרה שלמענו זה קיים.
+
+המחסנית יושבת על אותו אובייקט אפליקציה, שכל התהליך חולק. שתי בקשות חופפות
+חולקות אפוא מחסנית אחת, ובלוקים שאינם מקוננים באופן מוחלט *בזמן* מוסרים זה
+לזה את השפה הלא נכונה:
+
+```python
+async def greet(code, delay):
+    with _.using(code):
+        await asyncio.sleep(delay)
+        return _("Hello $name")
+
+
+async def main():
+    return await asyncio.gather(greet("fr", 0.01), greet("ja", 0.02))
+```
+
+```pycon
+>>> asyncio.run(main())  # "fr" entered first and left first, so it read "ja" off the top
+['こんにちは Ada', 'Bonjour Ada']
+```
+
+הספרייה הזו שומרת על אותה יכולת — קשירות מקננות ומתפרקות בדיוק באותה דרך —
+בתוך `ContextVar` במקום במחסנית משותפת, כך שהשזירה שלמעלה נפתרת לכל משימה
+בנפרד. המקבילות נמצאות בעמוד
+[כמה שפות בבת אחת](guide.md#several-languages-at-once). מה שהיא אינה מספקת
+הוא החיפוש מקוד שפה אל קטלוג: אתם מעבירים אובייקט תרגומים, שבמקרה הנפוץ הוא
+קריאה אחת ל-`gettext.translation()`, והספרייה הסטנדרטית שומרת במטמון את
+הקטלוג המפוענח.
+
 ## מחרוזות-t { #t-strings }
 
 ```python
@@ -169,6 +205,7 @@ tr(t"Total: {amount:,.2f}")  # msgid is "Total: {amount}"
 | איזה דגל PO מסיקה Babel, כדי שכלים קיימים יוכלו לאמת? | `python-format` | `python-brace-format` | אין | `python-brace-format` |
 | משתמשת בקטלוגי PO/MO רגילים? | כן | כן | כן | כן |
 | דורשת מחלץ מקור מותאם? | לא | לא | לא | כן, נכון לעכשיו |
+| היכן שוכנת "השפה הנוכחית"? | היכן שהאפליקציה מניחה אותה | היכן שהאפליקציה מניחה אותה | מחסנית של קודי שפה על אובייקט האפליקציה המשותף | `ContextVar`, לכל משימה או בקשה |
 
 על הבדיקה בזמן הרינדור: הודעות ביחיד נבדקות להתאמה מדויקת של מצייני
 המקום. גם הודעות ריבוי נבדקות, מול [כלל האיחוד/חיתוך](spec.md) המאפשר
@@ -214,3 +251,5 @@ tr(t"Hello {name}")
   [ההתנהגות המתועדת]: https://flufli18n.readthedocs.io/en/stable/using.html#substitutions-and-placeholders
   [Template המותאם]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_substitute.py
   [translator-source]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_translator.py
+  [application object]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_application.py
+  [strategy]: https://flufli18n.readthedocs.io/en/stable/strategies.html

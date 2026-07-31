@@ -122,6 +122,45 @@ halda, en gerir um leið ramma kallandans að hluta af nafnrými útskiptinganna
 í þýðingaskránni. Samanburðurinn hér að neðan lýsir `flufl.i18n` 6.0.0, ekki
 hverri mögulegri notkun á `string.Template`.
 
+Það svarar líka spurningu sem hinir tveir sniðstílarnir skilja alfarið eftir
+hjá forritinu: *hvaða* tungumál er virkt, og hvernig því er skipt.
+[Forritshlutur][application object] heldur utan um stafla af tungumálum,
+`_.push(code)` og `_.pop()` hreyfa hann, `with _.using(code):` má hreiðra, og
+[stefna][strategy] finnur þýðingaskrána fyrir tiltekinn tungumálakóða, svo að
+forritið handleiki aldrei sjálft hluti með þýðingaskrám. Þjónn sem þarf að
+framleiða texta á fleiri en einu tungumáli innan sömu vinnueiningar — síðu
+fyrir lesandann, tilkynningu til einhvers sem hefur annað tungumál stillt — er
+einmitt tilvikið sem þetta er til fyrir.
+
+Staflinn býr á þessum forritshlut, sem allt ferlið deilir. Tvær beiðnir sem
+skarast deila því einum stafla, og blokkir sem eru ekki stranglega hreiðraðar
+*í tíma* rétta hvor annarri rangt tungumál:
+
+```python
+async def greet(code, delay):
+    with _.using(code):
+        await asyncio.sleep(delay)
+        return _("Hello $name")
+
+
+async def main():
+    return await asyncio.gather(greet("fr", 0.01), greet("ja", 0.02))
+```
+
+```pycon
+>>> asyncio.run(main())  # "fr" entered first and left first, so it read "ja" off the top
+['こんにちは Ada', 'Bonjour Ada']
+```
+
+Þetta safn heldur sömu getunni — bindingar hreiðrast og rakna upp á sama hátt
+— en geymir hana í `ContextVar` í stað sameiginlegs stafla, svo að fléttan hér
+að ofan leysist fyrir hvert verk um sig. Samsvarandi dæmi eru á
+[Mörg tungumál í einu](guide.md#several-languages-at-once). Það sem safnið
+leggur ekki til er uppflettingin úr tungumálakóða í þýðingaskrá: þú réttir inn
+hlut með þýðingunum, sem í venjulega tilvikinu er eitt kall á
+`gettext.translation()`, og staðalsafnið heldur þáttuðu þýðingaskránni í
+skyndiminni.
+
 ## t-strengir { #t-strings }
 
 ```python
@@ -175,6 +214,7 @@ eins og þess sem þessi pakki [leggur til fyrir Babel](extraction.md).
 | Hvaða PO-flagg leiðir Babel út, svo að tól sem fyrir eru geti staðfest? | `python-format` | `python-brace-format` | ekkert | `python-brace-format` |
 | Notar venjulegar PO/MO-þýðingaskrár? | já | já | já | já |
 | Þarf sérstakt útdráttartól fyrir frumkóðann? | nei | nei | nei | já, sem stendur |
+| Hvar býr „núverandi tungumál“? | þar sem forritið kýs að setja það | þar sem forritið kýs að setja það | stafli af tungumálakóðum á sameiginlega forritshlutnum | `ContextVar`, eitt fyrir hvert verk eða hverja beiðni |
 
 Um athugunina við birtingu: eintöluskilaboð eru athuguð með nákvæmri
 samsvörun staðgengla. Fleirtöluskilaboð eru líka athuguð, gagnvart
@@ -224,3 +264,5 @@ og umræðan í staðalsafninu sem lokaðist án svars — er sagt með heimildu
   [documented behavior]: https://flufli18n.readthedocs.io/en/stable/using.html#substitutions-and-placeholders
   [custom Template]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_substitute.py
   [translator]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_translator.py
+  [application object]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_application.py
+  [strategy]: https://flufli18n.readthedocs.io/en/stable/strategies.html

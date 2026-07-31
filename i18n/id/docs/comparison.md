@@ -124,6 +124,47 @@ pesan membutuhkan atribut, sekaligus menjadikan frame pemanggil bagian dari
 ruang nama substitusi katalog. Perbandingan di bawah menggambarkan
 `flufl.i18n` 6.0.0, bukan setiap kemungkinan penggunaan `string.Template`.
 
+Ia juga menjawab sebuah pertanyaan yang oleh dua gaya pemformatan lainnya
+diserahkan sepenuhnya kepada aplikasi: bahasa *mana* yang sedang berlaku, dan
+bagaimana menggantinya. Sebuah [objek aplikasi][application object] menyimpan
+tumpukan bahasa, `_.push(code)` dan `_.pop()` menggerakkannya,
+`with _.using(code):` bersarang, dan sebuah [strategi][strategy] mencari
+katalog untuk sebuah kode bahasa sehingga aplikasi tidak pernah menangani objek
+katalog sendiri. Sebuah server yang harus menghasilkan teks dalam lebih dari
+satu bahasa selama satu satuan kerja — sebuah halaman untuk pembacanya, sebuah
+notifikasi untuk seseorang yang akunnya disetel berbeda — adalah kasus yang
+melatarbelakangi keberadaannya.
+
+Tumpukan itu hidup pada objek aplikasi tersebut, yang dipakai bersama oleh
+seluruh proses. Dua permintaan yang tumpang-tindih karenanya berbagi satu
+tumpukan, dan blok-blok yang tidak bersarang secara ketat *dalam waktu* saling
+menyerahkan bahasa yang keliru:
+
+```python
+async def greet(code, delay):
+    with _.using(code):
+        await asyncio.sleep(delay)
+        return _("Hello $name")
+
+
+async def main():
+    return await asyncio.gather(greet("fr", 0.01), greet("ja", 0.02))
+```
+
+```pycon
+>>> asyncio.run(main())  # "fr" entered first and left first, so it read "ja" off the top
+['こんにちは Ada', 'Bonjour Ada']
+```
+
+Pustaka ini mempertahankan kemampuan yang sama — ikatan bersarang dan terurai
+dengan cara yang sama — di dalam sebuah `ContextVar` alih-alih tumpukan yang
+dipakai bersama, sehingga jalinan di atas terselesaikan per task. Padanannya
+ada di [Beberapa bahasa sekaligus](guide.md#several-languages-at-once). Yang
+tidak disediakannya adalah pencarian dari kode bahasa ke katalog: Anda
+melewatkan sebuah objek terjemahan, yang untuk kasus umumnya adalah satu
+panggilan `gettext.translation()`, dan pustaka standar menyimpan katalog yang
+sudah diurai di cache.
+
 ## t-string { #t-strings }
 
 ```python
@@ -179,6 +220,7 @@ seperti yang [disediakan paket ini untuk Babel](extraction.md).
 | Flag PO mana yang disimpulkan Babel, untuk divalidasi perkakas yang sudah ada? | `python-format` | `python-brace-format` | tidak ada | `python-brace-format` |
 | Menggunakan katalog PO/MO biasa? | ya | ya | ya | ya |
 | Membutuhkan ekstraktor sumber kustom? | tidak | tidak | tidak | ya, saat ini |
+| Di mana "bahasa saat ini" berada? | di mana pun aplikasi menaruhnya | di mana pun aplikasi menaruhnya | sebuah tumpukan kode bahasa pada objek aplikasi bersama | sebuah `ContextVar`, per task atau permintaan |
 
 Tentang pemeriksaan saat render: pesan tunggal diperiksa untuk kecocokan
 placeholder yang tepat. Pesan jamak juga diperiksa, terhadap
@@ -229,3 +271,5 @@ di [Latar belakang](background.md).
   [documented behavior]: https://flufli18n.readthedocs.io/en/stable/using.html#substitutions-and-placeholders
   [custom Template]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_substitute.py
   [translator]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_translator.py
+  [application object]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_application.py
+  [strategy]: https://flufli18n.readthedocs.io/en/stable/strategies.html

@@ -126,6 +126,45 @@ katalógus helyettesítési névterének részévé teszi. Az alábbi összehaso
 `flufl.i18n` 6.0.0 verziójára vonatkozik, nem a `string.Template` minden
 lehetséges használatára.
 
+Arra a kérdésre is választ ad, amelyet a másik két formázási stílus teljes
+egészében az alkalmazásra hagy: *melyik* nyelv az aktuális, és hogyan lehet
+váltani. Egy [alkalmazásobjektum][application object] nyelvekből álló vermet
+tart, a `_.push(code)` és a `_.pop()` mozgatja, a `with _.using(code):`
+egymásba ágyazható, egy [stratégia][strategy] pedig megkeresi a nyelvkódhoz
+tartozó katalógust, így magának az alkalmazásnak sosem kell
+katalógusobjektumokkal bajlódnia. Az az eset, amiért mindez létezik, az a
+kiszolgáló, amelynek egyetlen munkaegységen belül egynél több nyelven kell
+szöveget előállítania — egy oldalt az olvasónak, egy értesítést valakinek,
+akinek a fiókja más nyelvre van állítva.
+
+A verem azon az alkalmazásobjektumon él, amelyen az egész folyamat osztozik.
+Két átfedő kérés így egyetlen vermen osztozik, és az *időben* nem szigorúan
+egymásba ágyazott blokkok rossz nyelvet adnak át egymásnak:
+
+```python
+async def greet(code, delay):
+    with _.using(code):
+        await asyncio.sleep(delay)
+        return _("Hello $name")
+
+
+async def main():
+    return await asyncio.gather(greet("fr", 0.01), greet("ja", 0.02))
+```
+
+```pycon
+>>> asyncio.run(main())  # "fr" entered first and left first, so it read "ja" off the top
+['こんにちは Ada', 'Bonjour Ada']
+```
+
+Ez a könyvtár ugyanezt a képességet őrzi meg — a kötések ugyanúgy egymásba
+ágyazódnak és bomlanak vissza —, csak közös verem helyett `ContextVar`
+változóban, így a fenti átlapolódás feladatonként oldódik fel. A megfelelő
+példák a [Több nyelv egyszerre](guide.md#several-languages-at-once) szakaszban
+vannak. Amit nem ad, az a nyelvkódról katalógusra való feloldás: te adsz át egy
+fordításobjektumot, ami a szokásos esetben egyetlen `gettext.translation()`
+hívás, a standard könyvtár pedig gyorsítótárazza a beolvasott katalógust.
+
 ## t-stringek { #t-strings }
 
 ```python
@@ -181,6 +220,7 @@ csomag is [ad a Babelhez](extraction.md).
 | Melyik PO-jelzőt vezeti le a Babel, hogy a meglévő eszközök validálhassanak? | `python-format` | `python-brace-format` | egyiket sem | `python-brace-format` |
 | Szokványos PO-/MO-katalógusokat használ? | igen | igen | igen | igen |
 | Kell hozzá egyedi forráskinyerő? | nem | nem | nem | igen, jelenleg |
+| Hol él „az aktuális nyelv”? | ott, ahová az alkalmazás teszi | ott, ahová az alkalmazás teszi | nyelvkódok vermében a közös alkalmazásobjektumon | egy `ContextVar`-ban, feladatonként vagy kérésenként |
 
 A renderelésidejű ellenőrzésről: az egyes számú üzeneteknél pontos
 helyőrző-egyezést várunk el. A többes számú üzeneteket is ellenőrizzük, az
@@ -231,3 +271,5 @@ együtt a [Háttér](background.md) meséli el.
   [dokumentált viselkedés]: https://flufli18n.readthedocs.io/en/stable/using.html#substitutions-and-placeholders
   [saját Template]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_substitute.py
   [fordítómodulja]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_translator.py
+  [application object]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_application.py
+  [strategy]: https://flufli18n.readthedocs.io/en/stable/strategies.html

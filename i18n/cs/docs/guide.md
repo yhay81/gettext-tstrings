@@ -116,6 +116,51 @@ i na řetězec, který se nevykresluje v místě svého volání.
 Tvary množného čísla závisejí na počtu známém až za běhu, proto je
 vykreslujte okamžitě pomocí `ngettext` tam, kde je počet znám.
 
+## Několik jazyků naráz { #several-languages-at-once }
+
+Jediný požadavek často potřebuje více než jeden jazyk: stránku vykreslenou
+pro čtenáře, která zároveň zařadí oznámení účtu nastavenému na jiný jazyk,
+nebo souhrn, který každého účastníka cituje v tom jeho. Vazby se vnořují
+a opuštění vnitřního bloku obnoví ten vnější.
+
+```python
+with use_translations(reader):
+    page = tr(t"Hello {name}")
+    with use_translations(recipient):
+        notice = tr(t"Hello {name}")  # the recipient's language
+    footer = tr(t"Hello {name}")  # the reader's again
+```
+
+Nad seznamem příjemců odvedou práci odložené řetězce: zpráva se napíše
+jednou, při importu, a vykreslí se jednou pro každý jazyk.
+
+```python
+SUBJECT = lazy_gettext(t"Your order shipped")
+
+for user in users:
+    with use_translations(load_translations(user.locale)):
+        send(user.email, str(SUBJECT))
+```
+
+Vazba je `ContextVar`, nikoli zásobník držený na sdíleném objektu, takže
+překrývající se požadavky si nemohou převzít jazyk jeden druhému — včetně
+případu, kdy své bloky *opouštějí* v tom pořadí, v jakém do nich vstoupily,
+což je právě to prokládání, na němž zásobník selhává. Načíst katalog pro
+každý jazyk je levné: `gettext.translation()` rozparsuje každé `.mo` jednou
+a vydává kopie, které sdílejí rozparsovaný katalog.
+
+!!! warning "Pracovní vlákno startuje bez vazby"
+
+    Holé `threading.Thread` nebo `ThreadPoolExecutor.submit` začíná
+    s čerstvým kontextem a vazbu nedědí — volání spadne zpět na procesně
+    globální katalog gettextu. Přeneste kontext výslovně:
+
+    ```python
+    pool.submit(contextvars.copy_context().run, render)
+    ```
+
+    `asyncio.to_thread` to za vás už dělá.
+
 ## Co se stane, když je katalog chybný { #what-happens-when-a-catalog-is-wrong }
 
 Pokud zástupné symboly překladu neodpovídají zdroji — chybějící, neznámé

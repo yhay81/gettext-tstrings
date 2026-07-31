@@ -126,6 +126,45 @@ jednocześnie czyni ramkę wywołującego częścią przestrzeni podstawień
 katalogu. Porównanie poniżej opisuje `flufl.i18n` 6.0.0, nie każde możliwe
 użycie `string.Template`.
 
+Odpowiada też na pytanie, które dwa pozostałe style formatowania zostawiają w
+całości aplikacji: *który* język jest bieżący i jak go zmienić.
+[Obiekt aplikacji][application object] trzyma stos języków, `_.push(code)` i
+`_.pop()` nim poruszają, `with _.using(code):` zagnieżdża, a
+[strategia][strategy] znajduje katalog dla kodu języka, więc aplikacja nigdy
+sama nie dotyka obiektów katalogu. Serwer, który w jednej jednostce pracy musi
+wytworzyć tekst w więcej niż jednym języku — stronę dla czytelnika,
+powiadomienie dla kogoś, kto ma ustawiony inny — to właśnie przypadek, dla
+którego to istnieje.
+
+Stos żyje na tym obiekcie aplikacji, który współdzieli cały proces. Dwa
+nakładające się żądania dzielą więc jeden stos, a bloki, które nie są ściśle
+zagnieżdżone *w czasie*, podają sobie nawzajem zły język:
+
+```python
+async def greet(code, delay):
+    with _.using(code):
+        await asyncio.sleep(delay)
+        return _("Hello $name")
+
+
+async def main():
+    return await asyncio.gather(greet("fr", 0.01), greet("ja", 0.02))
+```
+
+```pycon
+>>> asyncio.run(main())  # "fr" entered first and left first, so it read "ja" off the top
+['こんにちは Ada', 'Bonjour Ada']
+```
+
+Ta biblioteka zachowuje tę samą możliwość — wiązania zagnieżdżają się i
+rozwijają tak samo — ale w `ContextVar`, a nie na współdzielonym stosie, więc
+powyższe przeplecenie rozwiązuje się osobno dla każdego zadania. Odpowiedniki
+znajdziesz na stronie
+[Kilka języków naraz](guide.md#several-languages-at-once). Czego biblioteka nie
+dostarcza, to wyszukania katalogu po kodzie języka: przekazujesz obiekt
+tłumaczeń, którym w typowym przypadku jest jedno wywołanie
+`gettext.translation()`, a biblioteka standardowa buforuje sparsowany katalog.
+
 ## t-stringi { #t-strings }
 
 ```python
@@ -180,6 +219,7 @@ t-stringów, takiego jak ten, który ten pakiet
 | Jaką flagę PO wywnioskuje Babel, by istniejące narzędzia walidowały? | `python-format` | `python-brace-format` | brak | `python-brace-format` |
 | Używa zwykłych katalogów PO/MO? | tak | tak | tak | tak |
 | Potrzebuje własnego ekstraktora źródeł? | nie | nie | nie | tak, na razie |
+| Gdzie mieszka „bieżący język"? | tam, gdzie umieści go aplikacja | tam, gdzie umieści go aplikacja | stos kodów języków na współdzielonym obiekcie aplikacji | `ContextVar`, osobno dla zadania lub żądania |
 
 O kontroli w czasie renderowania: komunikaty w liczbie pojedynczej są
 sprawdzane pod kątem dokładnego dopasowania symboli zastępczych. Komunikaty w
@@ -230,3 +270,5 @@ dyskusja o bibliotece standardowej zamknięta bez odpowiedzi — opowiada ze
   [documented behavior]: https://flufli18n.readthedocs.io/en/stable/using.html#substitutions-and-placeholders
   [custom Template]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_substitute.py
   [translator]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_translator.py
+  [application object]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_application.py
+  [strategy]: https://flufli18n.readthedocs.io/en/stable/strategies.html

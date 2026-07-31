@@ -108,6 +108,51 @@ SAVE = lazy_gettext(t"Save changes", strict=True)
 
 복수형은 런타임의 수에 의존하므로 `ngettext`로 즉시 렌더링합니다.
 
+## 여러 언어를 동시에 { #several-languages-at-once }
+
+한 요청에 두 가지 이상의 언어가 필요한 경우는 흔합니다. 읽는 사람에게
+보여 줄 페이지를 렌더링하면서 다른 언어로 설정된 계정에 보낼 알림을 큐에
+넣거나, 참가자마다 각자의 언어로 인용하는 요약을 만드는 경우입니다.
+바인딩은 중첩되며, 안쪽 블록을 빠져나오면 바깥쪽 바인딩이 복원됩니다.
+
+```python
+with use_translations(reader):
+    page = tr(t"Hello {name}")
+    with use_translations(recipient):
+        notice = tr(t"Hello {name}")  # the recipient's language
+    footer = tr(t"Hello {name}")  # the reader's again
+```
+
+수신자 목록을 도는 자리에서는 지연 문자열이 그 일을 대신합니다. 메시지는
+import 시점에 한 번만 작성되고, 언어마다 한 번씩 렌더링됩니다.
+
+```python
+SUBJECT = lazy_gettext(t"Your order shipped")
+
+for user in users:
+    with use_translations(load_translations(user.locale)):
+        send(user.email, str(SUBJECT))
+```
+
+바인딩은 공유 객체에 매달린 스택이 아니라 `ContextVar`이므로, 겹쳐서
+실행되는 요청이 서로의 언어를 집어 올 수 없습니다. 들어간 순서 그대로
+블록을 *빠져나오는* 경우 — 푸시다운 스택이 틀리게 처리하는 바로 그
+뒤섞임 — 까지 포함해서 그렇습니다. 언어마다 카탈로그를 로드하는 비용은
+저렴합니다. `gettext.translation()`은 각 `.mo`를 한 번만 파싱하고, 파싱된
+카탈로그를 공유하는 복사본을 건네줍니다.
+
+!!! warning "워커 스레드는 바인딩 없이 시작합니다"
+
+    맨 `threading.Thread`나 `ThreadPoolExecutor.submit`은 새 컨텍스트에서
+    시작하므로 바인딩을 물려받지 않습니다. 그 호출은 프로세스 전역
+    gettext 카탈로그로 fallback합니다. 컨텍스트를 명시적으로 넘기세요.
+
+    ```python
+    pool.submit(contextvars.copy_context().run, render)
+    ```
+
+    `asyncio.to_thread`는 이미 이 일을 대신해 줍니다.
+
 ## 카탈로그가 잘못되었을 때 { #what-happens-when-a-catalog-is-wrong }
 
 번역의 플레이스홀더가 원본과 맞지 않으면 기본 모드는 예외 대신 원본

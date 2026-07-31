@@ -125,6 +125,46 @@ kuwa sehemu ya nafasi ya majina ya ubadilishaji ya katalogi. Ulinganisho hapa
 chini unaelezea `flufl.i18n` 6.0.0, si kila matumizi yanayowezekana ya
 `string.Template`.
 
+Pia hujibu swali ambalo mitindo mingine miwili ya kuumbiza huliachia programu
+kabisa: ni lugha *ipi* iliyo ya sasa, na jinsi ya kuibadilisha. [Kitu cha
+programu][application object] hushikilia rundo la lugha, `_.push(code)` na
+`_.pop()` hulisogeza, `with _.using(code):` huweka kimoja ndani ya kingine, na
+[mkakati][strategy] hutafuta katalogi ya msimbo wa lugha ili programu
+isishughulike kamwe na vitu vya katalogi yenyewe. Seva inayopaswa kutoa
+maandishi kwa lugha zaidi ya moja ndani ya kipande kimoja cha kazi — ukurasa
+kwa msomaji, arifa kwa mtu ambaye akaunti yake imewekwa tofauti — ndicho kisa
+ambacho hii ipo kwa ajili yake.
+
+Rundo hukaa kwenye kitu hicho cha programu, ambacho mchakato mzima
+hukishirikiana. Kwa hiyo maombi mawili yanayopishana hushiriki rundo moja, nayo
+vizuizi ambavyo havijawekwa ndani kwa ndani kwa ukamilifu *kwa wakati*
+hukabidhiana lugha isiyo sahihi:
+
+```python
+async def greet(code, delay):
+    with _.using(code):
+        await asyncio.sleep(delay)
+        return _("Hello $name")
+
+
+async def main():
+    return await asyncio.gather(greet("fr", 0.01), greet("ja", 0.02))
+```
+
+```pycon
+>>> asyncio.run(main())  # "fr" entered first and left first, so it read "ja" off the top
+['こんにちは Ada', 'Bonjour Ada']
+```
+
+Maktaba hii huhifadhi uwezo uleule — ufungaji huwekwa ndani kwa ndani na
+kufunguka kwa namna ileile — ndani ya `ContextVar` badala ya rundo
+linaloshirikiwa, hivyo mpishano wa hapo juu hutatuliwa kwa kila kazi.
+Vilinganishi vyake viko kwenye [Lugha kadhaa kwa wakati
+mmoja](guide.md#several-languages-at-once). Kile ambacho haitoi ni utafutaji wa
+katalogi kutokana na msimbo wa lugha: wewe hupitisha kitu cha translations,
+ambacho kwa hali ya kawaida ni wito mmoja wa `gettext.translation()`, nayo
+maktaba sanifu huhifadhi katalogi iliyochanganuliwa.
+
 ## t-strings { #t-strings }
 
 ```python
@@ -178,6 +218,7 @@ kifurushi hiki [hukitoa kwa Babel](extraction.md).
 | Ni bendera gani ya PO ambayo Babel huidokeza, ili zana zilizopo zithibitishe? | `python-format` | `python-brace-format` | hakuna | `python-brace-format` |
 | Je, hutumia katalogi za kawaida za PO/MO? | ndiyo | ndiyo | ndiyo | ndiyo |
 | Je, huhitaji kitoaji maalum cha chanzo? | hapana | hapana | hapana | ndiyo, kwa sasa |
+| "Lugha ya sasa" hukaa wapi? | popote programu inapoiweka | popote programu inapoiweka | rundo la misimbo ya lugha kwenye kitu cha programu kinachoshirikiwa | `ContextVar`, kwa kila kazi au ombi |
 
 Kuhusu ukaguzi wa wakati wa kuonyesha: jumbe za umoja hukaguliwa kwa
 ulinganifu kamili wa vishika nafasi. Jumbe za wingi hukaguliwa pia, dhidi ya
@@ -227,3 +268,5 @@ vyanzo katika [Usuli](background.md).
   [documented behavior]: https://flufli18n.readthedocs.io/en/stable/using.html#substitutions-and-placeholders
   [custom Template]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_substitute.py
   [translator]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_translator.py
+  [application object]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_application.py
+  [strategy]: https://flufli18n.readthedocs.io/en/stable/strategies.html

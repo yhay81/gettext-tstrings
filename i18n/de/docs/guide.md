@@ -115,6 +115,55 @@ auch für einen String, der nicht an seiner Aufrufstelle gerendert wird.
 Pluralformen hängen von einer Zahl zur Laufzeit ab und sollten sofort mit
 `ngettext` gerendert werden.
 
+## Mehrere Sprachen gleichzeitig { #several-languages-at-once }
+
+Eine Anfrage braucht oft mehr als eine Sprache: eine Seite, die für die lesende
+Person gerendert wird und zugleich eine Benachrichtigung an ein Konto einreiht,
+das auf eine andere eingestellt ist, oder eine Zusammenfassung, die jede
+beteiligte Person in ihrer eigenen zitiert. Bindungen verschachteln sich, und
+das Verlassen des inneren Blocks stellt den äußeren wieder her.
+
+```python
+with use_translations(reader):
+    page = tr(t"Hello {name}")
+    with use_translations(recipient):
+        notice = tr(t"Hello {name}")  # the recipient's language
+    footer = tr(t"Hello {name}")  # the reader's again
+```
+
+Über eine Liste von Empfängern hinweg erledigen verzögerte Strings die Arbeit:
+Die Nachricht wird einmal geschrieben, beim Import, und einmal pro Sprache
+gerendert.
+
+```python
+SUBJECT = lazy_gettext(t"Your order shipped")
+
+for user in users:
+    with use_translations(load_translations(user.locale)):
+        send(user.email, str(SUBJECT))
+```
+
+Die Bindung ist eine `ContextVar` und kein Stapel auf einem geteilten Objekt,
+sodass sich überlappende Anfragen einander nicht die Sprache abnehmen können —
+auch dann nicht, wenn sie ihre Blöcke in derselben Reihenfolge *verlassen*, in
+der sie sie betreten haben, also genau in der Verschränkung, die ein
+Kellerstapel falsch macht. Einen Katalog pro Sprache zu laden ist günstig:
+`gettext.translation()` parst jede `.mo` einmal und gibt Kopien heraus, die
+sich den geparsten Katalog teilen.
+
+!!! warning "Ein Worker-Thread startet ungebunden"
+
+    Ein einfacher `threading.Thread` oder `ThreadPoolExecutor.submit` beginnt
+    mit einem frischen Kontext und erbt die Bindung nicht — der Aufruf fällt
+    auf den prozessglobalen gettext-Katalog zurück. Nimm den Kontext
+    ausdrücklich mit:
+
+    ```python
+    pool.submit(contextvars.copy_context().run, render)
+    ```
+
+    `asyncio.to_thread` erledigt das bereits für dich.
+
 ## Wenn ein Katalog fehlerhaft ist { #what-happens-when-a-catalog-is-wrong }
 
 Wenn die Platzhalter einer Übersetzung nicht zur Quelle passen, rendert der

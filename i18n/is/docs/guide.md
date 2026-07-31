@@ -114,6 +114,52 @@ gilda líka um streng sem er ekki birtur á kallstað sínum.
 Fleirtölumyndir velta á fjölda sem er þekktur á keyrslutíma, svo birtu þær
 strax með `ngettext` þar sem fjöldinn er kunnur.
 
+## Mörg tungumál í einu { #several-languages-at-once }
+
+Ein beiðni þarf oft fleiri en eitt tungumál: síða sem er birt fyrir lesandann
+og setur um leið tilkynningu í röð til reiknings sem er stilltur á annað, eða
+samantekt sem vitnar í hvern þátttakanda á hans eigin. Bindingar hreiðrast, og
+þegar innri blokkinni sleppir tekur sú ytri aftur við.
+
+```python
+with use_translations(reader):
+    page = tr(t"Hello {name}")
+    with use_translations(recipient):
+        notice = tr(t"Hello {name}")  # the recipient's language
+    footer = tr(t"Hello {name}")  # the reader's again
+```
+
+Þegar listi af viðtakendum á í hlut vinna frestaðir strengir verkið:
+skilaboðin eru skrifuð einu sinni, við innflutning, og birt einu sinni fyrir
+hvert tungumál.
+
+```python
+SUBJECT = lazy_gettext(t"Your order shipped")
+
+for user in users:
+    with use_translations(load_translations(user.locale)):
+        send(user.email, str(SUBJECT))
+```
+
+Bindingin er `ContextVar`, ekki stafli á sameiginlegum hlut, svo að beiðnir
+sem skarast geta ekki gripið tungumál hver annarrar — þar með talið tilvikið
+þar sem þær *yfirgefa* blokkirnar sínar í sömu röð og þær gengu inn í þær, en
+það er einmitt fléttan sem stafli af þessu tagi ræður ekki við. Það er ódýrt
+að hlaða þýðingaskrá fyrir hvert tungumál: `gettext.translation()` þáttar
+hverja `.mo`-skrá einu sinni og réttir út afrit sem deila þáttuðu skránni.
+
+!!! warning "Vinnuþráður byrjar óbundinn"
+
+    Ber `threading.Thread`, eða `ThreadPoolExecutor.submit`, byrjar með nýju
+    samhengi og erfir ekki bindinguna — kallið fellur þá aftur í altæku
+    gettext-þýðingaskrá ferlisins. Berðu samhengið yfir með skýrum hætti:
+
+    ```python
+    pool.submit(contextvars.copy_context().run, render)
+    ```
+
+    `asyncio.to_thread` gerir þetta þegar fyrir þig.
+
 ## Hvað gerist þegar þýðingaskrá er röng { #what-happens-when-a-catalog-is-wrong }
 
 Ef staðgenglar þýðingar stemma ekki við frumtextann — reitur sem vantar, er

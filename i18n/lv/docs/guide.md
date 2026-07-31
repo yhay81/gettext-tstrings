@@ -113,6 +113,51 @@ attiecināt uz virkni, kas netiek renderēta savā izsaukuma vietā.
 Daudzskaitļa formas ir atkarīgas no izpildlaika skaita, tāpēc renderējiet tās
 nekavējoties ar `ngettext` tur, kur skaits ir zināms.
 
+## Vairākas valodas vienlaikus { #several-languages-at-once }
+
+Vienam pieprasījumam bieži vajag vairāk nekā vienu valodu: lapu, kas renderēta
+lasītājam un kas turklāt ierindo paziņojumu kontam, kuram iestatīta cita, vai
+kopsavilkumu, kas katru dalībnieku citē viņa paša valodā. Piesaistes iegulst
+viena otrā, un iekšējā bloka atstāšana atjauno ārējo.
+
+```python
+with use_translations(reader):
+    page = tr(t"Hello {name}")
+    with use_translations(recipient):
+        notice = tr(t"Hello {name}")  # the recipient's language
+    footer = tr(t"Hello {name}")  # the reader's again
+```
+
+Ejot cauri adresātu sarakstam, darbu paveic atliktās virknes: ziņojums ir
+uzrakstīts vienreiz, importēšanas laikā, un renderējas vienreiz katrā valodā.
+
+```python
+SUBJECT = lazy_gettext(t"Your order shipped")
+
+for user in users:
+    with use_translations(load_translations(user.locale)):
+        send(user.email, str(SUBJECT))
+```
+
+Piesaiste ir `ContextVar`, nevis steks, kas turēts uz koplietota objekta, tāpēc
+pieprasījumi, kas pārklājas, nevar pārņemt cits cita valodu — arī tajā
+gadījumā, kad tie savus blokus *atstāj* tādā secībā, kādā tajos iegāja, un
+tieši šo pārklāšanos steks izdara nepareizi. Ielādēt katalogu katrai valodai ir
+lēti: `gettext.translation()` parsē katru `.mo` vienreiz un izsniedz kopijas,
+kas dala parsēto katalogu.
+
+!!! warning "Darba pavediens sākas bez piesaistes"
+
+    Kails `threading.Thread` vai `ThreadPoolExecutor.submit` sākas ar svaigu
+    kontekstu un piesaisti nemanto — izsaukums atkāpjas uz procesa globālo
+    gettext katalogu. Pārnesiet kontekstu tieši:
+
+    ```python
+    pool.submit(contextvars.copy_context().run, render)
+    ```
+
+    `asyncio.to_thread` to jūsu vietā jau dara.
+
 ## Kas notiek, kad katalogs ir kļūdains { #what-happens-when-a-catalog-is-wrong }
 
 Ja tulkojuma vietturi neatbilst avotam — trūkstošs, nezināms vai

@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased
+
+- Document translating into several languages within one request, which the
+  binding already supported and nothing said so. `flufl.i18n` has made a
+  feature of this for years; its stack lives on an application object the whole
+  process shares, so two overlapping requests hand each other the wrong
+  language when they leave their blocks in the order they entered them. The
+  binding here is a `ContextVar`, so that interleaving resolves per task —
+  *Guide* now shows the nesting and the per-recipient loop, *Why t-strings*
+  credits the capability and records the difference, and three tests pin it,
+  including the one hand-off that surprises people: a bare worker thread starts
+  from an unbound context.
+
 ## 0.1.0a7 - 2026-07-31
 
 - `lazy_gettext` and `lazy_pgettext` accept `strict`, so a deferred string can

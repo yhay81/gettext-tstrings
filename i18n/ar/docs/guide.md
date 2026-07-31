@@ -104,6 +104,49 @@ SAVE = lazy_gettext(t"Save changes", strict=True)
 
 تعتمد صيغ الجمع على العدد وقت التشغيل؛ اعرضها فوراً عبر `ngettext`.
 
+## عدة لغات في آن واحد { #several-languages-at-once }
+
+كثيراً ما يحتاج الطلب الواحد إلى أكثر من لغة: صفحة تُعرض للقارئ وتضع في الوقت
+نفسه إشعاراً في الطابور لحساب مضبوط على لغة أخرى، أو ملخص يقتبس كل مشارك بلغته.
+تتداخل الروابط، والخروج من الكتلة الداخلية يعيد الربط الخارجي.
+
+```python
+with use_translations(reader):
+    page = tr(t"Hello {name}")
+    with use_translations(recipient):
+        notice = tr(t"Hello {name}")  # the recipient's language
+    footer = tr(t"Hello {name}")  # the reader's again
+```
+
+ومع قائمة من المستلمين تقوم السلاسل المؤجلة بالمهمة: تُكتب الرسالة مرة واحدة
+عند الاستيراد، وتُعرض مرة لكل لغة.
+
+```python
+SUBJECT = lazy_gettext(t"Your order shipped")
+
+for user in users:
+    with use_translations(load_translations(user.locale)):
+        send(user.email, str(SUBJECT))
+```
+
+الربط `ContextVar`، لا مكدس محفوظ على كائن مشترك، فلا تستطيع الطلبات المتداخلة
+أن تلتقط لغة بعضها بعضاً — بما في ذلك الحالة التي *تغادر* فيها كتلها بالترتيب
+نفسه الذي دخلتها به، وهو التشابك الذي يخطئ فيه المكدس. وتحميل كتالوج لكل لغة
+رخيص: تحلل `gettext.translation()` كل ملف `.mo` مرة واحدة وتوزع نسخاً تتشارك
+الكتالوج المحلَّل.
+
+!!! warning "خيط العامل يبدأ بلا ربط"
+
+    يبدأ `threading.Thread` المجرد، أو `ThreadPoolExecutor.submit`، بسياق جديد
+    ولا يرث الربط — فيتراجع الاستدعاء إلى كتالوج gettext العام للعملية. انقل
+    السياق صراحةً:
+
+    ```python
+    pool.submit(contextvars.copy_context().run, render)
+    ```
+
+    أما `asyncio.to_thread` فيفعل ذلك عنك بالفعل.
+
 ## عندما يكون الكتالوج خاطئاً { #what-happens-when-a-catalog-is-wrong }
 
 إذا لم تطابق العناصر النائبة في الترجمة المصدر، يعرض الوضع الافتراضي نص

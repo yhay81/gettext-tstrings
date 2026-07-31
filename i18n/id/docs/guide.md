@@ -116,6 +116,54 @@ berlaku untuk string yang tidak dirender di tempat pemanggilannya.
 Bentuk jamak bergantung pada hitungan saat runtime, jadi render itu secara
 langsung dengan `ngettext` di tempat hitungannya diketahui.
 
+## Beberapa bahasa sekaligus { #several-languages-at-once }
+
+Satu permintaan kerap membutuhkan lebih dari satu bahasa: sebuah halaman yang
+dirender untuk pembacanya sekaligus mengantrekan notifikasi ke akun yang
+disetel ke bahasa lain, atau sebuah ringkasan yang mengutip tiap peserta dalam
+bahasanya masing-masing. Ikatan bersarang, dan meninggalkan blok dalam
+memulihkan blok luarnya.
+
+```python
+with use_translations(reader):
+    page = tr(t"Hello {name}")
+    with use_translations(recipient):
+        notice = tr(t"Hello {name}")  # the recipient's language
+    footer = tr(t"Hello {name}")  # the reader's again
+```
+
+Untuk sebuah daftar penerima, string tertunda yang mengerjakannya: pesannya
+ditulis sekali, saat impor, dan dirender sekali per bahasa.
+
+```python
+SUBJECT = lazy_gettext(t"Your order shipped")
+
+for user in users:
+    with use_translations(load_translations(user.locale)):
+        send(user.email, str(SUBJECT))
+```
+
+Ikatannya adalah sebuah `ContextVar`, bukan tumpukan yang dipegang sebuah objek
+bersama, sehingga permintaan yang tumpang-tindih tidak bisa mengambil bahasa
+satu sama lain — termasuk kasus ketika mereka *meninggalkan* bloknya dengan
+urutan yang sama seperti saat memasukinya, yaitu jalinan yang disalahpahami
+sebuah tumpukan pushdown. Memuat sebuah katalog per bahasa itu murah:
+`gettext.translation()` mengurai tiap `.mo` sekali dan membagikan salinan yang
+berbagi katalog terurai itu.
+
+!!! warning "Sebuah thread pekerja bermula tanpa ikatan"
+
+    Sebuah `threading.Thread` telanjang, atau `ThreadPoolExecutor.submit`,
+    bermula dengan konteks yang segar dan tidak mewarisi ikatannya —
+    panggilannya jatuh kembali ke katalog gettext global proses. Bawa
+    konteksnya secara eksplisit:
+
+    ```python
+    pool.submit(contextvars.copy_context().run, render)
+    ```
+
+    `asyncio.to_thread` sudah melakukan ini untuk Anda.
+
 ## Apa yang terjadi ketika sebuah katalog salah { #what-happens-when-a-catalog-is-wrong }
 
 Jika placeholder sebuah terjemahan tidak cocok dengan sumbernya — sebuah field

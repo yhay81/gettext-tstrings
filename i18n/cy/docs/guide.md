@@ -116,6 +116,52 @@ fod yn berthnasol i linyn nad yw'n cael ei rendro wrth ei safle galw.
 Mae ffurfiau lluosog yn dibynnu ar gyfrif adeg rhedeg, felly rendrwch y rheini'n
 awchus gydag `ngettext` lle gwyddys y cyfrif.
 
+## Sawl iaith ar unwaith { #several-languages-at-once }
+
+Yn aml mae angen mwy nag un iaith ar un cais: tudalen wedi'i rendro i'r
+darllenydd sydd hefyd yn ciwio hysbysiad i gyfrif a osodwyd i un arall, neu
+grynodeb sy'n dyfynnu pob cyfranogwr yn ei iaith ei hun. Mae rhwymiadau'n
+nythu, ac mae gadael y bloc mewnol yn adfer yr un allanol.
+
+```python
+with use_translations(reader):
+    page = tr(t"Hello {name}")
+    with use_translations(recipient):
+        notice = tr(t"Hello {name}")  # the recipient's language
+    footer = tr(t"Hello {name}")  # the reader's again
+```
+
+Dros restr o dderbynwyr, llinynnau gohiriedig sy'n gwneud y gwaith: ysgrifennir
+y neges unwaith, adeg mewnforio, ac mae'n rendro unwaith fesul iaith.
+
+```python
+SUBJECT = lazy_gettext(t"Your order shipped")
+
+for user in users:
+    with use_translations(load_translations(user.locale)):
+        send(user.email, str(SUBJECT))
+```
+
+`ContextVar` yw'r rhwymiad, nid pentwr a ddelir ar wrthrych a rennir, felly ni
+all ceisiadau sy'n gorgyffwrdd godi iaith ei gilydd — gan gynnwys yr achos lle
+maent yn *gadael* eu blociau yn y drefn y daethant i mewn iddynt, sef y
+cydblethu y mae pentwr gwthio i lawr yn ei gael yn anghywir. Mae llwytho
+catalog fesul iaith yn rhad: mae `gettext.translation()` yn parsio pob `.mo`
+unwaith ac yn dosbarthu copïau sy'n rhannu'r catalog wedi'i barsio.
+
+!!! warning "Mae edefyn gweithiwr yn cychwyn heb ei rwymo"
+
+    Mae `threading.Thread` noeth, neu `ThreadPoolExecutor.submit`, yn cychwyn â
+    chyd-destun ffres ac nid yw'n etifeddu'r rhwymiad — mae'r alwad yn cwympo'n
+    ôl i gatalog gettext global y broses. Cariwch y cyd-destun drosodd yn
+    benodol:
+
+    ```python
+    pool.submit(contextvars.copy_context().run, render)
+    ```
+
+    Mae `asyncio.to_thread` eisoes yn gwneud hyn drosoch.
+
 ## Beth sy'n digwydd pan fo catalog yn anghywir { #what-happens-when-a-catalog-is-wrong }
 
 Os nad yw dalwyr lle cyfieithiad yn cyfateb i'r ffynhonnell — maes coll,

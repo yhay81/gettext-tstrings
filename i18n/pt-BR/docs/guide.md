@@ -110,6 +110,52 @@ renderizada no ponto em que é chamada.
 Plurais dependem do número em tempo de execução; renderize-os imediatamente com
 `ngettext`.
 
+## Vários idiomas ao mesmo tempo { #several-languages-at-once }
+
+Uma mesma requisição muitas vezes precisa de mais de um idioma: uma página
+renderizada para quem lê que também enfileira uma notificação para uma conta
+configurada em outro, ou um resumo que cita cada participante no idioma dele.
+Os vínculos se aninham, e sair do bloco interno restaura o externo.
+
+```python
+with use_translations(reader):
+    page = tr(t"Hello {name}")
+    with use_translations(recipient):
+        notice = tr(t"Hello {name}")  # the recipient's language
+    footer = tr(t"Hello {name}")  # the reader's again
+```
+
+Ao percorrer uma lista de destinatários, as strings preguiçosas fazem o
+trabalho: a mensagem é escrita uma única vez, no import, e renderizada uma vez
+por idioma.
+
+```python
+SUBJECT = lazy_gettext(t"Your order shipped")
+
+for user in users:
+    with use_translations(load_translations(user.locale)):
+        send(user.email, str(SUBJECT))
+```
+
+O vínculo é um `ContextVar`, e não uma pilha mantida em um objeto
+compartilhado, de modo que requisições sobrepostas não conseguem pegar o idioma
+umas das outras — inclusive no caso em que elas *saem* de seus blocos na mesma
+ordem em que entraram, que é o intercalamento que uma pilha erra. Carregar um
+catálogo por idioma é barato: `gettext.translation()` analisa cada `.mo` uma vez
+e entrega cópias que compartilham o catálogo já analisado.
+
+!!! warning "Uma thread de trabalho começa sem vínculo"
+
+    Uma `threading.Thread` pura, ou `ThreadPoolExecutor.submit`, começa com um
+    contexto novo e não herda o vínculo — a chamada recai no catálogo gettext
+    global do processo. Leve o contexto adiante explicitamente:
+
+    ```python
+    pool.submit(contextvars.copy_context().run, render)
+    ```
+
+    `asyncio.to_thread` já faz isso por você.
+
 ## Quando o catálogo está errado { #what-happens-when-a-catalog-is-wrong }
 
 Se os marcadores da tradução não correspondem à origem, o comportamento padrão

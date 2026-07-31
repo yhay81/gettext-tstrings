@@ -115,6 +115,54 @@ anche a una stringa che non viene resa nel punto in cui è chiamata.
 Le forme plurali dipendono da un conteggio a runtime, quindi rendile subito
 con `ngettext` dove il conteggio è noto.
 
+## Più lingue insieme { #several-languages-at-once }
+
+Una sola richiesta ha spesso bisogno di più di una lingua: una pagina resa per
+chi legge che accoda anche una notifica a un account impostato su un'altra, o
+un digest che cita ogni partecipante nella propria. I binding si annidano, e
+uscire dal blocco interno ripristina quello esterno.
+
+```python
+with use_translations(reader):
+    page = tr(t"Hello {name}")
+    with use_translations(recipient):
+        notice = tr(t"Hello {name}")  # the recipient's language
+    footer = tr(t"Hello {name}")  # the reader's again
+```
+
+Su una lista di destinatari sono le stringhe differite a fare il lavoro: il
+messaggio si scrive una volta sola, all'import, e viene reso una volta per
+lingua.
+
+```python
+SUBJECT = lazy_gettext(t"Your order shipped")
+
+for user in users:
+    with use_translations(load_translations(user.locale)):
+        send(user.email, str(SUBJECT))
+```
+
+Il binding è una `ContextVar`, non uno stack tenuto su un oggetto condiviso,
+quindi richieste che si sovrappongono non possono prendere l'una la lingua
+dell'altra — compreso il caso in cui *escano* dai loro blocchi nello stesso
+ordine in cui vi sono entrate, che è l'intreccio sbagliato da uno stack a
+pila. Caricare un catalogo per lingua costa poco: `gettext.translation()`
+analizza ogni `.mo` una sola volta e restituisce copie che condividono il
+catalogo già analizzato.
+
+!!! warning "Un thread di lavoro parte non legato"
+
+    Un semplice `threading.Thread`, o `ThreadPoolExecutor.submit`, comincia con
+    un contesto nuovo e non eredita il binding — la chiamata ripiega sul
+    catalogo gettext globale del processo. Portati dietro il contesto in modo
+    esplicito:
+
+    ```python
+    pool.submit(contextvars.copy_context().run, render)
+    ```
+
+    `asyncio.to_thread` lo fa già per te.
+
 ## Che cosa succede quando un catalogo è sbagliato { #what-happens-when-a-catalog-is-wrong }
 
 Se i segnaposto di una traduzione non corrispondono alla sorgente — un campo

@@ -117,6 +117,53 @@ meg.
 A többesszám-alakok futásidejű darabszámtól függnek, ezért azokat mohón
 rendereld az `ngettext` segítségével, ott, ahol a darabszám ismert.
 
+## Több nyelv egyszerre { #several-languages-at-once }
+
+Egy kérésnek gyakran több nyelvre is szüksége van: egy oldal, amely az
+olvasónak renderelődik, miközben értesítést tesz sorba egy másik nyelvre
+állított fiókhoz, vagy egy összefoglaló, amely minden résztvevőt a saját
+nyelvén idéz. A kötések egymásba ágyazódnak, és a belső blokkból kilépve
+visszaáll a külső.
+
+```python
+with use_translations(reader):
+    page = tr(t"Hello {name}")
+    with use_translations(recipient):
+        notice = tr(t"Hello {name}")  # the recipient's language
+    footer = tr(t"Hello {name}")  # the reader's again
+```
+
+Címzettek listáján a késleltetett szövegek végzik a munkát: az üzenetet egyszer
+írod meg, importáláskor, és nyelvenként egyszer renderelődik.
+
+```python
+SUBJECT = lazy_gettext(t"Your order shipped")
+
+for user in users:
+    with use_translations(load_translations(user.locale)):
+        send(user.email, str(SUBJECT))
+```
+
+A kötés `ContextVar`, nem közös objektumon tartott verem, így az egymást átfedő
+kérések nem vehetik át egymás nyelvét — még abban az esetben sem, amikor abban
+a sorrendben *lépnek ki* a blokkjaikból, ahogy beléptek; épp ezt az
+átlapolódást rontja el a verem. Nyelvenként betölteni egy katalógust olcsó: a
+`gettext.translation()` minden `.mo` fájlt egyszer olvas be, és olyan
+másolatokat ad ki, amelyek osztoznak a beolvasott katalóguson.
+
+!!! warning "A munkaszál kötetlenül indul"
+
+    Egy puszta `threading.Thread` vagy a `ThreadPoolExecutor.submit` friss
+    kontextussal indul, és nem örökli a kötést — a hívás a folyamatszintű
+    globális gettext-katalógusra esik vissza. Vidd át a kontextust explicit
+    módon:
+
+    ```python
+    pool.submit(contextvars.copy_context().run, render)
+    ```
+
+    Az `asyncio.to_thread` ezt már megteszi helyetted.
+
 ## Mi történik, ha egy katalógus hibás { #what-happens-when-a-catalog-is-wrong }
 
 Ha egy fordítás helyőrzői nem egyeznek a forráséival — hiányzó, ismeretlen

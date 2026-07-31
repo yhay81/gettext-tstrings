@@ -117,6 +117,43 @@ naredi klicateljev okvir za del imenskega prostora zamenjav, ki ga vidi
 katalog. Spodnja primerjava opisuje `flufl.i18n` 6.0.0, ne pa vsake možne rabe
 `string.Template`.
 
+Odgovarja tudi na vprašanje, ki ga druga dva sloga oblikovanja v celoti
+prepustita aplikaciji: *kateri* jezik je trenutno dejaven in kako ga zamenjati.
+[Aplikacijski objekt][application object] hrani sklad jezikov, `_.push(code)` in
+`_.pop()` ga premikata, `with _.using(code):` se gnezdi, [strategija][strategy]
+pa za jezikovno oznako poišče katalog, tako da aplikaciji nikoli ni treba sami
+ravnati s katalognimi objekti. Prav strežnik, ki mora med eno samo enoto dela
+ustvariti besedilo v več kot enem jeziku — stran za bralca, obvestilo za nekoga,
+čigar račun je nastavljen drugače —, je primer, zaradi katerega vse to obstaja.
+
+Sklad živi na tem aplikacijskem objektu, ki si ga deli celoten proces. Dve
+prekrivajoči se zahtevi si zato delita en sam sklad, bloki, ki niso strogo
+gnezdeni *v času*, pa drug drugemu izročijo napačen jezik:
+
+```python
+async def greet(code, delay):
+    with _.using(code):
+        await asyncio.sleep(delay)
+        return _("Hello $name")
+
+
+async def main():
+    return await asyncio.gather(greet("fr", 0.01), greet("ja", 0.02))
+```
+
+```pycon
+>>> asyncio.run(main())  # "fr" entered first and left first, so it read "ja" off the top
+['こんにちは Ada', 'Bonjour Ada']
+```
+
+Ta knjižnica ohranja isto zmožnost — vezave se gnezdijo in odvijajo enako —, le
+da jo hrani v `ContextVar` namesto v deljenem skladu, zato se zgornje
+prepletanje razreši za vsako opravilo posebej. Ustreznice so na strani
+[Več jezikov hkrati](guide.md#several-languages-at-once). Česar ne ponuja, je
+iskanje kataloga po jezikovni oznaki: izročite prevodni objekt, ki je v
+običajnem primeru en sam klic `gettext.translation()`, razčlenjeni katalog pa
+predpomni standardna knjižnica.
+
 ## t-nizi { #t-strings }
 
 ```python
@@ -169,6 +206,7 @@ ga ta paket [ponuja za Babel](extraction.md).
 | Katero zastavico PO izpelje Babel, da jo obstoječa orodja preverijo? | `python-format` | `python-brace-format` | nobene | `python-brace-format` |
 | Uporablja običajne kataloge PO/MO? | da | da | da | da |
 | Potrebuje lasten ekstraktor izvorne kode? | ne | ne | ne | da, zaenkrat |
+| Kje živi »trenutni jezik«? | kamor ga postavi aplikacija | kamor ga postavi aplikacija | v skladu jezikovnih oznak na deljenem aplikacijskem objektu | v `ContextVar`, za vsako opravilo ali zahtevo posebej |
 
 O preverjanju ob izrisu: pri ednini se zahteva natančno ujemanje ograd.
 Preverjajo se tudi množinska sporočila, in sicer po
@@ -217,3 +255,5 @@ povedano v [Ozadju](background.md).
   [dokumentirano vedenje]: https://flufli18n.readthedocs.io/en/stable/using.html#substitutions-and-placeholders
   [lastni Template]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_substitute.py
   [prevajalnik]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_translator.py
+  [application object]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_application.py
+  [strategy]: https://flufli18n.readthedocs.io/en/stable/strategies.html

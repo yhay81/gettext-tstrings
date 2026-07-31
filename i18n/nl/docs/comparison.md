@@ -128,6 +128,45 @@ tegelijk het frame van de aanroeper deel van de substitutienamespace van de
 catalogus. De vergelijking hieronder beschrijft `flufl.i18n` 6.0.0, niet elk
 mogelijk gebruik van `string.Template`.
 
+Het beantwoordt ook een vraag die de andere twee opmaakstijlen volledig aan de
+applicatie overlaten: *welke* taal nu actief is, en hoe je die wisselt. Een
+[applicatieobject][application object] houdt een stapel talen bij,
+`_.push(code)` en `_.pop()` verschuiven hem, `with _.using(code):` nest hem, en
+een [strategie][strategy] vindt de catalogus bij een taalcode, zodat de
+applicatie zelf nooit catalogusobjecten aanraakt. Het geval waarvoor dit
+bestaat is een server die binnen één werkeenheid tekst in meer dan één taal
+moet produceren — een pagina voor de lezer, een melding voor iemand wiens
+account anders is ingesteld.
+
+De stapel leeft op dat applicatieobject, dat het hele proces deelt. Twee
+overlappende requests delen daardoor één stapel, en blokken die niet strikt
+genest zijn *in de tijd* geven elkaar de verkeerde taal door:
+
+```python
+async def greet(code, delay):
+    with _.using(code):
+        await asyncio.sleep(delay)
+        return _("Hello $name")
+
+
+async def main():
+    return await asyncio.gather(greet("fr", 0.01), greet("ja", 0.02))
+```
+
+```pycon
+>>> asyncio.run(main())  # "fr" entered first and left first, so it read "ja" off the top
+['こんにちは Ada', 'Bonjour Ada']
+```
+
+Deze bibliotheek behoudt dezelfde mogelijkheid — bindings nesten en worden op
+dezelfde manier afgewikkeld — maar in een `ContextVar` in plaats van een
+gedeelde stapel, zodat de vervlechting hierboven per taak wordt opgelost. De
+equivalenten staan op
+[Meerdere talen tegelijk](guide.md#several-languages-at-once). Wat ze niet
+levert is de opzoeking van taalcode naar catalogus: jij geeft een vertaalobject
+door, wat in het gewone geval één aanroep van `gettext.translation()` is, en de
+standaardbibliotheek cachet de geparste catalogus.
+
 ## t-strings { #t-strings }
 
 ```python
@@ -183,6 +222,7 @@ degene die dit pakket [voor Babel levert](extraction.md).
 | Welke PO-vlag leidt Babel af, zodat bestaande tools kunnen valideren? | `python-format` | `python-brace-format` | geen | `python-brace-format` |
 | Gebruikt gewone PO/MO-catalogi? | ja | ja | ja | ja |
 | Vereist een eigen bron-extractor? | nee | nee | nee | ja, momenteel |
+| Waar leeft "de huidige taal"? | waar de applicatie hem ook neerzet | waar de applicatie hem ook neerzet | een stapel taalcodes op het gedeelde applicatieobject | een `ContextVar`, per taak of request |
 
 Over de controle tijdens het renderen: enkelvoudige berichten worden
 gecontroleerd op een exacte placeholder-overeenkomst. Meervoudsberichten
@@ -235,3 +275,5 @@ verteld op [Achtergrond](background.md).
   [documented behavior]: https://flufli18n.readthedocs.io/en/stable/using.html#substitutions-and-placeholders
   [custom Template]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_substitute.py
   [translator]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_translator.py
+  [application object]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_application.py
+  [strategy]: https://flufli18n.readthedocs.io/en/stable/strategies.html

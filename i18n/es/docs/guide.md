@@ -115,6 +115,51 @@ a una cadena que no se renderiza en su punto de llamada.
 Las formas plurales dependen de una cantidad en tiempo de ejecución, así que se
 renderizan inmediatamente con `ngettext` donde se conoce esa cantidad.
 
+## Varios idiomas a la vez { #several-languages-at-once }
+
+Una misma petición necesita a menudo más de un idioma: una página renderizada
+para el lector que además encola una notificación a una cuenta configurada en
+otro, o un resumen que cita a cada participante en el suyo. Las vinculaciones se
+anidan, y al salir del bloque interior se restaura la del exterior.
+
+```python
+with use_translations(reader):
+    page = tr(t"Hello {name}")
+    with use_translations(recipient):
+        notice = tr(t"Hello {name}")  # the recipient's language
+    footer = tr(t"Hello {name}")  # the reader's again
+```
+
+Sobre una lista de destinatarios, el trabajo lo hacen las cadenas diferidas: el
+mensaje se escribe una sola vez, en el import, y se renderiza una vez por idioma.
+
+```python
+SUBJECT = lazy_gettext(t"Your order shipped")
+
+for user in users:
+    with use_translations(load_translations(user.locale)):
+        send(user.email, str(SUBJECT))
+```
+
+La vinculación es un `ContextVar`, no una pila guardada en un objeto compartido,
+así que las peticiones que se solapan no pueden tomar el idioma de otra
+—incluido el caso en que *salen* de sus bloques en el mismo orden en que
+entraron, que es el entrelazado que una pila LIFO resuelve mal—. Cargar un
+catálogo por idioma es barato: `gettext.translation()` analiza cada `.mo` una
+sola vez y entrega copias que comparten el catálogo ya analizado.
+
+!!! warning "Un hilo de trabajo empieza sin vinculación"
+
+    Un `threading.Thread` sin más, o `ThreadPoolExecutor.submit`, arranca con un
+    contexto nuevo y no hereda la vinculación: la llamada recurre al catálogo
+    gettext global del proceso. Traslada el contexto de forma explícita:
+
+    ```python
+    pool.submit(contextvars.copy_context().run, render)
+    ```
+
+    `asyncio.to_thread` ya lo hace por ti.
+
 ## Qué ocurre cuando un catálogo es incorrecto { #what-happens-when-a-catalog-is-wrong }
 
 Si los marcadores de una traducción no coinciden con el origen —un campo

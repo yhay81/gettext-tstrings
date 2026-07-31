@@ -101,6 +101,48 @@ SAVE = lazy_gettext(t"Save changes", strict=True)
 
 複數形式取決於執行階段的數量，所以請在已知數量之處以 `ngettext` 立即渲染。
 
+## 同時處理多種語言 { #several-languages-at-once }
+
+一個請求常常需要不只一種語言：為讀者渲染的頁面，同時又要為某個設定成另一種語言的
+帳號排入一則通知；或是一份摘要，要以每位參與者自己的語言引述他們。繫結可以巢狀，
+而離開內層區塊就會回復外層那一個。
+
+```python
+with use_translations(reader):
+    page = tr(t"Hello {name}")
+    with use_translations(recipient):
+        notice = tr(t"Hello {name}")  # the recipient's language
+    footer = tr(t"Hello {name}")  # the reader's again
+```
+
+面對一整份收件者清單，延遲字串就把事情做完了：訊息只在 import 時寫一次，然後每種
+語言各渲染一次。
+
+```python
+SUBJECT = lazy_gettext(t"Your order shipped")
+
+for user in users:
+    with use_translations(load_translations(user.locale)):
+        send(user.email, str(SUBJECT))
+```
+
+這個繫結是一個 `ContextVar`，而不是掛在共用物件上的一個堆疊，所以彼此重疊的請求
+不可能撿到對方的語言——包括它們以進入的順序*離開*各自區塊的那種情況，而那正是下推
+堆疊會弄錯的交錯。逐語言載入目錄的成本很低：`gettext.translation()` 只解析每個
+`.mo` 一次，並交出共用同一份已解析目錄的副本。
+
+!!! warning "工作執行緒起步時是未繫結的"
+
+    一個裸的 `threading.Thread`，或 `ThreadPoolExecutor.submit`，是以一個全新的
+    上下文開始的，並不會繼承那個繫結——這次呼叫會回退到行程層級的全域 gettext
+    目錄。請明確地把上下文帶過去：
+
+    ```python
+    pool.submit(contextvars.copy_context().run, render)
+    ```
+
+    `asyncio.to_thread` 已經替你做好這件事了。
+
 ## 目錄出錯時會發生什麼事 { #what-happens-when-a-catalog-is-wrong }
 
 如果翻譯的佔位符與原文不符——缺漏、未知，或被改寫格式的欄位躲過了驗證，來自手動

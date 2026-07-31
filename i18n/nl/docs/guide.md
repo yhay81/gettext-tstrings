@@ -116,6 +116,52 @@ laat gelden voor een string die niet op zijn aanroepplek gerenderd wordt.
 Meervoudsvormen hangen af van een runtime-telling, dus render die gretig met
 `ngettext` waar de telling bekend is.
 
+## Meerdere talen tegelijk { #several-languages-at-once }
+
+Eén request heeft vaak meer dan één taal nodig: een pagina die voor de lezer
+gerenderd wordt en tegelijk een melding in de wachtrij zet voor een account dat
+anders is ingesteld, of een samenvatting die elke deelnemer in zijn eigen taal
+citeert. Bindings nesten, en het verlaten van het binnenste blok herstelt het
+buitenste.
+
+```python
+with use_translations(reader):
+    page = tr(t"Hello {name}")
+    with use_translations(recipient):
+        notice = tr(t"Hello {name}")  # the recipient's language
+    footer = tr(t"Hello {name}")  # the reader's again
+```
+
+Over een lijst ontvangers doen uitgestelde strings het werk: het bericht wordt
+één keer geschreven, bij import, en rendert één keer per taal.
+
+```python
+SUBJECT = lazy_gettext(t"Your order shipped")
+
+for user in users:
+    with use_translations(load_translations(user.locale)):
+        send(user.email, str(SUBJECT))
+```
+
+De binding is een `ContextVar`, geen stapel die op een gedeeld object leeft,
+dus requests die elkaar overlappen kunnen elkaars taal niet oppikken — ook niet
+in het geval waarin ze hun blokken *verlaten* in de volgorde waarin ze die
+binnengingen, precies de vervlechting die een pushdown-stapel fout doet. Een
+catalogus per taal laden is goedkoop: `gettext.translation()` parset elke `.mo`
+één keer en geeft kopieën uit die de geparste catalogus delen.
+
+!!! warning "Een werkthread begint ongebonden"
+
+    Een kale `threading.Thread`, of `ThreadPoolExecutor.submit`, begint met een
+    verse context en erft de binding niet — de aanroep valt terug op de
+    proces-globale gettext-catalogus. Neem de context expliciet mee:
+
+    ```python
+    pool.submit(contextvars.copy_context().run, render)
+    ```
+
+    `asyncio.to_thread` doet dit al voor je.
+
 ## Wat er gebeurt als een catalogus fout is { #what-happens-when-a-catalog-is-wrong }
 
 Als de placeholders van een vertaling niet overeenkomen met de bron — een

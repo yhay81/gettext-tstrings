@@ -111,6 +111,51 @@ choice apply to a string that is not rendered at its call site.
 Plural forms depend on a runtime count, so render those eagerly with `ngettext`
 where the count is known.
 
+## Several languages at once
+
+One request often needs more than one language: a page rendered for the reader
+that also queues a notification to an account set to a different one, or a
+digest that quotes each participant in their own. Bindings nest, and leaving
+the inner block restores the outer one.
+
+```python
+with use_translations(reader):
+    page = tr(t"Hello {name}")
+    with use_translations(recipient):
+        notice = tr(t"Hello {name}")  # the recipient's language
+    footer = tr(t"Hello {name}")  # the reader's again
+```
+
+Over a list of recipients, deferred strings do the work: the message is written
+once, at import, and renders once per language.
+
+```python
+SUBJECT = lazy_gettext(t"Your order shipped")
+
+for user in users:
+    with use_translations(load_translations(user.locale)):
+        send(user.email, str(SUBJECT))
+```
+
+The binding is a `ContextVar`, not a stack held on a shared object, so requests
+that overlap cannot pick up each other's language — including the case where
+they *leave* their blocks in the order they entered them, which is the
+interleaving a pushdown stack gets wrong. Loading a catalog per language is
+cheap: `gettext.translation()` parses each `.mo` once and hands out copies that
+share the parsed catalog.
+
+!!! warning "A worker thread starts unbound"
+
+    A bare `threading.Thread`, or `ThreadPoolExecutor.submit`, begins with a
+    fresh context and does not inherit the binding — the call falls back to the
+    process-global gettext catalog. Carry the context over explicitly:
+
+    ```python
+    pool.submit(contextvars.copy_context().run, render)
+    ```
+
+    `asyncio.to_thread` already does this for you.
+
 ## What happens when a catalog is wrong
 
 If a translation's placeholders do not match the source — a missing, unknown, or
