@@ -132,8 +132,11 @@ msgid           'Total: {amount}'
 | جاپانی | 1 | `ローカライズ済みページを{n}件ビルドしました` |
 | ترکی | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` — دو بار، بالکل ایک جیسا: ترکی میں اسم عدد کے بعد واحد ہی رہتا ہے |
 | اطالوی | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` — اسم مفعول جنس اور عدد میں مطابقت کرتا ہے |
+| لاتویائی | 3 | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` — تیسری صورت **صرف صفر** کے لیے ہے |
 | روسی | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
 | پولش | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
+| سلووینیائی | 4 | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` — دوسری **تثنیہ** ہے، بالکل دو کے لیے |
+| آئرش | 5 | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` — ایک، دو، 3–6، 7–10، اور باقی سب؛ لفظ کا تنا بدلتا رہتا ہے مگر *leathanach* کا آغاز `l` سے ہوتا ہے، جس پر آئرش کی کوئی ابتدائی تبدیلی لکھی نہیں جاتی، چنانچہ کئی صورتیں آپس میں مل جاتی ہیں |
 | عربی | 6 | ان میں `تم إنشاء صفحة مترجمة واحدة ({n})` بالکل ایک کے لیے اور `تم إنشاء {n} صفحات مترجمة` چند کے لیے |
 
 ہر سطر اس ریپازٹری کے `i18n/*/LC_MESSAGES/site.po` میں ایک زندہ اندراج ہے،

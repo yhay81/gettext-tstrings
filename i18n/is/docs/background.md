@@ -1,130 +1,132 @@
 ---
-description: "Thirty years of gettext, two PEPs ten years apart, and the stdlib discussion that closed as not-planned: why this library exists, with links to the sources."
+description: "Þrjátíu ár af gettext, tveir PEP-ar með tíu ára millibili og umræðan í staðalsafninu sem lokaðist sem ekki-fyrirhuguð: hvers vegna þetta safn er til, með tenglum í heimildir."
 ---
 
-# Background
+# Bakgrunnur
 
-This library sits at the meeting point of two long stories — one about how
-software gets translated, one about how Python interpolates strings — that
-finally intersected in 2025 and then stalled at exactly the point where a
-small, careful convention was needed. This page tells both stories, with
-links to the sources, because the design decisions on this site are easier to
-judge when you can see the questions they answer.
+Þetta safn stendur þar sem tvær langar sögur mætast — önnur um það hvernig
+hugbúnaður er þýddur, hin um það hvernig Python skeytir gildum inn í strengi
+— sögur sem skárust loks árið 2025 og stöðvuðust svo einmitt á þeim punkti
+þar sem þörf var á lítilli, vandaðri venju. Þessi síða segir báðar sögurnar,
+með tenglum í heimildir, því hönnunarákvarðanirnar á þessum vef er auðveldara
+að meta þegar maður sér spurningarnar sem þær svara.
 
-## The gettext ecosystem { #the-gettext-ecosystem }
+## Vistkerfi gettext { #the-gettext-ecosystem }
 
-[GNU gettext] has been how free software gets translated since the mid-1990s:
-mark the strings in code, extract them into a template, give translators one
-catalog file per language, compile, load at runtime. Around that loop grew an
-entire ecosystem — PO editors, review workflows, and translation platforms
-that all speak the same file format — and Python has shipped a
-[`gettext` module][stdlib-gettext] in its standard library for more than two
-decades. The runtime half of translation was never the problem.
+[GNU gettext] hefur verið leiðin til að þýða frjálsan hugbúnað síðan um
+miðjan tíunda áratuginn: merktu strengina í kóðanum, dragðu þá út í sniðmát,
+gefðu þýðendum eina þýðingaskrá fyrir hvert tungumál, vistþýddu, lestu inn á
+keyrslutíma. Utan um þá hringrás óx heilt vistkerfi — PO-ritlar,
+yfirlestrarferli og þýðingavettvangar sem tala allir sama skráarsniðið — og
+Python hefur haft [`gettext`-eininguna][stdlib-gettext] í staðalsafni sínu í
+meira en tvo áratugi. Keyrslutímahelmingur þýðinganna var aldrei vandinn.
 
-The unsettled half was always *what the catalog string looks like*. A
-`%(name)s` message hands translators printf syntax that one deleted letter
-turns into a production crash; a `.format()` message hands the catalog
-attribute access on live objects. ([Why t-strings](comparison.md) walks
-through both, with the failures on display.) And f-strings — the syntax most
-Python code now prefers — cannot participate at all: by the time any library
-sees one, it is already a finished string. People try anyway, often enough
-that Babel's issue tracker collects the attempts
-([#594][babel-594], [#715][babel-715]); the failure is structural, not a
-missing feature.
+Óútkljáði helmingurinn var alltaf *hvernig strengurinn í þýðingaskránni
+lítur út*. Skilaboð með `%(name)s` rétta þýðendum printf-málskipan sem einn
+stafur sem eytt er breytir í hrun í rekstri; skilaboð með `.format()` rétta
+þýðingaskránni aðgang að eigindum lifandi hluta.
+([Hvers vegna t-strings](comparison.md) gengur gegnum hvort tveggja, með
+bilanirnar til sýnis.) Og f-strengir — málskipanin sem mestur Python-kóði
+kýs nú — geta alls ekki tekið þátt: um leið og nokkurt safn sér einn slíkan
+er hann þegar fullgerður strengur. Fólk reynir samt, nógu oft til þess að
+verkefnaskrá Babel safnar tilraununum ([#594][babel-594], [#715][babel-715]);
+bilunin er byggingarleg, ekki eiginleiki sem vantar.
 
-## Two PEPs, ten years apart { #two-peps-ten-years-apart }
+## Tveir PEP-ar með tíu ára millibili { #two-peps-ten-years-apart }
 
-In 2015, Alyssa Coghlan and Nick Humrich wrote [PEP 501], proposing
-interpolation templates whose stated first motivation was i18n — "providing a
-cleaner syntax for i18n translation", in the PEP's own words. The proposal
-was deferred, in part because discussion showed the i18n case carried
-significant extra considerations that simpler use cases did not.
+Árið 2015 skrifuðu Alyssa Coghlan og Nick Humrich [PEP 501], sem lagði til
+innskeytingarsniðmát og nefndi i18n sem sína fyrstu hvöt — "providing a
+cleaner syntax for i18n translation", með orðum PEP-sins sjálfs. Tillögunni
+var frestað, meðal annars af því að umræðan sýndi að i18n-tilvikið bar með
+sér umtalsverð aukaatriði sem einfaldari notkunartilvik báru ekki.
 
-A decade later, [PEP 750] — by Jim Baker, Guido van Rossum, Paul Everitt,
-Koudai Aono, Lysandros Nikolaou, and Dave Peck — revived the idea as
-t-strings, was [accepted in April 2025][sc-resolution], and shipped in
-[Python 3.14] in October 2025. PEP 501 was then withdrawn in its favour. One
-detail matters for this page: i18n is *not* among PEP 750's stated
-motivations. The PEP generalized the mechanism — a template type any library
-can consume — and left the translation question exactly where PEP 501 had
-parked it ten years earlier: open.
+Áratug síðar vakti [PEP 750] — eftir Jim Baker, Guido van Rossum, Paul
+Everitt, Koudai Aono, Lysandros Nikolaou og Dave Peck — hugmyndina aftur til
+lífsins sem t-strengi, var [samþykktur í apríl 2025][sc-resolution] og kom út
+í [Python 3.14] í október 2025. PEP 501 var þá dreginn til baka honum í vil.
+Eitt atriði skiptir máli fyrir þessa síðu: i18n er *ekki* meðal þeirra hvata
+sem PEP 750 nefnir. PEP-inn alhæfði vélbúnaðinn — sniðmátstegund sem hvaða
+safn sem er getur nýtt — og skildi þýðingarspurninguna eftir nákvæmlega þar
+sem PEP 501 hafði lagt hana tíu árum fyrr: opna.
 
-So as of Python 3.14, the language had precisely the data structure a message
-catalog needs, and no convention for using it as one.
+Þannig að frá og með Python 3.14 hafði málið nákvæmlega þá gagnabyggingu sem
+skilaboðaskrá þarf, og enga venju um að nota hana sem slíka.
 
-## The stdlib discussion { #the-stdlib-discussion }
+## Umræðan í staðalsafninu { #the-stdlib-discussion }
 
-Two months before 3.14 shipped, Adrian Mönnich (ThiefMaster, a maintainer of
-the Indico project) proposed closing that gap in the standard library itself:
-the thread [Support t-strings in gettext][discuss-thread] on
-discuss.python.org, opened in August 2025, came with a working
-[pull request][cpython-pr] adding t-string support to both `gettext` and
-`pygettext`.
+Tveimur mánuðum áður en 3.14 kom út lagði Adrian Mönnich (ThiefMaster, einn
+umsjónarmanna Indico-verkefnisins) til að fylla þetta gat í staðalsafninu
+sjálfu: þráðurinn [Support t-strings in gettext][discuss-thread] á
+discuss.python.org, opnaður í ágúst 2025, kom með virkri
+[breytingabeiðni][cpython-pr] sem bætti stuðningi við t-strengi í bæði
+`gettext` og `pygettext`.
 
-The thread is worth reading in full, because it surfaces every hard question
-this library later had to answer:
+Þráðurinn er þess virði að lesa í heild sinni, því hann dregur fram hverja þá
+erfiðu spurningu sem þetta safn þurfti síðar að svara:
 
-- **What may an interpolation be?** A simple name only, or attributes and
-  calls with a derived placeholder name? Every answer trades convenience
-  against msgid stability and catalog safety.
-- **What do plural forms require,** when the target language's plural system
-  differs from the source's?
-- **Is gettext even the right target?** Barry Warsaw — who had argued during
-  PEP 750's development that t-strings were not a good fit for i18n — pointed
-  to his [`flufl.i18n`][flufl-i18n] and its `$`-string style as the friendlier
-  tool; others argued for leaving gettext behind entirely in favour of newer
-  systems such as [Fluent].
-- **And the meta-question:** whatever the standard library ships, it can
-  essentially never change. A convention with this many open choices is a
-  risky thing to freeze on the first try.
+- **Hvað má innskeyting vera?** Aðeins einfalt nafn, eða eigindi og köll með
+  leiddu staðgengilsnafni? Sérhvert svar skiptir á þægindum og stöðugleika
+  msgid-a og öryggi þýðingaskrár.
+- **Hvers krefjast fleirtölumyndir,** þegar fleirtölukerfi markmálsins er
+  annað en frummálsins?
+- **Er gettext yfirleitt rétta skotmarkið?** Barry Warsaw — sem hafði haldið
+  því fram meðan PEP 750 var í smíðum að t-strengir hentuðu i18n illa —
+  benti á [`flufl.i18n`][flufl-i18n] sitt og `$`-strengjastílinn sem
+  vinsamlegra tólið; aðrir töluðu fyrir því að skilja gettext eftir
+  algjörlega og taka upp nýrri kerfi á borð við [Fluent].
+- **Og yfirspurningin:** hverju sem staðalsafnið sendir frá sér er nánast
+  aldrei hægt að breyta. Venja með svona mörgum opnum valkostum er áhættusamt
+  að festa í fyrstu atrennu.
 
-No consensus formed. The CPython issue was
-[closed as "not planned"][cpython-issue] and the pull request was closed
-unmerged in October 2025, days after 3.14's release. The capability existed
-in the language; the convention had no home.
+Engin samstaða myndaðist. CPython-málinu var
+[lokað sem „not planned“][cpython-issue] og breytingabeiðninni var lokað
+ósamrunninni í október 2025, fáeinum dögum eftir útgáfu 3.14. Getan var til í
+málinu; venjan átti sér ekkert heimili.
 
-## Why a package, first { #why-a-package-first }
+## Hvers vegna pakki, fyrst { #why-a-package-first }
 
-That is the gap this project chose to fill from outside the standard
-library, on a deliberate wager: a convention matures faster where it can
-version freely and earn adoption case by case, and the standard library —
-which must be right the first time — is where a convention should *end up*,
-not where it should be worked out.
+Þetta er gatið sem þetta verkefni kaus að fylla utan staðalsafnsins, á
+meðvituðu veðmáli: venja þroskast hraðar þar sem hún getur skipt um útgáfu
+frjálst og unnið sér traust eitt tilvik í einu, og staðalsafnið — sem verður
+að hafa rétt fyrir sér í fyrstu tilraun — er þar sem venja á að *enda*, ekki
+þar sem hún á að verða til.
 
-Concretely, every contested question in the thread has a written-down answer
-here, each on its own page:
+Nánar tiltekið á sérhver umdeild spurning í þræðinum skrifað svar hér, hvert
+á sinni síðu:
 
-- Interpolations are **simple names only**, so msgids stay stable and
-  meaningful — [the guide](guide.md#safety-and-scope) shows the rule,
-  [How it works](internals.md#from-template-to-msgid) the reasons.
-- **Formatting stays out of the catalog** entirely
-  ([Why t-strings](comparison.md)).
-- **Plurals** follow a union/intersection rule that lets a target language's
-  plural system differ from the source's ([spec §4](spec.md)).
-- A broken catalog **falls back instead of crashing**, keeping gettext's own
-  contract ([the guide](guide.md#what-happens-when-a-catalog-is-wrong)).
-- And the whole convention is a [versioned specification](spec.md) with a
-  machine-readable conformance suite — written so that another
-  implementation, including a future standard-library one, could adopt it
-  unchanged and interoperate.
+- Innskeytingar eru **eingöngu einföld nöfn**, svo að msgid haldist stöðug og
+  merkingarbær — [handbókin](guide.md#safety-and-scope) sýnir regluna,
+  [Hvernig þetta virkar](internals.md#from-template-to-msgid) ástæðurnar.
+- **Sniðið helst algjörlega utan þýðingaskrárinnar**
+  ([Hvers vegna t-strings](comparison.md)).
+- **Fleirtala** fylgir sammengis-/sniðmengisreglu sem leyfir fleirtölukerfi
+  markmálsins að vera annað en frummálsins ([forskrift §4](spec.md)).
+- Biluð þýðingaskrá **fellur til baka í stað þess að hrynja**, og heldur þar
+  með samningi gettext sjálfs
+  ([handbókin](guide.md#what-happens-when-a-catalog-is-wrong)).
+- Og öll venjan er [útgáfumerkt forskrift](spec.md) með vélleseinlegum
+  samræmisprófum — skrifuð þannig að önnur útfærsla, þar á meðal útfærsla í
+  staðalsafninu í framtíðinni, gæti tekið hana upp óbreytta og unnið með
+  henni.
 
-The discussion has not ended, and this project is a participant in it, not a
-verdict on it. If you have production gettext experience that bears on these
-choices, the [same thread][discuss-thread] and this repository's
-[Discussions][gh-discussions] are where it is argued.
+Umræðunni er ekki lokið, og þetta verkefni er þátttakandi í henni, ekki
+dómur um hana. Ef þú býrð að reynslu af gettext í rekstri sem varðar þessi
+val, þá eru [sami þráður][discuss-thread] og
+[Discussions][gh-discussions] þessarar geymslu staðirnir þar sem um það er
+deilt.
 
-## Timeline { #timeline }
+## Tímalína { #timeline }
 
-| When | What happened |
+| Hvenær | Hvað gerðist |
 | --- | --- |
-| mid-1990s | GNU gettext establishes the PO/POT/MO workflow that translators and platforms still speak. |
-| 2015 | [PEP 501] proposes interpolation templates, with i18n as its first motivation; deferred. |
-| 2016 | f-strings ship in Python 3.6 — interpolation gets its syntax, and translation cannot use it. |
-| Jul 2024 | [PEP 750] proposes t-strings. |
-| Apr 2025 | PEP 750 [accepted][sc-resolution]; PEP 501 withdrawn in its favour. |
-| Aug 2025 | The [Support t-strings in gettext][discuss-thread] thread opens, with a stdlib [pull request][cpython-pr]. |
-| Oct 2025 | [Python 3.14] ships t-strings; the stdlib issue closes as [not planned][cpython-issue]. |
-| 2026 | `gettext-tstrings` ships as an alpha, with [spec v1](spec.md) and its conformance suite. |
+| um miðjan 10. áratuginn | GNU gettext festir í sessi PO/POT/MO-hringrásina sem þýðendur og vettvangar tala enn. |
+| 2015 | [PEP 501] leggur til innskeytingarsniðmát, með i18n sem fyrstu hvöt; frestað. |
+| 2016 | f-strengir koma út í Python 3.6 — innskeyting fær sína málskipan, og þýðingar geta ekki notað hana. |
+| júl. 2024 | [PEP 750] leggur til t-strengi. |
+| apr. 2025 | PEP 750 [samþykktur][sc-resolution]; PEP 501 dreginn til baka honum í vil. |
+| ágú. 2025 | Þráðurinn [Support t-strings in gettext][discuss-thread] opnast, með [breytingabeiðni][cpython-pr] í staðalsafnið. |
+| okt. 2025 | [Python 3.14] kemur út með t-strengi; máli staðalsafnsins lokað sem [not planned][cpython-issue]. |
+| 2026 | `gettext-tstrings` kemur út sem alfa, með [forskrift v1](spec.md) og samræmisprófum sínum. |
 
   [GNU gettext]: https://www.gnu.org/software/gettext/
   [stdlib-gettext]: https://docs.python.org/3/library/gettext.html

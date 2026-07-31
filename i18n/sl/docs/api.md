@@ -50,8 +50,8 @@ Vezava je `ContextVar`, zato je vezana na kontekst in varna pri sočasnosti.
 
 | Ime | Namen |
 | --- | --- |
-| `lazy_gettext(template, /)` | Odloži prevod do prve rabe. |
-| `lazy_pgettext(context, template, /)` | Kontekstna oblika. |
+| `lazy_gettext(template, /, *, strict=False)` | Odloži prevod do prve rabe. |
+| `lazy_pgettext(context, template, /, *, strict=False)` | Kontekstna oblika. |
 | `LazyString` | Tisto, kar vrneta obe. Izriše se skozi `str()` in `format()`, je enak svojemu besedilu in namenoma ni zgoščljiv. |
 
 ## Nižja raven { #lower-level }

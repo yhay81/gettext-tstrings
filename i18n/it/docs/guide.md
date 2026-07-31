@@ -99,6 +99,19 @@ risulta uguale al suo testo reso nei confronti.
     cambierebbe a ogni cambio di lingua e corromperebbe in silenzio qualunque
     set o dict la contenga. Chiama prima `str()` se ti serve una chiave.
 
+`strict` si decide dove il messaggio viene scritto, non dove viene reso:
+
+```python
+SAVE = lazy_gettext(t"Save changes", strict=True)
+```
+
+Una stringa differita viene resa dovunque finisca per essere usata — dentro un
+template, un form, una riga di log — e quel punto raramente sa se si tratta di
+un'esecuzione di test o della produzione. Passare `strict=True` alla
+definizione è ciò che permette di applicare la stessa scelta
+[rumorosa in CI, tollerante in produzione](#what-happens-when-a-catalog-is-wrong)
+anche a una stringa che non viene resa nel punto in cui è chiamata.
+
 Le forme plurali dipendono da un conteggio a runtime, quindi rendile subito
 con `ngettext` dove il conteggio è noto.
 

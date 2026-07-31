@@ -51,8 +51,8 @@ concurrency.
 
 | Naam | Doel |
 | --- | --- |
-| `lazy_gettext(template, /)` | Stel een vertaling uit tot het eerste gebruik. |
-| `lazy_pgettext(context, template, /)` | De contextuele vorm. |
+| `lazy_gettext(template, /, *, strict=False)` | Stel een vertaling uit tot het eerste gebruik. |
+| `lazy_pgettext(context, template, /, *, strict=False)` | De contextuele vorm. |
 | `LazyString` | Wat beide teruggeven. Rendert via `str()` en `format()`, is gelijk aan zijn tekst, en is bewust unhashable. |
 
 ## Lager niveau { #lower-level }

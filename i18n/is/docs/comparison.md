@@ -1,46 +1,47 @@
 ---
-description: "The same translatable message written with %-format, .format(), flufl.i18n $-strings, and a t-string, including how each one binds values and handles a damaged catalog."
+description: "Sömu þýðanlegu skilaboðin rituð með %-sniði, .format(), $-strengjum flufl.i18n og t-streng, ásamt því hvernig hvert bindur gildi og bregst við skemmdri þýðingaskrá."
 ---
 
-# Why t-strings
+# Hvers vegna t-strings
 
-Four ways to put a value into a translatable message, compared on the same
-sentence. The short version:
+Fjórar leiðir til að koma gildi inn í þýðanleg skilaboð, bornar saman á sömu
+setningunni. Stutta útgáfan:
 
-- With **%-format**, a translator deleting one letter becomes a crash in
-  production.
-- With **str.format**, a translation can read attributes off the objects your
-  code passes in — including secrets.
-- With **$-strings** (flufl.i18n), values are pulled implicitly from the
-  calling function's variables, and dotted placeholders reach attributes too.
-- With **t-strings**, formatting stays in your code, translations are checked
-  at runtime, and a broken catalog falls back to the source text instead of
-  crashing.
+- Með **%-sniði** verður einn stafur sem þýðandi eyðir að hruni í rekstri.
+- Með **str.format** getur þýðing lesið eigindi af hlutunum sem kóðinn þinn
+  réttir inn — leyndarmál þar með talin.
+- Með **$-strengjum** (flufl.i18n) eru gildin sótt óbeint í breytur
+  kallandi falls, og punktaðir staðgenglar ná líka í eigindi.
+- Með **t-strengjum** helst sniðið í kóðanum þínum, þýðingar eru athugaðar á
+  keyrslutíma, og biluð þýðingaskrá fellur aftur í frumtextann í stað þess
+  að hrynja.
 
-The rest of this page is the evidence, one method at a time.
+Afgangur þessarar síðu er sönnunargagnið, ein aðferð í einu.
 
-!!! note "Three parties touch every translated message"
+!!! note "Þrír aðilar koma við hver þýdd skilaboð"
 
-    A **catalog** is the file of translations — `.po` while humans edit it,
-    compiled to `.mo` for the application to load (the [tutorial](tutorial.md)
-    walks through both). Three parties touch every message: the **developer**
-    writes the source string, a **translator** edits the catalog — often on an
-    external platform, far from any code review — and the **application**
-    renders the two together at runtime. Each formatting style below answers
-    the same question differently: *how much of the format language does the
-    catalog get to control?* In the examples, `_` is the conventional name for
-    the translate function, and `tr` is this library's.
+    **Þýðingaskrá** er skráin með þýðingunum — `.po` meðan fólk ritar hana,
+    vistþýdd í `.mo` fyrir forritið að lesa inn ([kennsluefnið](tutorial.md)
+    gengur gegnum hvort tveggja). Þrír aðilar koma við hver skilaboð:
+    **forritarinn** skrifar frumstrenginn, **þýðandi** ritar þýðingaskrána —
+    oft á utanaðkomandi vettvangi, langt frá öllum kóðayfirlestri — og
+    **forritið** birtir þau tvö saman á keyrslutíma. Hver sniðstíll hér að
+    neðan svarar sömu spurningunni á sinn hátt: *hversu miklu af sniðmálinu
+    fær þýðingaskráin að stjórna?* Í dæmunum er `_` venjubundna nafnið á
+    þýðingarfallinu og `tr` er nafnið í þessu safni.
 
-## %-format { #-format }
+## %-snið { #-format }
 
 ```python
 _("Hello %(name)s") % {"name": name}
 ```
 
-What can go wrong: one deleted letter in a translation crashes the render.
+Hvað getur farið úrskeiðis: einn stafur sem er eytt úr þýðingu felldi
+birtinguna.
 
-The catalog string carries printf syntax, including a trailing type letter —
-the `s` in `%(name)s` — that is easy to overlook and easy to damage:
+Strengurinn í þýðingaskránni ber printf-málskipan, þar með talinn
+tegundarstaf í enda — `s`-ið í `%(name)s` — sem er auðvelt að yfirsjást og
+auðvelt að skemma:
 
 ```pycon
 >>> "Hello %(name)" % {"name": "Ada"}  # the trailing "s" was deleted
@@ -49,10 +50,10 @@ Traceback (most recent call last):
 ValueError: incomplete format
 ```
 
-A one-character edit in a PO editor becomes a traceback in production. GNU
-`msgfmt --check-format` does catch it, but only for messages flagged
-`python-format`, and only if the catalog actually passes through msgfmt on its
-way to your application.
+Breyting á einum staf í PO-ritli verður að rakningu í rekstri. GNU
+`msgfmt --check-format` grípur það vissulega, en aðeins fyrir skilaboð sem
+eru merkt `python-format`, og aðeins ef þýðingaskráin fer raunverulega gegnum
+msgfmt á leið sinni í forritið þitt.
 
 ## str.format { #strformat }
 
@@ -60,12 +61,12 @@ way to your application.
 _("Hello {name}").format(name=name)
 ```
 
-It removes the trailing type letter while keeping a named, freely reorderable
-placeholder. What can go wrong moves to the other side of the exchange: the
-translation gains power over your objects.
+Það losar okkur við tegundarstafinn í endanum en heldur staðgengli sem hefur
+nafn og má víxla frjálst. Það sem getur farið úrskeiðis færist yfir á hina
+hlið viðskiptanna: þýðingin fær vald yfir hlutunum þínum.
 
-`str.format` is a small expression language, and calling it on a string means
-handing that string the right to use it:
+`str.format` er lítið segðamál, og að kalla á það á streng þýðir að rétta
+þeim streng réttinn til að nota það:
 
 ```pycon
 >>> "{name.__class__.__mro__}".format(name="Ada")
@@ -75,15 +76,15 @@ handing that string the right to use it:
 'sk-live-…'
 ```
 
-Now replace those literal strings with whatever `_()` returns. If a
-translation of `Hello {name}` comes back as `{conf.api_key}`, rendering it
-prints your API key — the catalog, not your code, decided what got read. A
-catalog is not code, but it travels like data: out to a translation platform,
-through several hands, back as a `.po`, compiled into a `.mo`, sometimes
-vendored from outside your project entirely. `.format()` gives every step of
-that trip attribute access on the objects you pass in.
+Settu nú hvað sem `_()` skilar í stað þessara föstu strengja. Ef þýðing á
+`Hello {name}` kemur til baka sem `{conf.api_key}`, þá prentar birting hennar
+API-lykilinn þinn — þýðingaskráin, ekki kóðinn þinn, réð því hvað var lesið.
+Þýðingaskrá er ekki kóði, en hún ferðast eins og gögn: út á þýðingavettvang,
+gegnum margar hendur, til baka sem `.po`, vistþýdd í `.mo`, stundum fengin
+að láni algjörlega utan verkefnisins þíns. `.format()` gefur hverju skrefi
+þeirrar ferðar aðgang að eigindum hlutanna sem þú réttir inn.
 
-## `$`-strings and flufl.i18n { #-strings-and-flufli18n }
+## `$`-strengir og flufl.i18n { #-strings-and-flufli18n }
 
 ```python
 from flufl.i18n import initialize
@@ -94,108 +95,111 @@ name = "Ada"
 print(_("Hello $name"))  # Hello Ada — the value came from the caller's locals
 ```
 
-The standard library's [`string.Template`][stdlib-template] supplies the
-`$name` interpolation language, but is not itself a translation API.
-[`flufl.i18n`][flufl-i18n] combines that style with gettext catalog lookup.
-Notice that the value is never passed in: flufl.i18n builds the substitution
-namespace from the caller's globals and locals — whatever variables exist at
-the call site are available to the message. An optional `extras` mapping takes
-precedence over both. Its translator-facing syntax has no trailing type letter
-or format specifier, and placeholders remain freely reorderable.
+[`string.Template`][stdlib-template] úr staðalsafninu leggur til
+innskeytingarmálið `$name`, en er ekki sjálft þýðingar-API.
+[`flufl.i18n`][flufl-i18n] sameinar þann stíl við uppflettingu í
+gettext-þýðingaskrá. Taktu eftir að gildið er aldrei rétt inn: flufl.i18n
+byggir nafnrými útskiptinganna úr altækum og staðværum breytum kallandans —
+hvaða breytur sem eru til á kallstaðnum standa skilaboðunum til boða.
+Valfrjáls `extras`-vörpun gengur framar hvoru tveggja. Málskipanin sem
+þýðandinn sér hefur hvorki tegundarstaf í enda né sniðlýsingu, og staðgengla
+má áfram víxla frjálst.
 
-An unavailable substitution does not raise. With `name = "Ada"` and no
-`nombre` in the caller's namespace, a catalog translation of `Hello $nombre`
-renders as `Hello $nombre`: the unresolved placeholder stays visible. That
-[documented behavior] preserves the rest of the translated message instead of
-failing the call. Exceptions raised while resolving an attribute or converting
-a value can still propagate.
+Útskipting sem ekki er til varpar engu. Með `name = "Ada"` og engan `nombre`
+í nafnrými kallandans birtist þýðing þýðingaskrárinnar á `Hello $nombre` sem
+`Hello $nombre`: óleysti staðgengillinn stendur eftir sýnilegur. Sú
+[skjalfesta hegðun][documented behavior] varðveitir afganginn af þýddu
+skilaboðunum í stað þess að fella kallið. Frávörp sem verpast við að leysa
+eigindi eða umbreyta gildi geta þó enn borist upp.
 
-`flufl.i18n` is more capable than a bare `string.Template` in one relevant
-way. Its [custom Template] accepts dotted placeholders such as
-`$settings.api_key`, and its [translator] resolves those paths against the
-caller's values. A translated placeholder may name any available caller local
-or global and, with dotted syntax, traverse its attributes. That is convenient
-when a message needs an attribute, while also making the caller's frame part
-of the catalog's substitution namespace. The comparison below describes
-`flufl.i18n` 6.0.0, not every possible use of `string.Template`.
+`flufl.i18n` getur meira en ber `string.Template` á einn hátt sem skiptir
+máli hér. Hið [sérsniðna Template][custom Template] tekur við punktuðum
+staðgenglum á borð við `$settings.api_key`, og [þýðandinn][translator] leysir
+þær slóðir upp gagnvart gildum kallandans. Þýddur staðgengill má nefna hvaða
+staðværu eða altæku breytu kallandans sem er og, með punktaðri ritmynd,
+ferðast um eigindi hennar. Það er þægilegt þegar skilaboð þurfa á eigindi að
+halda, en gerir um leið ramma kallandans að hluta af nafnrými útskiptinganna
+í þýðingaskránni. Samanburðurinn hér að neðan lýsir `flufl.i18n` 6.0.0, ekki
+hverri mögulegri notkun á `string.Template`.
 
-## t-strings { #t-strings }
+## t-strengir { #t-strings }
 
 ```python
 tr(t"Hello {name}")
 ```
 
-The catalog still sees `Hello {name}` and remains an ordinary PO/MO catalog.
-The difference is what a translation is *allowed to say*, and who checks it.
+Þýðingaskráin sér áfram `Hello {name}` og er áfram venjuleg PO/MO-skrá.
+Munurinn liggur í því hvað þýðing *má segja*, og hver athugar það.
 
-This library validates every translation against the source message's
-placeholders before rendering, and it accepts bare names and nothing else.
-Against `t"Hello {name}"`:
+Þetta safn athugar hverja þýðingu gagnvart staðgenglum frumskilaboðanna áður
+en það birtir hana, og það tekur við berum nöfnum og engu öðru. Gagnvart
+`t"Hello {name}"`:
 
-| A translation containing | is rejected with |
+| Þýðing sem inniheldur | er hafnað með |
 | --- | --- |
 | `{name.__class__.__mro__}` | placeholder `{name.__class__.__mro__}` must be a plain name, copied from the source message unchanged |
 | `{name!r}` | placeholder `{name}` adds formatting; write `{name}` on its own, because the source message decides how the value is formatted |
 | `{0}` | placeholder `{0}` must be a plain name, copied from the source message unchanged |
 | `{nombre}` | translation does not match the source placeholders: `{name}` is missing; `{nombre}` is not in the source message |
 
-Rejected does not mean crashed: by default the library logs a warning and
-renders the source text, so a bad catalog never takes the application down —
-[the same contract gettext itself keeps](guide.md#what-happens-when-a-catalog-is-wrong).
+Hafnað þýðir ekki hrunið: sjálfgefið skráir safnið viðvörun og birtir
+frumtextann, svo að léleg þýðingaskrá fellir aldrei forritið —
+[sami samningur og gettext sjálft heldur](guide.md#what-happens-when-a-catalog-is-wrong).
 
-Formatting stays where it was written, in the code:
+Sniðið helst þar sem það var skrifað, í kóðanum:
 
 ```python
 amount = 1234.5
 tr(t"Total: {amount:,.2f}")  # msgid is "Total: {amount}"
 ```
 
-`:,.2f` never reaches the catalog, so no translation can change it, and no
-translator has to look at it.
+`:,.2f` kemst aldrei í þýðingaskrána, svo engin þýðing getur breytt því og
+enginn þýðandi þarf að líta á það.
 
-One more difference is tooling: t-strings are new syntax, so extracting them
-into a `.pot` currently requires a t-string-aware extractor, such as the one
-this package [provides for Babel](extraction.md).
+Enn einn munurinn er tólastuðningur: t-strengir eru ný málskipan, svo að
+draga þá út í `.pot` krefst sem stendur útdráttartóls sem kann á t-strengi,
+eins og þess sem þessi pakki [leggur til fyrir Babel](extraction.md).
 
-## Side by side { #side-by-side }
+## Hlið við hlið { #side-by-side }
 
 | | `%(name)s` | `.format()` | `flufl.i18n` `$name` | `t"…"` |
 | --- | --- | --- | --- | --- |
-| Is the placeholder named? | yes | yes | yes | yes |
-| Can a translator reorder placeholders? | yes | yes | yes | yes |
-| Where do values come from? | an explicit mapping | explicit arguments | the caller's local and global variables, plus optional `extras` | the values captured inside the t-string |
-| Can the catalog change how a value is formatted? | yes | yes | no | no |
-| Can the catalog reach into objects (attribute access)? | no | yes | yes, with dotted names | no |
-| A translation *drops* a placeholder — what renders? | the value silently disappears | the value silently disappears | the value silently disappears | the source text, with a warning ([by default](guide.md#what-happens-when-a-catalog-is-wrong)) |
-| A translation *adds* an unknown placeholder — what renders? | an exception | an exception | the placeholder stays visible as text | the source text, with a warning ([by default](guide.md#what-happens-when-a-catalog-is-wrong)) |
-| Are placeholders checked at render time? | no | no | no | yes (see below) |
-| Which PO flag does Babel infer, for existing tools to validate? | `python-format` | `python-brace-format` | none | `python-brace-format` |
-| Uses ordinary PO/MO catalogs? | yes | yes | yes | yes |
-| Needs a custom source extractor? | no | no | no | yes, currently |
+| Hefur staðgengillinn nafn? | já | já | já | já |
+| Má þýðandi víxla staðgenglum til? | já | já | já | já |
+| Hvaðan koma gildin? | úr skýrri vörpun | úr skýrum viðföngum | úr staðværum og altækum breytum kallandans, auk valfrjálsra `extras` | úr gildunum sem gripin voru inni í t-strengnum |
+| Getur þýðingaskráin breytt því hvernig gildi er sniðið? | já | já | nei | nei |
+| Getur þýðingaskráin teygt sig inn í hluti (aðgangur að eigindum)? | nei | já | já, með punktuðum nöfnum | nei |
+| Þýðing *sleppir* staðgengli — hvað birtist? | gildið hverfur hljóðlaust | gildið hverfur hljóðlaust | gildið hverfur hljóðlaust | frumtextinn, með viðvörun ([sjálfgefið](guide.md#what-happens-when-a-catalog-is-wrong)) |
+| Þýðing *bætir við* óþekktum staðgengli — hvað birtist? | frávarp | frávarp | staðgengillinn stendur eftir sýnilegur sem texti | frumtextinn, með viðvörun ([sjálfgefið](guide.md#what-happens-when-a-catalog-is-wrong)) |
+| Eru staðgenglar athugaðir við birtingu? | nei | nei | nei | já (sjá hér að neðan) |
+| Hvaða PO-flagg leiðir Babel út, svo að tól sem fyrir eru geti staðfest? | `python-format` | `python-brace-format` | ekkert | `python-brace-format` |
+| Notar venjulegar PO/MO-þýðingaskrár? | já | já | já | já |
+| Þarf sérstakt útdráttartól fyrir frumkóðann? | nei | nei | nei | já, sem stendur |
 
-On the render-time check: singular messages are checked for an exact
-placeholder match. Plural messages are checked too, against the
-[union/intersection rule](spec.md) that lets a target language's plural forms
-differ from the source's; the stricter per-form check runs when catalogs are
-compiled ([Extraction](extraction.md)).
+Um athugunina við birtingu: eintöluskilaboð eru athuguð með nákvæmri
+samsvörun staðgengla. Fleirtöluskilaboð eru líka athuguð, gagnvart
+[sammengis-/sniðmengisreglunni](spec.md) sem leyfir fleirtölumyndum
+markmálsins að vera aðrar en frummálsins; strangari athugunin á hverja mynd
+keyrir þegar þýðingaskrár eru vistþýddar ([Útdráttur](extraction.md)).
 
-The format-flag row is about placeholder-aware validation, not catalog
-compatibility. `none` means standard gettext tools still read and compile the
-message, but `msgfmt --check-format` has no `$`-placeholder grammar to apply.
+Línan um sniðflaggið snýst um athugun sem kann á staðgengla, ekki um
+samhæfni þýðingaskráa. `ekkert` þýðir að stöðluð gettext-tól lesa og
+vistþýða skilaboðin eftir sem áður, en `msgfmt --check-format` hefur enga
+málfræði fyrir `$`-staðgengla til að beita.
 
-## What it costs { #what-it-costs }
+## Hvað það kostar { #what-it-costs }
 
-An f-string cannot be used this way at all — by the time any library sees one
-it is already a finished string, so translating it means translating a
-fragment. t-strings ([PEP 750]) keep the static text and the values separate
-while keeping f-string-like syntax and explicit value binding. `$`-strings
-already provide a concise alternative with a different binding and failure
-model. `flufl.i18n` is a mature package that runs on Python 3.10 and later;
-`gettext-tstrings` is currently an alpha, and because t-strings are new syntax
-it requires Python 3.14 or newer.
+f-streng er alls ekki hægt að nota svona — um leið og nokkurt safn sér hann
+er hann þegar fullgerður strengur, svo að þýða hann þýðir að þýða brot.
+t-strengir ([PEP 750]) halda föstum textanum og gildunum aðskildum en halda
+um leið málskipan sem líkist f-strengjum og skýrri bindingu gilda.
+`$`-strengir bjóða þegar upp á hnitmiðaðan valkost með annars konar
+bindingu og annars konar líkani af bilunum. `flufl.i18n` er þroskaður pakki
+sem keyrir á Python 3.10 og síðar; `gettext-tstrings` er sem stendur
+alfa-útgáfa, og af því að t-strengir eru ný málskipan krefst hann Python
+3.14 eða nýrri.
 
-The other cost is the restriction itself: an interpolation has to be a plain
-name.
+Hinn kostnaðurinn er takmörkunin sjálf: innskeyting verður að vera bert nafn.
 
 ```python
 tr(t"Hello {user.name}")  # raises InvalidTemplateError at the call site
@@ -206,13 +210,13 @@ name = user.name  # compute it first
 tr(t"Hello {name}")
 ```
 
-That is a real constraint. Together with source-side value binding and runtime
-placeholder checking, it prevents catalog strings from evaluating expressions
-and keeps placeholder names meaningful.
+Það er raunveruleg hömlun. Ásamt bindingu gilda á hlið frumtextans og
+athugun staðgengla á keyrslutíma kemur hún í veg fyrir að strengir í
+þýðingaskrá reikni út segðir, og heldur nöfnum staðgengla merkingarbærum.
 
-How Python arrived at this crossroads — two PEPs ten years apart, and the
-stdlib discussion that closed without an answer — is told with sources on
-[Background](background.md).
+Hvernig Python rataði á þessi vegamót — tveir PEP-ar með tíu ára millibili,
+og umræðan í staðalsafninu sem lokaðist án svars — er sagt með heimildum á
+[Bakgrunnur](background.md).
 
   [PEP 750]: https://peps.python.org/pep-0750/
   [stdlib-template]: https://docs.python.org/3/library/string.html#template-strings

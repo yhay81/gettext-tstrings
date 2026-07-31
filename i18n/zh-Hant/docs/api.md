@@ -47,8 +47,8 @@ Translator(translations, strict=False)
 
 | 名稱 | 用途 |
 | --- | --- |
-| `lazy_gettext(template, /)` | 把翻譯延後到第一次使用時。 |
-| `lazy_pgettext(context, template, /)` | 帶上下文的形式。 |
+| `lazy_gettext(template, /, *, strict=False)` | 把翻譯延後到第一次使用時。 |
+| `lazy_pgettext(context, template, /, *, strict=False)` | 帶上下文的形式。 |
 | `LazyString` | 兩者的回傳值。可透過 `str()` 與 `format()` 渲染，與渲染後的文字相等，並且刻意不可雜湊。 |
 
 ## 較低層 { #lower-level }

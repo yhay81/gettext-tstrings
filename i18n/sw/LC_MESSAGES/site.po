@@ -44,6 +44,10 @@ msgid "In production"
 msgstr "Katika uzalishaji"
 
 #. gettext-tstrings
+msgid "Pitfalls"
+msgstr "Mitego"
+
+#. gettext-tstrings
 msgid "How it works"
 msgstr "Jinsi inavyofanya kazi"
 

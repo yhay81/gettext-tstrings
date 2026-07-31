@@ -130,8 +130,11 @@ skaitā formu no vienas līdz sešām:
 | Japāņu | 1 | `ローカライズ済みページを{n}件ビルドしました` |
 | Turku | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` — divreiz, identiski: turku valodā lietvārds aiz skaitļa vārda paliek vienskaitlī |
 | Itāļu | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` — divdabis saskaņojas dzimtē un skaitlī |
+| Latviešu | 3 | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` — trešā forma ir paredzēta **tikai nullei** |
 | Krievu | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
 | Poļu | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
+| Slovēņu | 4 | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` — otrā ir **duālis**, tieši diviem |
+| Īru | 5 | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` — vienam, diviem, 3–6, 7–10 un pārējiem; celms mijas, bet *leathanach* sākas ar `l`, uz kura neviena īru mutācija netiek rakstīta, tāpēc vairākas formas sakrīt |
 | Arābu | 6 | starp tām `تم إنشاء صفحة مترجمة واحدة ({n})` tieši vienai un `تم إنشاء {n} صفحات مترجمة` dažām |
 
 Katra rinda ir dzīvs ieraksts šī repozitorija failos

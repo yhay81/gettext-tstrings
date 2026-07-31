@@ -137,8 +137,11 @@ msgid           'Total: {amount}'
 | ژاپنی | ۱ | `ローカライズ済みページを{n}件ビルドしました` |
 | ترکی | ۲ | `{n} yerelleştirilmiş sayfa oluşturuldu` — دو بار، عیناً یکسان: اسم در ترکی پس از عدد مفرد می‌ماند |
 | ایتالیایی | ۲ | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` — صفت مفعولی در جنس و شمار مطابقت می‌کند |
+| لتونیایی | ۳ | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` — صورت سوم **تنها برای صفر** است |
 | روسی | ۳ | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
 | لهستانی | ۳ | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
+| اسلوونیایی | ۴ | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` — دومی **مثنّی** است، برای دقیقاً دو |
+| ایرلندی | ۵ | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` — برای یک، دو، ۳–۶، ۷–۱۰ و بقیه؛ ریشه تغییر می‌کند اما *leathanach* با `l` آغاز می‌شود و هیچ‌یک از تغییرهای آغازینِ ایرلندی روی `l` نوشته نمی‌شود، پس چند صورت یکسان درمی‌آیند |
 | عربی | ۶ | از میانشان `تم إنشاء صفحة مترجمة واحدة ({n})` برای دقیقاً یکی و `تم إنشاء {n} صفحات مترجمة` برای چند تا |
 
 هر ردیف مدخلی زنده در `i18n/*/LC_MESSAGES/site.po`ِ همین مخزن است که

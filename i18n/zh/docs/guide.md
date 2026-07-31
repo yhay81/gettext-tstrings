@@ -89,6 +89,17 @@ with use_translations(japanese):
     `LazyString` 的文本依赖当前语言。如果 hash 值在切换语言后改变，会悄无声息地
     损坏保存它的 set 或 dict。需要作为 key 时，请先调用 `str()`。
 
+`strict` 在消息被*编写*的位置决定，而不是在它被渲染的位置：
+
+```python
+SAVE = lazy_gettext(t"Save changes", strict=True)
+```
+
+延迟字符串会在它最终被使用的地方渲染——模板里、表单里、日志行里——而那个地方
+通常并不知道当前是测试运行还是生产环境。在定义处传入 `strict=True`，正是让
+[CI 中喧哗、生产中宽容](#what-happens-when-a-catalog-is-wrong)的同一套取舍，
+也能适用于并非在调用点渲染的字符串。
+
 复数形式依赖运行时数量，因此应在已知数量的位置用 `ngettext` 立即渲染。
 
 ## 目录出错时会发生什么 { #what-happens-when-a-catalog-is-wrong }

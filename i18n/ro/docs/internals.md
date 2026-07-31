@@ -136,8 +136,11 @@ oriunde între o formă și șase:
 | Japoneză | 1 | `ローカライズ済みページを{n}件ビルドしました` |
 | Turcă | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` — de două ori, identic: substantivele turcești rămân la singular după un numeral |
 | Italiană | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` — participiul se acordă în gen și număr |
+| Letonă | 3 | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` — a treia formă este pentru **zero, singur** |
 | Rusă | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
 | Poloneză | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
+| Slovenă | 4 | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` — a doua este un **dual**, pentru exact doi |
+| Irlandeză | 5 | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` — unu, doi, 3–6, 7–10 și restul; radicalul alternează, dar *leathanach* începe cu `l`, pe care nicio mutație irlandeză nu o scrie, așa că mai multe forme coincid |
 | Arabă | 6 | printre care `تم إنشاء صفحة مترجمة واحدة ({n})` pentru exact una și `تم إنشاء {n} صفحات مترجمة` pentru câteva |
 
 Fiecare rând este o intrare vie din `i18n/*/LC_MESSAGES/site.po` al acestui

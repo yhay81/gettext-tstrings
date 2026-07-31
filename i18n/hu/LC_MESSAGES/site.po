@@ -44,6 +44,10 @@ msgid "In production"
 msgstr "Éles üzemben"
 
 #. gettext-tstrings
+msgid "Pitfalls"
+msgstr "Buktatók"
+
+#. gettext-tstrings
 msgid "How it works"
 msgstr "Hogyan működik"
 

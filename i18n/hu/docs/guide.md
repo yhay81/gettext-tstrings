@@ -100,6 +100,20 @@ egyenlőnek bizonyul a renderelt szövegével.
     halmazokat és szótárakat. Hívd meg előbb a `str()` függvényt, ha kulcsra
     van szükséged.
 
+A `strict` ott dől el, ahol az üzenetet megírják, nem ott, ahol megjelenik:
+
+```python
+SAVE = lazy_gettext(t"Save changes", strict=True)
+```
+
+Egy késleltetett szöveg ott jelenik meg, ahol végül felhasználják — egy
+sablonban, egy űrlapon, egy naplósorban —, és az a hely ritkán tudja, hogy
+tesztfutásról vagy éles üzemről van-e szó. A `strict=True` átadása a
+definíciónál teszi lehetővé, hogy ugyanaz a
+[CI-ben hangos, éles üzemben elnéző](#what-happens-when-a-catalog-is-wrong)
+döntés érvényesüljön egy olyan szövegre is, amely nem a hívási helyén jelenik
+meg.
+
 A többesszám-alakok futásidejű darabszámtól függnek, ezért azokat mohón
 rendereld az `ngettext` segítségével, ott, ahol a darabszám ismert.
 

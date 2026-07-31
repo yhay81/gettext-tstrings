@@ -134,8 +134,11 @@ do jedné až šesti forem:
 | Japonština | 1 | `ローカライズ済みページを{n}件ビルドしました` |
 | Turečtina | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` — dvakrát, identicky: turecká podstatná jména zůstávají po číslovce v jednotném čísle |
 | Italština | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` — příčestí se shoduje v rodě a čísle |
+| Lotyština | 3 | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` — třetí forma je **jen pro nulu** |
 | Ruština | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
 | Polština | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
+| Slovinština | 4 | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` — druhá je **duál**, pro přesně dvě |
+| Irština | 5 | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` — jedna, dvě, 3–6, 7–10 a zbytek; kmen se střídá, ale *leathanach* začíná na `l`, na kterém se žádná irská mutace nepíše, takže několik forem splývá |
 | Arabština | 6 | mezi nimi `تم إنشاء صفحة مترجمة واحدة ({n})` pro přesně jeden a `تم إنشاء {n} صفحات مترجمة` pro několik |
 
 Každý řádek je živý záznam v `i18n/*/LC_MESSAGES/site.po` tohoto

@@ -129,8 +129,11 @@ od ene do šestih oblik:
 | japonščina | 1 | `ローカライズ済みページを{n}件ビルドしました` |
 | turščina | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` — dvakrat, enako: turški samostalniki za števnikom ostanejo v ednini |
 | italijanščina | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` — deležnik se ujema v spolu in številu |
+| latvijščina | 3 | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` — tretja oblika je **samo za nič** |
 | ruščina | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
 | poljščina | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
+| slovenščina | 4 | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` — druga je **dvojina**, za natanko dve |
+| irščina | 5 | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` — ena, dve, 3–6, 7–10 in preostale; koren se izmenjuje, a *leathanach* se začne na `l`, česar nobena irska premena ne zapiše, zato več oblik sovpade |
 | arabščina | 6 | med njimi `تم إنشاء صفحة مترجمة واحدة ({n})` za natanko eno in `تم إنشاء {n} صفحات مترجمة` za nekaj njih |
 
 Vsaka vrstica je živ vnos v datotekah `i18n/*/LC_MESSAGES/site.po` tega

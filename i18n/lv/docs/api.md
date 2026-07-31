@@ -51,8 +51,8 @@ vienlaicīgumā.
 
 | Nosaukums | Nolūks |
 | --- | --- |
-| `lazy_gettext(template, /)` | Atliek tulkojumu līdz pirmajai lietošanai. |
-| `lazy_pgettext(context, template, /)` | Kontekstuālā forma. |
+| `lazy_gettext(template, /, *, strict=False)` | Atliek tulkojumu līdz pirmajai lietošanai. |
+| `lazy_pgettext(context, template, /, *, strict=False)` | Kontekstuālā forma. |
 | `LazyString` | Tas, ko abas atgriež. Renderējas caur `str()` un `format()`, salīdzinājumā ir vienāda ar savu tekstu un ir apzināti nehešojama. |
 
 ## Zemāka līmeņa { #lower-level }

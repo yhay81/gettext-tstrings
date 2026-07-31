@@ -1,60 +1,63 @@
 ---
-description: "The t-string to msgid convention as a small versioned contract, with a machine-readable conformance suite."
+description: "Venjan frá t-streng til msgid sem lítill útgáfumerktur samningur, með vélleseinlegum samræmisprófum."
 ---
 
-# Specification
+# Forskrift
 
-You can use this library without reading this page — the
-[tutorial](tutorial.md) and [guide](guide.md) cover everyday use. This page is
-for tool authors: the convention the library implements is written down as a
-small, stable contract so that another implementation — an extractor, an IDE,
-a type checker, or a future `pygettext` — can target it and interoperate. For
-the same rules explained with their reasons, and how the reference
-implementation carries them out, read [How it works](internals.md) first.
+Þú getur notað þetta safn án þess að lesa þessa síðu —
+[kennsluefnið](tutorial.md) og [handbókin](guide.md) ná yfir daglega notkun.
+Þessi síða er fyrir höfunda tóla: venjan sem safnið útfærir er skrifuð niður
+sem lítill, stöðugur samningur svo að önnur útfærsla — útdráttartól,
+þróunarumhverfi, tegundayfirfari eða `pygettext` framtíðarinnar — geti miðað
+við hana og unnið með henni. Fyrir sömu reglurnar útskýrðar með ástæðum
+sínum, og hvernig viðmiðunarútfærslan framkvæmir þær, lestu fyrst
+[Hvernig þetta virkar](internals.md).
 
-[Read spec v1 :material-arrow-right:](https://github.com/yhay81/gettext-tstrings/blob/main/SPEC.md){ .md-button .md-button--primary }
+[Lesa forskrift v1 :material-arrow-right:](https://github.com/yhay81/gettext-tstrings/blob/main/SPEC.md){ .md-button .md-button--primary }
 
-## The rules in one screen { #the-rules-in-one-screen }
+## Reglurnar á einum skjá { #the-rules-in-one-screen }
 
-**A msgid** is the concatenation, in source order, of the literal segments and
-one `{name}` token per interpolation. Literal braces are escaped (`{` becomes
-`{{`). A name must be a simple placeholder name — `str.isidentifier()` is true
-and it is not a Python keyword. Conversions and format specs are **not** part of
-the msgid; they stay under application control.
+**Msgid** er samskeyting, í röð frumtextans, á föstu bútunum og einu
+`{name}`-tákni fyrir hverja innskeytingu. Slaufusvigar sem eiga að standa
+sem stafir eru escape-ritaðir (`{` verður `{{`). Nafn verður að vera einfalt
+staðgengilsnafn — `str.isidentifier()` er satt og það er ekki lykilorð í
+Python. Umbreytingar og sniðlýsingar eru **ekki** hluti af msgid-inu; þær
+haldast undir stjórn forritsins.
 
-| t-string | msgid |
+| t-strengur | msgid |
 | --- | --- |
 | `t"Hello {name}"` | `Hello {name}` |
 | `t"Total: {amount:,.2f}"` | `Total: {amount}` |
 | `t"Config {{raw}} is {value}"` | `Config {{raw}} is {value}` |
-| `t"Hello {user.name}"` | *rejected — not a simple name* |
+| `t"Hello {user.name}"` | *hafnað — ekki einfalt nafn* |
 
-**A translation** is valid when it contains only bare `{name}` placeholders,
-every required name appears at least once, and no name outside the allowed set
-appears. Reordering and repetition are deliberately unconstrained: both can be
-grammatically necessary in a target language.
+**Þýðing** er gild þegar hún inniheldur eingöngu bera `{name}`-staðgengla,
+hvert áskilið nafn kemur að minnsta kosti einu sinni fyrir, og ekkert nafn
+utan leyfða mengisins birtist. Víxlun og endurtekning eru af ásettu ráði
+óheftar: hvort tveggja getur verið málfræðilega nauðsynlegt í markmáli.
 
-For plurals, *allowed* is the union of the branches' names and *required* is
-their intersection — so `t"One file"` against `t"{n} files"` leaves `n` available
-to a translator of either form but required of neither, and a target language's
-plural rules can differ from the source's.
+Fyrir fleirtölu er *leyfilegt* sammengi nafnanna í greinunum og *áskilið*
+sniðmengi þeirra — svo að `t"One file"` andspænis `t"{n} files"` gerir `n`
+aðgengilegt þeim sem þýðir hvora mynd sem er en áskilur hann í hvorugri, og
+fleirtölureglur markmálsins mega vera aðrar en frummálsins.
 
-**An empty msgid** is never looked up, because gettext reserves it for a
-catalog's metadata header.
+**Tómt msgid** er aldrei flett upp, því gettext tekur það frá fyrir
+lýsigagnahaus þýðingaskrárinnar.
 
-## Conformance { #conformance }
+## Samræmi { #conformance }
 
 [`conformance/v1.json`](https://github.com/yhay81/gettext-tstrings/blob/main/conformance/v1.json)
-is the same document in machine-readable form: cases mapping a t-string's static
-structure to a msgid, and a msgid plus a catalog pattern to a rendered string or
-a rejection.
+er sama skjalið á vélleseinlegu formi: tilvik sem varpa fastri byggingu
+t-strengs yfir í msgid, og msgid ásamt mynstri þýðingaskrár yfir í birtan
+streng eða höfnun.
 
-An implementation **conforms to spec v1** when it reproduces every case. The
-cases name only what the specification defines — derived msgids, accepted and
-rejected patterns, rendered output — and never an error message or an exception
-type, so an implementation in another language can run them unchanged.
+Útfærsla **samræmist forskrift v1** þegar hún endurgerir hvert einasta
+tilvik. Tilvikin nefna aðeins það sem forskriftin skilgreinir — leidd
+msgid, samþykkt og hafnað mynstur, birt úttak — og aldrei villuboð eða
+tegund frávarps, svo að útfærsla í öðru forritunarmáli getur keyrt þau
+óbreytt.
 
-Interpolations are described structurally, never as Python source:
+Innskeytingum er lýst eftir byggingu, aldrei sem Python-frumkóða:
 
 ```json
 {
@@ -68,12 +71,13 @@ Interpolations are described structurally, never as Python source:
 }
 ```
 
-The reference implementation runs the suite as part of its own test suite, so the
-prose and the code cannot drift apart in silence.
+Viðmiðunarútfærslan keyrir prófmengið sem hluta af sínu eigin prófmengi,
+svo að textinn og kóðinn geta ekki rekið hljóðlaust í sundur.
 
-## Versioning { #versioning }
+## Útgáfunúmer { #versioning }
 
-This is spec v1. A backwards-incompatible change to msgid derivation or to
-translation validation increments the version and ships a new
-`conformance/vN.json` beside the existing one. Additive clarifications that
-change neither derived msgids nor accepted patterns do not.
+Þetta er forskrift v1. Breyting sem er ekki afturvirkt samhæf á leiðslu
+msgid-a eða á athugun þýðinga hækkar útgáfunúmerið og lætur nýja
+`conformance/vN.json` fylgja við hlið þeirrar sem fyrir er. Viðbætur til
+skýringar sem breyta hvorki leiddum msgid-um né samþykktum mynstrum gera
+það ekki.

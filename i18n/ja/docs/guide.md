@@ -96,6 +96,18 @@ with use_translations(japanese):
     変わると、それを保持するsetやdictが気付かないまま壊れます。keyが必要な場合は
     先に`str()`を呼び出してください。
 
+`strict`は、レンダリングされる場所ではなく、メッセージが書かれる場所で決めます。
+
+```python
+SAVE = lazy_gettext(t"Save changes", strict=True)
+```
+
+遅延文字列は最終的に使われる場所でレンダリングされます。templateの中、
+フォームの中、ログ行の中 — そしてその場所は、これがテスト実行なのか本番なのかを
+知らないのが普通です。定義時に`strict=True`を渡すことで、呼び出し箇所で
+レンダリングされない文字列に対しても、[CIでは大きな声で、本番では寛容に](#what-happens-when-a-catalog-is-wrong)という
+同じ選択を適用できます。
+
 複数形は実行時の個数に依存するため、個数が分かる場所で`ngettext`を使って即時に
 レンダリングします。
 

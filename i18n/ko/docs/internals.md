@@ -130,8 +130,11 @@ localized pages` — 영어의 두 분기 — 가 들어 있고, 사이트의 �
 | 일본어 | 1 | `ローカライズ済みページを{n}件ビルドしました` |
 | 터키어 | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` — 두 번 동일하게: 터키어 명사는 수사 뒤에서 단수형을 유지합니다 |
 | 이탈리아어 | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` — 분사가 성과 수에 일치합니다 |
+| 라트비아어 | 3 | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` — 세 번째 형태는 **0 전용**입니다 |
 | 러시아어 | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
 | 폴란드어 | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
+| 슬로베니아어 | 4 | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` — 두 번째는 정확히 둘을 뜻하는 **양수(dual)** 형태입니다 |
+| 아일랜드어 | 5 | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` — 하나, 둘, 3–6, 7–10, 그 밖의 다섯 가지이며 어간이 교체되지만 *leathanach*는 `l`로 시작하고 아일랜드어의 어떤 변자음도 `l`에는 표기되지 않으므로 여러 형태가 일치합니다 |
 | 아랍어 | 6 | 그중 정확히 하나를 뜻하는 `تم إنشاء صفحة مترجمة واحدة ({n})`와 몇 개(소수)를 뜻하는 `تم إنشاء {n} صفحات مترجمة` |
 
 모든 행은 이 저장소의 `i18n/*/LC_MESSAGES/site.po`에 실제로 존재하는

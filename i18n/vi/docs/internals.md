@@ -133,8 +133,11 @@ thành từ một cho đến sáu dạng:
 | Tiếng Nhật | 1 | `ローカライズ済みページを{n}件ビルドしました` |
 | Tiếng Thổ Nhĩ Kỳ | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` — hai lần, giống hệt nhau: danh từ tiếng Thổ Nhĩ Kỳ giữ nguyên số ít sau một số từ |
 | Tiếng Ý | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` — phân từ hòa hợp theo giống và số |
+| Tiếng Latvia | 3 | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` — dạng thứ ba dành riêng cho **số không** |
 | Tiếng Nga | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
 | Tiếng Ba Lan | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
+| Tiếng Slovenia | 4 | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` — dạng thứ hai là **số đôi**, dành cho đúng hai |
+| Tiếng Ireland | 5 | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` — một, hai, 3–6, 7–10, và phần còn lại; thân từ có biến đổi nhưng *leathanach* bắt đầu bằng `l`, chữ cái mà không phép biến âm nào của tiếng Ireland thể hiện trên chữ viết, nên vài dạng trùng nhau |
 | Tiếng Ả Rập | 6 | trong đó có `تم إنشاء صفحة مترجمة واحدة ({n})` cho đúng một và `تم إنشاء {n} صفحات مترجمة` cho một vài |
 
 Mỗi hàng đều là một mục thực sự trong `i18n/*/LC_MESSAGES/site.po` của kho mã

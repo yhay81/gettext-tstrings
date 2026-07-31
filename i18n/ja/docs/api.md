@@ -49,8 +49,8 @@ Translator(translations, strict=False)
 
 | 名前 | 用途 |
 | --- | --- |
-| `lazy_gettext(template, /)` | 翻訳を最初に使う時点まで遅延します。 |
-| `lazy_pgettext(context, template, /)` | コンテキスト付きの形式です。 |
+| `lazy_gettext(template, /, *, strict=False)` | 翻訳を最初に使う時点まで遅延します。 |
+| `lazy_pgettext(context, template, /, *, strict=False)` | コンテキスト付きの形式です。 |
 | `LazyString` | 上記2関数の戻り値です。`str()`と`format()`、f-stringでレンダリングされ、表示文字列と等値比較でき、意図的にhash不能です。 |
 
 ## 低レベルAPI { #lower-level }

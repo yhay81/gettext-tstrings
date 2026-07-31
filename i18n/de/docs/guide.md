@@ -98,6 +98,20 @@ mit seinem Text.
     Sein Text hängt von der Sprache ab. Ein sich ändernder Hash würde Sets und
     Dictionaries unbemerkt beschädigen. Für Schlüssel zuerst `str()` aufrufen.
 
+`strict` wird dort entschieden, wo die Nachricht geschrieben wird, nicht dort,
+wo sie gerendert wird:
+
+```python
+SAVE = lazy_gettext(t"Save changes", strict=True)
+```
+
+Ein verzögerter String wird dort gerendert, wo er schließlich verwendet wird —
+in einem Template, einem Formular, einer Logzeile — und diese Stelle weiß
+selten, ob es sich um einen Testlauf oder um den Produktivbetrieb handelt.
+`strict=True` bei der Definition zu übergeben, ermöglicht dieselbe Wahl
+[laut in der CI, nachsichtig im Produktivbetrieb](#what-happens-when-a-catalog-is-wrong)
+auch für einen String, der nicht an seiner Aufrufstelle gerendert wird.
+
 Pluralformen hängen von einer Zahl zur Laufzeit ab und sollten sofort mit
 `ngettext` gerendert werden.
 

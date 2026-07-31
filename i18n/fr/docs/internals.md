@@ -139,8 +139,11 @@ traduisent ce seul message en une à six formes :
 | Japonais | 1 | `ローカライズ済みページを{n}件ビルドしました` |
 | Turc | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` — deux fois, à l'identique : les noms turcs restent au singulier après un numéral |
 | Italien | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` — le participe s'accorde en genre et en nombre |
+| Letton | 3 | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` — la troisième forme est pour **le zéro seul** |
 | Russe | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
 | Polonais | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
+| Slovène | 4 | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` — la deuxième est un **duel**, pour exactement deux |
+| Irlandais | 5 | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` — un, deux, 3–6, 7–10, et le reste ; le radical alterne, mais *leathanach* commence par `l`, sur quoi aucune mutation irlandaise ne s'écrit, si bien que plusieurs formes coïncident |
 | Arabe | 6 | parmi elles `تم إنشاء صفحة مترجمة واحدة ({n})` pour exactement un et `تم إنشاء {n} صفحات مترجمة` pour quelques-uns |
 
 Chaque ligne est une entrée réelle des `i18n/*/LC_MESSAGES/site.po` de ce

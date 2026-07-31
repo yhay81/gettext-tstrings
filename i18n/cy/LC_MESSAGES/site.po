@@ -44,6 +44,10 @@ msgid "In production"
 msgstr "Mewn cynhyrchu"
 
 #. gettext-tstrings
+msgid "Pitfalls"
+msgstr "Peryglon"
+
+#. gettext-tstrings
 msgid "How it works"
 msgstr "Sut mae'n gweithio"
 

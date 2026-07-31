@@ -50,8 +50,8 @@ Translator(translations, strict=False)
 
 | שם | תפקיד |
 | --- | --- |
-| `lazy_gettext(template, /)` | דוחה תרגום עד לשימוש הראשון. |
-| `lazy_pgettext(context, template, /)` | הצורה ההקשרית. |
+| `lazy_gettext(template, /, *, strict=False)` | דוחה תרגום עד לשימוש הראשון. |
+| `lazy_pgettext(context, template, /, *, strict=False)` | הצורה ההקשרית. |
 | `LazyString` | מה ששתיהן מחזירות. עוברת רינדור דרך `str()` ו-`format()`, נחשבת שווה לטקסט שלה, ובלתי ניתנת לגיבוב בכוונה. |
 
 ## רמה נמוכה יותר { #lower-level }

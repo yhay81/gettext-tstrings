@@ -138,8 +138,11 @@ una y seis formas:
 | Japonés | 1 | `ローカライズ済みページを{n}件ビルドしました` |
 | Turco | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` — dos veces, idéntica: los sustantivos turcos permanecen en singular tras un numeral |
 | Italiano | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` — el participio concuerda en género y número |
+| Letón | 3 | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` — la tercera forma es solo para el **cero** |
 | Ruso | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
 | Polaco | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
+| Esloveno | 4 | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` — la segunda es un **dual**, para exactamente dos |
+| Irlandés | 5 | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` — uno, dos, 3–6, 7–10 y el resto; la raíz alterna, pero *leathanach* empieza por `l`, letra sobre la que no se escribe ninguna mutación irlandesa, así que varias formas coinciden |
 | Árabe | 6 | entre ellas `تم إنشاء صفحة مترجمة واحدة ({n})` para exactamente uno y `تم إنشاء {n} صفحات مترجمة` para unos pocos |
 
 Cada fila es una entrada viva en los `i18n/*/LC_MESSAGES/site.po` de este

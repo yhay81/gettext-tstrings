@@ -98,6 +98,19 @@ ve render edilmiş metniyle eşit karşılaştırılır.
     değişiminde değişir ve onu tutan her set ya da dict'i sessizce bozardı.
     Bir anahtara ihtiyacınız varsa önce `str()` çağırın.
 
+`strict`, mesajın render edildiği yerde değil, yazıldığı yerde kararlaştırılır:
+
+```python
+SAVE = lazy_gettext(t"Save changes", strict=True)
+```
+
+Ertelenmiş bir dizgi, en sonunda kullanıldığı her yerde render edilir — bir
+şablonun, bir formun, bir günlük satırının içinde — ve orası, bunun bir test
+koşusu mu yoksa üretim mi olduğunu nadiren bilir. Tanım noktasında
+`strict=True` geçirmek, aynı [CI'da yüksek sesli, üretimde
+hoşgörülü](#what-happens-when-a-catalog-is-wrong) seçiminin, kendi çağrı
+yerinde render edilmeyen bir dizgi için de geçerli olmasını sağlayan şeydir.
+
 Çoğul biçimler çalışma zamanındaki bir sayıya bağlıdır; onları, sayının
 bilindiği yerde `ngettext` ile hevesle render edin.
 

@@ -44,6 +44,10 @@ msgid "In production"
 msgstr "Realioje aplinkoje"
 
 #. gettext-tstrings
+msgid "Pitfalls"
+msgstr "Spąstai"
+
+#. gettext-tstrings
 msgid "How it works"
 msgstr "Kaip tai veikia"
 

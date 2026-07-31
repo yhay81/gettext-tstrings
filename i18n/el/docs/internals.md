@@ -143,8 +143,11 @@ msgid           'Total: {amount}'
 | Ιαπωνικά | 1 | `ローカライズ済みページを{n}件ビルドしました` |
 | Τουρκικά | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` — δύο φορές, πανομοιότυπη: τα τουρκικά ουσιαστικά μένουν στον ενικό μετά από αριθμητικό |
 | Ιταλικά | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` — η μετοχή συμφωνεί σε γένος και αριθμό |
+| Λετονικά | 3 | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` — η τρίτη μορφή είναι για **το μηδέν και μόνο** |
 | Ρωσικά | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
 | Πολωνικά | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
+| Σλοβενικά | 4 | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` — η δεύτερη είναι **δυϊκός**, για ακριβώς δύο |
+| Ιρλανδικά | 5 | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` — ένα, δύο, 3–6, 7–10 και τα υπόλοιπα· το θέμα εναλλάσσεται, αλλά το *leathanach* αρχίζει από `l`, γράμμα πάνω στο οποίο καμία ιρλανδική μετάλλαξη δεν γράφεται, οπότε αρκετές μορφές συμπίπτουν |
 | Αραβικά | 6 | ανάμεσά τους `تم إنشاء صفحة مترجمة واحدة ({n})` για ακριβώς ένα και `تم إنشاء {n} صفحات مترجمة` για λίγα |
 
 Κάθε γραμμή είναι ζωντανή καταχώριση στα `i18n/*/LC_MESSAGES/site.po` αυτού

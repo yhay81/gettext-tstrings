@@ -130,8 +130,11 @@ patternです。その上で、2つの検査が適用されます。
 | 日本語 | 1 | `ローカライズ済みページを{n}件ビルドしました` |
 | トルコ語 | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` — 2回、まったく同一：トルコ語の名詞は数詞の後でも単数のままです |
 | イタリア語 | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` — 分詞が性と数に一致します |
+| ラトビア語 | 3 | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` — 3番目の形は**ゼロ専用**です |
 | ロシア語 | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
 | ポーランド語 | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
+| スロベニア語 | 4 | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` — 2番目はちょうど2件を表す**双数**です |
+| アイルランド語 | 5 | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` — 1件、2件、3〜6件、7〜10件、それ以外。語幹は交替しますが、*leathanach*は`l`で始まり、アイルランド語のどの変異も`l`には表記されないため、いくつかの形が一致します |
 | アラビア語 | 6 | 中でも、ちょうど1件を表す`تم إنشاء صفحة مترجمة واحدة ({n})`と、少数を表す`تم إنشاء {n} صفحات مترجمة` |
 
 各行は、このリポジトリの`i18n/*/LC_MESSAGES/site.po`に実在するエントリであり、

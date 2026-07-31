@@ -102,6 +102,20 @@ sé cothrom lena théacs rindreáilte i gcomparáid.
     foclóir ina bhfuil sé. Glaoigh ar `str()` ar dtús má theastaíonn eochair
     uait.
 
+Socraítear `strict` san áit a scríobhtar an teachtaireacht, ní san áit a
+rindreáiltear í:
+
+```python
+SAVE = lazy_gettext(t"Save changes", strict=True)
+```
+
+Rindreáiltear teaghrán iarchurtha cibé áit a n-úsáidtear ar deireadh é — istigh
+i dteimpléad, i bhfoirm, i líne loga — agus is annamh a bhíonn a fhios ag an
+áit sin an rith tástála nó táirgeadh atá i gceist. Is é `strict=True` a chur ar
+aghaidh ag an sainmhíniú a ligeann don rogha chéanna
+[os ard i CI, bog i dtáirgeadh](#what-happens-when-a-catalog-is-wrong) a bheith
+i bhfeidhm ar theaghrán nach rindreáiltear ag a láithreán glaonna é.
+
 Braitheann foirmeacha iolra ar chomhaireamh ag am rite, mar sin rindreáil iad
 sin go fonnmhar le `ngettext` san áit a bhfuil an comhaireamh ar eolas.
 

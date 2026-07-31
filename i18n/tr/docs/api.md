@@ -51,8 +51,8 @@ altında güvenlidir.
 
 | Ad | Amaç |
 | --- | --- |
-| `lazy_gettext(template, /)` | Bir çeviriyi ilk kullanıma ertele. |
-| `lazy_pgettext(context, template, /)` | Bağlamlı biçimi. |
+| `lazy_gettext(template, /, *, strict=False)` | Bir çeviriyi ilk kullanıma ertele. |
+| `lazy_pgettext(context, template, /, *, strict=False)` | Bağlamlı biçimi. |
 | `LazyString` | İkisinin de döndürdüğü şey. `str()` ve `format()` üzerinden render edilir, metniyle eşit karşılaştırılır ve bilerek hash'lenemez. |
 
 ## Daha alt düzey { #lower-level }

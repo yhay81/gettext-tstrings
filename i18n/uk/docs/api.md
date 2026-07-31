@@ -51,8 +51,8 @@ Translator(translations, strict=False)
 
 | Ім'я | Призначення |
 | --- | --- |
-| `lazy_gettext(template, /)` | Відкласти переклад до першого використання. |
-| `lazy_pgettext(context, template, /)` | Контекстна форма. |
+| `lazy_gettext(template, /, *, strict=False)` | Відкласти переклад до першого використання. |
+| `lazy_pgettext(context, template, /, *, strict=False)` | Контекстна форма. |
 | `LazyString` | Те, що повертають обидві. Рендериться через `str()` і `format()`, дорівнює своєму тексту при порівнянні й навмисно негешований. |
 
 ## Нижчий рівень { #lower-level }

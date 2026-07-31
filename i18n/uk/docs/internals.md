@@ -132,8 +132,11 @@ pages` — дві англійські гілки, — а видання сай�
 | Японська | 1 | `ローカライズ済みページを{n}件ビルドしました` |
 | Турецька | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` — двічі, однаково: турецькі іменники лишаються в однині після числівника |
 | Італійська | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` — дієприкметник узгоджується в роді й числі |
+| Латвійська | 3 | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` — третя форма існує **лише для нуля** |
 | Російська | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
 | Польська | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
+| Словенська | 4 | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` — друга форма це **двоїна**, рівно для двох |
+| Ірландська | 5 | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` — один, два, 3–6, 7–10 та решта; основа чергується, але *leathanach* починається на `l`, на якому не записується жодна ірландська мутація, тож кілька форм збігаються |
 | Арабська | 6 | серед них `تم إنشاء صفحة مترجمة واحدة ({n})` рівно для однієї та `تم إنشاء {n} صفحات مترجمة` для кількох |
 
 Кожен рядок — живий запис у `i18n/*/LC_MESSAGES/site.po` цього репозиторію,

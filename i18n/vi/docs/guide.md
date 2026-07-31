@@ -101,6 +101,20 @@ bằng với văn bản đã kết xuất của nó.
     set hay dict nào đang chứa nó. Hãy gọi `str()` trước nếu bạn cần một
     khóa.
 
+`strict` được quyết định tại nơi thông điệp được viết ra, chứ không phải tại
+nơi nó được kết xuất:
+
+```python
+SAVE = lazy_gettext(t"Save changes", strict=True)
+```
+
+Một chuỗi trì hoãn được kết xuất tại bất cứ đâu nó thực sự được dùng — bên
+trong một template, một form, một dòng log — và nơi đó hiếm khi biết được đây
+là một lần chạy kiểm thử hay là môi trường sản xuất. Truyền `strict=True` ngay
+tại chỗ định nghĩa chính là điều cho phép áp dụng cùng một lựa chọn
+[ồn ào trong CI, khoan dung khi vận hành](#what-happens-when-a-catalog-is-wrong)
+cho một chuỗi không được kết xuất tại nơi gọi nó.
+
 Các dạng số nhiều phụ thuộc vào một số đếm lúc chạy, nên hãy kết xuất chúng
 ngay bằng `ngettext` tại nơi đã biết số đếm.
 

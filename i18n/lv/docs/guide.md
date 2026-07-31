@@ -97,6 +97,19 @@ ir vienāds ar savu renderēto tekstu.
     līdz ar valodas pārslēgšanu un klusējot sabojātu jebkuru kopu vai vārdnīcu,
     kas to tur. Ja jums vajadzīga atslēga, vispirms izsauciet `str()`.
 
+`strict` tiek izlemts tur, kur ziņojums ir uzrakstīts, nevis tur, kur tas
+renderējas:
+
+```python
+SAVE = lazy_gettext(t"Save changes", strict=True)
+```
+
+Atliktā virkne renderējas tur, kur tā galu galā tiek lietota — šablonā, formā,
+žurnāla rindā —, un šī vieta reti zina, vai tas ir testa izpildījums vai
+produkcija. Tieši `strict=True` padošana definīcijā ļauj to pašu izvēli —
+[skaļi CI, iecietīgi produkcijā](#what-happens-when-a-catalog-is-wrong) —
+attiecināt uz virkni, kas netiek renderēta savā izsaukuma vietā.
+
 Daudzskaitļa formas ir atkarīgas no izpildlaika skaita, tāpēc renderējiet tās
 nekavējoties ar `ngettext` tur, kur skaits ir zināms.
 

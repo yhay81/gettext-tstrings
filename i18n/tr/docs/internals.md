@@ -133,8 +133,11 @@ biçimden altı biçime kadar çevirir:
 | Japonca | 1 | `ローカライズ済みページを{n}件ビルドしました` |
 | Türkçe | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` — iki kez, birebir aynı: Türkçede adlar bir sayıdan sonra tekil kalır |
 | İtalyanca | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` — ortaç, cins ve sayıya göre uyum gösterir |
+| Letonca | 3 | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` — üçüncü biçim **yalnızca sıfır** içindir |
 | Rusça | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
 | Lehçe | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
+| Slovence | 4 | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` — ikincisi bir **ikil**dir, tam olarak iki için |
+| İrlandaca | 5 | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` — bir, iki, 3–6, 7–10 ve gerisi; gövde değişir, ama *leathanach* `l` ile başlar ve İrlandacanın hiçbir ünsüz değişimi `l` üzerinde yazıya dökülmez, bu yüzden birkaç biçim çakışır |
 | Arapça | 6 | aralarında tam olarak bir için `تم إنشاء صفحة مترجمة واحدة ({n})` ve birkaçı için `تم إنشاء {n} صفحات مترجمة` biçimleri var |
 
 Her satır, bu deponun `i18n/*/LC_MESSAGES/site.po` dosyalarındaki canlı bir

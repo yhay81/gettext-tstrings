@@ -113,8 +113,11 @@ msgid           'Total: {amount}'
 | 日文 | 1 | `ローカライズ済みページを{n}件ビルドしました` |
 | 土耳其文 | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` ——兩次，一字不差：土耳其文名詞接在數詞之後仍維持單數 |
 | 義大利文 | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` ——分詞會隨性別與數變化 |
+| 拉脫維亞文 | 3 | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` ——第三種形式只為**零**而設 |
 | 俄文 | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
 | 波蘭文 | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
+| 斯洛維尼亞文 | 4 | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` ——第二種是**雙數**，剛好用於二 |
+| 愛爾蘭文 | 5 | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` ——依序為一、二、3–6、7–10 與其餘；詞幹會交替，但 *leathanach* 以 `l` 開頭，而愛爾蘭文的字首變音都不會寫在 `l` 上，因此好幾種形式重合 |
 | 阿拉伯文 | 6 | 其中有表示剛好一個的 `تم إنشاء صفحة مترجمة واحدة ({n})`，也有表示少數幾個的 `تم إنشاء {n} صفحات مترجمة` |
 
 每一列都是本儲存庫 `i18n/*/LC_MESSAGES/site.po` 裡真正存在的條目，由

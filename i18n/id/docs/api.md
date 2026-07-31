@@ -51,8 +51,8 @@ konkurensi.
 
 | Nama | Kegunaan |
 | --- | --- |
-| `lazy_gettext(template, /)` | Menunda terjemahan hingga penggunaan pertama. |
-| `lazy_pgettext(context, template, /)` | Bentuk kontekstualnya. |
+| `lazy_gettext(template, /, *, strict=False)` | Menunda terjemahan hingga penggunaan pertama. |
+| `lazy_pgettext(context, template, /, *, strict=False)` | Bentuk kontekstualnya. |
 | `LazyString` | Yang dikembalikan keduanya. Merender melalui `str()` dan `format()`, membandingkan sama dengan teksnya, dan sengaja tidak dapat di-hash. |
 
 ## Tingkat lebih rendah { #lower-level }

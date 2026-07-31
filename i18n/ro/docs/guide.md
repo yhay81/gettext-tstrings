@@ -99,6 +99,19 @@ compară egal cu textul său randat.
     schimba la o comutare de limbă și ar corupe pe tăcute orice set sau dict
     care îl ține. Apelează întâi `str()` dacă ai nevoie de o cheie.
 
+`strict` se hotărăște acolo unde este scris mesajul, nu acolo unde se randează:
+
+```python
+SAVE = lazy_gettext(t"Save changes", strict=True)
+```
+
+Un șir amânat se randează oriunde ajunge să fie folosit în cele din urmă —
+înăuntrul unui șablon, al unui formular, al unei linii de jurnal — iar locul
+acela rareori știe dacă este vorba de o rulare de test sau de producție.
+Trecerea lui `strict=True` la definire este ceea ce permite ca aceeași alegere
+[zgomotos în CI, îngăduitor în producție](#what-happens-when-a-catalog-is-wrong)
+să se aplice și unui șir care nu este randat la locul lui de apel.
+
 Formele de plural depind de un număr cunoscut abia la rulare, așa că randează-le
 nerăbdător cu `ngettext`, acolo unde numărul este cunoscut.
 

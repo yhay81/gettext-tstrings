@@ -48,8 +48,8 @@ La liaison utilise un `ContextVar` et reste sûre en concurrence.
 
 | Nom | Rôle |
 | --- | --- |
-| `lazy_gettext(template, /)` | Diffère la traduction jusqu'à l'utilisation. |
-| `lazy_pgettext(context, template, /)` | Variante avec contexte. |
+| `lazy_gettext(template, /, *, strict=False)` | Diffère la traduction jusqu'à l'utilisation. |
+| `lazy_pgettext(context, template, /, *, strict=False)` | Variante avec contexte. |
 | `LazyString` | Type renvoyé. Se rend via `str()`, `format()` et les f-strings, se compare à son texte et n'est volontairement pas hashable. |
 
 ## Bas niveau { #lower-level }

@@ -137,8 +137,11 @@ jeden komunikat na od jednej formy aż do sześciu:
 | Japoński | 1 | `ローカライズ済みページを{n}件ビルドしました` |
 | Turecki | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` — dwa razy, identycznie: tureckie rzeczowniki pozostają w liczbie pojedynczej po liczebniku |
 | Włoski | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` — imiesłów uzgadnia się w rodzaju i liczbie |
+| Łotewski | 3 | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` — trzecia forma jest **wyłącznie dla zera** |
 | Rosyjski | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
 | Polski | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
+| Słoweński | 4 | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` — druga to **liczba podwójna**, dla dokładnie dwóch |
+| Irlandzki | 5 | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` — jeden, dwa, 3–6, 7–10 i reszta; temat się wymienia, ale *leathanach* zaczyna się na `l`, na którym żadna irlandzka mutacja nie jest zapisywana, więc kilka form się pokrywa |
 | Arabski | 6 | wśród nich `تم إنشاء صفحة مترجمة واحدة ({n})` dla dokładnie jednego i `تم إنشاء {n} صفحات مترجمة` dla kilku |
 
 Każdy wiersz to żywy wpis w `i18n/*/LC_MESSAGES/site.po` tego repozytorium,

@@ -45,6 +45,10 @@ msgid "In production"
 msgstr "في الإنتاج"
 
 #. gettext-tstrings
+msgid "Pitfalls"
+msgstr "المزالق"
+
+#. gettext-tstrings
 msgid "How it works"
 msgstr "كيف تعمل"
 

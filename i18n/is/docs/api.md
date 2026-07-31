@@ -1,78 +1,80 @@
 ---
-description: "Every name gettext_tstrings exports: functions, the Translator, context binding, lazy strings, and the errors."
+description: "Öll nöfnin sem gettext_tstrings flytur út: föllin, Translator, samhengisbindingin, latir strengir og villurnar."
 ---
 
 # API
 
-Everything below is exported from `gettext_tstrings`. Nothing else is public.
-This page is the signature reference; for worked examples of each function,
-see the [guide](guide.md).
+Allt hér að neðan er flutt út frá `gettext_tstrings`. Ekkert annað er
+opinbert. Þessi síða er uppflettirit yfir undirskriftir; fyrir útfærð dæmi um
+hvert fall, sjá [handbókina](guide.md).
 
-## Translating { #translating }
+## Að þýða { #translating }
 
-Each function takes its t-string positionally and accepts two keyword arguments:
-`translations` (falling back to the context binding, then to the standard
-library's global functions) and `strict` (see [Guide](guide.md#what-happens-when-a-catalog-is-wrong)).
+Hvert fall tekur t-streng sinn eftir stöðu og tekur við tveimur
+lykilorðaviðfangi: `translations` (sem fellur aftur í samhengisbindinguna og
+þaðan í altæku föllin í staðalsafninu) og `strict` (sjá
+[Handbók](guide.md#what-happens-when-a-catalog-is-wrong)).
 
-| Function | Signature |
+| Fall | Undirskrift |
 | --- | --- |
 | `gettext` | `(template, /, *, translations=None, strict=False) -> str` |
 | `ngettext` | `(singular, plural, n, /, *, translations=None, strict=False) -> str` |
 | `pgettext` | `(context, template, /, *, translations=None, strict=False) -> str` |
 | `npgettext` | `(context, singular, plural, n, /, *, translations=None, strict=False) -> str` |
-| `tr` | alias of `gettext` |
-| `ntr` | alias of `ngettext` |
+| `tr` | samheiti `gettext` |
+| `ntr` | samheiti `ngettext` |
 
 ### `Translator`
 
-A frozen dataclass binding one translation object, so call sites do not repeat
-it.
+Frosið gagnaklasi sem bindur eitt þýðingahlutfall, svo að kallstaðir þurfi
+ekki að endurtaka það.
 
 ```python
 Translator(translations, strict=False)
 ```
 
-It is callable (`_(t"…")`) and carries `gettext`, `ngettext`, `pgettext`,
-`npgettext`, and the `tr` / `ntr` aliases.
+Það er kallanlegt (`_(t"…")`) og ber `gettext`, `ngettext`, `pgettext`,
+`npgettext` og samheitin `tr` / `ntr`.
 
-## Context binding { #context-binding }
+## Samhengisbinding { #context-binding }
 
-| Name | Purpose |
+| Nafn | Tilgangur |
 | --- | --- |
-| `use_translations(translations)` | Bind for the duration of a `with` block, then restore. |
-| `set_translations(translations)` | Bind without a block, for framework-managed lifecycles. |
-| `get_translations()` | Read the current binding, or `None`. |
+| `use_translations(translations)` | Bindur á meðan `with`-blokk stendur, endurheimtir svo. |
+| `set_translations(translations)` | Bindur án blokkar, fyrir líftíma sem umgjörð stýrir. |
+| `get_translations()` | Les núverandi bindingu, eða `None`. |
 
-The binding is a `ContextVar`, so it is per-context and safe under concurrency.
+Bindingin er `ContextVar`, svo hún er bundin samhengi og örugg í samhliða
+keyrslu.
 
-## Deferred strings { #deferred-strings }
+## Frestaðir strengir { #deferred-strings }
 
-| Name | Purpose |
+| Nafn | Tilgangur |
 | --- | --- |
-| `lazy_gettext(template, /)` | Defer a translation to first use. |
-| `lazy_pgettext(context, template, /)` | The contextual form. |
-| `LazyString` | What both return. Renders through `str()` and `format()`, compares equal to its text, and is deliberately unhashable. |
+| `lazy_gettext(template, /, *, strict=False)` | Frestar þýðingu fram að fyrstu notkun. |
+| `lazy_pgettext(context, template, /, *, strict=False)` | Myndin með samhengi. |
+| `LazyString` | Það sem bæði skila. Birtist gegnum `str()` og `format()`, telst jafnt texta sínum og er af ásettu ráði ekki tætanlegt. |
 
-## Lower-level { #lower-level }
+## Neðar í lögunum { #lower-level }
 
 ### `compile_template(template, /) -> CompiledTemplate`
 
-Compile a t-string, reusing its cached static plan.
+Vistþýðir t-streng og endurnýtir fasta áætlun hans úr skyndiminni.
 
 ### `CompiledTemplate`
 
-| Member | Meaning |
+| Meðlimur | Merking |
 | --- | --- |
-| `.msgid` | The stable gettext message identifier. |
-| `.placeholders` | Placeholder names in first-occurrence order. |
-| `.render(pattern)` | Validate one pattern and render it. **Always raises** on a mismatch. |
+| `.msgid` | Stöðugt gettext-auðkenni skilaboðanna. |
+| `.placeholders` | Nöfn staðgengla í röð fyrsta tilviks. |
+| `.render(pattern)` | Athugar eitt mynstur og birtir það. **Varpar alltaf** ef ekki stemmir. |
 
-## Types and errors { #types-and-errors }
+## Tegundir og villur { #types-and-errors }
 
 ### `Translations`
 
-A `runtime_checkable` `Protocol` for the four standard methods, all
-positional-only:
+`runtime_checkable` `Protocol` fyrir stöðluðu aðferðirnar fjórar, allar
+eingöngu eftir stöðu:
 
 ```python
 class Translations(Protocol):
@@ -82,32 +84,34 @@ class Translations(Protocol):
     def npgettext(self, context: str, singular: str, plural: str, n: int, /) -> str: ...
 ```
 
-`gettext.NullTranslations`, `gettext.GNUTranslations`, and Babel's `Translations`
-all satisfy it.
+`gettext.NullTranslations`, `gettext.GNUTranslations` og `Translations` úr
+Babel uppfylla það öll.
 
-### Exceptions
+### Frávörp
 
-| Class | Raised when |
+| Klasi | Varpað þegar |
 | --- | --- |
-| `TStringError` | Base class for both below. |
-| `InvalidTemplateError` | The **source** t-string breaks the convention — a complex interpolation, or a repeated name with different formatting. |
-| `InvalidTranslationError` | The **translation** does. Under the default lenient mode this is logged and the source text is rendered instead. |
+| `TStringError` | Grunnklasi beggja hér að neðan. |
+| `InvalidTemplateError` | **Frum**-t-strengurinn brýtur venjuna — flókin innskeyting, eða endurtekið nafn með ólíku sniði. |
+| `InvalidTranslationError` | **Þýðingin** gerir það. Í sjálfgefna eftirláta hamnum er þetta skráð í atburðaskrá og frumtextinn birtur í staðinn. |
 
-## Extraction entry points { #extraction-entry-points }
+## Aðgangsstaðir útdráttar { #extraction-entry-points }
 
-Registered automatically on install; you refer to them by name, not by import.
+Skráðir sjálfkrafa við uppsetningu; þú vísar í þá með nafni, ekki með
+innflutningi.
 
-| Group | Name | Used by |
+| Hópur | Nafn | Notað af |
 | --- | --- | --- |
-| `babel.extractors` | `gettext_tstrings` | The `method` in `babel.cfg`. |
-| `babel.checkers` | `gettext_tstrings` | `pybabel compile`, automatically. |
+| `babel.extractors` | `gettext_tstrings` | `method`-gildinu í `babel.cfg`. |
+| `babel.checkers` | `gettext_tstrings` | `pybabel compile`, sjálfkrafa. |
 
-## Performance { #performance }
+## Afköst { #performance }
 
-The full account — what is cached, what the caches key on, and the measured
-numbers — is [The hot path](internals.md#the-hot-path). The short version:
-validation is cached, never skipped, and the whole render costs a fraction of
-a microsecond. Run the benchmark on your own target:
+Öll frásögnin — hvað er geymt í skyndiminni, á hverju skyndiminnin lykla og
+mældu tölurnar — er [Heita leiðin](internals.md#the-hot-path). Stutta
+útgáfan: athugun er geymd í skyndiminni, aldrei sleppt, og öll birtingin
+kostar brot úr míkrósekúndu. Keyrðu viðmiðunarmælinguna á þínu eigin
+skotmarki:
 
 ```console
 uv run python benchmarks/runtime.py

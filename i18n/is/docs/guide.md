@@ -1,20 +1,21 @@
 ---
-description: "The runtime API: binding a catalog, per-request languages, deferred strings, and how a broken translation is reported."
+description: "Keyrslutíma-API-ið: að binda þýðingaskrá, tungumál eftir beiðni, frestaðir strengir og hvernig biluð þýðing er tilkynnt."
 ---
 
-# Guide
+# Handbók
 
-This page is the runtime reference: everything your *application code* does
-with this library once catalogs exist. If you have not yet seen the full loop
-— mark, extract, translate, compile, run — the [tutorial](tutorial.md) walks
-it once in five minutes; creating and validating catalogs is covered in
-[Extraction](extraction.md), and how a team keeps the loop turning — update
-cycles, CI, translation platforms — is [In production](workflow.md).
+Þessi síða er uppflettiritið um keyrslutímann: allt sem *forritskóðinn þinn*
+gerir með þessu safni þegar þýðingaskrár eru til. Hafir þú ekki enn séð alla
+hringrásina — merkja, draga út, þýða, vistþýða, keyra — þá gengur
+[kennsluefnið](tutorial.md) hana einu sinni á fimm mínútum; að búa til og
+staðfesta þýðingaskrár er tekið fyrir í [Útdrætti](extraction.md), og hvernig
+teymi heldur hringrásinni gangandi — uppfærsluferli, CI, þýðingavettvangar —
+er [Í rekstri](workflow.md).
 
-## Binding a catalog { #binding-a-catalog }
+## Að binda þýðingaskrá { #binding-a-catalog }
 
-The recommended shape mirrors gettext's class-based usage: bind a standard
-translation object once and use the callable processor as `_`.
+Ráðlagða lagið speglar klasabundna notkun gettext: bittu eitt staðlað
+þýðingahlutfall einu sinni og notaðu kallanlega vinnsluhlutinn sem `_`.
 
 ```python
 import gettext
@@ -34,8 +35,8 @@ filename = "report.txt"
 print(_.pgettext("button", t"Open {filename}"))  # "button" disambiguates homonyms
 ```
 
-The module-level functions follow the standard library's names and its
-positional-only calling convention:
+Föllin á einingarsviði fylgja nöfnum staðalsafnsins og kallvenju þess um
+viðföng eingöngu eftir stöðu:
 
 ```python
 from gettext_tstrings import gettext, ngettext, npgettext, pgettext
@@ -46,13 +47,13 @@ pgettext("button", t"Open {filename}", translations=translations)
 npgettext("inbox", t"One message", t"{n} messages", n, translations=translations)
 ```
 
-`tr` and `ntr` are exact aliases of `gettext` and `ngettext`.
+`tr` og `ntr` eru nákvæm samheiti `gettext` og `ngettext`.
 
-## Per-request language { #per-request-language }
+## Tungumál eftir beiðni { #per-request-language }
 
-A web framework picks a language per request. Bind the request's translations to
-the current context and every module-level call resolves to that language, safely
-across concurrent requests:
+Vefumgjörð velur tungumál fyrir hverja beiðni. Bittu þýðingar beiðninnar við
+núverandi samhengi og hvert kall á einingarsviði leysist yfir í það
+tungumál, með öruggum hætti þvert á samhliða beiðnir:
 
 ```python
 from gettext_tstrings import tr, use_translations
@@ -64,18 +65,19 @@ def handle(request):
         return render(tr(t"Hello {name}"))
 ```
 
-`set_translations(translations)` binds without a `with` block, for frameworks
-that manage the request lifecycle themselves; `get_translations()` reads the
-current binding. An explicit `translations=` argument always wins over the
-context, and an unbound context falls back to the standard library's globally
-installed gettext functions. Worked examples for Flask and ASGI middleware
-are on the [In production](workflow.md#binding-a-language-at-runtime) page.
+`set_translations(translations)` bindur án `with`-blokkar, fyrir umgjarðir
+sem stýra líftíma beiðninnar sjálfar; `get_translations()` les núverandi
+bindingu. Skýrt `translations=`-viðfang gengur alltaf framar samhenginu, og
+óbundið samhengi fellur aftur í altækt uppsettu gettext-föllin úr
+staðalsafninu. Útfærð dæmi fyrir Flask og ASGI-millilag eru á síðunni
+[Í rekstri](workflow.md#binding-a-language-at-runtime).
 
-## Deferred translation { #deferred-translation }
+## Frestuð þýðing { #deferred-translation }
 
-A t-string captures its values eagerly, which is wrong for a string defined at
-import time — a form label, an enum value, a module constant — that has to render
-in whatever language is active when it is *used*.
+t-strengur grípur gildi sín strax, sem er rangt fyrir streng sem er
+skilgreindur við innflutning — merking á eyðublaði, gildi í talnaupptalningu,
+fasti á einingarsviði — og þarf að birtast á því tungumáli sem er virkt þegar
+hann er *notaður*.
 
 ```python
 from gettext_tstrings import lazy_gettext, lazy_pgettext, use_translations
@@ -87,28 +89,42 @@ with use_translations(japanese):
     assert str(SAVE) == "変更を保存"  # rendered here, in this language
 ```
 
-A `LazyString` renders through `str()`, `format()`, and f-strings, and compares
-equal to its rendered text.
+`LazyString` birtist gegnum `str()`, `format()` og f-strengi, og telst jafn
+birtum texta sínum.
 
-!!! note "Deliberately unhashable"
+!!! note "Af ásettu ráði ekki tætanlegt"
 
-    A `LazyString`'s text depends on the active language, so a hash would change
-    across a language switch and quietly corrupt any set or dict holding it.
-    Call `str()` first if you need a key.
+    Texti `LazyString` veltur á virka tungumálinu, svo tætigildi myndi
+    breytast við tungumálaskipti og skemma hljóðlaust hvert mengi eða
+    orðabók sem geymdi hann. Kallaðu á `str()` fyrst ef þú þarft lykil.
 
-Plural forms depend on a runtime count, so render those eagerly with `ngettext`
-where the count is known.
+`strict` er ákveðið þar sem skilaboðin eru skrifuð, ekki þar sem þau eru birt:
 
-## What happens when a catalog is wrong { #what-happens-when-a-catalog-is-wrong }
+```python
+SAVE = lazy_gettext(t"Save changes", strict=True)
+```
 
-If a translation's placeholders do not match the source — a missing, unknown, or
-reformatted field that slipped past validation, from a hand-edited MO, a vendor
-catalog, or a pipeline that skips the checker — the default is to reproduce the
-source text rather than raise. This mirrors gettext's own contract that a bad
-catalog never breaks the application.
+Frestaður strengur er birtur þar sem hann er á endanum notaður — inni í
+sniðmáti, í eyðublaði, í línu í atburðaskrá — og sá staður veit sjaldnast
+hvort um prófkeyrslu eða rekstur er að ræða. Að gefa `strict=True` við
+skilgreininguna er það sem lætur sama valið um
+[hávært í CI, eftirgefanlegt í rekstri](#what-happens-when-a-catalog-is-wrong)
+gilda líka um streng sem er ekki birtur á kallstað sínum.
 
-With `Hello {name}` translated as `こんにちは {nombre}`, the render succeeds and
-one warning goes to the `gettext_tstrings` logger:
+Fleirtölumyndir velta á fjölda sem er þekktur á keyrslutíma, svo birtu þær
+strax með `ngettext` þar sem fjöldinn er kunnur.
+
+## Hvað gerist þegar þýðingaskrá er röng { #what-happens-when-a-catalog-is-wrong }
+
+Ef staðgenglar þýðingar stemma ekki við frumtextann — reitur sem vantar, er
+óþekktur eða hefur fengið nýtt snið og slapp gegnum athugunina, úr
+handritaðri MO-skrá, þýðingaskrá frá þriðja aðila eða keðju sem sleppir
+athuguninni — þá er sjálfgefið að endurgera frumtextann fremur en að varpa.
+Þetta speglar samning gettext sjálfs um að léleg þýðingaskrá brjóti aldrei
+forritið.
+
+Þegar `Hello {name}` er þýtt sem `こんにちは {nombre}` tekst birtingin og ein
+viðvörun fer í atburðaskrárrit `gettext_tstrings`:
 
 ```text
 WARNING gettext_tstrings: invalid translation for msgid 'Hello {name}'; using
@@ -121,18 +137,19 @@ missing; {nombre} is not in the source message
 'Hello Ada'
 ```
 
-The warning fires once per message and pattern, not once per render, so a
-broken catalog entry does not flood a log.
+Viðvörunin kemur einu sinni fyrir hver skilaboð og hvert mynstur, ekki einu
+sinni við hverja birtingu, svo að biluð færsla í þýðingaskrá flæðir ekki yfir
+atburðaskrána.
 
-Opt into failing loudly for tests and CI:
+Veldu að falla hávært fyrir prófanir og CI:
 
 ```python
 strict = Translator(translations, strict=True)
 tr(t"Hello {name}", translations=translations, strict=True)
 ```
 
-The same lookup then raises, carrying the same sentence without the "using source
-text" half:
+Sama uppfletting varpar þá, með sömu setningu án helmingsins um „using source
+text“:
 
 ```pycon
 >>> strict(t"Hello {name}")
@@ -142,48 +159,50 @@ gettext_tstrings.errors.InvalidTranslationError: translation does not match the
 source placeholders: {name} is missing; {nombre} is not in the source message
 ```
 
-## Reading a failure message { #reading-a-failure-message }
+## Að lesa villuboð { #reading-a-failure-message }
 
-These messages are written for whoever can act on them, which for a catalog
-problem is a translator more often than a programmer. Reporting only that
-`{name}` is missing is a dead end when the reader can see those characters in
-front of them, so where a placeholder looks present but is not, the message says
-why. Against the source `Hello {name}`, each of these is reported under
-`translation does not match the source placeholders:`
+Þessi skilaboð eru skrifuð fyrir þann sem getur brugðist við þeim, og þegar
+þýðingaskrá á í hlut er það oftar þýðandi en forritari. Að tilkynna aðeins að
+`{name}` vanti er blindgata þegar lesandinn sér þá stafi fyrir framan sig, svo
+að þar sem staðgengill sýnist vera til staðar en er það ekki, segja skilaboðin
+hvers vegna. Gagnvart frumtextanum `Hello {name}` er hvert eftirfarandi
+tilkynnt undir `translation does not match the source placeholders:`
 
-| The translation says | The reason it gives |
+| Þýðingin segir | Ástæðan sem hún gefur |
 | --- | --- |
 | `こんにちは ｛name｝` | `{name}` is missing (the braces around it are not the ASCII `{` and `}`) |
 | `こんにちは {{name}}` | `{name}` is missing (it is written `{{name}}`, which is how a literal brace is escaped) |
 | `こんにちは name` | `{name}` is missing (the name appears, but not inside braces) |
 | `こんにちは {名前}` | `{name}` is missing; `{名前}` is not in the source message |
 
-Characters that cannot be seen get their own treatment. A no-break space inside
-the braces is something an input method produces and no editor shows, so the
-message prints it by code point rather than naming a character the reader cannot
-find:
+Stafir sem ekki sjást fá sína eigin meðferð. Fast bil inni í slaufusvigunum er
+eitthvað sem innsláttaraðferð framleiðir og enginn ritill sýnir, svo að
+skilaboðin prenta það eftir kóðapunkti fremur en að nefna staf sem lesandinn
+finnur ekki:
 
 ```text
 placeholder {<U+00A0>name} has a space inside the braces; write {name}
 ```
 
-A name whose letters mix writing systems — the homoglyph case, where a Cyrillic
-`а` is indistinguishable from a Latin one — is shown twice, once readably and
-once escaped, which is the only form that tells the two apart:
+Nafn þar sem stafirnir blanda ritkerfum — samstöfunartilvikið, þar sem
+kýrillískt `а` er ógreinanlegt frá því latneska — er sýnt tvisvar, einu sinni
+læsilega og einu sinni með escape-ritun, sem er eina myndin sem greinir þau
+tvö að:
 
 ```text
 translation does not match the source placeholders: {name} is missing;
 {nаme} (n\u0430me) is not in the source message
 ```
 
-The same disambiguation applies when a Greek or Cyrillic name written entirely
-in one script conflicts with an ASCII source name, including the one-letter
-Latin `a` / Cyrillic `а` case.
+Sama aðgreining á við þegar grískt eða kýrillískt nafn, ritað alfarið í einu
+letri, rekst á ASCII-nafn í frumtextanum, þar með talið tilvikið með
+latneska `a` og kýrillíska `а` í einum staf.
 
-## Rendering a pattern without a catalog { #rendering-a-pattern-without-a-catalog }
+## Að birta mynstur án þýðingaskrár { #rendering-a-pattern-without-a-catalog }
 
-`compile_template` exposes the same machinery one level down: it turns a t-string
-into its msgid plus a bound set of values, and renders any pattern you hand it.
+`compile_template` opinberar sama vélbúnað einu lagi neðar: það breytir
+t-streng í msgid hans ásamt bundnu mengi gilda, og birtir hvaða mynstur sem
+þú réttir því.
 
 ```python
 from gettext_tstrings import compile_template
@@ -196,38 +215,40 @@ compiled.placeholders  # ("name",)
 compiled.render("こんにちは {name}")  # "こんにちは Ada"
 ```
 
-`render` validates by the same rules and **always raises** on a mismatch. There
-is no lenient mode here: leniency exists so a *catalog* lookup can degrade to the
-source text, and a pattern you passed in yourself has nothing to degrade from.
+`render` athugar eftir sömu reglum og **varpar alltaf** ef ekki stemmir. Hér
+er enginn eftirgefanlegur hamur: eftirgefanleikinn er til svo að uppfletting
+í *þýðingaskrá* geti hrörnað yfir í frumtextann, og mynstur sem þú réttir
+sjálfur hefur ekkert til að hrörna frá.
 
-## Safety and scope { #safety-and-scope }
+## Öryggi og umfang { #safety-and-scope }
 
-This is valid:
+Þetta er gilt:
 
 ```python
 tr(t"Hello {name}")
 ```
 
-These are rejected on purpose:
+Þessu er hafnað af ásettu ráði:
 
 ```python
 tr(t"Hello {user.name}")  # attribute access
 tr(t"Hello {display_name()}")  # a call
 ```
 
-Compute a meaningful value first:
+Reiknaðu fyrst út merkingarbært gildi:
 
 ```python
 name = user.display_name()
 tr(t"Hello {name}")
 ```
 
-The restriction produces stable catalog keys, gives translators useful names, and
-keeps a translated string from becoming an expression language.
+Takmörkunin skilar stöðugum lyklum í þýðingaskrá, gefur þýðendum gagnleg nöfn
+og kemur í veg fyrir að þýddur strengur verði að segðamáli.
 
-The guarantee is scoped to *structure and formatting*: a translation is never
-evaluated, and can never add attribute access, calls, conversions, or format
-specs. Two things stay the caller's responsibility, exactly as with stdlib
-gettext — **escaping** rendered output for its sink (HTML, shell, terminal), and
-**catalog integrity**, since a hostile catalog can repeat a placeholder to
-amplify output size, which is inherent to any placeholder-based i18n.
+Ábyrgðin nær til *byggingar og sniðs*: þýðing er aldrei reiknuð út og getur
+aldrei bætt við aðgangi að eigindum, köllum, umbreytingum eða sniðlýsingum.
+Tvennt er áfram á ábyrgð kallandans, nákvæmlega eins og með gettext úr
+staðalsafninu — **escape-ritun** á birtu úttaki fyrir viðtakanda þess (HTML,
+skel, skjáhermi) og **heilleiki þýðingaskrárinnar**, því fjandsamleg
+þýðingaskrá getur endurtekið staðgengil til að magna upp stærð úttaksins, sem
+er innbyggt í hverja i18n-aðferð sem byggir á staðgenglum.

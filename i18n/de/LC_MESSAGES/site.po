@@ -44,6 +44,10 @@ msgid "In production"
 msgstr "Im Produktivbetrieb"
 
 #. gettext-tstrings
+msgid "Pitfalls"
+msgstr "Fallstricke"
+
+#. gettext-tstrings
 msgid "How it works"
 msgstr "Funktionsweise"
 

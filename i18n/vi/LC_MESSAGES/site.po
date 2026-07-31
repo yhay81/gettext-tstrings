@@ -44,6 +44,10 @@ msgid "In production"
 msgstr "Vận hành thực tế"
 
 #. gettext-tstrings
+msgid "Pitfalls"
+msgstr "Những cái bẫy thường gặp"
+
+#. gettext-tstrings
 msgid "How it works"
 msgstr "Cách hoạt động"
 

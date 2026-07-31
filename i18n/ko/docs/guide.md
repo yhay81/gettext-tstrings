@@ -93,6 +93,19 @@ with use_translations(japanese):
     텍스트가 언어에 따라 바뀝니다. 변하는 해시는 set이나 dict를 조용히
     손상시킵니다. 키가 필요하면 먼저 `str()`을 호출하세요.
 
+`strict`는 렌더링되는 곳이 아니라 메시지를 작성하는 곳에서 결정합니다.
+
+```python
+SAVE = lazy_gettext(t"Save changes", strict=True)
+```
+
+지연 문자열은 최종적으로 쓰이는 곳 — 템플릿 안, 폼, 로그 한 줄 — 에서
+렌더링되는데, 그곳은 지금이 테스트 실행인지 프로덕션인지 알지 못하는
+경우가 대부분입니다. 정의 시점에 `strict=True`를 넘기는 것이,
+호출 지점에서 렌더링되지 않는 문자열에도
+[CI에서는 시끄럽게, 프로덕션에서는 관대하게](#what-happens-when-a-catalog-is-wrong)라는
+같은 선택을 적용할 수 있게 해 줍니다.
+
 복수형은 런타임의 수에 의존하므로 `ngettext`로 즉시 렌더링합니다.
 
 ## 카탈로그가 잘못되었을 때 { #what-happens-when-a-catalog-is-wrong }

@@ -51,8 +51,8 @@ dan gydredoldeb.
 
 | Enw | Pwrpas |
 | --- | --- |
-| `lazy_gettext(template, /)` | Gohirio cyfieithiad tan y defnydd cyntaf. |
-| `lazy_pgettext(context, template, /)` | Y ffurf gyd-destunol. |
+| `lazy_gettext(template, /, *, strict=False)` | Gohirio cyfieithiad tan y defnydd cyntaf. |
+| `lazy_pgettext(context, template, /, *, strict=False)` | Y ffurf gyd-destunol. |
 | `LazyString` | Yr hyn y mae'r ddau yn ei ddychwelyd. Mae'n rendro drwy `str()` a `format()`, yn cymharu'n gyfartal â'i destun, ac yn fwriadol anhashadwy. |
 
 ## Lefel is { #lower-level }

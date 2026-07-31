@@ -47,8 +47,8 @@ Translator(translations, strict=False)
 
 | الاسم | الدور |
 | --- | --- |
-| `lazy_gettext(template, /)` | يؤجل الترجمة حتى الاستخدام. |
-| `lazy_pgettext(context, template, /)` | صيغة مع سياق. |
+| `lazy_gettext(template, /, *, strict=False)` | يؤجل الترجمة حتى الاستخدام. |
+| `lazy_pgettext(context, template, /, *, strict=False)` | صيغة مع سياق. |
 | `LazyString` | تُعرض عبر `str()` و`format()` وf-strings، وتُقارن بالنص، وهي غير قابلة للتجزئة عمداً. |
 
 ## المستوى المنخفض { #lower-level }

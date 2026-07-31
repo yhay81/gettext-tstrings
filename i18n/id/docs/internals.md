@@ -133,8 +133,11 @@ itu menjadi mulai dari satu bentuk hingga enam:
 | Jepang | 1 | `ローカライズ済みページを{n}件ビルドしました` |
 | Turki | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` — dua kali, identik: nomina bahasa Turki tetap tunggal setelah kata bilangan |
 | Italia | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` — partisipnya menyesuaikan gender dan jumlah |
+| Latvia | 3 | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` — bentuk ketiganya khusus untuk **nol saja** |
 | Rusia | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
 | Polandia | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
+| Slovenia | 4 | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` — yang kedua adalah **dual**, untuk tepat dua |
+| Irlandia | 5 | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` — satu, dua, 3–6, 7–10, dan sisanya; batang katanya berganti-ganti tetapi *leathanach* diawali `l`, yang tidak ditulis oleh mutasi bahasa Irlandia mana pun, sehingga beberapa bentuknya berimpit |
 | Arab | 6 | di antaranya `تم إنشاء صفحة مترجمة واحدة ({n})` untuk tepat satu dan `تم إنشاء {n} صفحات مترجمة` untuk beberapa |
 
 Setiap baris adalah entri hidup di `i18n/*/LC_MESSAGES/site.po` repositori ini,

@@ -51,8 +51,8 @@ binding एक `ContextVar` है, इसलिए यह प्रति-conte
 
 | नाम | उद्देश्य |
 | --- | --- |
-| `lazy_gettext(template, /)` | अनुवाद को पहले उपयोग तक टाले। |
-| `lazy_pgettext(context, template, /)` | contextual रूप। |
+| `lazy_gettext(template, /, *, strict=False)` | अनुवाद को पहले उपयोग तक टाले। |
+| `lazy_pgettext(context, template, /, *, strict=False)` | contextual रूप। |
 | `LazyString` | दोनों जो लौटाते हैं। `str()` और `format()` से रेंडर होता है, अपने टेक्स्ट के बराबर तुलना करता है, और जान-बूझकर unhashable है। |
 
 ## निचला स्तर { #lower-level }
