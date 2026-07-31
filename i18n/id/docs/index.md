@@ -203,7 +203,7 @@ python -m pip install "gettext-tstrings[babel]"
 
 | | |
 | --- | --- |
-| Versi paket | 0.1.0a7 |
+| Versi paket | 0.1.0a8 |
 | Stabilitas API | alpha — API Python-nya masih mungkin berubah |
 | [Spesifikasi](spec.md) | v1, dengan [suite konformans](spec.md#conformance) |
 | Python | 3.14 dan yang lebih baru; diuji pada 3.14, 3.14t (free-threaded), dan 3.15 |

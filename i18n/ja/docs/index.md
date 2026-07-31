@@ -186,7 +186,7 @@ python -m pip install "gettext-tstrings[babel]"
 
 | | |
 | --- | --- |
-| パッケージ版数 | 0.1.0a7 |
+| パッケージ版数 | 0.1.0a8 |
 | APIの安定性 | alpha — Python APIは今後変更される可能性があります |
 | [仕様](spec.md) | v1、[適合性テスト](spec.md#conformance)付き |
 | Python | 3.14以降。3.14、3.14t（free-threaded）、3.15でテスト済み |

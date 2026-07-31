@@ -206,7 +206,7 @@ python -m pip install "gettext-tstrings[babel]"
 
 | | |
 | --- | --- |
-| Leagan an phacáiste | 0.1.0a7 |
+| Leagan an phacáiste | 0.1.0a8 |
 | Cobhsaíocht an API | alfa — d'fhéadfadh an API Python athrú fós |
 | [Sonraíocht](spec.md) | v1, le [sraith comhréireachta](spec.md#conformance) |
 | Python | 3.14 agus níos nuaí; tástáilte ar 3.14, 3.14t (saorshnáithithe), agus 3.15 |

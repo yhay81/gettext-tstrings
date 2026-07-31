@@ -177,7 +177,7 @@ python -m pip install "gettext-tstrings[babel]"
 
 | | |
 | --- | --- |
-| إصدار الحزمة | 0.1.0a7 |
+| إصدار الحزمة | 0.1.0a8 |
 | استقرار API | alpha — قد يتغير Python API بعد |
 | [المواصفة](spec.md) | v1، مع [حزمة توافق](spec.md#conformance) |
 | Python | 3.14 فما فوق؛ مُختبَر على 3.14 و3.14t (بلا قفل عام) و3.15 |

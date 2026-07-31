@@ -193,7 +193,7 @@ python -m pip install "gettext-tstrings[babel]"
 
 | | |
 | --- | --- |
-| Pakotnes versija | 0.1.0a7 |
+| Pakotnes versija | 0.1.0a8 |
 | API stabilitāte | alfa — Python API vēl var mainīties |
 | [Specifikācija](spec.md) | v1 ar [atbilstības komplektu](spec.md#conformance) |
 | Python | 3.14 un jaunāks; testēts ar 3.14, 3.14t (brīvpavedienu) un 3.15 |

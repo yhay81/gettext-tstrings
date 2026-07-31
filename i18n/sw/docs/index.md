@@ -199,7 +199,7 @@ python -m pip install "gettext-tstrings[babel]"
 
 | | |
 | --- | --- |
-| Toleo la kifurushi | 0.1.0a7 |
+| Toleo la kifurushi | 0.1.0a8 |
 | Uthabiti wa API | alpha — API ya Python bado inaweza kubadilika |
 | [Ainisho](spec.md) | v1, pamoja na [seti ya utiifu](spec.md#conformance) |
 | Python | 3.14 na mpya zaidi; imejaribiwa kwenye 3.14, 3.14t (nyuzi huru), na 3.15 |

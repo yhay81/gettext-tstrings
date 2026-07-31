@@ -188,7 +188,7 @@ python -m pip install "gettext-tstrings[babel]"
 
 | | |
 | --- | --- |
-| 패키지 버전 | 0.1.0a7 |
+| 패키지 버전 | 0.1.0a8 |
 | API 안정성 | 알파 — Python API는 아직 바뀔 수 있습니다 |
 | [명세](spec.md) | v1, [적합성 테스트 모음](spec.md#conformance) 포함 |
 | Python | 3.14 이상. 3.14, 3.14t(자유 스레드), 3.15에서 테스트 |

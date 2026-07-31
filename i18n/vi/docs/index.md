@@ -194,7 +194,7 @@ python -m pip install "gettext-tstrings[babel]"
 
 | | |
 | --- | --- |
-| Phiên bản gói | 0.1.0a7 |
+| Phiên bản gói | 0.1.0a8 |
 | Độ ổn định API | alpha — API Python vẫn có thể thay đổi |
 | [Đặc tả](spec.md) | v1, kèm [bộ kiểm thử tuân thủ](spec.md#conformance) |
 | Python | 3.14 trở lên; đã kiểm thử trên 3.14, 3.14t (free-threaded) và 3.15 |

@@ -188,7 +188,7 @@ python -m pip install "gettext-tstrings[babel]"
 
 | | |
 | --- | --- |
-| Verze balíčku | 0.1.0a7 |
+| Verze balíčku | 0.1.0a8 |
 | Stabilita API | alfa — pythonovské API se ještě může měnit |
 | [Specifikace](spec.md) | v1, se [sadou testů konformity](spec.md#conformance) |
 | Python | 3.14 a novější; testováno na 3.14, 3.14t (free-threaded) a 3.15 |

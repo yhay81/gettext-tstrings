@@ -178,7 +178,7 @@ python -m pip install "gettext-tstrings[babel]"
 
 | | |
 | --- | --- |
-| גרסת החבילה | 0.1.0a7 |
+| גרסת החבילה | 0.1.0a8 |
 | יציבות ה-API | אלפא — ה-API של Python עדיין עשוי להשתנות |
 | [מפרט](spec.md) | ‏v1, עם [חבילת בדיקות תאימות](spec.md#conformance) |
 | Python | ‏3.14 ומעלה; נבדק על 3.14,‏ 3.14t (free-threaded) ו-3.15 |

@@ -199,7 +199,7 @@ python -m pip install "gettext-tstrings[babel]"
 
 | | |
 | --- | --- |
-| Csomagverzió | 0.1.0a7 |
+| Csomagverzió | 0.1.0a8 |
 | API-stabilitás | alfa — a Python API még változhat |
 | [Specifikáció](spec.md) | v1, [konformitási készlettel](spec.md#conformance) |
 | Python | 3.14 és újabb; tesztelve 3.14, 3.14t (szabad szálú) és 3.15 alatt |

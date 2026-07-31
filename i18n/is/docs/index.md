@@ -194,7 +194,7 @@ python -m pip install "gettext-tstrings[babel]"
 
 | | |
 | --- | --- |
-| Útgáfa pakkans | 0.1.0a7 |
+| Útgáfa pakkans | 0.1.0a8 |
 | Stöðugleiki API | alfa — Python-API-ið gæti enn breyst |
 | [Forskrift](spec.md) | v1, með [samræmisprófum](spec.md#conformance) |
 | Python | 3.14 og nýrra; prófað á 3.14, 3.14t (free-threaded) og 3.15 |
