@@ -8,11 +8,12 @@ hide:
 
 <div class="home-hero" markdown>
 
-# Dịch trọn cả thông điệp,<br>không dịch từng mảnh chuỗi.
+# Dịch trọn cả thông điệp<br>bằng t-string của Python
 
 `gettext-tstrings` nối t-string của Python 3.14+ với các catalog gettext tiêu
 chuẩn và bộ công cụ Babel. Giá trị và định dạng ở nguyên trong mã ứng dụng;
-catalog giữ một thông điệp trọn vẹn với các placeholder `{name}` giản dị:
+người dịch làm việc với những thông điệp trọn vẹn và các placeholder `{name}`
+giản dị:
 
 ```python
 import gettext
@@ -24,10 +25,15 @@ name = "Ada"
 print(_(t"Hello {name}"))  # with a Japanese catalog: こんにちは Ada
 ```
 
-[Bắt đầu hướng dẫn nhập môn :material-arrow-right:](tutorial.md){ .md-button .md-button--primary }
+Catalog chứa `Hello {name}`. Một bản dịch có thể chuyển chỗ hoặc lặp lại
+`{name}`. Nếu nó bỏ mất, đổi tên hay thêm định dạng cho placeholder, khâu kiểm
+tra catalog sẽ báo lỗi. Nếu một mục sai vẫn lọt tới production, thư viện ghi một
+cảnh báo và kết xuất thông điệp nguồn thay vì làm chương trình đổ vỡ.
+
+[Bắt đầu hướng dẫn nhập môn năm phút :material-arrow-right:](tutorial.md){ .md-button .md-button--primary }
 [So sánh các lựa chọn khác](comparison.md){ .md-button }
 
-Alpha · Python 3.14+ · catalog PO/MO thông thường · không phụ thuộc lúc chạy
+Alpha · Python 3.14+ · catalog PO/MO tiêu chuẩn · không phụ thuộc bên thứ ba lúc chạy
 { .home-facts }
 
 Trang này thực hành đúng điều nó viết: mọi phiên bản ngôn ngữ —
@@ -55,16 +61,15 @@ qua lần chuyển đổi — [Chuyển đổi](migration.md) đi hết cả ch�
 
 ## Catalog được phép nói gì { #what-the-catalog-may-say }
 
-Catalog nhận được trọn vẹn thông điệp `Hello {name}`. Một bản dịch có thể đảo
-thứ tự hoặc lặp lại `{name}`, và có thể viết lại mọi từ khác quanh nó. Nó không
-được phép bỏ mất placeholder, bịa ra một cái mới, thò qua nó để với vào đối
-tượng của bạn, hay gắn định dạng của riêng mình.
+**Một bản dịch không thể thay đổi cấu trúc của thông điệp mà nó dịch.** Đó là
+toàn bộ lời hứa, và mọi phần còn lại của trang này đều theo sau nó. Một bản dịch
+có thể đảo thứ tự hoặc lặp lại `{name}`, và có thể viết lại mọi từ khác quanh
+nó. Nó không được phép bỏ mất placeholder, bịa ra một cái mới, thò qua nó để với
+vào đối tượng của bạn, hay gắn định dạng của riêng mình.
 
-Đó là toàn bộ lời hứa: **một bản dịch không thể thay đổi cấu trúc của thông
-điệp mà nó dịch.** Thư viện kiểm tra điều đó ở đầu vào — khi catalog được biên
-dịch — và kiểm tra lại lúc kết xuất; một mục hỏng mà dù sao vẫn lọt tới
-production sẽ ghi một cảnh báo và kết xuất thông điệp nguồn thay vì làm chương
-trình đổ vỡ.
+Thư viện kiểm tra điều đó ở đầu vào — khi catalog được biên dịch — và kiểm tra
+lại lúc kết xuất, và đó chính là khác biệt giữa một sai sót được tìm thấy trong
+lúc rà soát và một sai sót được người dùng tìm thấy.
 
 !!! note "Mới biết đến gettext? Toàn bộ quy trình trong bốn câu"
 

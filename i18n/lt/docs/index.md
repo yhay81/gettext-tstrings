@@ -8,11 +8,11 @@ hide:
 
 <div class="home-hero" markdown>
 
-# Verskite ištisus pranešimus,<br>o ne eilučių nuotrupas.
+# Verskite ištisus pranešimus<br>su Python t-eilutėmis
 
 `gettext-tstrings` sujungia Python 3.14+ t-eilutes su standartiniais gettext
 katalogais ir Babel įrankiais. Reikšmės ir formatavimas lieka programos kode;
-katalogas laiko ištisą pranešimą su paprastais `{name}` vietaženkliais:
+vertėjai dirba su ištisais pranešimais ir paprastais `{name}` vietaženkliais:
 
 ```python
 import gettext
@@ -24,10 +24,15 @@ name = "Ada"
 print(_(t"Hello {name}"))  # with a Japanese catalog: こんにちは Ada
 ```
 
-[Pradėti pamoką :material-arrow-right:](tutorial.md){ .md-button .md-button--primary }
+Kataloge yra `Hello {name}`. Vertimas gali `{name}` perkelti ar pakartoti. Jei
+jis vietaženklį pašalina, pervadina ar performatuoja, katalogo tikrinimas
+praneša apie klaidą. Jei netinkamas įrašas vis dėlto pasiekia produkciją,
+biblioteka užrašo įspėjimą ir atvaizduoja pirminį pranešimą, o ne nulūžta.
+
+[Pradėti penkių minučių pamoką :material-arrow-right:](tutorial.md){ .md-button .md-button--primary }
 [Palyginti alternatyvas](comparison.md){ .md-button }
 
-Alfa · Python 3.14+ · įprasti PO/MO katalogai · jokių veikimo meto priklausomybių
+Alfa · Python 3.14+ · standartiniai PO/MO katalogai · jokių trečiųjų šalių veikimo meto priklausomybių
 { .home-facts }
 
 Ši svetainė daro tai, ką dokumentuoja: kiekvieną kalbos leidimą —
@@ -57,15 +62,15 @@ pereina visą kelią.
 
 ## Ką katalogui leidžiama pasakyti { #what-the-catalog-may-say }
 
-Katalogas gauna ištisą pranešimą `Hello {name}`. Vertimas gali perstatyti ar
+**Vertimas negali pakeisti verčiamo pranešimo sandaros.** Tai ir yra visas
+pažadas, o visa kita šioje svetainėje iš jo plaukia. Vertimas gali perstatyti ar
 pakartoti `{name}` ir gali perrašyti kiekvieną aplink jį esantį žodį. Jis
 negali vietaženklio praleisti, sugalvoti naujo, prasibrauti pro jį į jūsų
 objektus ar prikabinti savo formatavimo.
 
-Tai ir yra visas pažadas: **vertimas negali pakeisti verčiamo pranešimo
-sandaros.** Biblioteka tai patikrina įeinant — kai katalogai kompiliuojami — ir
-dar kartą atvaizdavimo metu; sugadintas įrašas, vis dėlto pasiekęs produkciją,
-užrašo įspėjimą ir atvaizduoja pirminį pranešimą, o ne nulūžta.
+Biblioteka tai patikrina įeinant — kai katalogai kompiliuojami — ir dar kartą
+atvaizdavimo metu, o būtent tai skiria klaidą, rastą peržiūros metu, nuo
+klaidos, kurią randa naudotojas.
 
 !!! note "Nesate susidūrę su gettext? Visa darbo eiga keturiais sakiniais"
 

@@ -8,11 +8,11 @@ hide:
 
 <div class="home-hero" markdown>
 
-# Tradu mesaje întregi,<br>nu fragmente de șir.
+# Tradu mesaje complete<br>cu t-stringuri Python
 
 `gettext-tstrings` leagă t-stringurile din Python 3.14+ de cataloagele gettext
 standard și de uneltele Babel. Valorile și formatarea rămân în codul aplicației;
-catalogul ține un mesaj complet, cu substituenți simpli `{name}`:
+traducătorii lucrează cu mesaje complete și cu substituenți simpli `{name}`:
 
 ```python
 import gettext
@@ -24,10 +24,15 @@ name = "Ada"
 print(_(t"Hello {name}"))  # with a Japanese catalog: こんにちは Ada
 ```
 
-[Începe tutorialul :material-arrow-right:](tutorial.md){ .md-button .md-button--primary }
+Catalogul conține `Hello {name}`. O traducere poate muta sau repeta `{name}`.
+Dacă elimină, redenumește sau reformatează substituentul, validarea catalogului
+semnalează eroarea. Dacă o intrare invalidă ajunge totuși în producție,
+biblioteca jurnalizează un avertisment și randează mesajul sursă, în loc să cadă.
+
+[Începe tutorialul de cinci minute :material-arrow-right:](tutorial.md){ .md-button .md-button--primary }
 [Compară alternativele](comparison.md){ .md-button }
 
-Alpha · Python 3.14+ · cataloage PO/MO obișnuite · fără dependențe la rulare
+Alpha · Python 3.14+ · cataloage PO/MO standard · fără dependențe terțe la rulare
 { .home-facts }
 
 Acest sit practică ceea ce documentează: fiecare ediție lingvistică —
@@ -57,16 +62,15 @@ msgid, așa că traducerile existente supraviețuiesc trecerii —
 
 ## Ce poate spune catalogul { #what-the-catalog-may-say }
 
-Catalogul primește mesajul complet `Hello {name}`. O traducere poate reordona
-sau repeta `{name}` și poate rescrie fiecare alt cuvânt din jurul lui. Ea nu
-poate elimina substituentul, nu poate inventa unul nou, nu poate ajunge prin el
-la obiectele tale și nu îi poate atașa formatare proprie.
+**O traducere nu poate schimba structura mesajului pe care îl traduce.**
+Aceasta este toată promisiunea, iar restul sitului decurge din ea. O traducere
+poate reordona sau repeta `{name}` și poate rescrie fiecare alt cuvânt din jurul
+lui. Ea nu poate elimina substituentul, nu poate inventa unul nou, nu poate
+ajunge prin el la obiectele tale și nu îi poate atașa formatare proprie.
 
-Aceasta este toată promisiunea: **o traducere nu poate schimba structura
-mesajului pe care îl traduce.** Biblioteca o verifică la intrare — când sunt
-compilate cataloagele — și încă o dată la randare; o intrare stricată care
-ajunge totuși în producție jurnalizează un avertisment și randează mesajul
-sursă, în loc să cadă.
+Biblioteca verifică asta la intrare — când sunt compilate cataloagele — și încă
+o dată la randare, ceea ce face diferența dintre o greșeală găsită la recenzie și
+una găsită de un utilizator.
 
 !!! note "Nou la gettext? Întregul flux în patru propoziții"
 

@@ -8,12 +8,12 @@ hide:
 
 <div class="home-hero" markdown>
 
-# Aistrigh teachtaireachtaí iomlána,<br>ní blúirí teaghráin.
+# Aistrigh teachtaireachtaí iomlána<br>le t-strings Python
 
 Ceanglaíonn `gettext-tstrings` t-strings Python 3.14+ le catalóga
 caighdeánacha gettext agus le huirlisí Babel. Fanann na luachanna agus an
-formáidiú i gcód an fheidhmchláir; coinníonn an chatalóg teachtaireacht
-iomlán le sealbhóirí ionaid shimplí `{name}`:
+formáidiú i gcód an fheidhmchláir; oibríonn na haistritheoirí le
+teachtaireachtaí iomlána agus le sealbhóirí ionaid shimplí `{name}`:
 
 ```python
 import gettext
@@ -25,10 +25,17 @@ name = "Ada"
 print(_(t"Hello {name}"))  # with a Japanese catalog: こんにちは Ada
 ```
 
-[Tosaigh an rang teagaisc :material-arrow-right:](tutorial.md){ .md-button .md-button--primary }
+Tá `Hello {name}` sa chatalóg. Tá cead ag aistriúchán `{name}` a bhogadh nó a
+athdhéanamh. Má bhaineann sé an sealbhóir ionaid, má athainmníonn sé é nó má
+athfhormáidíonn sé é, tuairiscíonn bailíochtú na catalóige an earráid. Má
+shroicheann iontráil neamhbhailí an táirgeadh mar sin féin, logálann an
+leabharlann rabhadh agus rindreálann sí an teachtaireacht fhoinseach seachas
+tuairteáil.
+
+[Tosaigh an rang teagaisc cúig nóiméad :material-arrow-right:](tutorial.md){ .md-button .md-button--primary }
 [Déan comparáid leis na roghanna eile](comparison.md){ .md-button }
 
-Alfa · Python 3.14+ · gnáthchatalóga PO/MO · gan spleáchais ag am rite
+Alfa · Python 3.14+ · catalóga caighdeánacha PO/MO · gan spleáchais tríú páirtí ag am rite
 { .home-facts }
 
 Cleachtann an suíomh seo an rud a dhoiciméadaíonn sé: rindreáiltear gach
@@ -58,18 +65,16 @@ céanna, mar sin maireann na haistriúcháin atá ann tríd an athrú — siúla
 
 ## A bhfuil cead ag an gcatalóg a rá { #what-the-catalog-may-say }
 
-Faigheann an chatalóg an teachtaireacht iomlán `Hello {name}`. Tá cead ag
-aistriúchán `{name}` a athordú nó a athdhéanamh, agus gach focal eile timpeall
-air a athscríobh. Níl cead aige an sealbhóir ionaid a fhágáil ar lár, ceann
-nua a chumadh, síneadh tríd isteach i do chuid oibiachtaí, ná formáidiú dá
-chuid féin a cheangal leis.
+**Ní féidir le haistriúchán struchtúr na teachtaireachta a aistríonn sé a
+athrú.** Sin an gealltanas ar fad, agus leanann an chuid eile den suíomh seo
+as. Tá cead ag aistriúchán `{name}` a athordú nó a athdhéanamh, agus gach
+focal eile timpeall air a athscríobh. Níl cead aige an sealbhóir ionaid a
+fhágáil ar lár, ceann nua a chumadh, síneadh tríd isteach i do chuid
+oibiachtaí, ná formáidiú dá chuid féin a cheangal leis.
 
-Sin an gealltanas ar fad: **ní féidir le haistriúchán struchtúr na
-teachtaireachta a aistríonn sé a athrú.** Seiceálann an leabharlann é ar an
-mbealach isteach — nuair a thiomsaítear na catalóga — agus arís ag am
-rindreála; iontráil lochtach a shroicheann an táirgeadh mar sin féin,
-logálann sí rabhadh agus rindreálann sí an teachtaireacht fhoinseach seachas
-tuairteáil.
+Seiceálann an leabharlann é sin ar an mbealach isteach — nuair a thiomsaítear
+na catalóga — agus arís ag am rindreála, agus sin an difríocht idir botún a
+aimsítear i léirmheas agus botún a aimsíonn úsáideoir.
 
 !!! note "gettext nua duit? An sreabhadh oibre iomlán i gceithre abairt"
 

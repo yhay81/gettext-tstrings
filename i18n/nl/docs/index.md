@@ -8,11 +8,11 @@ hide:
 
 <div class="home-hero" markdown>
 
-# Vertaal hele berichten,<br>geen tekstfragmenten.
+# Vertaal volledige berichten<br>met de t-strings van Python
 
 `gettext-tstrings` verbindt de t-strings van Python 3.14+ met standaard
 gettext-catalogi en Babel-gereedschap. Waarden en opmaak blijven in de code van
-de applicatie; de catalogus bevat een volledig bericht met eenvoudige
+de applicatie; vertalers werken met volledige berichten en eenvoudige
 `{name}`-placeholders:
 
 ```python
@@ -25,10 +25,16 @@ name = "Ada"
 print(_(t"Hello {name}"))  # with a Japanese catalog: こんにちは Ada
 ```
 
-[Begin de tutorial :material-arrow-right:](tutorial.md){ .md-button .md-button--primary }
+De catalogus bevat `Hello {name}`. Een vertaling mag `{name}` verplaatsen of
+herhalen. Weglaten, hernoemen of anders opmaken van de placeholder wordt door de
+catalogusvalidatie als fout gemeld. Belandt een ongeldige entry tóch in
+productie, dan logt de bibliotheek een waarschuwing en rendert ze het
+bronbericht in plaats van te crashen.
+
+[Begin de tutorial van vijf minuten :material-arrow-right:](tutorial.md){ .md-button .md-button--primary }
 [Vergelijk de alternatieven](comparison.md){ .md-button }
 
-Alfa · Python 3.14+ · gewone PO/MO-catalogi · geen runtime-dependencies
+Alfa · Python 3.14+ · standaard PO/MO-catalogi · geen externe runtime-dependencies
 { .home-facts }
 
 Deze site brengt in praktijk wat ze documenteert: elke taaleditie —
@@ -57,16 +63,15 @@ overstap overleven — [Migratie](migration.md) loopt de hele verhuizing door.
 
 ## Wat de catalogus mag zeggen { #what-the-catalog-may-say }
 
-De catalogus ontvangt het volledige bericht `Hello {name}`. Een vertaling mag
-`{name}` verplaatsen of herhalen, en mag elk ander woord eromheen herschrijven.
-Ze mag de placeholder niet weglaten, er geen nieuwe verzinnen, er niet doorheen
-grijpen naar je objecten, en er geen eigen opmaak aan hangen.
+**Een vertaling kan de structuur van het bericht dat ze vertaalt niet
+veranderen.** Dat is de hele belofte, en de rest van deze site volgt eruit. Een
+vertaling mag `{name}` verplaatsen of herhalen, en mag elk ander woord eromheen
+herschrijven. Ze mag de placeholder niet weglaten, er geen nieuwe verzinnen, er
+niet doorheen grijpen naar je objecten, en er geen eigen opmaak aan hangen.
 
-Dat is de hele belofte: **een vertaling kan de structuur van het bericht dat ze
-vertaalt niet veranderen.** De bibliotheek controleert dat aan de poort — bij
-het compileren van catalogi — en nog eens bij het renderen; een kapotte entry
-die tóch in productie belandt, logt een waarschuwing en rendert het bronbericht
-in plaats van te crashen.
+De bibliotheek controleert dat aan de poort — bij het compileren van catalogi —
+en nog eens bij het renderen, en dat is het verschil tussen een fout die bij de
+review gevonden wordt en een fout die door een gebruiker gevonden wordt.
 
 !!! note "Nieuw bij gettext? De hele workflow in vier zinnen"
 

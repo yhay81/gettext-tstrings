@@ -8,11 +8,11 @@ hide:
 
 <div class="home-hero" markdown>
 
-# Tafsiri jumbe nzima,<br>si vipande vya mifuatano.
+# Tafsiri jumbe kamili<br>kwa t-strings za Python
 
 `gettext-tstrings` huunganisha t-strings za Python 3.14+ na katalogi sanifu za
 gettext na zana za Babel. Thamani na uumbizaji hubaki ndani ya msimbo wa
-programu; katalogi hushikilia ujumbe kamili wenye vishika nafasi rahisi vya
+programu; watafsiri hushughulika na jumbe kamili na vishika nafasi rahisi vya
 `{name}`:
 
 ```python
@@ -25,10 +25,16 @@ name = "Ada"
 print(_(t"Hello {name}"))  # with a Japanese catalog: こんにちは Ada
 ```
 
-[Anza mafunzo :material-arrow-right:](tutorial.md){ .md-button .md-button--primary }
+Katalogi hushikilia `Hello {name}`. Tafsiri inaweza kuhamisha au kurudia
+`{name}`. Ikiwa itakiondoa kishika nafasi, kukipa jina jingine, au kukiumbiza
+upya, uthibitishaji wa katalogi huripoti hitilafu. Ikiwa ingizo batili
+litafikia uzalishaji hata hivyo, maktaba huandika onyo na huonyesha ujumbe
+chanzo badala ya kuanguka.
+
+[Anza mafunzo ya dakika tano :material-arrow-right:](tutorial.md){ .md-button .md-button--primary }
 [Linganisha mbadala](comparison.md){ .md-button }
 
-Alpha · Python 3.14+ · katalogi za kawaida za PO/MO · hakuna vitegemezi vya wakati wa utekelezaji
+Alpha · Python 3.14+ · katalogi sanifu za PO/MO · hakuna vitegemezi vya wakati wa utekelezaji kutoka kwa watu wa tatu
 { .home-facts }
 
 Tovuti hii hutekeleza kile inachoandika: kila toleo la lugha — urambazaji,
@@ -58,16 +64,16 @@ ileile, hivyo tafsiri zilizopo hunusurika mabadiliko —
 
 ## Kile katalogi inachoruhusiwa kusema { #what-the-catalog-may-say }
 
-Katalogi hupokea ujumbe kamili `Hello {name}`. Tafsiri inaweza kupanga upya au
-kurudia `{name}`, nayo inaweza kuandika upya kila neno jingine linalokizunguka.
-Haiwezi kukiondoa kishika nafasi, kubuni kipya, kufikia vitu vyako kupitia
-kishika nafasi, wala kuambatisha umbizo lake yenyewe.
+**Tafsiri haiwezi kubadilisha muundo wa ujumbe inaoutafsiri.** Hiyo ndiyo
+ahadi nzima, na kila kitu kingine kwenye tovuti hii hufuata kutoka hapo.
+Tafsiri inaweza kupanga upya au kurudia `{name}`, nayo inaweza kuandika upya
+kila neno jingine linalokizunguka. Haiwezi kukiondoa kishika nafasi, kubuni
+kipya, kufikia vitu vyako kupitia kishika nafasi, wala kuambatisha umbizo lake
+yenyewe.
 
-Hiyo ndiyo ahadi nzima: **tafsiri haiwezi kubadilisha muundo wa ujumbe
-inaoutafsiri.** Maktaba hukagua hilo wakati wa kuingia — katalogi
-zinapokusanywa — na tena wakati wa kuonyesha; ingizo bovu linalofikia
-uzalishaji hata hivyo huandika onyo na huonyesha ujumbe chanzo badala ya
-kuanguka.
+Maktaba hukagua hilo wakati wa kuingia — katalogi zinapokusanywa — na tena
+wakati wa kuonyesha, na hapo ndipo tofauti ilipo kati ya kosa linalogunduliwa
+kwenye mapitio na kosa linalogunduliwa na mtumiaji.
 
 !!! note "Mgeni kwa gettext? Mtiririko mzima wa kazi kwa sentensi nne"
 

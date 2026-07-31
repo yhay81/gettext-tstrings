@@ -8,11 +8,12 @@ hide:
 
 <div class="home-hero" markdown>
 
-# Prevajajte celotna sporočila,<br>ne drobcev nizov.
+# Prevajajte celotna sporočila<br>s pythonskimi t-nizi
 
 `gettext-tstrings` poveže t-nize iz Pythona 3.14+ s standardnimi katalogi
 gettexta in orodji Babela. Vrednosti in oblikovanje ostanejo v kodi
-aplikacije; katalog hrani celotno sporočilo s preprostimi ogradami `{name}`:
+aplikacije; prevajalci delajo s celotnimi sporočili in preprostimi ogradami
+`{name}`:
 
 ```python
 import gettext
@@ -24,10 +25,15 @@ name = "Ada"
 print(_(t"Hello {name}"))  # with a Japanese catalog: こんにちは Ada
 ```
 
-[Začnite vadnico :material-arrow-right:](tutorial.md){ .md-button .md-button--primary }
+Katalog vsebuje `Hello {name}`. Prevod sme `{name}` prestaviti ali ponoviti.
+Če ogrado izpusti, preimenuje ali ji spremeni obliko, preverjanje kataloga
+napako sporoči. Če neveljaven vnos kljub temu pride v produkcijo, knjižnica
+zabeleži opozorilo in izriše izvorno sporočilo, namesto da bi se sesul.
+
+[Začnite petminutno vadnico :material-arrow-right:](tutorial.md){ .md-button .md-button--primary }
 [Primerjajte možnosti](comparison.md){ .md-button }
 
-Alfa · Python 3.14+ · običajni katalogi PO/MO · brez odvisnosti med izvajanjem
+Alfa · Python 3.14+ · standardni katalogi PO/MO · brez odvisnosti tretjih oseb med izvajanjem
 { .home-facts }
 
 Ta stran uresničuje to, kar dokumentira: vsaka jezikovna različica —
@@ -56,15 +62,15 @@ preklop preživijo — [Migracija](migration.md) prehodi celotno selitev.
 
 ## Kaj sme katalog povedati { #what-the-catalog-may-say }
 
-Katalog prejme celotno sporočilo `Hello {name}`. Prevod sme `{name}` prestaviti
-ali ponoviti in sme prepisati vsako drugo besedo okoli njega. Ne sme pa ograde
-izpustiti, si izmisliti nove, skoznjo seči v vaše objekte ali ji dodati
-lastnega oblikovanja.
+**Prevod ne more spremeniti zgradbe sporočila, ki ga prevaja.** To je celotna
+obljuba in iz nje sledi vse drugo na tem spletišču. Prevod sme `{name}`
+prestaviti ali ponoviti in sme prepisati vsako drugo besedo okoli njega. Ne sme
+pa ograde izpustiti, si izmisliti nove, skoznjo seči v vaše objekte ali ji
+dodati lastnega oblikovanja.
 
-To je celotna obljuba: **prevod ne more spremeniti zgradbe sporočila, ki ga
-prevaja.** Knjižnica to preveri na poti noter — ob kompilaciji katalogov — in
-znova ob izrisu; pokvarjen vnos, ki kljub temu pride v produkcijo, zabeleži
-opozorilo in izriše izvorno sporočilo, namesto da bi se sesul.
+Knjižnica to preveri na poti noter — ob kompilaciji katalogov — in znova ob
+izrisu, in prav v tem je razlika med napako, ki jo najde pregled, in napako, ki
+jo najde uporabnik.
 
 !!! note "Vam je gettext nov? Celoten delovni proces v štirih povedih"
 

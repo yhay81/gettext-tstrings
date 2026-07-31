@@ -8,12 +8,12 @@ hide:
 
 <div class="home-hero" markdown>
 
-# Teljes üzeneteket fordíts,<br>ne szövegtöredékeket.
+# Teljes üzenetek fordítása<br>Python t-stringekkel
 
 A `gettext-tstrings` összeköti a Python 3.14+ t-stringjeit a szokásos
 gettext-katalógusokkal és a Babel eszközkészletével. Az értékek és a formázás
-az alkalmazáskódban maradnak; a katalógus egy teljes üzenetet kap, egyszerű
-`{name}` helyőrzőkkel:
+az alkalmazáskódban maradnak; a fordítók teljes üzenetekkel és egyszerű
+`{name}` helyőrzőkkel dolgoznak:
 
 ```python
 import gettext
@@ -25,10 +25,16 @@ name = "Ada"
 print(_(t"Hello {name}"))  # with a Japanese catalog: こんにちは Ada
 ```
 
-[Irány az oktatóanyag :material-arrow-right:](tutorial.md){ .md-button .md-button--primary }
+A katalógus a `Hello {name}` üzenetet tartalmazza. Egy fordítás áthelyezheti
+vagy megismételheti a `{name}` helyőrzőt. Ha elhagyja, átnevezi vagy formázást
+akaszt rá, a katalógus-ellenőrzés jelzi a hibát. Ha egy hibás bejegyzés mégis
+eljut az éles üzembe, a könyvtár figyelmeztetést naplóz, és összeomlás helyett
+a forrásüzenetet rendereli.
+
+[Irány az ötperces oktatóanyag :material-arrow-right:](tutorial.md){ .md-button .md-button--primary }
 [Hasonlítsd össze az alternatívákat](comparison.md){ .md-button }
 
-Alfa · Python 3.14+ · szokványos PO-/MO-katalógusok · nincs futásidejű függőség
+Alfa · Python 3.14+ · szabványos PO-/MO-katalógusok · nincs harmadik féltől származó futásidejű függőség
 { .home-facts }
 
 Ez a webhely maga is azt gyakorolja, amit dokumentál: minden nyelvi kiadását —
@@ -58,16 +64,16 @@ msgidet állítja elő, tehát a meglévő fordítások túlélik a váltást �
 
 ## Mit mondhat a katalógus { #what-the-catalog-may-say }
 
-A katalógus a teljes `Hello {name}` üzenetet kapja meg. Egy fordítás
-átrendezheti vagy megismételheti a `{name}` helyőrzőt, és átírhat körülötte
-minden más szót. Nem hagyhatja el a helyőrzőt, nem találhat ki újat, nem
-nyúlhat rajta keresztül az objektumaidba, és nem aggathat rá saját formázást.
+**Egy fordítás nem változtathatja meg annak az üzenetnek a szerkezetét, amelyet
+fordít.** Ez az egész ígéret, és ebből következik a webhely minden további
+része. Egy fordítás átrendezheti vagy megismételheti a `{name}` helyőrzőt, és
+átírhat körülötte minden más szót. Nem hagyhatja el a helyőrzőt, nem találhat
+ki újat, nem nyúlhat rajta keresztül az objektumaidba, és nem aggathat rá saját
+formázást.
 
-Ez az egész ígéret: **egy fordítás nem változtathatja meg annak az üzenetnek a
-szerkezetét, amelyet fordít.** A könyvtár beérkezéskor ellenőrzi — a
-katalógusok bináris fordításakor —, majd rendereléskor újra; az a hibás
-bejegyzés, amely mégis eljut az éles üzembe, figyelmeztetést naplóz, és
-összeomlás helyett a forrásüzenetet rendereli.
+A könyvtár ezt beérkezéskor ellenőrzi — a katalógusok bináris fordításakor —,
+majd rendereléskor újra: ez a különbség az átnézésen megtalált és a felhasználó
+által megtalált hiba között.
 
 !!! note "Most ismerkedsz a gettexttel? Az egész munkafolyamat négy mondatban"
 

@@ -8,12 +8,12 @@ hide:
 
 <div class="home-hero" markdown>
 
-# Escribe la frase una vez.<br>Tradúcela entera.
+# Traduce mensajes completos<br>con las t-strings de Python
 
 `gettext-tstrings` conecta las t-strings de Python 3.14+ con los catálogos
 gettext estándar y las herramientas de Babel. Los valores y el formato se
-quedan en el código de la aplicación; el catálogo guarda un mensaje completo
-con marcadores `{name}` sencillos:
+quedan en el código de la aplicación; los traductores trabajan con mensajes
+completos y marcadores `{name}` sencillos:
 
 ```python
 import gettext
@@ -25,10 +25,16 @@ name = "Ada"
 print(_(t"Hello {name}"))  # with a Japanese catalog: こんにちは Ada
 ```
 
-[Empieza el tutorial :material-arrow-right:](tutorial.md){ .md-button .md-button--primary }
+El catálogo contiene `Hello {name}`. Una traducción puede mover o repetir
+`{name}`. Si lo elimina, lo renombra o le añade formato, la validación del
+catálogo señala el error. Si aun así una entrada inválida llega a producción,
+la biblioteca registra una advertencia y renderiza el mensaje de origen en
+lugar de provocar un fallo.
+
+[Empieza el tutorial de cinco minutos :material-arrow-right:](tutorial.md){ .md-button .md-button--primary }
 [Compara las alternativas](comparison.md){ .md-button }
 
-Alpha · Python 3.14+ · catálogos PO/MO normales · sin dependencias en tiempo de ejecución
+Alpha · Python 3.14+ · catálogos PO/MO estándar · sin dependencias de terceros en tiempo de ejecución
 { .home-facts }
 
 Este sitio practica lo que documenta: cada edición lingüística
@@ -58,16 +64,15 @@ completo.
 
 ## Qué puede decir el catálogo { #what-the-catalog-may-say }
 
-El catálogo recibe el mensaje completo `Hello {name}`. Una traducción puede
-reordenar o repetir `{name}`, y puede reescribir todas las demás palabras que
-lo rodean. No puede omitir el marcador, inventar uno nuevo, atravesarlo para
+**Una traducción no puede cambiar la estructura del mensaje que traduce.** Esa
+es toda la promesa, y el resto de este sitio se deriva de ella. Una traducción
+puede reordenar o repetir `{name}`, y puede reescribir todas las demás palabras
+que lo rodean. No puede omitir el marcador, inventar uno nuevo, atravesarlo para
 llegar a tus objetos ni añadir formato por su cuenta.
 
-Esa es toda la promesa: **una traducción no puede cambiar la estructura del
-mensaje que traduce.** La biblioteca lo comprueba a la entrada —cuando se
-compilan los catálogos— y de nuevo al renderizar; una entrada dañada que aun
-así llegue a producción registra una advertencia y renderiza el texto de origen
-en lugar de provocar un fallo.
+La biblioteca lo comprueba a la entrada —cuando se compilan los catálogos— y de
+nuevo al renderizar, que es la diferencia entre un error encontrado en la
+revisión y un error encontrado por una persona usuaria.
 
 !!! note "¿Nuevo en gettext? Todo el flujo de trabajo en cuatro frases"
 

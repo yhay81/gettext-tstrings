@@ -8,11 +8,11 @@ hide:
 
 <div class="home-hero" markdown>
 
-# Parçaları değil,<br>bütün mesajları çevirin.
+# Eksiksiz mesajları<br>Python t-string'leriyle çevirin
 
 `gettext-tstrings`, Python 3.14+ t-string'lerini standart gettext kataloglarına
 ve Babel araçlarına bağlar. Değerler ve biçimlendirme uygulama kodunda kalır;
-katalog ise yalın `{name}` yer tutucuları olan eksiksiz bir mesaj tutar:
+çevirmenler ise eksiksiz mesajlarla ve yalın `{name}` yer tutucularıyla çalışır:
 
 ```python
 import gettext
@@ -24,10 +24,16 @@ name = "Ada"
 print(_(t"Hello {name}"))  # with a Japanese catalog: こんにちは Ada
 ```
 
-[Öğreticiye başla :material-arrow-right:](tutorial.md){ .md-button .md-button--primary }
+Katalog `Hello {name}` mesajını tutar. Bir çeviri `{name}` yer tutucusunu
+taşıyabilir ya da yineleyebilir. Onu atarsa, adını değiştirirse ya da yeniden
+biçimlendirirse, katalog doğrulaması hatayı bildirir. Geçersiz bir girdi yine de
+üretime ulaşırsa, kütüphane bir uyarı kaydeder ve çökmek yerine kaynak mesajı
+render eder.
+
+[Beş dakikalık öğreticiye başla :material-arrow-right:](tutorial.md){ .md-button .md-button--primary }
 [Alternatifleri karşılaştır](comparison.md){ .md-button }
 
-Alfa · Python 3.14+ · sıradan PO/MO katalogları · çalışma zamanı bağımlılığı yok
+Alfa · Python 3.14+ · standart PO/MO katalogları · üçüncü taraf çalışma zamanı bağımlılığı yok
 { .home-facts }
 
 Bu site belgelediğini bizzat uygular: her dil sürümü — gezinme,
@@ -57,15 +63,15 @@ taşınmanın tamamını adım adım anlatır.
 
 ## Kataloğun söyleyebilecekleri { #what-the-catalog-may-say }
 
-Katalog, `Hello {name}` mesajının tamamını alır. Bir çeviri `{name}` yer
-tutucusunu yeniden sıralayabilir ya da yineleyebilir ve çevresindeki her
-sözcüğü yeniden yazabilir. Yer tutucuyu atamaz, yenisini uyduramaz, onun
-üzerinden nesnelerinize uzanamaz ve kendi biçimlendirmesini iliştiremez.
+**Bir çeviri, çevirdiği mesajın yapısını değiştiremez.** Verilen söz bundan
+ibaret ve bu sitenin geri kalanı ondan çıkar. Bir çeviri `{name}` yer tutucusunu
+yeniden sıralayabilir ya da yineleyebilir ve çevresindeki her sözcüğü yeniden
+yazabilir. Yer tutucuyu atamaz, yenisini uyduramaz, onun üzerinden
+nesnelerinize uzanamaz ve kendi biçimlendirmesini iliştiremez.
 
-Verilen söz bundan ibaret: **bir çeviri, çevirdiği mesajın yapısını
-değiştiremez.** Kütüphane bunu girişte — kataloglar derlenirken — ve bir kez
-daha render anında denetler; yine de üretime sızan bozuk bir girdi, çökmek
-yerine bir uyarı kaydeder ve kaynak mesajı render eder.
+Kütüphane bunu girişte — kataloglar derlenirken — ve bir kez daha render anında
+denetler; incelemede yakalanan bir hata ile kullanıcının yakaladığı bir hata
+arasındaki fark da budur.
 
 !!! note "gettext'e yeni misiniz? Tüm iş akışı dört cümlede"
 
