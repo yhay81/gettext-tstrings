@@ -125,22 +125,24 @@ msgid           'Total: {amount}'
 localized pages` — 영어의 두 분기 — 가 들어 있고, 사이트의 각 언어판은
 이 한 메시지를 적게는 한 형태에서 많게는 여섯 형태까지로 번역합니다.
 
-| 카탈로그 | 형태 수 | 형태 순서대로 나열한 번역 |
-| --- | --- | --- |
-| 일본어 | 1 | `ローカライズ済みページを{n}件ビルドしました` |
-| 터키어 | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` — 두 번 동일하게: 터키어 명사는 수사 뒤에서 단수형을 유지합니다 |
-| 이탈리아어 | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` — 분사가 성과 수에 일치합니다 |
-| 라트비아어 | 3 | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` — 세 번째 형태는 **0 전용**입니다 |
-| 러시아어 | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
-| 폴란드어 | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
-| 슬로베니아어 | 4 | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` — 두 번째는 정확히 둘을 뜻하는 **양수(dual)** 형태입니다 |
-| 아일랜드어 | 5 | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` — 하나, 둘, 3–6, 7–10, 그 밖의 다섯 가지이며 어간이 교체되지만 *leathanach*는 `l`로 시작하고 아일랜드어의 어떤 변자음도 `l`에는 표기되지 않으므로 여러 형태가 일치합니다 |
-| 아랍어 | 6 | 그중 정확히 하나를 뜻하는 `تم إنشاء صفحة مترجمة واحدة ({n})`와 몇 개(소수)를 뜻하는 `تم إنشاء {n} صفحات مترجمة` |
+??? example "그 언어판 아홉 가지, 형태 순서대로"
 
-모든 행은 이 저장소의 `i18n/*/LC_MESSAGES/site.po`에 실제로 존재하는
-항목으로, 릴리스마다 [다국어 빌드](index.md)가 렌더링합니다 — 그리고
-테스트가 이 표를 그 카탈로그들에 고정하므로 둘은 서로 어긋날 수
-없습니다.
+    | 카탈로그 | 형태 수 | 형태 순서대로 나열한 번역 |
+    | --- | --- | --- |
+    | 일본어 | 1 | `ローカライズ済みページを{n}件ビルドしました` |
+    | 터키어 | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` — 두 번 동일하게: 터키어 명사는 수사 뒤에서 단수형을 유지합니다 |
+    | 이탈리아어 | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` — 분사가 성과 수에 일치합니다 |
+    | 라트비아어 | 3 | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` — 세 번째 형태는 **0 전용**입니다 |
+    | 러시아어 | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
+    | 폴란드어 | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
+    | 슬로베니아어 | 4 | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` — 두 번째는 정확히 둘을 뜻하는 **양수(dual)** 형태입니다 |
+    | 아일랜드어 | 5 | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` — 하나, 둘, 3–6, 7–10, 그 밖의 다섯 가지이며 어간이 교체되지만 *leathanach*는 `l`로 시작하고 아일랜드어의 어떤 변자음도 `l`에는 표기되지 않으므로 여러 형태가 일치합니다 |
+    | 아랍어 | 6 | 그중 정확히 하나를 뜻하는 `تم إنشاء صفحة مترجمة واحدة ({n})`와 몇 개(소수)를 뜻하는 `تم إنشاء {n} صفحات مترجمة` |
+
+    모든 행은 이 저장소의 `i18n/*/LC_MESSAGES/site.po`에 실제로 존재하는
+    항목으로, 릴리스마다 [다국어 빌드](index.md)가 렌더링합니다 — 그리고
+    테스트가 이 표를 그 카탈로그들에 고정하므로 둘은 서로 어긋날 수
+    없습니다.
 
 그 경계 안에서 순서 변경과 반복은 의도적으로 제약하지 않습니다. 둘 다
 실제 언어에서 문법적으로 필요하며, 등장 횟수를 제한하는 것은 아무 보안
@@ -233,15 +235,18 @@ flowchart LR
 모든 캐시는 크기가 제한되며, 어느 것도 보간된 *값*을 보관하지 않습니다
 — 정적 구조와 패턴 텍스트뿐입니다.
 [`benchmarks/runtime.py`](https://github.com/yhay81/gettext-tstrings/blob/main/benchmarks/runtime.py)로
-측정한 결과는 이렇습니다. 필드 하나짜리 메시지에 t-string 생성 자체를
-포함해 약 0.4µs로, 아무것도 검사하지 않는 순수
-`gettext(...).format(...)`의 약 2.5배입니다.
+CPython 3.14.6, arm64 노트북의 macOS 26에서 측정한 결과는 이렇습니다.
+필드 하나짜리 메시지에 t-string 생성 자체를 포함해 약 0.4µs로,
+아무것도 검사하지 않는 순수 `gettext(...).format(...)`의 약 2.7배입니다.
+이는 기계 한 대의 숫자입니다 — 스크립트가 헤더에 인터프리터와 플랫폼을
+출력하므로, 어떤 비율이든 자기 것으로 여기기 전에 실제로 배포하는
+하드웨어에서 직접 돌려 보세요.
 [`core.py`](https://github.com/yhay81/gettext-tstrings/blob/main/src/gettext_tstrings/core.py)
 상단의 주석이 그 형태 뒤에 있는 개별 측정값을 기록합니다.
 
 ## 직접 구현하기 { #reimplementing-it }
 
-위의 어느 것도 비밀 지식이 아닙니다. 규약은 [명세 v1](spec.md)로 적혀
+위의 어느 것도 이 구현에만 해당하는 이야기가 아닙니다. 규약은 [명세 v1](spec.md)로 적혀
 있고, 기계 판독 가능한 [적합성 테스트 모음](spec.md#conformance)을
 사용하면 추출기든 IDE 플러그인이든 다른 언어의 구현이든 이 페이지가
 설명한 모든 규칙에 대해 스스로를 검사할 수 있습니다. 이 구현도 자체

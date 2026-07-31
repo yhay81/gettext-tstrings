@@ -131,8 +131,20 @@ másolják, minden naiv ellenőrzésen átmegy: semmi nem üres, semmi nem fuzzy
 forrás bájtra azonos másolatai voltak — és ez átmegy azon az ellenőrzésen,
 amely a kettő kódblokkjait hasonlítja össze, mert ugyanarról a fájlról van szó.
 
-Egyiket sem látja egy fordítókönyvtár. Mindkettőt olcsó tesztelni, ha egyszer
-tudod, hogy kell: hasonlítsd össze a forrással, és követeld meg az eltérést.
+Egyiket sem látja egy fordítókönyvtár. Mindkettőt olcsó tesztelni, de nem úgy,
+hogy minden bejegyzéstől eltérést követelsz meg a forrásához képest: az `OK`, a
+terméknevek, a személynevek, a betűszók és a kódazonosítók mind önmagukra
+fordulnak, és az az ellenőrzés, amely ezt megtiltja, örökké téves riasztásokat
+termel.
+
+Mérd inkább az *arányt*, egy egész katalógusra vagy egy egész oldalra, és a
+kiugró eseteket küldd emberhez. Ennek a webhelynek a saját tesztje pontosan ezt
+teszi — az egyes kiadások folyószöveges sorait hasonlítja össze az angol
+forrással, és 25% egyezés fölött elbukik. A hamisított kiadás 87%-on állt;
+minden valódi fordítás 4% és 8% között van, ami azoknak a soroknak a kis
+maradéka, amelyek jogosan esnek egybe, például az URL-ek és az idézett
+programkimenet. A két populáció elég messze van egymástól ahhoz, hogy a
+küszöbnek ne kelljen pontosnak lennie.
 
 ## Nem a katalógus az egyetlen lefordított dolog { #the-catalog-is-not-the-only-translated-thing }
 

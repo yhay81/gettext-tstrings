@@ -180,6 +180,17 @@ python -m pip install "gettext-tstrings[babel]"
 
 ## Stav { #status }
 
+| | |
+| --- | --- |
+| Verze balíčku | 0.1.0a7 |
+| Stabilita API | alfa — pythonovské API se ještě může měnit |
+| [Specifikace](spec.md) | v1, se [sadou testů konformity](spec.md#conformance) |
+| Python | 3.14 a novější; testováno na 3.14, 3.14t (free-threaded) a 3.15 |
+| Babel | 2.18 nebo novější, a jen tam, kde běží `pybabel` |
+| Běhové závislosti | žádné — `gettext` ze standardní knihovny |
+| Formát katalogu | běžné POT, PO a MO |
+| Změny | [CHANGELOG](https://github.com/yhay81/gettext-tstrings/blob/main/CHANGELOG.md) |
+
 Alfa. Kontrakt je záměrně malý a [specifikace](spec.md) je jeho stabilní
 částí; pythonovské API se ještě může hýbat. Před stabilním vydáním to
 potřebuje širší jazykové fixtury, soustavné sledování výkonu, revizi API od

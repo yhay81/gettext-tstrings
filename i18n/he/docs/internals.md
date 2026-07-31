@@ -114,23 +114,25 @@ msgid           'Total: {amount}'
 שום דבר מזה אינו היפותטי: קטלוג הכרום של האתר הזה עצמו נושא את הודעת
 הריבוי `Built {n} localized page` / `Built {n} localized pages` — שני
 ענפים באנגלית — ומהדורות האתר מתרגמות את ההודעה האחת הזו לכל דבר שבין
-צורה אחת לשש:
+צורה אחת לשש.
 
-| קטלוג | צורות | התרגומים, לפי סדר הצורות |
-| --- | --- | --- |
-| יפנית | 1 | `ローカライズ済みページを{n}件ビルドしました` |
-| טורקית | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` — פעמיים, זהה לחלוטין: שמות עצם בטורקית נשארים ביחיד אחרי מספר |
-| איטלקית | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` — הבינוני מותאם במין ובמספר |
-| לטבית | 3 | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` — הצורה השלישית היא **לאפס בלבד** |
-| רוסית | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
-| פולנית | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
-| סלובנית | 4 | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` — השנייה היא **זוגי**, לשניים בדיוק |
-| אירית | 5 | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` — אחד, שניים, 3–6, 7–10 וכל השאר; הגזע מתחלף, אבל *leathanach* מתחילה ב-`l`, ואף מוטציה אירית אינה נכתבת עליה, ולכן כמה צורות מתלכדות |
-| ערבית | 6 | ביניהן `تم إنشاء صفحة مترجمة واحدة ({n})` לאחד בדיוק ו-`تم إنشاء {n} صفحات مترجمة` לכמה |
+??? example "תשע מהמהדורות האלה, לפי סדר הצורות"
 
-כל שורה היא רשומה חיה ב-`i18n/*/LC_MESSAGES/site.po` של המאגר הזה,
-המרונדרת על ידי [הבנייה הרב-לשונית](index.md) בכל שחרור — ובדיקה מצמידה את
-הטבלה הזו לאותם קטלוגים, כך שהשניים אינם יכולים להיסחף זה מזה.
+    | קטלוג | צורות | התרגומים, לפי סדר הצורות |
+    | --- | --- | --- |
+    | יפנית | 1 | `ローカライズ済みページを{n}件ビルドしました` |
+    | טורקית | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` — פעמיים, זהה לחלוטין: שמות עצם בטורקית נשארים ביחיד אחרי מספר |
+    | איטלקית | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` — הבינוני מותאם במין ובמספר |
+    | לטבית | 3 | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` — הצורה השלישית היא **לאפס בלבד** |
+    | רוסית | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
+    | פולנית | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
+    | סלובנית | 4 | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` — השנייה היא **זוגי**, לשניים בדיוק |
+    | אירית | 5 | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` — אחד, שניים, 3–6, 7–10 וכל השאר; הגזע מתחלף, אבל *leathanach* מתחילה ב-`l`, ואף מוטציה אירית אינה נכתבת עליה, ולכן כמה צורות מתלכדות |
+    | ערבית | 6 | ביניהן `تم إنشاء صفحة مترجمة واحدة ({n})` לאחד בדיוק ו-`تم إنشاء {n} صفحات مترجمة` לכמה |
+
+    כל שורה היא רשומה חיה ב-`i18n/*/LC_MESSAGES/site.po` של המאגר הזה,
+    המרונדרת על ידי [הבנייה הרב-לשונית](index.md) בכל שחרור — ובדיקה מצמידה את
+    הטבלה הזו לאותם קטלוגים, כך שהשניים אינם יכולים להיסחף זה מזה.
 
 בתוך הגבולות האלה, שינוי סדר וחזרה אינם מוגבלים בכוונה. שניהם הכרחיים
 דקדוקית בשפות אמיתיות, והגבלת מספרי המופעים הייתה דוחה תרגומים נכונים בלי
@@ -218,15 +220,19 @@ flowchart LR
 
 כל מטמון תחום בגודלו, ואף אחד מהם אינו שומר *ערכים* שעברו אינטרפולציה —
 רק מבנה סטטי וטקסט דפוסים. התוצאה, כפי שנמדדה על ידי
-[`benchmarks/runtime.py`](https://github.com/yhay81/gettext-tstrings/blob/main/benchmarks/runtime.py):
-בערך 0.4 מיקרו-שנייה להודעה עם שדה אחד, כולל בניית מחרוזת ה-t עצמה — פי
-2.5 בקירוב מ-`gettext(...).format(...)` פשוט שאינו בודק דבר. ההערות בראש
+[`benchmarks/runtime.py`](https://github.com/yhay81/gettext-tstrings/blob/main/benchmarks/runtime.py)
+על CPython 3.14.6,‏ macOS 26 על מחשב נייד arm64: בערך 0.4 מיקרו-שנייה
+להודעה עם שדה אחד, כולל בניית מחרוזת ה-t עצמה — פי 2.7 בקירוב
+מ-`gettext(...).format(...)` פשוט שאינו בודק דבר. אלה המספרים של מכונה
+אחת — הסקריפט מדפיס את המפרש והפלטפורמה שלו בכותרת שלו, אז הריצו אותו על
+החומרה שאליה אתם באמת פורסים לפני שתתייחסו לאיזשהו יחס כשלכם. ההערות בראש
 [`core.py`](https://github.com/yhay81/gettext-tstrings/blob/main/src/gettext_tstrings/core.py)
 מתעדות את המדידות הפרטניות שמאחורי הצורה הזו.
 
 ## לממש את זה מחדש { #reimplementing-it }
 
-שום דבר מהאמור לעיל אינו ידע נסתר: המוסכמה כתובה כ-[spec v1](spec.md),
+שום דבר מהאמור לעיל אינו ייחודי למימוש הזה: המוסכמה כתובה
+כ-[spec v1](spec.md),
 ו[חבילת התאימות](spec.md#conformance) הקריאה למכונה שלה מאפשרת למחלץ,
 לתוסף IDE או למימוש בשפה אחרת לבדוק את עצמו מול כל כלל שהעמוד הזה הסביר.
 המימוש הזה מריץ את החבילה בבדיקות של עצמו, וזה מה ששומר שהעמוד הזה, המפרט

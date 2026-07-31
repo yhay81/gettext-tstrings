@@ -127,8 +127,19 @@ origem em inglês — o que passa por uma verificação que compara os blocos de
 código entre elas, porque são o mesmo arquivo.
 
 Nenhum dos dois é algo que uma biblioteca de tradução consiga enxergar. Ambos
-são baratos de testar assim que você sabe que deve: compare com a origem e
-exija uma diferença.
+são baratos de testar — mas não exigindo que toda entrada difira da sua
+origem: `OK`, nomes de produtos, nomes de pessoas, siglas e identificadores de
+código traduzem-se para si mesmos, e uma verificação que proíba isso produz
+falsos positivos para sempre.
+
+Meça a *taxa*, em vez disso, sobre um catálogo inteiro ou uma página inteira, e
+mande quem ficar fora da curva para um humano. O teste deste próprio site faz
+exatamente isso — ele compara as linhas de prosa de cada edição com a origem em
+inglês e falha acima de 25% de linhas idênticas. A edição forjada ficava em
+87%; toda tradução genuína fica entre 4% e 8%, que é a pequena cauda de linhas
+que legitimamente coincidem, como URLs e saídas de programa citadas. As duas
+populações estão distantes o bastante para que o limiar não precise ser
+preciso.
 
 ## O catálogo não é a única coisa traduzida { #the-catalog-is-not-the-only-translated-thing }
 

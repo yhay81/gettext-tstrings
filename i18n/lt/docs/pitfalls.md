@@ -124,7 +124,17 @@ baitą tapačios angliško šaltinio kopijos — o tokie praeina ir patikrą,
 lyginančią jų kodo blokus, nes tai tas pats failas.
 
 Nė vieno iš šių dalykų vertimo biblioteka matyti negali. Abu pigu patikrinti,
-kai tik apie tai pagalvoji: palygink su pirminiu tekstu ir reikalauk skirtumo.
+tačiau ne reikalaujant, kad kiekvienas įrašas skirtųsi nuo savo šaltinio:
+`OK`, produktų vardai, asmenvardžiai, akronimai ir kodo identifikatoriai visi
+verčiasi patys į save, o patikra, tai draudžianti, klaidingai suveiks amžinai.
+
+Verčiau matuokite *dalį* — viso katalogo ar viso puslapio mastu — ir siųskite
+išsišokėlius žmogui. Šios svetainės testas daro būtent tai: jis lygina
+kiekvieno leidimo prozos eilutes su anglišku šaltiniu ir nepraeina viršijus
+25% sutampančių. Suklastotas leidimas siekė 87%; kiekvienas tikras vertimas
+telpa tarp 4% ir 8% — tai ta maža uodega eilučių, kurios sutampa teisėtai,
+pavyzdžiui, URL ir cituojama programos išvestis. Šios dvi visumos viena nuo
+kitos nutolusios pakankamai, kad slenkstis neturi būti tikslus.
 
 ## Katalogas — ne vienintelis verčiamas dalykas { #the-catalog-is-not-the-only-translated-thing }
 

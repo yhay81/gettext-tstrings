@@ -110,7 +110,7 @@ yanıtı var, her biri kendi sayfasında:
 Tartışma bitmedi ve bu proje onun bir katılımcısıdır, hakkında verilmiş bir
 hüküm değil. Bu seçimleri ilgilendiren üretim gettext deneyiminiz varsa,
 [aynı başlık][discuss-thread] ve bu deponun
-[Discussions][gh-discussions] bölümü, tartışmanın yürütüldüğü yerlerdir.
+[Discussions][gh-discussions] bölümü, tartışmanın sürdüğü yerlerdir.
 
 ## Zaman çizelgesi { #timeline }
 

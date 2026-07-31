@@ -233,8 +233,8 @@ msgstr ""
 ## رن ٹائم پر زبان باندھنا { #binding-a-language-at-runtime }
 
 اب تک کا سب کچھ کیٹلاگ پیدا کرتا ہے۔ بچا ہوا فیصلہ یہ ہے کہ ایپلی کیشن ان میں
-سے ایک کہاں چنے، اور اس کا ایک ہی کھرا جواب ہے: *زبان کے دائرے* کے مطابق ایک
-بار باندھیے — CLI کے لیے پروسیس، ویب سروس کے لیے درخواست۔
+سے ایک کہاں چنے۔ *زبان کے دائرے* کے مطابق ایک بار باندھیے — CLI کے لیے پروسیس،
+ویب سروس کے لیے درخواست۔
 
 === "ایک پروسیس، ایک زبان"
 
@@ -347,6 +347,53 @@ import کے دوران فعال تھی؛ انہیں
 کیٹلاگ اسی بلڈ میں کمپائل کیجیے جو وہ آرٹیفیکٹ بناتا ہے جسے آپ تعینات کرتے
 ہیں، تاکہ اس کے اندر کی `.mo` فائلیں بالکل وہی جائزہ شدہ `.po` فائلیں ہوں،
 اور کسی کے لیپ ٹاپ پر کمپائل ہوئی کوئی چیز کبھی نہ جائے۔
+
+وہ سفر کیسے کرتی ہیں، اس کا انحصار اس پر ہے کہ آپ تعینات کیا کرتے ہیں۔ ایک
+wheel انہیں پیکیج ڈیٹا کے طور پر اٹھاتا ہے، یعنی کیٹلاگوں کو پیکیج ڈائریکٹری
+کے *اندر* رہنا پڑتا ہے — `src/myapp/locales/`، نہ کہ سب سے اوپر کی کوئی
+`locales/` — اور بلڈ بیک اینڈ کو بتانا پڑتا ہے کہ وہ فائلیں بھی شامل کرے جنہیں
+`.gitignore` عموماً چھپا دیتا ہے:
+
+=== "Hatchling"
+
+    ```toml
+    [tool.hatch.build]
+    # .mo files are build output, so they are gitignored; name them or the
+    # wheel ships without a single translation.
+    artifacts = ["src/myapp/locales/**/*.mo"]
+    ```
+
+=== "setuptools"
+
+    ```toml
+    [tool.setuptools.package-data]
+    myapp = ["locales/*/LC_MESSAGES/*.mo"]
+    ```
+
+انہیں واپس پیکیج کے ذریعے پڑھیے، نہ کہ ماخذ کے درخت سے نسبتی کسی راستے سے، جو
+wheel نصب ہوتے ہی وجود ختم کر دیتا ہے:
+
+```python
+import gettext
+from importlib.resources import as_file, files
+
+with as_file(files("myapp") / "locales") as localedir:
+    translations = gettext.translation("messages", localedir=localedir, languages=["ja"])
+```
+
+کنٹینر امیج کا کام آسان ہے: بلڈ مرحلے کے دوران کمپائل کیجیے اور نتیجہ نقل کر
+لیجیے، Babel کو اُسی مرحلے میں چھوڑ کر۔
+
+```dockerfile
+FROM python:3.14-slim AS build
+COPY . /src
+RUN cd /src && python -m pip install ".[babel]" \
+    && pybabel compile -d src/myapp/locales
+
+FROM python:3.14-slim
+COPY --from=build /src /src
+RUN python -m pip install /src   # no [babel]: rendering needs the stdlib only
+```
 
 ریلیز سے پہلے، یہ صفحہ جس چیک لسٹ پر سمٹتا ہے:
 

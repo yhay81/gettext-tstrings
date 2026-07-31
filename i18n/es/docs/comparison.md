@@ -100,8 +100,8 @@ Las secciones siguientes muestran cada compromiso en detalle, método a método.
 _("Hello %(name)s") % {"name": name}
 ```
 
-Qué puede salir mal: una letra borrada en una traducción hace fallar el
-renderizado.
+Qué puede salir mal: un marcador dañado se convierte en una excepción en
+tiempo de ejecución, salvo que la validación del catálogo lo detecte antes.
 
 La cadena del catálogo contiene sintaxis de printf, incluida una letra de tipo
 final —la `s` de `%(name)s`— fácil de pasar por alto y fácil de dañar:
@@ -295,7 +295,7 @@ un fragmento. Las t-strings ([PEP 750]) mantienen separados el texto estático y
 los valores, conservando una sintaxis similar a las f-strings y la vinculación
 explícita de los valores.
 
-Cómo llegó Python a esta encrucijada —dos PEP con diez años de diferencia y
+Cómo llegó Python hasta aquí —dos PEP con diez años de diferencia y
 la discusión sobre la biblioteca estándar que se cerró sin una respuesta— se
 cuenta con sus fuentes en [Trasfondo](background.md).
 

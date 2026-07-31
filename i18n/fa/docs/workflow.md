@@ -234,8 +234,8 @@ msgstr ""
 ## بستن زبان در زمان اجرا { #binding-a-language-at-runtime }
 
 هر چه تا این‌جا بود کاتالوگ تولید می‌کند. تصمیم باقی‌مانده این است که
-برنامه کجا یکی را انتخاب کند، و یک پاسخ صادقانه دارد: یک بار به‌ازای هر
-*قلمروِ یک زبان* ببندید — برای CLI پردازه، برای سرویس وب درخواست.
+برنامه کجا یکی را انتخاب کند. یک بار به‌ازای هر *قلمروِ یک زبان*
+ببندید — برای CLI پردازه، برای سرویس وب درخواست.
 
 === "یک پردازه، یک زبان"
 
@@ -350,6 +350,53 @@ msgstr ""
 که مصنوعِ استقراری را تولید می‌کند، تا `.mo`های درونش دقیقاً همان
 `.po`های بازبینی‌شده باشند و هیچ‌چیزِ کامپایل‌شده روی لپ‌تاپ کسی هرگز
 روانه نشود.
+
+چگونه جابه‌جا می‌شوند به این بستگی دارد که چه چیزی را مستقر می‌کنید. یک
+wheel آن‌ها را به‌عنوان دادهٔ بسته با خود می‌برد، و این یعنی کاتالوگ‌ها باید
+*درون* شاخهٔ بسته زندگی کنند — `src/myapp/locales/`، نه یک `locales/` در
+ریشه — و باید به بک‌اند بیلد گفته شود فایل‌هایی را که `.gitignore` معمولاً
+پنهانشان می‌کند هم بگنجاند:
+
+=== "Hatchling"
+
+    ```toml
+    [tool.hatch.build]
+    # .mo files are build output, so they are gitignored; name them or the
+    # wheel ships without a single translation.
+    artifacts = ["src/myapp/locales/**/*.mo"]
+    ```
+
+=== "setuptools"
+
+    ```toml
+    [tool.setuptools.package-data]
+    myapp = ["locales/*/LC_MESSAGES/*.mo"]
+    ```
+
+آن‌ها را از راه خودِ بسته بازخوانی کنید، نه از راه مسیری نسبت به درخت
+مبدأ، که همان لحظه‌ای که wheel نصب می‌شود دیگر وجود ندارد:
+
+```python
+import gettext
+from importlib.resources import as_file, files
+
+with as_file(files("myapp") / "locales") as localedir:
+    translations = gettext.translation("messages", localedir=localedir, languages=["ja"])
+```
+
+یک ایمیج کانتینر کار آسان‌تری دارد: در مرحلهٔ بیلد کامپایل کنید و نتیجه را
+کپی کنید، و Babel را در همان مرحله جا بگذارید.
+
+```dockerfile
+FROM python:3.14-slim AS build
+COPY . /src
+RUN cd /src && python -m pip install ".[babel]" \
+    && pybabel compile -d src/myapp/locales
+
+FROM python:3.14-slim
+COPY --from=build /src /src
+RUN python -m pip install /src   # no [babel]: rendering needs the stdlib only
+```
 
 پیش از یک انتشار، چک‌لیستی که این صفحه به آن فرومی‌کاهد:
 

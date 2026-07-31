@@ -132,24 +132,26 @@ peut avoir besoin de `{n}` dans une forme où l'anglais n'en a pas.
 Rien de tout cela n'est hypothétique : le catalogue de l'habillage de ce site
 porte lui-même le message pluriel `Built {n} localized page` / `Built {n}
 localized pages` — deux branches anglaises — et les éditions du site
-traduisent ce seul message en une à six formes :
+traduisent ce seul message en une à six formes.
 
-| Catalogue | Formes | Les traductions, dans l'ordre des formes |
-| --- | --- | --- |
-| Japonais | 1 | `ローカライズ済みページを{n}件ビルドしました` |
-| Turc | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` — deux fois, à l'identique : les noms turcs restent au singulier après un numéral |
-| Italien | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` — le participe s'accorde en genre et en nombre |
-| Letton | 3 | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` — la troisième forme est pour **le zéro seul** |
-| Russe | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
-| Polonais | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
-| Slovène | 4 | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` — la deuxième est un **duel**, pour exactement deux |
-| Irlandais | 5 | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` — un, deux, 3–6, 7–10, et le reste ; le radical alterne, mais *leathanach* commence par `l`, sur quoi aucune mutation irlandaise ne s'écrit, si bien que plusieurs formes coïncident |
-| Arabe | 6 | parmi elles `تم إنشاء صفحة مترجمة واحدة ({n})` pour exactement un et `تم إنشاء {n} صفحات مترجمة` pour quelques-uns |
+??? example "Neuf de ces éditions, dans l'ordre des formes"
 
-Chaque ligne est une entrée réelle des `i18n/*/LC_MESSAGES/site.po` de ce
-dépôt, rendue par le [build multilingue](index.md) à chaque release — et un
-test épingle ce tableau à ces catalogues, de sorte que les deux ne peuvent
-pas diverger.
+    | Catalogue | Formes | Les traductions, dans l'ordre des formes |
+    | --- | --- | --- |
+    | Japonais | 1 | `ローカライズ済みページを{n}件ビルドしました` |
+    | Turc | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` — deux fois, à l'identique : les noms turcs restent au singulier après un numéral |
+    | Italien | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` — le participe s'accorde en genre et en nombre |
+    | Letton | 3 | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` — la troisième forme est pour **le zéro seul** |
+    | Russe | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
+    | Polonais | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
+    | Slovène | 4 | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` — la deuxième est un **duel**, pour exactement deux |
+    | Irlandais | 5 | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` — un, deux, 3–6, 7–10, et le reste ; le radical alterne, mais *leathanach* commence par `l`, sur quoi aucune mutation irlandaise ne s'écrit, si bien que plusieurs formes coïncident |
+    | Arabe | 6 | parmi elles `تم إنشاء صفحة مترجمة واحدة ({n})` pour exactement un et `تم إنشاء {n} صفحات مترجمة` pour quelques-uns |
+
+    Chaque ligne est une entrée réelle des `i18n/*/LC_MESSAGES/site.po` de ce
+    dépôt, rendue par le [build multilingue](index.md) à chaque release — et un
+    test épingle ce tableau à ces catalogues, de sorte que les deux ne peuvent
+    pas diverger.
 
 Dans ces limites, le réordonnancement et la répétition sont délibérément
 libres. Les deux sont grammaticalement nécessaires dans de vraies langues, et
@@ -256,16 +258,20 @@ Trois caches, un par étape :
 Chaque cache est borné, et aucun ne retient de *valeurs* interpolées —
 seulement la structure statique et le texte des patterns. Le résultat, mesuré
 par
-[`benchmarks/runtime.py`](https://github.com/yhay81/gettext-tstrings/blob/main/benchmarks/runtime.py) :
-environ 0,4 µs pour un message à un champ, construction de la t-string
-comprise, soit à peu près 2,5× un simple `gettext(...).format(...)` qui ne
-vérifie rien. Le commentaire en tête de
+[`benchmarks/runtime.py`](https://github.com/yhay81/gettext-tstrings/blob/main/benchmarks/runtime.py)
+sur CPython 3.14.6, macOS 26 sur un portable arm64 : environ 0,4 µs pour un
+message à un champ, construction de la t-string comprise, soit à peu près 2,7×
+un simple `gettext(...).format(...)` qui ne vérifie rien. Ce sont les chiffres
+d'une seule machine — le script affiche son interpréteur et sa plateforme dans
+son en-tête, alors exécutez-le sur le matériel où vous déployez réellement
+avant de considérer un quelconque rapport comme le vôtre.
+Le commentaire en tête de
 [`core.py`](https://github.com/yhay81/gettext-tstrings/blob/main/src/gettext_tstrings/core.py)
 consigne les mesures individuelles derrière ce profil.
 
 ## Réimplémenter la convention { #reimplementing-it }
 
-Rien de tout cela n'est un savoir secret : la convention est consignée dans la
+Rien de tout cela n'est propre à cette implémentation : la convention est consignée dans la
 [spec v1](spec.md), et sa
 [suite de conformité](spec.md#conformance) lisible par machine permet à un
 extracteur, à un plugin d'IDE ou à une implémentation dans un autre langage de

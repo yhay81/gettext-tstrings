@@ -122,24 +122,26 @@ ima angleščina, utegne `{n}` potrebovati v obliki, kjer je angleščina nima.
 Nič od tega ni hipotetično: lastni katalog okvira tega spletišča nosi množinsko
 sporočilo `Built {n} localized page` / `Built {n} localized pages` — dve
 angleški veji —, različice spletišča pa to eno sporočilo prevedejo v kjer koli
-od ene do šestih oblik:
+od ene do šestih oblik.
 
-| Katalog | Oblike | Prevodi, po vrsti oblik |
-| --- | --- | --- |
-| japonščina | 1 | `ローカライズ済みページを{n}件ビルドしました` |
-| turščina | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` — dvakrat, enako: turški samostalniki za števnikom ostanejo v ednini |
-| italijanščina | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` — deležnik se ujema v spolu in številu |
-| latvijščina | 3 | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` — tretja oblika je **samo za nič** |
-| ruščina | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
-| poljščina | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
-| slovenščina | 4 | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` — druga je **dvojina**, za natanko dve |
-| irščina | 5 | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` — ena, dve, 3–6, 7–10 in preostale; koren se izmenjuje, a *leathanach* se začne na `l`, česar nobena irska premena ne zapiše, zato več oblik sovpade |
-| arabščina | 6 | med njimi `تم إنشاء صفحة مترجمة واحدة ({n})` za natanko eno in `تم إنشاء {n} صفحات مترجمة` za nekaj njih |
+??? example "Devet teh različic, po vrsti oblik"
 
-Vsaka vrstica je živ vnos v datotekah `i18n/*/LC_MESSAGES/site.po` tega
-repozitorija, ki jih ob vsaki izdaji izriše
-[večjezična gradnja](index.md) — test pa to tabelo pripne na te kataloge, tako
-da se ne moreta razhajati.
+    | Katalog | Oblike | Prevodi, po vrsti oblik |
+    | --- | --- | --- |
+    | japonščina | 1 | `ローカライズ済みページを{n}件ビルドしました` |
+    | turščina | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` — dvakrat, enako: turški samostalniki za števnikom ostanejo v ednini |
+    | italijanščina | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` — deležnik se ujema v spolu in številu |
+    | latvijščina | 3 | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` — tretja oblika je **samo za nič** |
+    | ruščina | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
+    | poljščina | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
+    | slovenščina | 4 | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` — druga je **dvojina**, za natanko dve |
+    | irščina | 5 | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` — ena, dve, 3–6, 7–10 in preostale; koren se izmenjuje, a *leathanach* se začne na `l`, česar nobena irska premena ne zapiše, zato več oblik sovpade |
+    | arabščina | 6 | med njimi `تم إنشاء صفحة مترجمة واحدة ({n})` za natanko eno in `تم إنشاء {n} صفحات مترجمة` za nekaj njih |
+
+    Vsaka vrstica je živ vnos v datotekah `i18n/*/LC_MESSAGES/site.po` tega
+    repozitorija, ki jih ob vsaki izdaji izriše
+    [večjezična gradnja](index.md) — test pa to tabelo pripne na te kataloge, tako
+    da se ne moreta razhajati.
 
 Znotraj teh meja sta prerazporejanje in ponavljanje namenoma neomejena. Oboje
 je v resničnih jezikih slovnično nujno, omejevanje števila pojavitev pa bi
@@ -233,16 +235,19 @@ Trije predpomnilniki, po eden na stopnjo:
 
 Vsak predpomnilnik je omejen in nobeden ne zadrži interpoliranih *vrednosti* —
 le statično zgradbo in besedilo vzorcev. Izid, izmerjen z
-[`benchmarks/runtime.py`](https://github.com/yhay81/gettext-tstrings/blob/main/benchmarks/runtime.py):
-približno 0,4 µs za sporočilo z enim poljem, vključno z izgradnjo samega
-t-niza, kar je okoli 2,5-kratnik golega `gettext(...).format(...)`, ki ne
-preveri ničesar. Komentar na vrhu
+[`benchmarks/runtime.py`](https://github.com/yhay81/gettext-tstrings/blob/main/benchmarks/runtime.py)
+na CPythonu 3.14.6, macOS 26 na prenosniku arm64: približno 0,4 µs za sporočilo
+z enim poljem, vključno z izgradnjo samega t-niza, kar je okoli 2,7-kratnik
+golega `gettext(...).format(...)`, ki ne preveri ničesar. To so številke enega
+samega stroja — skript v svoji glavi izpiše svoj tolmač in platformo, zato ga
+poženite na strojni opremi, na katero v resnici razmeščate, preden katero koli
+razmerje vzamete za svoje. Komentar na vrhu
 [`core.py`](https://github.com/yhay81/gettext-tstrings/blob/main/src/gettext_tstrings/core.py)
 beleži posamezne meritve, ki dajejo to sliko.
 
 ## Izvesti jo na novo { #reimplementing-it }
 
-Nič od zgornjega ni tajno izročilo: dogovor je zapisan kot
+Nič od zgornjega ni lastno tej izvedbi: dogovor je zapisan kot
 [specifikacija v1](spec.md), njegova strojno berljiva
 [zbirka testov skladnosti](spec.md#conformance) pa ekstraktorju, vtičniku za
 IDE ali izvedbi v drugem jeziku omogoča, da se preveri glede na vsako pravilo,

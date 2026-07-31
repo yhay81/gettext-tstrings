@@ -123,24 +123,26 @@ valodā nav nekādas.
 Nekas no tā nav hipotētisks: šīs vietnes pašas apdares katalogs nes
 daudzskaitļa ziņojumu `Built {n} localized page` / `Built {n} localized pages`
 — divus angļu zarus —, un vietnes izdevumi tulko šo vienu ziņojumu jebkurā
-skaitā formu no vienas līdz sešām:
+skaitā formu no vienas līdz sešām.
 
-| Katalogs | Formas | Tulkojumi formu secībā |
-| --- | --- | --- |
-| Japāņu | 1 | `ローカライズ済みページを{n}件ビルドしました` |
-| Turku | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` — divreiz, identiski: turku valodā lietvārds aiz skaitļa vārda paliek vienskaitlī |
-| Itāļu | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` — divdabis saskaņojas dzimtē un skaitlī |
-| Latviešu | 3 | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` — trešā forma ir paredzēta **tikai nullei** |
-| Krievu | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
-| Poļu | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
-| Slovēņu | 4 | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` — otrā ir **duālis**, tieši diviem |
-| Īru | 5 | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` — vienam, diviem, 3–6, 7–10 un pārējiem; celms mijas, bet *leathanach* sākas ar `l`, uz kura neviena īru mutācija netiek rakstīta, tāpēc vairākas formas sakrīt |
-| Arābu | 6 | starp tām `تم إنشاء صفحة مترجمة واحدة ({n})` tieši vienai un `تم إنشاء {n} صفحات مترجمة` dažām |
+??? example "Deviņi no šiem izdevumiem formu secībā"
 
-Katra rinda ir dzīvs ieraksts šī repozitorija failos
-`i18n/*/LC_MESSAGES/site.po`, ko [daudzvalodu būvējums](index.md) renderē pie
-katra laidiena — un tests piesprauž šo tabulu tiem katalogiem, tāpēc abi nevar
-aizvirzīties viens no otra.
+    | Katalogs | Formas | Tulkojumi formu secībā |
+    | --- | --- | --- |
+    | Japāņu | 1 | `ローカライズ済みページを{n}件ビルドしました` |
+    | Turku | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` — divreiz, identiski: turku valodā lietvārds aiz skaitļa vārda paliek vienskaitlī |
+    | Itāļu | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` — divdabis saskaņojas dzimtē un skaitlī |
+    | Latviešu | 3 | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` — trešā forma ir paredzēta **tikai nullei** |
+    | Krievu | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
+    | Poļu | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
+    | Slovēņu | 4 | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` — otrā ir **duālis**, tieši diviem |
+    | Īru | 5 | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` — vienam, diviem, 3–6, 7–10 un pārējiem; celms mijas, bet *leathanach* sākas ar `l`, uz kura neviena īru mutācija netiek rakstīta, tāpēc vairākas formas sakrīt |
+    | Arābu | 6 | starp tām `تم إنشاء صفحة مترجمة واحدة ({n})` tieši vienai un `تم إنشاء {n} صفحات مترجمة` dažām |
+
+    Katra rinda ir dzīvs ieraksts šī repozitorija failos
+    `i18n/*/LC_MESSAGES/site.po`, ko [daudzvalodu būvējums](index.md) renderē pie
+    katra laidiena — un tests piesprauž šo tabulu tiem katalogiem, tāpēc abi nevar
+    aizvirzīties viens no otra.
 
 Šajās robežās pārkārtošana un atkārtošana ir apzināti neierobežota. Abas īstās
 valodās ir gramatiski nepieciešamas, un parādīšanās reižu skaita ierobežošana
@@ -238,16 +240,19 @@ Trīs kešatmiņas, pa vienai katrai stadijai:
 
 Katra kešatmiņa ir ierobežota, un neviena nepatur interpolētās *vērtības* —
 tikai statisko struktūru un raksta tekstu. Rezultāts, ko mēra
-[`benchmarks/runtime.py`](https://github.com/yhay81/gettext-tstrings/blob/main/benchmarks/runtime.py):
-aptuveni 0,4 µs viena lauka ziņojumam, ieskaitot pašas t-virknes izveidi, kas
-ir apmēram 2,5× vairāk nekā vienkāršs `gettext(...).format(...)`, kurš
-nepārbauda neko. Komentārs faila
+[`benchmarks/runtime.py`](https://github.com/yhay81/gettext-tstrings/blob/main/benchmarks/runtime.py)
+uz CPython 3.14.6, macOS 26 arm64 klēpjdatorā: aptuveni 0,4 µs viena lauka
+ziņojumam, ieskaitot pašas t-virknes izveidi, kas ir apmēram 2,7× vairāk nekā
+vienkāršs `gettext(...).format(...)`, kurš nepārbauda neko. Tie ir vienas
+mašīnas skaitļi — skripts savā galvenē izdrukā savu interpretatoru un
+platformu, tāpēc palaidiet to uz tās aparatūras, uz kuras patiešām izvietojat,
+pirms uzskatāt kādu attiecību par savējo. Komentārs faila
 [`core.py`](https://github.com/yhay81/gettext-tstrings/blob/main/src/gettext_tstrings/core.py)
 augšpusē pieraksta atsevišķos mērījumus aiz šīs ainas.
 
 ## Implementēt to no jauna { #reimplementing-it }
 
-Nekas no augšminētā nav slepenas zināšanas: konvencija ir pierakstīta kā
+Nekas no augšminētā nav raksturīgs tieši šai implementācijai: konvencija ir pierakstīta kā
 [spec. v1](spec.md), un tās mašīnlasāmais
 [atbilstības komplekts](spec.md#conformance) ļauj ekstraktoram, IDE
 spraudnim vai implementācijai citā valodā pārbaudīt sevi pret katru likumu, ko

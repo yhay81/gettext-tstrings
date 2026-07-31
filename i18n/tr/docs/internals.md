@@ -126,24 +126,26 @@ Japonca iki dalı, büyük olasılıkla `{n}` kullanan tek bir biçimle çevirir
 Bunların hiçbiri varsayımsal değildir: bu sitenin kendi arayüz kataloğu
 `Built {n} localized page` / `Built {n} localized pages` çoğul mesajını —
 iki İngilizce dal — taşır ve sitenin dil sürümleri bu tek mesajı bir
-biçimden altı biçime kadar çevirir:
+biçimden altı biçime kadar çevirir.
 
-| Katalog | Biçimler | Çeviriler, biçim sırasıyla |
-| --- | --- | --- |
-| Japonca | 1 | `ローカライズ済みページを{n}件ビルドしました` |
-| Türkçe | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` — iki kez, birebir aynı: Türkçede adlar bir sayıdan sonra tekil kalır |
-| İtalyanca | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` — ortaç, cins ve sayıya göre uyum gösterir |
-| Letonca | 3 | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` — üçüncü biçim **yalnızca sıfır** içindir |
-| Rusça | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
-| Lehçe | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
-| Slovence | 4 | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` — ikincisi bir **ikil**dir, tam olarak iki için |
-| İrlandaca | 5 | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` — bir, iki, 3–6, 7–10 ve gerisi; gövde değişir, ama *leathanach* `l` ile başlar ve İrlandacanın hiçbir ünsüz değişimi `l` üzerinde yazıya dökülmez, bu yüzden birkaç biçim çakışır |
-| Arapça | 6 | aralarında tam olarak bir için `تم إنشاء صفحة مترجمة واحدة ({n})` ve birkaçı için `تم إنشاء {n} صفحات مترجمة` biçimleri var |
+??? example "Bu dil sürümlerinden dokuzu, biçim sırasıyla"
 
-Her satır, bu deponun `i18n/*/LC_MESSAGES/site.po` dosyalarındaki canlı bir
-girdidir ve her sürümde [çok dilli derleme](index.md) tarafından render
-edilir — üstelik bir test bu tabloyu o kataloglara sabitler, böylece ikisi
-birbirinden ayrışamaz.
+    | Katalog | Biçimler | Çeviriler, biçim sırasıyla |
+    | --- | --- | --- |
+    | Japonca | 1 | `ローカライズ済みページを{n}件ビルドしました` |
+    | Türkçe | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` — iki kez, birebir aynı: Türkçede adlar bir sayıdan sonra tekil kalır |
+    | İtalyanca | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` — ortaç, cins ve sayıya göre uyum gösterir |
+    | Letonca | 3 | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` — üçüncü biçim **yalnızca sıfır** içindir |
+    | Rusça | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
+    | Lehçe | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
+    | Slovence | 4 | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` — ikincisi bir **ikil**dir, tam olarak iki için |
+    | İrlandaca | 5 | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` — bir, iki, 3–6, 7–10 ve gerisi; gövde değişir, ama *leathanach* `l` ile başlar ve İrlandacanın hiçbir ünsüz değişimi `l` üzerinde yazıya dökülmez, bu yüzden birkaç biçim çakışır |
+    | Arapça | 6 | aralarında tam olarak bir için `تم إنشاء صفحة مترجمة واحدة ({n})` ve birkaçı için `تم إنشاء {n} صفحات مترجمة` biçimleri var |
+
+    Her satır, bu deponun `i18n/*/LC_MESSAGES/site.po` dosyalarındaki canlı bir
+    girdidir ve her sürümde [çok dilli derleme](index.md) tarafından render
+    edilir — üstelik bir test bu tabloyu o kataloglara sabitler, böylece ikisi
+    birbirinden ayrışamaz.
 
 Bu sınırlar içinde, yeniden sıralama ve yineleme bilerek serbesttir. İkisi de
 gerçek dillerde dil bilgisi gereğidir ve geçiş sayısını kısıtlamak, hiçbir
@@ -244,15 +246,18 @@ flowchart LR
 Her önbellek sınırlıdır ve hiçbiri interpolasyona giren *değerleri* tutmaz —
 yalnızca statik yapı ve desen metni.
 [`benchmarks/runtime.py`](https://github.com/yhay81/gettext-tstrings/blob/main/benchmarks/runtime.py)
-ile ölçülen sonuç: t-string'in kurulması dahil, tek alanlı bir mesaj için
-kabaca 0,4 µs — hiçbir şeyi denetlemeyen düz bir
-`gettext(...).format(...)` çağrısının yaklaşık 2,5 katı.
+ile bir arm64 dizüstünde, macOS 26 üzerinde CPython 3.14.6 ile ölçülen
+sonuç: t-string'in kurulması dahil, tek alanlı bir mesaj için kabaca 0,4 µs —
+hiçbir şeyi denetlemeyen düz bir `gettext(...).format(...)` çağrısının
+yaklaşık 2,7 katı. Bunlar tek bir makinenin sayılarıdır — betik, başlığında
+yorumlayıcısını ve platformunu yazar; bu yüzden herhangi bir oranı kendinizinki
+saymadan önce onu gerçekten dağıtım yaptığınız donanımda çalıştırın.
 [`core.py`](https://github.com/yhay81/gettext-tstrings/blob/main/src/gettext_tstrings/core.py)
 dosyasının başındaki açıklama, bu biçimin ardındaki tekil ölçümleri kaydeder.
 
 ## Yeniden gerçekleştirmek { #reimplementing-it }
 
-Yukarıdakilerin hiçbiri gizli bir irfan değildir: uzlaşım
+Yukarıdakilerin hiçbiri bu gerçekleştirime özgü değildir: uzlaşım
 [spec v1](spec.md) olarak yazılıdır ve makine tarafından okunabilir
 [uyumluluk paketi](spec.md#conformance), bir çıkarıcının, bir IDE
 eklentisinin ya da başka bir dildeki bir gerçekleştirimin, bu sayfanın

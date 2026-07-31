@@ -97,8 +97,8 @@ As seções abaixo mostram cada compromisso em detalhe, um método por vez.
 _("Hello %(name)s") % {"name": name}
 ```
 
-O que pode dar errado: uma única letra apagada em uma tradução trava a
-renderização.
+O que pode dar errado: um marcador danificado vira uma exceção em tempo de
+execução, a menos que a validação do catálogo o pegue antes.
 
 A string do catálogo carrega sintaxe printf, incluindo uma letra de tipo ao
 final — o `s` de `%(name)s` — que é fácil ignorar e fácil danificar:
@@ -291,7 +291,7 @@ traduzir um fragmento. t-strings ([PEP 750]) mantêm o texto estático e os
 valores separados, preservando uma sintaxe semelhante à de f-strings e a
 vinculação explícita de valores.
 
-Como o Python chegou a essa encruzilhada — duas PEPs com dez anos de
+Como o Python chegou até aqui — duas PEPs com dez anos de
 intervalo, e a discussão na biblioteca padrão encerrada sem resposta — está
 contado, com as fontes, em [Contexto](background.md).
 

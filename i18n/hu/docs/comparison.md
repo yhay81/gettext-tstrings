@@ -98,8 +98,8 @@ egyszerre egy módszert.
 _("Hello %(name)s") % {"name": name}
 ```
 
-Mi romolhat el: egyetlen törölt betű a fordításban összeomlasztja a
-renderelést.
+Mi romolhat el: egy megrongált helyőrzőből futásidejű kivétel lesz, hacsak a
+katalógus-ellenőrzés előbb el nem kapja.
 
 A katalógus szövege printf-szintaxist visz magával, benne egy záró
 típusbetűvel — az `s` a `%(name)s`-ben —, amelyet könnyű átnézni és könnyű
@@ -292,7 +292,7 @@ már kész szöveg, tehát a fordítása töredék fordítását jelenti. A t-st
 ([PEP 750]) különtartja a statikus szöveget és az értékeket, miközben megőrzi
 az f-stringszerű szintaxist és az explicit értékkötést.
 
-Hogy a Python miként jutott el erre a válaszútra — két PEP tíz év
+Hogy a Python miként jutott el idáig — két PEP tíz év
 különbséggel, és a stdlib-vita, amely válasz nélkül zárult —, azt forrásokkal
 együtt a [Háttér](background.md) meséli el.
 

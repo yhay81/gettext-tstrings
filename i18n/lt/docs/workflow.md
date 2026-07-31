@@ -229,9 +229,9 @@ patikrino“ paverčia fraze „tai negali iškeliauti sugedę“.
 ## Kalbos susiejimas veikimo metu { #binding-a-language-at-runtime }
 
 Viskas iki šiol gamina katalogus. Lieka nuspręsti, kur programa vieną iš jų
-pasirenka, ir tam yra vienas sąžiningas atsakymas: susieti po kartą kiekvienai
-*kalbos galiojimo sričiai* — procesui, kai tai komandinės eilutės įrankis,
-užklausai, kai tai žiniatinklio paslauga.
+pasirenka. Susiekite po kartą kiekvienai *kalbos galiojimo sričiai* —
+procesui, kai tai komandinės eilutės įrankis, užklausai, kai tai žiniatinklio
+paslauga.
 
 === "Vienas procesas, viena kalba"
 
@@ -346,6 +346,52 @@ biblioteka. Kompiliuokite katalogus tame pačiame kūrime, kuris pagamina jūsų
 diegiamą artefaktą, kad jame esantys `.mo` failai būtų būtent tie peržiūrėti
 `.po` failai ir kad niekas, sukompiliuota kieno nors nešiojamajame, niekada
 neiškeliautų.
+
+Kaip jie keliauja, priklauso nuo to, ką diegiate. Wheel neša juos kaip paketo
+duomenis, o tai reiškia, kad katalogai turi gyventi *paketo* kataloge —
+`src/myapp/locales/`, o ne viršutinio lygio `locales/` — ir kūrimo posistemei
+reikia nurodyti įtraukti failus, kuriuos `.gitignore` paprastai slepia:
+
+=== "Hatchling"
+
+    ```toml
+    [tool.hatch.build]
+    # .mo files are build output, so they are gitignored; name them or the
+    # wheel ships without a single translation.
+    artifacts = ["src/myapp/locales/**/*.mo"]
+    ```
+
+=== "setuptools"
+
+    ```toml
+    [tool.setuptools.package-data]
+    myapp = ["locales/*/LC_MESSAGES/*.mo"]
+    ```
+
+Skaitykite juos atgal per paketą, o ne per kelią, atskaitomą nuo pirminio
+medžio, kuris nustoja egzistuoti tą akimirką, kai wheel įdiegiamas:
+
+```python
+import gettext
+from importlib.resources import as_file, files
+
+with as_file(files("myapp") / "locales") as localedir:
+    translations = gettext.translation("messages", localedir=localedir, languages=["ja"])
+```
+
+Konteinerio atvaizdžio užduotis lengvesnė: sukompiliuokite kūrimo etape ir
+nukopijuokite rezultatą, palikdami Babel tame etape.
+
+```dockerfile
+FROM python:3.14-slim AS build
+COPY . /src
+RUN cd /src && python -m pip install ".[babel]" \
+    && pybabel compile -d src/myapp/locales
+
+FROM python:3.14-slim
+COPY --from=build /src /src
+RUN python -m pip install /src   # no [babel]: rendering needs the stdlib only
+```
 
 Prieš leidimą — kontrolinis sąrašas, į kurį susitraukia šis puslapis:
 

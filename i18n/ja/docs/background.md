@@ -108,8 +108,8 @@ maintainer）は、そのギャップを標準ライブラリ自身で埋める�
 
 議論は終わっていませんし、このプロジェクトはその参加者であって、裁定者では
 ありません。これらの選択に関わる本番でのgettext経験をお持ちなら、
-[同じスレッド][discuss-thread]とこのリポジトリの[Discussions][gh-discussions]が
-議論の場です。
+[同じスレッド][discuss-thread]とこのリポジトリの[Discussions][gh-discussions]で
+議論が続いています。
 
 ## 年表 { #timeline }
 

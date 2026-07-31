@@ -112,8 +112,8 @@ Nánar tiltekið á sérhver umdeild spurning í þræðinum skrifað svar hér,
 Umræðunni er ekki lokið, og þetta verkefni er þátttakandi í henni, ekki
 dómur um hana. Ef þú býrð að reynslu af gettext í rekstri sem varðar þessi
 val, þá eru [sami þráður][discuss-thread] og
-[Discussions][gh-discussions] þessarar geymslu staðirnir þar sem um það er
-deilt.
+[Discussions][gh-discussions] þessarar geymslu staðirnir þar sem umræðan
+heldur áfram.
 
 ## Tímalína { #timeline }
 

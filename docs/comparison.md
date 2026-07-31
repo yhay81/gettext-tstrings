@@ -93,7 +93,8 @@ The sections below show each trade-off in detail, one method at a time.
 _("Hello %(name)s") % {"name": name}
 ```
 
-What can go wrong: one deleted letter in a translation crashes the render.
+What can go wrong: a damaged placeholder becomes a runtime exception, unless
+catalog validation catches it first.
 
 The catalog string carries printf syntax, including a trailing type letter —
 the `s` in `%(name)s` — that is easy to overlook and easy to damage:
@@ -276,7 +277,7 @@ it is already a finished string, so translating it means translating a
 fragment. t-strings ([PEP 750]) keep the static text and the values separate
 while keeping f-string-like syntax and explicit value binding.
 
-How Python arrived at this crossroads — two PEPs ten years apart, and the
+How Python arrived here — two PEPs ten years apart, and the
 stdlib discussion that closed without an answer — is told with sources on
 [Background](background.md).
 

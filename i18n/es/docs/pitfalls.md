@@ -129,8 +129,19 @@ byte del origen en inglés, cosa que supera una comprobación que compare los
 bloques de código entre ambas, porque son el mismo archivo.
 
 Ninguna de las dos cosas puede verlas una biblioteca de traducción. Ambas son
-baratas de comprobar una vez que sabes que hay que hacerlo: compara con el
-origen y exige que haya una diferencia.
+baratas de comprobar, pero no exigiendo que cada entrada difiera de su origen:
+`OK`, los nombres de producto, los nombres propios, las siglas y los
+identificadores de código se traducen a sí mismos, y una comprobación que lo
+prohíba producirá falsos positivos para siempre.
+
+Mide en cambio la *proporción*, sobre un catálogo entero o una página entera, y
+envía los valores atípicos a una persona. La propia prueba de este sitio hace
+exactamente eso: compara las líneas de prosa de cada edición con el origen en
+inglés y falla por encima del 25 % de líneas idénticas. La edición falsificada
+estaba en el 87 %; toda traducción genuina se sitúa entre el 4 % y el 8 %, que
+es la pequeña cola de líneas que coinciden legítimamente, como las URL y la
+salida citada de programas. Las dos poblaciones están lo bastante separadas
+como para que el umbral no necesite ser preciso.
 
 ## El catálogo no es lo único traducido { #the-catalog-is-not-the-only-translated-thing }
 

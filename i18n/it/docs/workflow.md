@@ -237,9 +237,8 @@ probabilmente lo ha verificato" in "questo non può essere distribuito rotto".
 ## Legare una lingua a runtime { #binding-a-language-at-runtime }
 
 Tutto ciò che precede produce cataloghi. La decisione rimanente è dove
-l'applicazione ne seleziona uno, e ha una sola risposta onesta: lega una
-volta per *ambito di una lingua* — il processo per una CLI, la richiesta per
-un servizio web.
+l'applicazione ne seleziona uno. Lega una volta per *ambito di una lingua* —
+il processo per una CLI, la richiesta per un servizio web.
 
 === "Un processo, una lingua"
 
@@ -354,6 +353,55 @@ rendering gira sulla sola libreria standard. Compila i cataloghi nella stessa
 build che produce l'artefatto che distribuisci, così i file `.mo` al suo
 interno sono esattamente i file `.po` revisionati, e niente compilato sul
 laptop di qualcuno arriva mai in produzione.
+
+Come viaggiano dipende da che cosa distribuisci. Una wheel li trasporta come
+dati del pacchetto, il che significa che i cataloghi devono stare *dentro* la
+directory del pacchetto — `src/myapp/locales/`, non un `locales/` di primo
+livello — e al backend di build va detto di includere file che `.gitignore`
+normalmente nasconde:
+
+=== "Hatchling"
+
+    ```toml
+    [tool.hatch.build]
+    # .mo files are build output, so they are gitignored; name them or the
+    # wheel ships without a single translation.
+    artifacts = ["src/myapp/locales/**/*.mo"]
+    ```
+
+=== "setuptools"
+
+    ```toml
+    [tool.setuptools.package-data]
+    myapp = ["locales/*/LC_MESSAGES/*.mo"]
+    ```
+
+Rileggili attraverso il pacchetto invece che attraverso un percorso relativo
+all'albero dei sorgenti, che smette di esistere nel momento in cui la wheel
+viene installata:
+
+```python
+import gettext
+from importlib.resources import as_file, files
+
+with as_file(files("myapp") / "locales") as localedir:
+    translations = gettext.translation("messages", localedir=localedir, languages=["ja"])
+```
+
+Un'immagine container ha il compito più facile: compila durante lo stage di
+build e copia il risultato, lasciando Babel in quello stage.
+
+```dockerfile
+FROM python:3.14-slim AS build
+COPY . /src
+RUN cd /src && python -m pip install ".[babel]" \
+    && pybabel compile -d src/myapp/locales
+
+FROM python:3.14-slim
+COPY --from=build /src /src
+RUN python -m pip install /src   # no [babel]: rendering needs the stdlib only
+```
+
 
 Prima di una release, la checklist a cui questa pagina si riduce:
 

@@ -232,8 +232,8 @@ msgstr ""
 ## रनटाइम पर भाषा बाँधना { #binding-a-language-at-runtime }
 
 अब तक का सब कुछ कैटलॉग बनाता है। बचा हुआ निर्णय यह है कि एप्लिकेशन एक
-कैटलॉग कहाँ चुनता है, और इसका एक ही ईमानदार उत्तर है: *भाषा के दायरे* पर एक
-बार बाँधें — CLI के लिए प्रोसेस, वेब सेवा के लिए request।
+कैटलॉग कहाँ चुनता है। *भाषा के दायरे* पर एक बार बाँधें — CLI के लिए प्रोसेस,
+वेब सेवा के लिए request।
 
 === "एक प्रोसेस, एक भाषा"
 
@@ -345,6 +345,53 @@ msgstr ""
 कैटलॉग उसी बिल्ड में कंपाइल करें जो deploy होने वाला आर्टिफ़ैक्ट बनाता है,
 ताकि उसके भीतर की `.mo` फ़ाइलें ठीक वही समीक्षित `.po` फ़ाइलें हों, और किसी
 के लैपटॉप पर कंपाइल हुआ कुछ भी कभी शिप न हो।
+
+वे किस तरह यात्रा करती हैं, यह इस पर निर्भर है कि आप क्या deploy करते हैं।
+wheel उन्हें package data के रूप में ले जाता है, जिसका अर्थ है कि कैटलॉग
+पैकेज डायरेक्टरी के *भीतर* रहने चाहिए — `src/myapp/locales/`, न कि शीर्ष-स्तर
+की `locales/` — और बिल्ड बैकएंड को यह बताना पड़ता है कि उन फ़ाइलों को शामिल
+करे जिन्हें `.gitignore` सामान्यतः छिपा देती है:
+
+=== "Hatchling"
+
+    ```toml
+    [tool.hatch.build]
+    # .mo files are build output, so they are gitignored; name them or the
+    # wheel ships without a single translation.
+    artifacts = ["src/myapp/locales/**/*.mo"]
+    ```
+
+=== "setuptools"
+
+    ```toml
+    [tool.setuptools.package-data]
+    myapp = ["locales/*/LC_MESSAGES/*.mo"]
+    ```
+
+उन्हें स्रोत ट्री के सापेक्ष किसी path के बजाय पैकेज के ज़रिए वापस पढ़ें —
+वह path wheel इंस्टॉल होते ही अस्तित्व में रहना बंद कर देता है:
+
+```python
+import gettext
+from importlib.resources import as_file, files
+
+with as_file(files("myapp") / "locales") as localedir:
+    translations = gettext.translation("messages", localedir=localedir, languages=["ja"])
+```
+
+कंटेनर इमेज का काम आसान है: बिल्ड स्टेज में कंपाइल करें और परिणाम कॉपी कर
+लें, Babel को उसी स्टेज में छोड़ते हुए।
+
+```dockerfile
+FROM python:3.14-slim AS build
+COPY . /src
+RUN cd /src && python -m pip install ".[babel]" \
+    && pybabel compile -d src/myapp/locales
+
+FROM python:3.14-slim
+COPY --from=build /src /src
+RUN python -m pip install /src   # no [babel]: rendering needs the stdlib only
+```
 
 रिलीज़ से पहले, यह पेज जिस checklist में सिमटता है:
 

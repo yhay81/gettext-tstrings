@@ -11,12 +11,12 @@ that make i18n harder than it looks.
 
 Each section below is something that actually went wrong here, what it looked
 like at the time, and where the line falls between what the library checks for
-you and what stays your judgement.
+you and what still requires human judgment.
 
 ## Renaming a variable retranslates a sentence { #renaming-a-variable-retranslates-a-sentence }
 
 The msgid is the catalog key, and an interpolated name is *inside* it. Moving
-one constant to module scope and capitalising it the way Python style asks —
+one constant to module scope and capitalizing it the way Python style asks —
 `author` to `AUTHOR` — changed `Copyright © 2026 {author} · MIT License` into a
 message no catalog had ever seen. Every translation of that line would have
 gone back through the fuzzy cycle, in every language, for a rename that changed
@@ -119,8 +119,18 @@ eight pages of another edition that were byte-identical copies of the English
 source — which passes a check comparing code blocks between them, because they
 are the same file.
 
-Neither is something a translation library can see. Both are cheap to test for
-once you know to: compare against the source and require a difference.
+Neither is something a translation library can see. Both are cheap to test
+for, but not by requiring every entry to differ from its source: `OK`, product
+names, personal names, acronyms, and code identifiers all translate to
+themselves, and a check that forbids that produces false positives forever.
+
+Measure the *rate* instead, over a whole catalog or a whole page, and send the
+outliers to a human. This site's own test does exactly that — it compares the
+prose lines of each edition against the English source and fails above 25%
+identical. The forged edition sat at 87%; every genuine translation sits
+between 4% and 8%, which is the small tail of lines that legitimately coincide,
+such as URLs and quoted program output. The two populations are far enough
+apart that the threshold does not need to be precise.
 
 ## The catalog is not the only translated thing { #the-catalog-is-not-the-only-translated-thing }
 
@@ -165,7 +175,7 @@ actually pass before you trust it to fail.
 
 ## What the library is for, in one line { #what-the-library-is-for-in-one-line }
 
-Most of this page is judgement no tool can take over. What a tool *can* do is
+Most of this page is judgment no tool can take over. What a tool *can* do is
 guarantee that a translation cannot change the structure of the sentence it
 translates — cannot drop a value, invent one, reformat one, or reach into your
 objects — and can say so in a sentence the person who has to fix it can act

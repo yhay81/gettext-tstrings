@@ -233,8 +233,8 @@ kusafirishwa likiwa bovu".
 ## Kufunga lugha wakati wa utekelezaji { #binding-a-language-at-runtime }
 
 Kila kitu hadi sasa huzalisha katalogi. Uamuzi uliobaki ni mahali programu
-inapochagua moja, nao una jibu moja la ukweli: funga mara moja kwa kila *wigo
-wa lugha* — mchakato kwa CLI, ombi kwa huduma ya wavuti.
+inapochagua moja. Funga mara moja kwa kila *wigo wa lugha* — mchakato kwa CLI,
+ombi kwa huduma ya wavuti.
 
 === "Mchakato mmoja, lugha moja"
 
@@ -350,6 +350,53 @@ sanifu peke yake. Kusanya katalogi ndani ya ujenzi uleule unaozalisha bidhaa
 unayoisambaza, ili mafaili ya `.mo` yaliyomo yawe hasa mafaili ya `.po`
 yaliyopitiwa, na kusiwe na kilichokusanywa kwenye kompyuta ya mtu kinachosafiri
 kamwe.
+
+Jinsi yanavyosafiri hutegemea unachosambaza. Wheel hubeba mafaili hayo kama
+data ya kifurushi, maana yake katalogi lazima zikae *ndani* ya saraka ya
+kifurushi — `src/myapp/locales/`, si `locales/` ya ngazi ya juu — na injini ya
+ujenzi lazima iambiwe kujumuisha mafaili ambayo `.gitignore` huyaficha kwa
+kawaida:
+
+=== "Hatchling"
+
+    ```toml
+    [tool.hatch.build]
+    # .mo files are build output, so they are gitignored; name them or the
+    # wheel ships without a single translation.
+    artifacts = ["src/myapp/locales/**/*.mo"]
+    ```
+
+=== "setuptools"
+
+    ```toml
+    [tool.setuptools.package-data]
+    myapp = ["locales/*/LC_MESSAGES/*.mo"]
+    ```
+
+Yasome kupitia kifurushi badala ya kupitia njia inayohusiana na mti wa chanzo,
+ambao huacha kuwepo mara tu wheel inaposakinishwa:
+
+```python
+import gettext
+from importlib.resources import as_file, files
+
+with as_file(files("myapp") / "locales") as localedir:
+    translations = gettext.translation("messages", localedir=localedir, languages=["ja"])
+```
+
+Taswira ya kontena ina kazi rahisi zaidi: kusanya wakati wa hatua ya ujenzi na
+nakili matokeo, ukiacha Babel nyuma katika hatua hiyo.
+
+```dockerfile
+FROM python:3.14-slim AS build
+COPY . /src
+RUN cd /src && python -m pip install ".[babel]" \
+    && pybabel compile -d src/myapp/locales
+
+FROM python:3.14-slim
+COPY --from=build /src /src
+RUN python -m pip install /src   # no [babel]: rendering needs the stdlib only
+```
 
 Kabla ya toleo, orodha hakiki ambayo ukurasa huu hujikita ndani yake:
 

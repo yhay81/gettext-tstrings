@@ -184,6 +184,17 @@ python -m pip install "gettext-tstrings[babel]"
 
 ## Stanje { #status }
 
+| | |
+| --- | --- |
+| Različica paketa | 0.1.0a7 |
+| Stabilnost API-ja | alfa — Pythonov API se še lahko spremeni |
+| [Specifikacija](spec.md) | v1, z [zbirko testov skladnosti](spec.md#conformance) |
+| Python | 3.14 in novejši; testirano na 3.14, 3.14t (prostonitni) in 3.15 |
+| Babel | 2.18 ali novejši, in le tam, kjer teče `pybabel` |
+| Odvisnosti med izvajanjem | brez — `gettext` iz standardne knjižnice |
+| Oblika kataloga | običajni POT, PO in MO |
+| Spremembe | [CHANGELOG](https://github.com/yhay81/gettext-tstrings/blob/main/CHANGELOG.md) |
+
 Alfa. Pogodba je namerno majhna in [specifikacija](spec.md) je njen stabilni
 del; Pythonov API se še lahko premakne. Pred stabilno izdajo potrebuje širši
 nabor jezikovnih testnih podatkov, vztrajno spremljanje zmogljivosti, pregled

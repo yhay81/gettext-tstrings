@@ -235,9 +235,8 @@ CI de mai sus sunt cele care transformă „platforma probabil a verificat asta�
 ## Legarea unei limbi la rulare { #binding-a-language-at-runtime }
 
 Tot ce s-a spus până acum produce cataloage. Decizia rămasă este unde anume
-selectează aplicația una dintre ele, și are un singur răspuns cinstit: leagă o
-dată pentru fiecare *domeniu al unei limbi* — procesul, pentru un CLI; cererea,
-pentru un serviciu web.
+selectează aplicația una dintre ele. Leagă o dată pentru fiecare *domeniu al
+unei limbi* — procesul, pentru un CLI; cererea, pentru un serviciu web.
 
 === "Un proces, o limbă"
 
@@ -351,6 +350,53 @@ numai pe biblioteca standard. Compilează cataloagele în același build care
 produce artefactul pe care îl desfășori, astfel încât fișierele `.mo` dinăuntrul
 lui să fie exact fișierele `.po` revizuite, și nimic compilat pe laptopul cuiva
 să nu ajungă vreodată livrat.
+
+Felul în care călătoresc depinde de ceea ce desfășori. Un wheel le duce ca date
+de pachet, ceea ce înseamnă că fișierele de catalog trebuie să stea *înăuntrul*
+directorului pachetului — `src/myapp/locales/`, nu un `locales/` de la rădăcină
+— iar backendului de build trebuie să i se spună să includă fișiere pe care
+`.gitignore` le ascunde în mod normal:
+
+=== "Hatchling"
+
+    ```toml
+    [tool.hatch.build]
+    # .mo files are build output, so they are gitignored; name them or the
+    # wheel ships without a single translation.
+    artifacts = ["src/myapp/locales/**/*.mo"]
+    ```
+
+=== "setuptools"
+
+    ```toml
+    [tool.setuptools.package-data]
+    myapp = ["locales/*/LC_MESSAGES/*.mo"]
+    ```
+
+Citește-le înapoi prin pachet, nu printr-o cale relativă la arborele sursă, care
+încetează să existe în clipa în care wheel-ul este instalat:
+
+```python
+import gettext
+from importlib.resources import as_file, files
+
+with as_file(files("myapp") / "locales") as localedir:
+    translations = gettext.translation("messages", localedir=localedir, languages=["ja"])
+```
+
+O imagine de container are treaba mai ușoară: compilează în etapa de build și
+copiază rezultatul, lăsând Babel în urmă, în acea etapă.
+
+```dockerfile
+FROM python:3.14-slim AS build
+COPY . /src
+RUN cd /src && python -m pip install ".[babel]" \
+    && pybabel compile -d src/myapp/locales
+
+FROM python:3.14-slim
+COPY --from=build /src /src
+RUN python -m pip install /src   # no [babel]: rendering needs the stdlib only
+```
 
 Înainte de o lansare, lista de verificare la care se reduce pagina aceasta:
 

@@ -100,8 +100,8 @@ De secties hieronder tonen elke afweging in detail, één methode tegelijk.
 _("Hello %(name)s") % {"name": name}
 ```
 
-Wat er mis kan gaan: één verwijderde letter in een vertaling laat het
-renderen crashen.
+Wat er mis kan gaan: een beschadigde placeholder wordt een runtime-exceptie,
+tenzij catalogusvalidatie hem eerst opvangt.
 
 De catalogusstring draagt printf-syntaxis, inclusief een type-letter aan het
 eind — de `s` in `%(name)s` — die makkelijk over het hoofd wordt gezien en
@@ -295,7 +295,7 @@ vertalen betekent een fragment vertalen. t-strings ([PEP 750]) houden de
 statische tekst en de waarden gescheiden, met behoud van f-string-achtige
 syntaxis en expliciete waardebinding.
 
-Hoe Python op dit kruispunt belandde — twee PEP's met tien jaar ertussen, en
+Hoe Python hier belandde — twee PEP's met tien jaar ertussen, en
 de stdlib-discussie die zonder antwoord gesloten werd — wordt met bronnen
 verteld op [Achtergrond](background.md).
 

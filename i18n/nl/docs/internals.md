@@ -128,24 +128,26 @@ waarschijnlijk `{n}` gebruikt; een taal met meer vormen dan Engels kan
 Niets daarvan is hypothetisch: de eigen chrome-catalogus van deze site
 draagt het meervoudsbericht `Built {n} localized page` /
 `Built {n} localized pages` — twee Engelse takken — en de edities van de
-site vertalen dat ene bericht in één tot wel zes vormen:
+site vertalen dat ene bericht in één tot wel zes vormen.
 
-| Catalogus | Vormen | De vertalingen, in vormvolgorde |
-| --- | --- | --- |
-| Japans | 1 | `ローカライズ済みページを{n}件ビルドしました` |
-| Turks | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` — twee keer, identiek: Turkse zelfstandige naamwoorden blijven enkelvoud na een telwoord |
-| Italiaans | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` — het deelwoord congrueert in geslacht en getal |
-| Lets | 3 | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` — de derde vorm is **alleen voor nul** |
-| Russisch | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
-| Pools | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
-| Sloveens | 4 | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` — de tweede is een **dualis**, voor precies twee |
-| Iers | 5 | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` — één, twee, 3–6, 7–10 en de rest; de stam wisselt, maar *leathanach* begint met `l`, waarop geen enkele Ierse mutatie geschreven wordt, zodat verschillende vormen samenvallen |
-| Arabisch | 6 | waaronder `تم إنشاء صفحة مترجمة واحدة ({n})` voor precies één en `تم إنشاء {n} صفحات مترجمة` voor enkele |
+??? example "Negen van die edities, in vormvolgorde"
 
-Elke rij is een levende entry in `i18n/*/LC_MESSAGES/site.po` van deze
-repository, gerenderd door de [meertalige build](index.md) bij elke release
-— en een test pint deze tabel vast aan die catalogi, zodat de twee niet uit
-elkaar kunnen drijven.
+    | Catalogus | Vormen | De vertalingen, in vormvolgorde |
+    | --- | --- | --- |
+    | Japans | 1 | `ローカライズ済みページを{n}件ビルドしました` |
+    | Turks | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` — twee keer, identiek: Turkse zelfstandige naamwoorden blijven enkelvoud na een telwoord |
+    | Italiaans | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` — het deelwoord congrueert in geslacht en getal |
+    | Lets | 3 | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` — de derde vorm is **alleen voor nul** |
+    | Russisch | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
+    | Pools | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
+    | Sloveens | 4 | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` — de tweede is een **dualis**, voor precies twee |
+    | Iers | 5 | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` — één, twee, 3–6, 7–10 en de rest; de stam wisselt, maar *leathanach* begint met `l`, waarop geen enkele Ierse mutatie geschreven wordt, zodat verschillende vormen samenvallen |
+    | Arabisch | 6 | waaronder `تم إنشاء صفحة مترجمة واحدة ({n})` voor precies één en `تم إنشاء {n} صفحات مترجمة` voor enkele |
+
+    Elke rij is een levende entry in `i18n/*/LC_MESSAGES/site.po` van deze
+    repository, gerenderd door de [meertalige build](index.md) bij elke release
+    — en een test pint deze tabel vast aan die catalogi, zodat de twee niet uit
+    elkaar kunnen drijven.
 
 Binnen die grenzen zijn herordening en herhaling bewust onbeperkt. Beide
 zijn in echte talen grammaticaal noodzakelijk, en het beperken van het
@@ -251,16 +253,20 @@ Drie caches, één per fase:
 
 Elke cache is begrensd, en geen enkele bewaart geïnterpoleerde *waarden* —
 alleen statische structuur en patroontekst. Het resultaat, gemeten door
-[`benchmarks/runtime.py`](https://github.com/yhay81/gettext-tstrings/blob/main/benchmarks/runtime.py):
-ruwweg 0,4 µs voor een bericht met één veld, inclusief de constructie van de
-t-string zelf, ongeveer 2,5× een kale `gettext(...).format(...)` die niets
-controleert. Het commentaar bovenaan
+[`benchmarks/runtime.py`](https://github.com/yhay81/gettext-tstrings/blob/main/benchmarks/runtime.py)
+op CPython 3.14.6, macOS 26 op een arm64-laptop: ruwweg 0,4 µs voor een
+bericht met één veld, inclusief de constructie van de t-string zelf, ongeveer
+2,7× een kale `gettext(...).format(...)` die niets controleert. Dat zijn de
+cijfers van één machine — het script drukt zijn interpreter en platform in
+zijn header af, dus draai het op de hardware waarnaar je daadwerkelijk
+deployt voordat je een verhouding als de jouwe beschouwt.
+Het commentaar bovenaan
 [`core.py`](https://github.com/yhay81/gettext-tstrings/blob/main/src/gettext_tstrings/core.py)
 legt de afzonderlijke metingen achter die vorm vast.
 
 ## Het zelf herimplementeren { #reimplementing-it }
 
-Niets van het bovenstaande is geheime kennis: de conventie is vastgelegd als
+Niets van het bovenstaande is specifiek voor deze implementatie: de conventie is vastgelegd als
 [spec v1](spec.md), en zijn machineleesbare
 [conformiteitssuite](spec.md#conformance) laat een extractor, een
 IDE-plugin of een implementatie in een andere taal zichzelf controleren

@@ -123,8 +123,19 @@ Saesneg — sy'n pasio gwiriad sy'n cymharu blociau cod rhyngddynt, oherwydd mai
 un ffeil ydynt.
 
 Nid yw'r naill na'r llall yn rhywbeth y gall llyfrgell gyfieithu ei weld. Mae'r
-ddau'n rhad i'w profi unwaith y gwyddoch am wneud hynny: cymharwch â'r
-ffynhonnell a mynnwch wahaniaeth.
+ddau'n rhad i'w profi, ond nid drwy fynnu bod pob cofnod yn wahanol i'w
+ffynhonnell: mae `OK`, enwau cynnyrch, enwau personol, acronymau, a dynodwyr cod
+oll yn cyfieithu i'w hunain, ac mae gwiriad sy'n gwahardd hynny'n cynhyrchu
+positifau ffug am byth.
+
+Mesurwch y *gyfradd* yn lle hynny, dros gatalog cyfan neu dudalen gyfan, ac
+anfonwch y rhai eithafol at berson. Dyna'n union y mae prawf y wefan hon yn ei
+wneud — mae'n cymharu llinellau rhyddiaith pob argraffiad â'r ffynhonnell
+Saesneg ac yn methu uwchlaw 25% yn union yr un fath. Roedd yr argraffiad ffug ar
+87%; mae pob cyfieithiad dilys rhwng 4% ac 8%, sef y gynffon fach o linellau
+sy'n cyd-daro'n gyfreithlon, megis URLau ac allbwn rhaglen wedi'i ddyfynnu. Mae'r
+ddwy boblogaeth yn ddigon pell oddi wrth ei gilydd fel nad oes angen i'r
+trothwy fod yn fanwl gywir.
 
 ## Nid y catalog yw'r unig beth sydd wedi'i gyfieithu { #the-catalog-is-not-the-only-translated-thing }
 

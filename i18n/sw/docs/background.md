@@ -116,7 +116,7 @@ hapa, kila moja kwenye ukurasa wake:
 Mjadala haujaisha, na mradi huu ni mshiriki ndani yake, si hukumu juu yake.
 Ikiwa una uzoefu wa gettext wa uzalishaji unaohusu machaguo haya,
 [uzi uleule][discuss-thread] na [Discussions][gh-discussions] za hazina hii
-ndipo hoja hizo zinapojadiliwa.
+ndipo mjadala unapoendelea.
 
 ## Ratiba ya matukio { #timeline }
 

@@ -217,9 +217,9 @@ msgstr ""
 
 ## קשירת שפה בזמן ריצה { #binding-a-language-at-runtime }
 
-כל מה שעד כה מייצר קטלוגים. ההחלטה שנותרה היא היכן היישום בוחר אחד מהם,
-ויש לה תשובה כנה אחת: קשרו פעם אחת לכל *טווח חיים של שפה* — התהליך בכלי
-שורת פקודה, הבקשה בשירות ווב.
+כל מה שעד כה מייצר קטלוגים. ההחלטה שנותרה היא היכן היישום בוחר אחד מהם.
+קשרו פעם אחת לכל *טווח חיים של שפה* — התהליך בכלי שורת פקודה, הבקשה
+בשירות ווב.
 
 === "תהליך אחד, שפה אחת"
 
@@ -330,6 +330,52 @@ msgstr ""
 הדרו את הקטלוגים באותו build שמייצר את הארטיפקט שאתם פורסים, כך שקובצי
 ה-`.mo` שבתוכו הם בדיוק קובצי ה-`.po` שנסקרו, ושום דבר שהודר על המחשב
 הנייד של מישהו לעולם לא נשלח.
+
+איך הם נוסעים תלוי במה שאתם פורסים. גלגל (wheel) נושא אותם כנתוני חבילה,
+ומשמעות הדבר שהקטלוגים חייבים לחיות *בתוך* ספריית החבילה —
+‏`src/myapp/locales/`, לא `locales/` ברמה העליונה — וצריך לומר ל-backend
+של הבנייה לכלול קבצים ש-`.gitignore` בדרך כלל מסתיר:
+
+=== "Hatchling"
+
+    ```toml
+    [tool.hatch.build]
+    # .mo files are build output, so they are gitignored; name them or the
+    # wheel ships without a single translation.
+    artifacts = ["src/myapp/locales/**/*.mo"]
+    ```
+
+=== "setuptools"
+
+    ```toml
+    [tool.setuptools.package-data]
+    myapp = ["locales/*/LC_MESSAGES/*.mo"]
+    ```
+
+קראו אותם בחזרה דרך החבילה ולא דרך נתיב יחסי לעץ המקור, שמפסיק להתקיים
+ברגע שהגלגל מותקן:
+
+```python
+import gettext
+from importlib.resources import as_file, files
+
+with as_file(files("myapp") / "locales") as localedir:
+    translations = gettext.translation("messages", localedir=localedir, languages=["ja"])
+```
+
+ל-image של קונטיינר יש משימה קלה יותר: הדרו במהלך שלב הבנייה והעתיקו את
+התוצאה, והשאירו את Babel מאחור באותו שלב.
+
+```dockerfile
+FROM python:3.14-slim AS build
+COPY . /src
+RUN cd /src && python -m pip install ".[babel]" \
+    && pybabel compile -d src/myapp/locales
+
+FROM python:3.14-slim
+COPY --from=build /src /src
+RUN python -m pip install /src   # no [babel]: rendering needs the stdlib only
+```
 
 לפני שחרור גרסה, זו רשימת הביקורת שאליה מצטמצם העמוד הזה:
 

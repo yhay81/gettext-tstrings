@@ -116,7 +116,7 @@ własnej stronie:
 Dyskusja się nie skończyła, a ten projekt jest jej uczestnikiem, nie
 werdyktem. Jeśli masz produkcyjne doświadczenie z gettext, które dotyczy tych
 wyborów, [ten sam wątek][discuss-thread] i [Discussions][gh-discussions] w
-tym repozytorium są miejscem, gdzie się o nie spiera.
+tym repozytorium są miejscem, gdzie dyskusja trwa dalej.
 
 ## Oś czasu { #timeline }
 

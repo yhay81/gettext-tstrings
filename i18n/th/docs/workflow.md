@@ -153,7 +153,7 @@ msgstr ""
 
 ## การผูกภาษา ณ รันไทม์ { #binding-a-language-at-runtime }
 
-ทุกอย่างที่ผ่านมาผลิตแคตตาล็อก การตัดสินใจที่เหลือคือแอปพลิเคชันจะเลือกแคตตาล็อกที่จุดใด และมันมีคำตอบตรงไปตรงมาเพียงหนึ่งเดียว: ผูกหนึ่งครั้งต่อ *ขอบเขตของภาษา* — โปรเซสสำหรับ CLI และคำขอ (request) สำหรับเว็บเซอร์วิส
+ทุกอย่างที่ผ่านมาผลิตแคตตาล็อก การตัดสินใจที่เหลือคือแอปพลิเคชันจะเลือกแคตตาล็อกที่จุดใด จงผูกหนึ่งครั้งต่อ *ขอบเขตของภาษา* — โปรเซสสำหรับ CLI และคำขอ (request) สำหรับเว็บเซอร์วิส
 
 === "หนึ่งโปรเซส หนึ่งภาษา"
 
@@ -240,6 +240,47 @@ msgstr ""
 ## การจัดส่ง { #shipping }
 
 โปรดักชันต้องการเพียงแพ็กเกจกับไฟล์ `.mo` และไม่ต้องการอะไรอื่นอีก Babel เป็น dependency สำหรับการพัฒนาและ CI — เก็บ `gettext-tstrings[babel]` ให้พ้นจากอิมเมจโปรดักชันแล้วติดตั้งแพ็กเกจเปล่าที่นั่น การเรนเดอร์รันบนไลบรารีมาตรฐานล้วน ๆ ให้คอมไพล์แคตตาล็อกใน build เดียวกับที่ผลิตสิ่งประดิษฐ์ (artifact) ที่คุณ deploy เพื่อให้ไฟล์ `.mo` ข้างในเป็นไฟล์ `.po` ที่ผ่านการรีวิวแล้วเป๊ะ ๆ และไม่มีสิ่งใดที่คอมไพล์บนแล็ปท็อปของใครบางคนหลุดออกไปได้เลย
+
+วิธีที่ไฟล์เหล่านี้เดินทางไปนั้นขึ้นอยู่กับสิ่งที่คุณ deploy โดย wheel พามันไปในฐานะข้อมูลของแพ็กเกจ (package data) ซึ่งหมายความว่าแคตตาล็อกต้องอยู่ *ข้างใน* ไดเรกทอรีของแพ็กเกจ — `src/myapp/locales/` ไม่ใช่ `locales/` ที่ระดับบนสุด — และต้องบอกแบ็กเอนด์ของการ build ให้รวมไฟล์ที่ปกติ `.gitignore` ซ่อนไว้ด้วย:
+
+=== "Hatchling"
+
+    ```toml
+    [tool.hatch.build]
+    # .mo files are build output, so they are gitignored; name them or the
+    # wheel ships without a single translation.
+    artifacts = ["src/myapp/locales/**/*.mo"]
+    ```
+
+=== "setuptools"
+
+    ```toml
+    [tool.setuptools.package-data]
+    myapp = ["locales/*/LC_MESSAGES/*.mo"]
+    ```
+
+จงอ่านมันกลับผ่านตัวแพ็กเกจ แทนที่จะอ่านผ่านพาธที่อ้างอิงกับ source tree ซึ่งจะไม่มีอยู่อีกต่อไปทันทีที่ wheel ถูกติดตั้ง:
+
+```python
+import gettext
+from importlib.resources import as_file, files
+
+with as_file(files("myapp") / "locales") as localedir:
+    translations = gettext.translation("messages", localedir=localedir, languages=["ja"])
+```
+
+อิมเมจคอนเทนเนอร์มีงานที่ง่ายกว่า: คอมไพล์ระหว่าง build stage แล้วคัดลอกผลลัพธ์ออกมา โดยทิ้ง Babel ไว้ใน stage นั้น
+
+```dockerfile
+FROM python:3.14-slim AS build
+COPY . /src
+RUN cd /src && python -m pip install ".[babel]" \
+    && pybabel compile -d src/myapp/locales
+
+FROM python:3.14-slim
+COPY --from=build /src /src
+RUN python -m pip install /src   # no [babel]: rendering needs the stdlib only
+```
 
 ก่อนออกรีลีส เช็กลิสต์ที่หน้านี้ย่อลงมาเหลือคือ:
 

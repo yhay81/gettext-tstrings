@@ -130,24 +130,26 @@ nincs is.
 Semmi ebből nem elméleti: ennek a webhelynek a saját keretkatalógusa maga is
 tartalmazza a `Built {n} localized page` / `Built {n} localized pages` többes
 számú üzenetet — két angol ágat —, a webhely kiadásai pedig ezt az egyetlen
-üzenetet egy alaktól hatig terjedően fordítják le:
+üzenetet egy alaktól hatig terjedően fordítják le.
 
-| Katalógus | Alakok | A fordítások, alakok szerinti sorrendben |
-| --- | --- | --- |
-| japán | 1 | `ローカライズ済みページを{n}件ビルドしました` |
-| török | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` — kétszer, azonosan: a török főnevek számnév után egyes számban maradnak |
-| olasz | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` — a melléknévi igenév nemben és számban egyeztetve |
-| lett | 3 | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` — a harmadik alak **kizárólag a nullára** való |
-| orosz | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
-| lengyel | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
-| szlovén | 4 | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` — a második **kettes szám**, pontosan kettőre |
-| ír | 5 | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` — egy, kettő, 3–6, 7–10 és a többi; a szótő váltakozik, de a *leathanach* `l`-lel kezdődik, amelyre az ír nyelv egyik mutációt sem írja ki, így több alak egybeesik |
-| arab | 6 | köztük `تم إنشاء صفحة مترجمة واحدة ({n})` pontosan egyre és `تم إنشاء {n} صفحات مترجمة` néhányra |
+??? example "Kilenc ilyen kiadás, alakok szerinti sorrendben"
 
-Minden sor élő bejegyzés ennek a tárolónak az `i18n/*/LC_MESSAGES/site.po`
-fájljaiban, amelyeket a [többnyelvű build](index.md) rendereli minden
-kiadáskor — és egy teszt ehhez a táblázathoz szegezi azokat a katalógusokat,
-így a kettő nem sodródhat szét.
+    | Katalógus | Alakok | A fordítások, alakok szerinti sorrendben |
+    | --- | --- | --- |
+    | japán | 1 | `ローカライズ済みページを{n}件ビルドしました` |
+    | török | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` — kétszer, azonosan: a török főnevek számnév után egyes számban maradnak |
+    | olasz | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` — a melléknévi igenév nemben és számban egyeztetve |
+    | lett | 3 | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` — a harmadik alak **kizárólag a nullára** való |
+    | orosz | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
+    | lengyel | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
+    | szlovén | 4 | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` — a második **kettes szám**, pontosan kettőre |
+    | ír | 5 | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` — egy, kettő, 3–6, 7–10 és a többi; a szótő váltakozik, de a *leathanach* `l`-lel kezdődik, amelyre az ír nyelv egyik mutációt sem írja ki, így több alak egybeesik |
+    | arab | 6 | köztük `تم إنشاء صفحة مترجمة واحدة ({n})` pontosan egyre és `تم إنشاء {n} صفحات مترجمة` néhányra |
+
+    Minden sor élő bejegyzés ennek a tárolónak az `i18n/*/LC_MESSAGES/site.po`
+    fájljaiban, amelyeket a [többnyelvű build](index.md) rendereli minden
+    kiadáskor — és egy teszt ehhez a táblázathoz szegezi azokat a katalógusokat,
+    így a kettő nem sodródhat szét.
 
 Ezeken a határokon belül az átrendezés és az ismétlés szándékosan
 korlátozatlan. Mindkettő nyelvtanilag szükséges valódi nyelvekben, és az
@@ -250,15 +252,19 @@ Három gyorsítótár, szakaszonként egy:
 Minden gyorsítótár korlátos, és egyik sem tart meg interpolált *értékeket* —
 csak statikus szerkezetet és mintaszöveget. Az eredmény, a
 [`benchmarks/runtime.py`](https://github.com/yhay81/gettext-tstrings/blob/main/benchmarks/runtime.py)
-mérése szerint: nagyjából 0,4 µs egy egymezős üzenetre, magának a t-stringnek
-a felépítésével együtt, ami körülbelül 2,5-szerese egy semmit nem ellenőrző,
-sima `gettext(...).format(...)` hívásnak. A
+mérése szerint, CPython 3.14.6-on, macOS 26 alatt, arm64-es laptopon:
+nagyjából 0,4 µs egy egymezős üzenetre, magának a t-stringnek a felépítésével
+együtt, ami körülbelül 2,7-szerese egy semmit nem ellenőrző, sima
+`gettext(...).format(...)` hívásnak. Ezek egyetlen gép számai — a szkript a
+fejlécében kiírja az interpreterét és a platformját, tehát futtasd le azon a
+hardveren, amelyre ténylegesen telepítesz, mielőtt bármelyik arányt a
+sajátodnak tekintenéd. A
 [`core.py`](https://github.com/yhay81/gettext-tstrings/blob/main/src/gettext_tstrings/core.py)
 tetején lévő kommentár rögzíti az e mögött álló egyedi méréseket.
 
 ## Megvalósítani máshogy { #reimplementing-it }
 
-A fentiekből semmi nem titkos tudás: a konvenciót leírtuk
+A fentiekből semmi nem csak erre a megvalósításra jellemző: a konvenciót leírtuk
 [v1-es specifikációként](spec.md), géppel olvasható
 [konformitási készlete](spec.md#conformance) pedig lehetővé teszi, hogy egy
 kinyerő, egy IDE-bővítmény vagy egy másik nyelvű megvalósítás ellenőrizze

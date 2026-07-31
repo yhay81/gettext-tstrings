@@ -237,9 +237,8 @@ alakítják, hogy „ez nem szállítható ki hibásan”.
 ## Nyelv bekötése futásidőben { #binding-a-language-at-runtime }
 
 Minden eddigi katalógusokat állít elő. A hátralévő döntés az, hogy hol
-választ közülük az alkalmazás, és erre egy őszinte válasz van: köss be
-egyszer *egy nyelv hatóköre* szerint — CLI-nél a folyamat, webszolgáltatásnál
-a kérés szintjén.
+választ közülük az alkalmazás. Köss be egyszer *egy nyelv hatóköre* szerint —
+CLI-nél a folyamat, webszolgáltatásnál a kérés szintjén.
 
 === "Egy folyamat, egy nyelv"
 
@@ -354,6 +353,54 @@ könyvtáron egymagán fut. A katalógusokat ugyanabban a buildben fordítsd
 binárisra, amely a telepítendő artefaktumot előállítja, hogy a benne lévő
 `.mo` fájlok pontosan az átnézett `.po` fájlok legyenek, és soha ne kerüljön
 ki semmi, amit valakinek a laptopján fordítottak le.
+
+Az, hogy hogyan utaznak, attól függ, mit telepítesz. Egy wheel csomagadatként
+viszi őket, ami azt jelenti, hogy a katalógusoknak a csomagkönyvtáron *belül*
+kell lenniük — `src/myapp/locales/`, nem pedig legfelső szintű `locales/` —, a
+buildháttérnek pedig meg kell mondani, hogy olyan fájlokat is vegyen bele,
+amelyeket a `.gitignore` rendesen elrejt:
+
+=== "Hatchling"
+
+    ```toml
+    [tool.hatch.build]
+    # .mo files are build output, so they are gitignored; name them or the
+    # wheel ships without a single translation.
+    artifacts = ["src/myapp/locales/**/*.mo"]
+    ```
+
+=== "setuptools"
+
+    ```toml
+    [tool.setuptools.package-data]
+    myapp = ["locales/*/LC_MESSAGES/*.mo"]
+    ```
+
+A visszaolvasás a csomagon keresztül történjen, ne a forrásfához képest
+relatív útvonalon, amely abban a pillanatban megszűnik létezni, ahogy a wheelt
+telepítik:
+
+```python
+import gettext
+from importlib.resources import as_file, files
+
+with as_file(files("myapp") / "locales") as localedir:
+    translations = gettext.translation("messages", localedir=localedir, languages=["ja"])
+```
+
+A konténerimage-nek könnyebb dolga van: fordítsd binárisra a build szakaszban,
+majd másold át az eredményt, a Babelt pedig hagyd abban a szakaszban.
+
+```dockerfile
+FROM python:3.14-slim AS build
+COPY . /src
+RUN cd /src && python -m pip install ".[babel]" \
+    && pybabel compile -d src/myapp/locales
+
+FROM python:3.14-slim
+COPY --from=build /src /src
+RUN python -m pip install /src   # no [babel]: rendering needs the stdlib only
+```
 
 Kiadás előtt az az ellenőrzőlista, amellyé ez az oldal összesűrűsödik:
 

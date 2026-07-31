@@ -186,6 +186,17 @@ python -m pip install "gettext-tstrings[babel]"
 
 ## Staða { #status }
 
+| | |
+| --- | --- |
+| Útgáfa pakkans | 0.1.0a7 |
+| Stöðugleiki API | alfa — Python-API-ið gæti enn breyst |
+| [Forskrift](spec.md) | v1, með [samræmisprófum](spec.md#conformance) |
+| Python | 3.14 og nýrra; prófað á 3.14, 3.14t (free-threaded) og 3.15 |
+| Babel | 2.18 eða nýrra, og aðeins þar sem `pybabel` keyrir |
+| Keyrsluháðir pakkar | engir — `gettext` úr staðalsafninu |
+| Snið þýðingaskráa | venjulegar POT-, PO- og MO-skrár |
+| Breytingar | [CHANGELOG](https://github.com/yhay81/gettext-tstrings/blob/main/CHANGELOG.md) |
+
 Alfa-útgáfa. Samningurinn er lítill af ásettu ráði og
 [forskriftin](spec.md) er stöðugi hluti hans; Python-API-ið gæti enn hreyfst.
 Fyrir stöðuga útgáfu þarf þetta breiðari tungumálagögn, samfellda mælingu á

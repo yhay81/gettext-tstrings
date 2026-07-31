@@ -119,8 +119,8 @@ antwoord, elk op zijn eigen pagina:
 De discussie is niet afgelopen, en dit project is er een deelnemer aan, geen
 oordeel erover. Heb je productie-ervaring met gettext die deze keuzes raakt,
 dan zijn [dezelfde thread][discuss-thread] en de
-[Discussions][gh-discussions] van deze repository waar erover
-gediscussieerd wordt.
+[Discussions][gh-discussions] van deze repository de plek waar de discussie
+verdergaat.
 
 ## Tijdlijn { #timeline }
 

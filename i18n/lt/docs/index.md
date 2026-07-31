@@ -187,6 +187,17 @@ python -m pip install "gettext-tstrings[babel]"
 
 ## Būsena { #status }
 
+| | |
+| --- | --- |
+| Paketo versija | 0.1.0a7 |
+| API stabilumas | alfa — Python API dar gali keistis |
+| [Specifikacija](spec.md) | v1 su [atitikties rinkiniu](spec.md#conformance) |
+| Python | 3.14 ir naujesnis; testuota su 3.14, 3.14t (laisvųjų gijų) ir 3.15 |
+| Babel | 2.18 arba naujesnis, ir tik ten, kur veikia `pybabel` |
+| Veikimo meto priklausomybės | jokių — standartinės bibliotekos `gettext` |
+| Katalogų formatas | įprasti POT, PO ir MO |
+| Pakeitimai | [CHANGELOG](https://github.com/yhay81/gettext-tstrings/blob/main/CHANGELOG.md) |
+
 Alfa versija. Kontraktas tyčia mažas, o [specifikacija](spec.md) yra
 stabilioji jo dalis; Python API dar gali keistis. Prieš stabilų leidimą reikia
 platesnių kalbinių bandymų rinkinių, nuolatinio našumo stebėjimo, API

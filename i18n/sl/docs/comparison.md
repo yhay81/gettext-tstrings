@@ -96,7 +96,8 @@ drugim.
 _("Hello %(name)s") % {"name": name}
 ```
 
-Kaj gre lahko narobe: en sam izbrisan znak v prevodu sesuje izris.
+Kaj gre lahko narobe: pokvarjena ograda postane izjema med izvajanjem, razen če
+je pred tem ne ujame preverjanje kataloga.
 
 Niz v katalogu nosi sintakso printf, vključno s končno črko za tip — `s` v
 `%(name)s` —, ki jo je zlahka spregledati in zlahka pokvariti:
@@ -278,7 +279,7 @@ knjižnica, je že dokončan niz, zato bi njegovo prevajanje pomenilo prevajanje
 drobca. T-nizi ([PEP 750]) hranijo statično besedilo in vrednosti ločeno, pri
 tem pa ohranjajo f-nizom podobno sintakso in izrecno vezavo vrednosti.
 
-Kako je Python prišel na to razpotje — dva PEP-a z desetletjem vmes in razprava
+Kako je Python prišel sem — dva PEP-a z desetletjem vmes in razprava
 o standardni knjižnici, ki se je zaključila brez odgovora — je z viri
 povedano v [Ozadju](background.md).
 

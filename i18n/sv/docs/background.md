@@ -113,7 +113,7 @@ en på sin egen sida:
 Diskussionen har inte tagit slut, och det här projektet är en deltagare i
 den, inte en dom över den. Om du har produktionserfarenhet av gettext som
 berör de här valen är [samma tråd][discuss-thread] och det här förrådets
-[Discussions][gh-discussions] där den förs.
+[Discussions][gh-discussions] där diskussionen fortsätter.
 
 ## Tidslinje { #timeline }
 

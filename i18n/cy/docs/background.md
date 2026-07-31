@@ -111,7 +111,7 @@ lawr yma, pob un ar ei dudalen ei hun:
 Nid yw'r drafodaeth wedi dod i ben, a chyfrannwr ynddi yw'r prosiect hwn, nid
 dyfarniad arni. Os oes gennych brofiad gettext cynhyrchu sy'n berthnasol i'r
 dewisiadau hyn, yr [un edefyn][discuss-thread] a [Thrafodaethau][gh-discussions]
-y storfa hon yw lle y caiff ei ddadlau.
+y storfa hon yw lle y mae'r drafodaeth yn parhau.
 
 ## Llinell amser { #timeline }
 

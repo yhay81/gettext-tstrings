@@ -195,6 +195,17 @@ python -m pip install "gettext-tstrings[babel]"
 
 ## Status { #status }
 
+| | |
+| --- | --- |
+| Versi paket | 0.1.0a7 |
+| Stabilitas API | alpha — API Python-nya masih mungkin berubah |
+| [Spesifikasi](spec.md) | v1, dengan [suite konformans](spec.md#conformance) |
+| Python | 3.14 dan yang lebih baru; diuji pada 3.14, 3.14t (free-threaded), dan 3.15 |
+| Babel | 2.18 atau yang lebih baru, dan hanya di tempat `pybabel` dijalankan |
+| Dependensi runtime | tidak ada — `gettext` dari pustaka standar |
+| Format katalog | POT, PO, dan MO biasa |
+| Perubahan | [CHANGELOG](https://github.com/yhay81/gettext-tstrings/blob/main/CHANGELOG.md) |
+
 Sebuah alpha. Kontraknya sengaja dibuat kecil dan [spesifikasi](spec.md)
 adalah bagiannya yang stabil; API Python-nya masih mungkin bergerak. Sebelum
 rilis stabil, proyek ini membutuhkan fixture bahasa yang lebih luas, pelacakan

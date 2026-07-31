@@ -124,8 +124,18 @@ kopijas — kas iztur pārbaudi, kura salīdzina koda blokus starp tām, jo tas 
 viens un tas pats fails.
 
 Neviena no tām nav kaut kas, ko tulkošanas bibliotēka spēj ieraudzīt. Abas ir
-lēti pārbaudāmas, tiklīdz zini, ka tās jāpārbauda: salīdzini ar avotu un
-pieprasi atšķirību.
+lēti pārbaudāmas, taču ne, pieprasot, lai katrs ieraksts atšķirtos no sava
+avota: `OK`, produktu nosaukumi, personvārdi, akronīmi un koda identifikatori
+visi tulkojas paši par sevi, un pārbaude, kas to aizliedz, mūžīgi ražo viltus
+trauksmes.
+
+Mēriet labāk *īpatsvaru* — pa visu katalogu vai pa visu lapu — un sūtiet
+novirzes cilvēkam. Šīs vietnes paša tests dara tieši to: tas salīdzina katra
+izdevuma prozas rindas ar angļu avotu un krīt virs 25% identisku. Viltotais
+izdevums bija 87%; katrs īsts tulkojums ir starp 4% un 8%, kas ir tā nelielā
+aste, kurā rindas sakrīt likumīgi, piemēram, URL un citēta programmas izvade.
+Abas kopas ir pietiekami tālu viena no otras, lai slieksnim nebūtu jābūt
+precīzam.
 
 ## Katalogs nav vienīgā iztulkotā lieta { #the-catalog-is-not-the-only-translated-thing }
 

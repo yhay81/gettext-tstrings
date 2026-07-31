@@ -173,6 +173,17 @@ python -m pip install "gettext-tstrings[babel]"
 
 ## סטטוס { #status }
 
+| | |
+| --- | --- |
+| גרסת החבילה | 0.1.0a7 |
+| יציבות ה-API | אלפא — ה-API של Python עדיין עשוי להשתנות |
+| [מפרט](spec.md) | ‏v1, עם [חבילת בדיקות תאימות](spec.md#conformance) |
+| Python | ‏3.14 ומעלה; נבדק על 3.14,‏ 3.14t (free-threaded) ו-3.15 |
+| Babel | ‏2.18 ומעלה, ורק היכן ש-`pybabel` רץ |
+| תלויות זמן ריצה | אין — ‏`gettext` של הספרייה הסטנדרטית |
+| פורמט קטלוגים | קובצי POT,‏ PO ו-MO רגילים |
+| שינויים | [CHANGELOG](https://github.com/yhay81/gettext-tstrings/blob/main/CHANGELOG.md) |
+
 גרסת אלפא. החוזה קטן בכוונה, וה[מפרט](spec.md) הוא החלק היציב שבו; ה-API
 של Python עדיין עשוי לזוז. לפני שחרור יציב נדרשים מקרי בוחן רחבים יותר של
 שפות, מעקב ביצועים מתמשך, סקירת API מאנשים שמשתמשים ב-gettext וב-Babel

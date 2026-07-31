@@ -227,8 +227,8 @@ Weblateはこの検査を文書化しており、商用プラットフォーム�
 ## 実行時に言語を束縛する { #binding-a-language-at-runtime }
 
 ここまでのすべてはカタログを生み出します。残る決定はアプリケーションが
-どこでカタログを選択するかであり、答えは1つしかありません。*言語のスコープ*
-ごとに一度束縛します。CLIならプロセス、Webサービスならリクエストです。
+どこでカタログを選択するかです。*言語のスコープ*ごとに一度束縛します。
+CLIならプロセス、Webサービスならリクエストです。
 
 === "1プロセス1言語"
 
@@ -340,6 +340,53 @@ Babelは開発とCIの依存です。`gettext-tstrings[babel]`を本番イメー
 生成するのと同じビルドで行います。そうすれば、成果物内の`.mo`ファイルは
 レビュー済みの`.po`ファイルと厳密に一致し、誰かのラップトップでコンパイル
 されたものが出荷されることはありません。
+
+どうやって運ぶかは、何をデプロイするかで決まります。wheelはカタログを
+パッケージデータとして運ぶので、カタログはパッケージディレクトリの*内側* —
+トップレベルの`locales/`ではなく`src/myapp/locales/`— に置く必要があり、
+さらに`.gitignore`が通常は隠すファイルを含めるよう、ビルドバックエンドに
+指示しなければなりません。
+
+=== "Hatchling"
+
+    ```toml
+    [tool.hatch.build]
+    # .mo files are build output, so they are gitignored; name them or the
+    # wheel ships without a single translation.
+    artifacts = ["src/myapp/locales/**/*.mo"]
+    ```
+
+=== "setuptools"
+
+    ```toml
+    [tool.setuptools.package-data]
+    myapp = ["locales/*/LC_MESSAGES/*.mo"]
+    ```
+
+読み込むときは、ソースツリーからの相対パスではなくパッケージ経由にします。
+相対パスはwheelがインストールされた瞬間に存在しなくなります。
+
+```python
+import gettext
+from importlib.resources import as_file, files
+
+with as_file(files("myapp") / "locales") as localedir:
+    translations = gettext.translation("messages", localedir=localedir, languages=["ja"])
+```
+
+コンテナイメージはもっと簡単です。ビルドステージでコンパイルし、その結果だけを
+コピーして、Babelはそのステージに置き去りにします。
+
+```dockerfile
+FROM python:3.14-slim AS build
+COPY . /src
+RUN cd /src && python -m pip install ".[babel]" \
+    && pybabel compile -d src/myapp/locales
+
+FROM python:3.14-slim
+COPY --from=build /src /src
+RUN python -m pip install /src   # no [babel]: rendering needs the stdlib only
+```
 
 リリース前に確認する、このページの要約となるチェックリストです。
 

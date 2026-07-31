@@ -188,6 +188,17 @@ python -m pip install "gettext-tstrings[babel]"
 
 ## Durum { #status }
 
+| | |
+| --- | --- |
+| Paket sürümü | 0.1.0a7 |
+| API kararlılığı | alfa — Python API'si henüz değişebilir |
+| [Belirtim](spec.md) | v1, bir [uyumluluk paketi](spec.md#conformance) ile |
+| Python | 3.14 ve üstü; 3.14, 3.14t (serbest iş parçacıklı) ve 3.15 üzerinde test edildi |
+| Babel | 2.18 ya da üstü, ve yalnızca `pybabel`ın çalıştığı yerde |
+| Çalışma zamanı bağımlılıkları | yok — standart kütüphanenin `gettext`i |
+| Katalog biçimi | sıradan POT, PO ve MO |
+| Değişiklikler | [CHANGELOG](https://github.com/yhay81/gettext-tstrings/blob/main/CHANGELOG.md) |
+
 Bir alfa. Sözleşme bilerek küçük tutuldu ve [belirtim](spec.md) onun kararlı
 parçası; Python API'si henüz değişebilir. Kararlı bir sürümden önce daha geniş
 dil fikstürleri, sürekli performans takibi, gettext ve Babel'i ciddi biçimde

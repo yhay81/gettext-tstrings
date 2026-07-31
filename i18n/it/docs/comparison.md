@@ -101,8 +101,8 @@ volta.
 _("Hello %(name)s") % {"name": name}
 ```
 
-Che cosa può andare storto: una lettera cancellata in una traduzione manda in
-crash il rendering.
+Che cosa può andare storto: un segnaposto danneggiato diventa un'eccezione a
+runtime, a meno che la validazione del catalogo non lo intercetti prima.
 
 La stringa nel catalogo trasporta sintassi printf, inclusa una lettera di
 tipo finale — la `s` di `%(name)s` — facile da trascurare e facile da
@@ -297,7 +297,7 @@ frammento. Le t-string ([PEP 750]) mantengono separati il testo statico e i
 valori conservando una sintassi simile alle f-string e il legame esplicito
 dei valori.
 
-Come Python sia arrivato a questo bivio — due PEP a dieci anni di distanza e
+Come Python sia arrivato fin qui — due PEP a dieci anni di distanza e
 la discussione sulla stdlib chiusa senza una risposta — è raccontato con le
 fonti in [Contesto](background.md).
 

@@ -187,6 +187,17 @@ python -m pip install "gettext-tstrings[babel]"
 
 ## Stadiu { #status }
 
+| | |
+| --- | --- |
+| Versiunea pachetului | 0.1.0a7 |
+| Stabilitatea API-ului | alpha — API-ul Python încă se poate schimba |
+| [Specificație](spec.md) | v1, cu o [suită de conformitate](spec.md#conformance) |
+| Python | 3.14 și mai nou; testat pe 3.14, 3.14t (free-threaded) și 3.15 |
+| Babel | 2.18 sau mai nou, și doar acolo unde rulează `pybabel` |
+| Dependențe la rulare | niciuna — `gettext` din biblioteca standard |
+| Formatul catalogului | POT, PO și MO obișnuite |
+| Modificări | [CHANGELOG](https://github.com/yhay81/gettext-tstrings/blob/main/CHANGELOG.md) |
+
 Un alpha. Contractul este mic în mod intenționat, iar
 [specificația](spec.md) este partea lui stabilă; API-ul Python încă se poate
 mișca. Înainte de o lansare stabilă, aici este nevoie de fixture-uri

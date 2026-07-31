@@ -11,7 +11,7 @@ katika mingi kati ya mitego inayoifanya i18n kuwa ngumu kuliko inavyoonekana.
 
 Kila sehemu iliyo hapa chini ni jambo lililokwenda kombo hapa kwa kweli, jinsi
 lilivyoonekana wakati huo, na mahali mstari unapopita kati ya kile maktaba
-inachokukagulia na kile kinachobaki kuwa hukumu yako.
+inachokukagulia na kile ambacho bado kinahitaji hukumu ya binadamu.
 
 ## Kubadili jina la kigezo hutafsiri sentensi upya { #renaming-a-variable-retranslates-a-sentence }
 
@@ -129,8 +129,18 @@ zilezile za chanzo cha Kiingereza — jambo linalopita ukaguzi unaolinganisha
 vizuizi vya msimbo kati ya hivyo viwili, kwa sababu ni faili lilelile.
 
 Wala hakuna kati ya haya mawili ambalo maktaba ya tafsiri inaweza kuliona. Yote
-mawili ni rahisi kuyajaribu mara tu unapojua kufanya hivyo: linganisha dhidi ya
-chanzo na udai tofauti.
+mawili ni rahisi kuyajaribu, lakini si kwa kudai kila ingizo litofautiane na
+chanzo chake: `OK`, majina ya bidhaa, majina ya watu, vifupisho, na vitambulishi
+vya msimbo vyote hujitafsiri vyenyewe, na ukaguzi unaokataza hilo huzalisha
+matokeo chanya ya uongo milele.
+
+Pima *kiwango* badala yake, kwa katalogi nzima au ukurasa mzima, kisha peleka
+zilizokithiri kwa binadamu. Jaribio la tovuti hii hufanya hasa hivyo — hulinganisha
+mistari ya nathari ya kila toleo dhidi ya chanzo cha Kiingereza nalo hushindwa
+zaidi ya 25% inayofanana. Toleo lililoghushiwa lilikuwa 87%; kila tafsiri halisi
+iko kati ya 4% na 8%, ambayo ni mkia mdogo wa mistari inayofanana kihalali, kama
+vile URL na matokeo ya programu yaliyonukuliwa. Makundi hayo mawili yako mbali
+vya kutosha kiasi kwamba kizingiti hakihitaji kuwa sahihi kabisa.
 
 ## Katalogi si kitu pekee kinachotafsiriwa { #the-catalog-is-not-the-only-translated-thing }
 

@@ -194,6 +194,17 @@ python -m pip install "gettext-tstrings[babel]"
 
 ## Status { #status }
 
+| | |
+| --- | --- |
+| Paketversion | 0.1.0a7 |
+| API-Stabilität | Alpha — die Python-API kann sich noch ändern |
+| [Spezifikation](spec.md) | v1, mit einer [Konformitätssuite](spec.md#conformance) |
+| Python | 3.14 und neuer; getestet auf 3.14, 3.14t (free-threaded) und 3.15 |
+| Babel | 2.18 oder neuer, und nur dort, wo `pybabel` läuft |
+| Laufzeitabhängigkeiten | keine — das `gettext` der Standardbibliothek |
+| Katalogformat | gewöhnliches POT, PO und MO |
+| Änderungen | [CHANGELOG](https://github.com/yhay81/gettext-tstrings/blob/main/CHANGELOG.md) |
+
 Eine Alpha. Der Vertrag ist absichtlich klein, und die
 [Spezifikation](spec.md) ist der stabile Teil davon; die Python-API kann sich
 noch bewegen. Vor einer stabilen Version braucht es breitere Sprachfixtures,

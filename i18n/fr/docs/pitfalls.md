@@ -129,8 +129,19 @@ octet pour octet de la source anglaise — ce qui passe un contrôle comparant l
 blocs de code entre les deux, puisqu'il s'agit du même fichier.
 
 Ni l'un ni l'autre n'est visible pour une bibliothèque de traduction. Les deux
-sont faciles à tester une fois qu'on y pense : comparez à la source et exigez
-une différence.
+sont faciles à tester, mais pas en exigeant que chaque entrée diffère de sa
+source : `OK`, les noms de produits, les noms de personnes, les sigles et les
+identifiants de code se traduisent tous par eux-mêmes, et un contrôle qui
+l'interdit produit des faux positifs à perpétuité.
+
+Mesurez plutôt le *taux*, sur tout un catalogue ou toute une page, et envoyez
+les valeurs aberrantes à un humain. Le test de ce site fait exactement cela :
+il compare les lignes de prose de chaque édition à la source anglaise et échoue
+au-delà de 25 % d'identiques. L'édition contrefaite était à 87 % ; toutes les
+traductions authentiques se situent entre 4 % et 8 %, ce qui correspond à la
+petite queue de lignes qui coïncident légitimement, comme les URL et les
+sorties de programme citées. Les deux populations sont assez éloignées pour que
+le seuil n'ait pas besoin d'être précis.
 
 ## Le catalogue n'est pas la seule chose traduite { #the-catalog-is-not-the-only-translated-thing }
 

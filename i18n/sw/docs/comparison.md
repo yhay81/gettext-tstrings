@@ -97,8 +97,8 @@ nyingine.
 _("Hello %(name)s") % {"name": name}
 ```
 
-Kinachoweza kwenda vibaya: herufi moja iliyofutwa katika tafsiri huvunja
-uonyeshaji.
+Kinachoweza kwenda vibaya: kishika nafasi kilichoharibika huwa hitilafu ya
+wakati wa utekelezaji, isipokuwa uthibitishaji wa katalogi ukikinasa kwanza.
 
 Mfuatano wa katalogi hubeba sintaksia ya printf, ikiwa ni pamoja na herufi ya
 aina mwishoni — ile `s` ndani ya `%(name)s` — ambayo ni rahisi kuipuuza na
@@ -292,7 +292,7 @@ kutafsiri kipande. t-strings ([PEP 750]) hutenganisha maandishi tuli na
 thamani huku zikihifadhi sintaksia inayofanana na ya f-string na ufungaji wa
 thamani ulio wazi.
 
-Jinsi Python ilivyofika kwenye njia panda hii — PEP mbili zenye tofauti ya
+Jinsi Python ilivyofika hapa — PEP mbili zenye tofauti ya
 miaka kumi, na mjadala wa stdlib uliofungwa bila jibu — imesimuliwa pamoja na
 vyanzo katika [Usuli](background.md).
 

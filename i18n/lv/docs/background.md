@@ -113,7 +113,7 @@ atbilde, katra savā lapā:
 Diskusija nav beigusies, un šis projekts tajā ir dalībnieks, nevis spriedums
 par to. Ja jums ir produkcijas gettext pieredze, kas skar šīs izvēles, tas
 pats [pavediens][discuss-thread] un šī repozitorija
-[Diskusijas][gh-discussions] ir vieta, kur par to tiek strīdēts.
+[Diskusijas][gh-discussions] ir vieta, kur diskusija turpinās.
 
 ## Laika līnija { #timeline }
 

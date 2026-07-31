@@ -129,23 +129,25 @@ mewn ffurf lle nad oes gan y Saesneg yr un.
 Nid yw dim o hynny'n ddamcaniaethol: mae catalog cragen y wefan hon ei hun yn
 cario'r neges luosog `Built {n} localized page` / `Built {n} localized pages` —
 dwy gangen Saesneg — ac mae argraffiadau'r wefan yn cyfieithu'r un neges honno i
-unrhyw le rhwng un ffurf a chwech:
+unrhyw le rhwng un ffurf a chwech.
 
-| Catalog | Ffurfiau | Y cyfieithiadau, yn nhrefn y ffurfiau |
-| --- | --- | --- |
-| Japaneg | 1 | `ローカライズ済みページを{n}件ビルドしました` |
-| Twrceg | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` — ddwywaith, yr un fath: mae enwau Twrceg yn aros yn unigol ar ôl rhifolyn |
-| Eidaleg | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` — mae'r rhangymeriad yn cytuno o ran cenedl a rhif |
-| Latfieg | 3 | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` — ar gyfer **sero'n unig** y mae'r drydedd ffurf |
-| Rwseg | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
-| Pwyleg | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
-| Slofeneg | 4 | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` — **deuol** yw'r ail, ar gyfer union ddau |
-| Gwyddeleg | 5 | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` — un, dau, 3–6, 7–10, a'r gweddill; mae'r bôn yn amrywio ond mae *leathanach* yn dechrau ag `l`, nad yw'r un treiglad Gwyddeleg yn ei ysgrifennu, felly mae sawl ffurf yn cyd-daro |
-| Arabeg | 6 | yn eu plith `تم إنشاء صفحة مترجمة واحدة ({n})` ar gyfer union un a `تم إنشاء {n} صفحات مترجمة` ar gyfer ychydig |
+??? example "Naw o'r argraffiadau hynny, yn nhrefn y ffurfiau"
 
-Mae pob rhes yn gofnod byw yn `i18n/*/LC_MESSAGES/site.po` y storfa hon, wedi'i
-rendro gan yr [adeiladu amlieithog](index.md) ar bob rhyddhad — ac mae prawf yn
-pinio'r tabl hwn i'r catalogau hynny, fel na all y ddau ymwahanu.
+    | Catalog | Ffurfiau | Y cyfieithiadau, yn nhrefn y ffurfiau |
+    | --- | --- | --- |
+    | Japaneg | 1 | `ローカライズ済みページを{n}件ビルドしました` |
+    | Twrceg | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` — ddwywaith, yr un fath: mae enwau Twrceg yn aros yn unigol ar ôl rhifolyn |
+    | Eidaleg | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` — mae'r rhangymeriad yn cytuno o ran cenedl a rhif |
+    | Latfieg | 3 | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` — ar gyfer **sero'n unig** y mae'r drydedd ffurf |
+    | Rwseg | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
+    | Pwyleg | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
+    | Slofeneg | 4 | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` — **deuol** yw'r ail, ar gyfer union ddau |
+    | Gwyddeleg | 5 | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` — un, dau, 3–6, 7–10, a'r gweddill; mae'r bôn yn amrywio ond mae *leathanach* yn dechrau ag `l`, nad yw'r un treiglad Gwyddeleg yn ei ysgrifennu, felly mae sawl ffurf yn cyd-daro |
+    | Arabeg | 6 | yn eu plith `تم إنشاء صفحة مترجمة واحدة ({n})` ar gyfer union un a `تم إنشاء {n} صفحات مترجمة` ar gyfer ychydig |
+
+    Mae pob rhes yn gofnod byw yn `i18n/*/LC_MESSAGES/site.po` y storfa hon, wedi'i
+    rendro gan yr [adeiladu amlieithog](index.md) ar bob rhyddhad — ac mae prawf yn
+    pinio'r tabl hwn i'r catalogau hynny, fel na all y ddau ymwahanu.
 
 O fewn y ffiniau hynny, mae aildrefnu ac ailadrodd yn fwriadol ddigyfyngiad. Mae'r
 ddau'n ramadegol angenrheidiol mewn ieithoedd go iawn, a byddai cyfyngu ar nifer
@@ -245,16 +247,19 @@ Tri chache, un fesul cam:
 Mae pob cache wedi'i ffinio, ac nid oes yr un yn cadw *gwerthoedd* wedi'u
 rhyngosod — dim ond strwythur statig a thestun patrymau. Y canlyniad, wedi'i
 fesur gan
-[`benchmarks/runtime.py`](https://github.com/yhay81/gettext-tstrings/blob/main/benchmarks/runtime.py):
-tua 0.4 µs ar gyfer neges ag un maes gan gynnwys adeiladu'r llinyn-t ei hun,
-tua 2.5× `gettext(...).format(...)` plaen nad yw'n gwirio dim. Mae'r sylwebaeth
-ar frig
+[`benchmarks/runtime.py`](https://github.com/yhay81/gettext-tstrings/blob/main/benchmarks/runtime.py)
+ar CPython 3.14.6, macOS 26 ar liniadur arm64: tua 0.4 µs ar gyfer neges ag un
+maes gan gynnwys adeiladu'r llinyn-t ei hun, tua 2.7× `gettext(...).format(...)`
+plaen nad yw'n gwirio dim. Rhifau un peiriant yw'r rheini — mae'r sgript yn
+argraffu ei dehonglydd a'i llwyfan yn ei phennawd, felly rhedwch hi ar y caledwedd
+yr ydych mewn gwirionedd yn defnyddio arno cyn trin unrhyw gymhareb fel eich un
+chi. Mae'r sylwebaeth ar frig
 [`core.py`](https://github.com/yhay81/gettext-tstrings/blob/main/src/gettext_tstrings/core.py)
 yn cofnodi'r mesuriadau unigol y tu ôl i'r siâp hwnnw.
 
 ## Ei ailweithredu { #reimplementing-it }
 
-Nid llên breifat yw dim o'r uchod: ysgrifennwyd y confensiwn i lawr fel
+Nid yw dim o'r uchod yn benodol i'r gweithrediad hwn: ysgrifennwyd y confensiwn i lawr fel
 [manyleb v1](spec.md), ac mae ei [chyfres gydymffurfio](spec.md#conformance) y
 gall peiriant ei darllen yn gadael i echdynnwr, ategyn IDE, neu weithrediad mewn
 iaith arall wirio ei hun yn erbyn pob rheol a esboniodd y dudalen hon. Mae'r

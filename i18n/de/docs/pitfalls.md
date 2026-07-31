@@ -133,8 +133,19 @@ byte-identische Kopien der englischen Quelle waren — was eine Prüfung besteht
 die Codeblöcke zwischen beiden vergleicht, denn es ist dieselbe Datei.
 
 Beides kann eine Übersetzungsbibliothek nicht sehen. Beides ist billig zu
-testen, sobald man weiß, dass man es muss: gegen die Quelle vergleichen und
-einen Unterschied verlangen.
+testen — aber nicht, indem man von jedem Eintrag einen Unterschied zur Quelle
+verlangt: `OK`, Produktnamen, Personennamen, Abkürzungen und Codebezeichner
+übersetzen sich alle in sich selbst, und eine Prüfung, die das verbietet,
+erzeugt für immer Fehlalarme.
+
+Miss stattdessen die *Rate*, über einen ganzen Katalog oder eine ganze Seite,
+und schick die Ausreißer zu einem Menschen. Der eigene Test dieser Website tut
+genau das — er vergleicht die Prosazeilen jeder Ausgabe mit der englischen
+Quelle und schlägt oberhalb von 25 % Identischem fehl. Die gefälschte Ausgabe
+lag bei 87 %; jede echte Übersetzung liegt zwischen 4 % und 8 %, was dem
+kleinen Rest an Zeilen entspricht, die legitim übereinstimmen, etwa URLs und
+zitierte Programmausgaben. Die beiden Populationen liegen weit genug
+auseinander, dass der Schwellenwert nicht präzise sein muss.
 
 ## Der Katalog ist nicht das Einzige, was übersetzt wird { #the-catalog-is-not-the-only-translated-thing }
 

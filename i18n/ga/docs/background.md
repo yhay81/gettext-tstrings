@@ -122,7 +122,7 @@ gach ceann ar a leathanach féin:
 Níl deireadh leis an bplé, agus is rannpháirtí ann é an tionscadal seo, ní
 breithiúnas air. Má tá taithí agat ar gettext i dtimpeallachtaí táirgthe a
 bhaineann leis na roghanna seo, is sa [snáithe céanna][discuss-thread] agus i
-[nDíospóireachtaí][gh-discussions] na stórlainne seo a phléitear í.
+[nDíospóireachtaí][gh-discussions] na stórlainne seo a leanann an plé ar aghaidh.
 
 ## Amlíne { #timeline }
 

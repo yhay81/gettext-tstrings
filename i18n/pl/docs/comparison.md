@@ -97,8 +97,8 @@ Poniższe sekcje pokazują każdy kompromis szczegółowo, metoda po metodzie.
 _("Hello %(name)s") % {"name": name}
 ```
 
-Co może pójść nie tak: jedna usunięta litera w tłumaczeniu wywala
-renderowanie.
+Co może pójść nie tak: uszkodzony symbol zastępczy staje się wyjątkiem w
+czasie działania, chyba że walidacja katalogu wychwyci go wcześniej.
 
 Łańcuch w katalogu niesie składnię printf, łącznie z końcową literą typu —
 `s` w `%(name)s` — którą łatwo przeoczyć i łatwo uszkodzić:
@@ -289,7 +289,7 @@ zobaczy, jest już gotowym łańcuchem, więc tłumaczenie go oznacza tłumaczen
 fragmentu. T-stringi ([PEP 750]) trzymają tekst statyczny i wartości osobno,
 zachowując składnię podobną do f-stringów i jawne wiązanie wartości.
 
-Jak Python doszedł do tego rozdroża — dwa PEP-y w odstępie dziesięciu lat i
+Jak Python tu dotarł — dwa PEP-y w odstępie dziesięciu lat i
 dyskusja o bibliotece standardowej zamknięta bez odpowiedzi — opowiada ze
 źródłami strona [Geneza](background.md).
 

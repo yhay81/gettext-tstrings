@@ -11,7 +11,8 @@ sebagian besar jebakan yang membuat i18n lebih sulit daripada tampaknya.
 
 Setiap bagian di bawah adalah sesuatu yang benar-benar salah di sini, seperti
 apa tampaknya saat itu, dan di mana garis batasnya jatuh antara apa yang
-diperiksa pustaka ini untuk Anda dan apa yang tetap menjadi pertimbangan Anda.
+diperiksa pustaka ini untuk Anda dan apa yang tetap memerlukan pertimbangan
+manusia.
 
 ## Mengganti nama variabel menerjemahkan ulang sebuah kalimat { #renaming-a-variable-retranslates-a-sentence }
 
@@ -133,8 +134,19 @@ membandingkan blok kode di antara keduanya, karena keduanya adalah berkas yang
 sama.
 
 Tak satu pun dari keduanya dapat dilihat sebuah pustaka penerjemahan. Keduanya
-murah untuk diuji begitu Anda tahu harus mengujinya: bandingkan dengan
-sumbernya dan haruskan ada perbedaan.
+murah untuk diuji, tetapi bukan dengan mengharuskan setiap entri berbeda dari
+sumbernya: `OK`, nama produk, nama orang, akronim, dan pengidentifikasi kode
+semuanya menerjemahkan diri menjadi dirinya sendiri, dan pemeriksaan yang
+melarang itu menghasilkan positif palsu selamanya.
+
+Ukurlah *rasionya* sebagai gantinya, atas seluruh katalog atau seluruh
+halaman, lalu kirimkan pencilannya ke seorang manusia. Pengujian situs ini
+melakukan persis itu — ia membandingkan baris-baris prosa setiap edisi dengan
+sumber bahasa Inggrisnya dan gagal di atas 25% identik. Edisi palsu itu berada
+di 87%; setiap terjemahan asli berada di antara 4% dan 8%, yang merupakan ekor
+kecil berisi baris-baris yang secara sah kebetulan sama, seperti URL dan
+keluaran program yang dikutip. Kedua populasi itu cukup berjauhan sehingga
+ambangnya tidak perlu presisi.
 
 ## Katalog bukan satu-satunya yang diterjemahkan { #the-catalog-is-not-the-only-translated-thing }
 

@@ -114,7 +114,7 @@ vlastní stránce:
 Diskuse neskončila a tento projekt je jejím účastníkem, nikoli verdiktem
 nad ní. Máte-li produkční zkušenost s gettextem, která se těchto voleb
 týká, [totéž vlákno][discuss-thread] a [Discussions][gh-discussions]
-tohoto repozitáře jsou místa, kde se o nich vede spor.
+tohoto repozitáře jsou místa, kde diskuse pokračuje.
 
 ## Časová osa { #timeline }
 

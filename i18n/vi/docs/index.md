@@ -187,6 +187,17 @@ python -m pip install "gettext-tstrings[babel]"
 
 ## Trạng thái { #status }
 
+| | |
+| --- | --- |
+| Phiên bản gói | 0.1.0a7 |
+| Độ ổn định API | alpha — API Python vẫn có thể thay đổi |
+| [Đặc tả](spec.md) | v1, kèm [bộ kiểm thử tuân thủ](spec.md#conformance) |
+| Python | 3.14 trở lên; đã kiểm thử trên 3.14, 3.14t (free-threaded) và 3.15 |
+| Babel | 2.18 trở lên, và chỉ ở nơi `pybabel` chạy |
+| Phụ thuộc lúc chạy | không có — chỉ `gettext` của thư viện chuẩn |
+| Định dạng catalog | POT, PO và MO thông thường |
+| Thay đổi | [CHANGELOG](https://github.com/yhay81/gettext-tstrings/blob/main/CHANGELOG.md) |
+
 Một bản alpha. Hợp đồng được giữ nhỏ một cách có chủ đích và [đặc tả](spec.md)
 là phần ổn định của nó; API Python vẫn có thể thay đổi. Trước một bản phát
 hành ổn định, dự án cần thêm fixture cho nhiều ngôn ngữ hơn, theo dõi hiệu

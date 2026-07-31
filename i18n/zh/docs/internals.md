@@ -104,23 +104,25 @@ msgid           'Total: {amount}'
 
 这一切并非假设：本站自身的界面目录里就有复数消息
 `Built {n} localized page` / `Built {n} localized pages`——两个英语分支——
-而本站的各语言版本把这同一条消息翻译成从一种到六种不等的形式：
+而本站的各语言版本把这同一条消息翻译成从一种到六种不等的形式。
 
-| 目录 | 形式数 | 各形式的译文，按形式顺序 |
-| --- | --- | --- |
-| 日语 | 1 | `ローカライズ済みページを{n}件ビルドしました` |
-| 土耳其语 | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` ——两次、完全相同：土耳其语名词在数词之后保持单数 |
-| 意大利语 | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` ——分词随性与数一致变化 |
-| 拉脱维亚语 | 3 | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` ——第三种形式**专用于零** |
-| 俄语 | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
-| 波兰语 | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
-| 斯洛文尼亚语 | 4 | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` ——第二种是**双数**，恰好用于二 |
-| 爱尔兰语 | 5 | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` ——分别对应一、二、3–6、7–10 以及其余；词干会交替，但 *leathanach* 以 `l` 开头，而爱尔兰语的任何辅音变化都不在 `l` 上书写，因此有几种形式彼此重合 |
-| 阿拉伯语 | 6 | 其中包括表示恰好一个的 `تم إنشاء صفحة مترجمة واحدة ({n})` 和表示少数几个的 `تم إنشاء {n} صفحات مترجمة` |
+??? example "其中九个语言版本，按形式顺序"
 
-每一行都是本仓库 `i18n/*/LC_MESSAGES/site.po` 中的真实条目，由
-[多语言构建](index.md)在每次发布时渲染——并且有一个测试把这张表钉在那些目录
-上，二者因此无法彼此漂移。
+    | 目录 | 形式数 | 各形式的译文，按形式顺序 |
+    | --- | --- | --- |
+    | 日语 | 1 | `ローカライズ済みページを{n}件ビルドしました` |
+    | 土耳其语 | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` ——两次、完全相同：土耳其语名词在数词之后保持单数 |
+    | 意大利语 | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` ——分词随性与数一致变化 |
+    | 拉脱维亚语 | 3 | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` ——第三种形式**专用于零** |
+    | 俄语 | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
+    | 波兰语 | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
+    | 斯洛文尼亚语 | 4 | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` ——第二种是**双数**，恰好用于二 |
+    | 爱尔兰语 | 5 | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` ——分别对应一、二、3–6、7–10 以及其余；词干会交替，但 *leathanach* 以 `l` 开头，而爱尔兰语的任何辅音变化都不在 `l` 上书写，因此有几种形式彼此重合 |
+    | 阿拉伯语 | 6 | 其中包括表示恰好一个的 `تم إنشاء صفحة مترجمة واحدة ({n})` 和表示少数几个的 `تم إنشاء {n} صفحات مترجمة` |
+
+    每一行都是本仓库 `i18n/*/LC_MESSAGES/site.po` 中的真实条目，由
+    [多语言构建](index.md)在每次发布时渲染——并且有一个测试把这张表钉在那些目录
+    上，二者因此无法彼此漂移。
 
 在这些边界之内，调整顺序与重复是刻意不加限制的。二者在真实语言中都有语法上的
 必要，而限制出现次数只会拒绝正确的翻译，却换不来任何安全收益：翻译依然无法
@@ -197,14 +199,17 @@ flowchart LR
 每个缓存都有上界，且没有一个保留插值的*值*——只保留静态结构和 pattern 文本。
 结果由
 [`benchmarks/runtime.py`](https://github.com/yhay81/gettext-tstrings/blob/main/benchmarks/runtime.py)
-测得：一条单字段消息约 0.4 µs，其中包含 t-string 本身的构建，约为不做任何检查
-的普通 `gettext(...).format(...)` 的 2.5 倍。
+在 CPython 3.14.6、macOS 26、arm64 笔记本上测得：一条单字段消息约 0.4 µs，
+其中包含 t-string 本身的构建，约为不做任何检查的普通
+`gettext(...).format(...)` 的 2.7 倍。这只是一台机器上的数字——该脚本会在输出
+头部打印它的解释器和平台信息，所以在把任何比率当成你自己的数字之前，请先在你
+实际部署的硬件上跑一遍。
 [`core.py`](https://github.com/yhay81/gettext-tstrings/blob/main/src/gettext_tstrings/core.py)
 顶部的注释记录了构成这一结论的各项具体测量。
 
 ## 亲自实现它 { #reimplementing-it }
 
-以上没有任何内容是私藏的知识：这套约定已写成 [spec v1](spec.md)，其机器可读的
+以上没有任何内容是本实现独有的：这套约定已写成 [spec v1](spec.md)，其机器可读的
 [一致性测试套件](spec.md#conformance)让提取器、IDE 插件或另一种语言的实现都能
 对照本页讲解的每一条规则检验自己。本实现在自己的测试中运行该套件，这正是让
 本页、规范与代码不会在沉默中彼此漂移的机制。

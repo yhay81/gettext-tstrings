@@ -234,8 +234,8 @@ może wyjść zepsute".
 ## Wiązanie języka w czasie działania { #binding-a-language-at-runtime }
 
 Wszystko dotąd produkuje katalogi. Pozostała decyzja to gdzie aplikacja
-jeden z nich wybiera, i ma ona jedną uczciwą odpowiedź: zwiąż raz na
-*zakres języka* — proces dla CLI, żądanie dla usługi webowej.
+jeden z nich wybiera. Zwiąż raz na *zakres języka* — proces dla CLI,
+żądanie dla usługi webowej.
 
 === "Jeden proces, jeden język"
 
@@ -349,6 +349,53 @@ samej bibliotece standardowej. Kompiluj katalogi w tym samym buildzie,
 który produkuje wdrażany artefakt, żeby pliki `.mo` w jego środku były
 dokładnie zrecenzowanymi plikami `.po` i żeby nic skompilowanego na czyimś
 laptopie nigdy nie wyszło.
+
+To, jak podróżują, zależy od tego, co wdrażasz. Wheel niesie je jako dane
+pakietu, co oznacza, że katalogi muszą leżeć *wewnątrz* katalogu pakietu —
+`src/myapp/locales/`, nie `locales/` na najwyższym poziomie — a backendowi
+budowania trzeba powiedzieć, żeby dołączył pliki, które `.gitignore`
+normalnie ukrywa:
+
+=== "Hatchling"
+
+    ```toml
+    [tool.hatch.build]
+    # .mo files are build output, so they are gitignored; name them or the
+    # wheel ships without a single translation.
+    artifacts = ["src/myapp/locales/**/*.mo"]
+    ```
+
+=== "setuptools"
+
+    ```toml
+    [tool.setuptools.package-data]
+    myapp = ["locales/*/LC_MESSAGES/*.mo"]
+    ```
+
+Odczytuj je z powrotem przez pakiet, a nie przez ścieżkę względną wobec
+drzewa źródeł, które przestaje istnieć w chwili instalacji wheela:
+
+```python
+import gettext
+from importlib.resources import as_file, files
+
+with as_file(files("myapp") / "locales") as localedir:
+    translations = gettext.translation("messages", localedir=localedir, languages=["ja"])
+```
+
+Obraz kontenera ma łatwiejsze zadanie: skompiluj podczas etapu budowania
+i skopiuj wynik, zostawiając Babel w tamtym etapie.
+
+```dockerfile
+FROM python:3.14-slim AS build
+COPY . /src
+RUN cd /src && python -m pip install ".[babel]" \
+    && pybabel compile -d src/myapp/locales
+
+FROM python:3.14-slim
+COPY --from=build /src /src
+RUN python -m pip install /src   # no [babel]: rendering needs the stdlib only
+```
 
 Przed wydaniem — lista kontrolna, do której sprowadza się ta strona:
 

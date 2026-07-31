@@ -125,21 +125,23 @@ patternです。その上で、2つの検査が適用されます。
 を持っており、サイトの各言語版はこの1つのメッセージを、1つの形から6つの形まで
 さまざまに翻訳しています。
 
-| カタログ | 形の数 | 翻訳（形の順） |
-| --- | --- | --- |
-| 日本語 | 1 | `ローカライズ済みページを{n}件ビルドしました` |
-| トルコ語 | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` — 2回、まったく同一：トルコ語の名詞は数詞の後でも単数のままです |
-| イタリア語 | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` — 分詞が性と数に一致します |
-| ラトビア語 | 3 | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` — 3番目の形は**ゼロ専用**です |
-| ロシア語 | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
-| ポーランド語 | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
-| スロベニア語 | 4 | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` — 2番目はちょうど2件を表す**双数**です |
-| アイルランド語 | 5 | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` — 1件、2件、3〜6件、7〜10件、それ以外。語幹は交替しますが、*leathanach*は`l`で始まり、アイルランド語のどの変異も`l`には表記されないため、いくつかの形が一致します |
-| アラビア語 | 6 | 中でも、ちょうど1件を表す`تم إنشاء صفحة مترجمة واحدة ({n})`と、少数を表す`تم إنشاء {n} صفحات مترجمة` |
+??? example "そのうち9つの言語版を、形の順に"
 
-各行は、このリポジトリの`i18n/*/LC_MESSAGES/site.po`に実在するエントリであり、
-リリースのたびに[多言語ビルド](index.md)で描画されます。さらに、テストが
-この表をそれらのカタログに固定しているため、両者が乖離することはありません。
+    | カタログ | 形の数 | 翻訳（形の順） |
+    | --- | --- | --- |
+    | 日本語 | 1 | `ローカライズ済みページを{n}件ビルドしました` |
+    | トルコ語 | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` — 2回、まったく同一：トルコ語の名詞は数詞の後でも単数のままです |
+    | イタリア語 | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` — 分詞が性と数に一致します |
+    | ラトビア語 | 3 | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` — 3番目の形は**ゼロ専用**です |
+    | ロシア語 | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
+    | ポーランド語 | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
+    | スロベニア語 | 4 | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` — 2番目はちょうど2件を表す**双数**です |
+    | アイルランド語 | 5 | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` — 1件、2件、3〜6件、7〜10件、それ以外。語幹は交替しますが、*leathanach*は`l`で始まり、アイルランド語のどの変異も`l`には表記されないため、いくつかの形が一致します |
+    | アラビア語 | 6 | 中でも、ちょうど1件を表す`تم إنشاء صفحة مترجمة واحدة ({n})`と、少数を表す`تم إنشاء {n} صفحات مترجمة` |
+
+    各行は、このリポジトリの`i18n/*/LC_MESSAGES/site.po`に実在するエントリであり、
+    リリースのたびに[多言語ビルド](index.md)で描画されます。さらに、テストが
+    この表をそれらのカタログに固定しているため、両者が乖離することはありません。
 
 この範囲の内側では、並べ替えと繰り返しは意図的に制約されていません。どちらも
 実在する言語で文法的に必要であり、出現回数を制限すれば、安全上の利点なしに
@@ -233,14 +235,17 @@ flowchart LR
 すべてのキャッシュは有界で、補間された*値*を保持するものはありません。静的な
 構造とpatternのテキストだけです。
 [`benchmarks/runtime.py`](https://github.com/yhay81/gettext-tstrings/blob/main/benchmarks/runtime.py)
-による計測結果は、1 fieldのメッセージで、t-string自体の構築を含めておよそ
-0.4 µs。何も検査しない素の`gettext(...).format(...)`の約2.5倍です。
+によるCPython 3.14.6・macOS 26・arm64ノートPCでの計測結果は、1 fieldの
+メッセージで、t-string自体の構築を含めておよそ0.4 µs。何も検査しない素の
+`gettext(...).format(...)`の約2.7倍です。これは1台のマシンの数字にすぎません。
+スクリプトはヘッダーに自身のインタプリタとplatformを出力するので、どの比率も
+自分のものとして扱う前に、実際にデプロイするハードウェアで走らせてください。
 [`core.py`](https://github.com/yhay81/gettext-tstrings/blob/main/src/gettext_tstrings/core.py)
 冒頭の解説に、この結果の背後にある個々の計測が記録されています。
 
 ## 再実装する { #reimplementing-it }
 
-上記のどれも秘伝ではありません。規約は[仕様v1](spec.md)として文書化されており、
+上記のどれもこの実装に固有のものではありません。規約は[仕様v1](spec.md)として文書化されており、
 その機械可読な[適合性テストスイート](spec.md#conformance)を使えば、抽出器、
 IDEのplugin、別言語での実装が、このページで説明したすべての規則に対して自身を
 検証できます。この実装自身も自分のテストでこのスイートを実行しており、それが

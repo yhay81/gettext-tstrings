@@ -100,8 +100,8 @@ metode pada satu waktu.
 _("Hello %(name)s") % {"name": name}
 ```
 
-Apa yang bisa salah: satu huruf terhapus di sebuah terjemahan membuat render
-crash.
+Apa yang bisa salah: sebuah placeholder yang rusak menjadi eksepsi saat
+runtime, kecuali validasi katalog menangkapnya lebih dulu.
 
 String katalognya membawa sintaks printf, termasuk huruf tipe di ekornya —
 `s` pada `%(name)s` — yang mudah terlewat dan mudah rusak:
@@ -296,7 +296,7 @@ berarti menerjemahkan penggalan. t-string ([PEP 750]) menjaga teks statis dan
 nilai tetap terpisah sambil mempertahankan sintaks mirip f-string dan
 pengikatan nilai eksplisit.
 
-Bagaimana Python tiba di persimpangan ini — dua PEP berjarak sepuluh tahun,
+Bagaimana Python tiba di sini — dua PEP berjarak sepuluh tahun,
 dan diskusi stdlib yang ditutup tanpa jawaban — diceritakan beserta sumbernya
 di [Latar belakang](background.md).
 

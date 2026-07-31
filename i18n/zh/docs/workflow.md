@@ -203,9 +203,8 @@ pipeline 中强制执行它。细节以及内置 checker 在此之外还能捕�
 
 ## 在运行时绑定语言 { #binding-a-language-at-runtime }
 
-到此为止的一切都在生产目录。剩下的决定是应用程序在哪里选择目录，而它只有一个
-诚实的答案：按*语言的作用域*绑定一次——CLI 的作用域是进程，Web 服务的作用域是
-请求。
+到此为止的一切都在生产目录。剩下的决定是应用程序在哪里选择目录。按*语言的
+作用域*绑定一次——CLI 的作用域是进程，Web 服务的作用域是请求。
 
 === "一个进程，一种语言"
 
@@ -308,6 +307,50 @@ pipeline 中强制执行它。细节以及内置 checker 在此之外还能捕�
 `gettext-tstrings[babel]` 远离生产镜像，在那里只安装裸包；渲染只靠标准库运行。
 请在生成部署产物的同一次构建中编译目录，这样产物中的 `.mo` 文件与经过审阅的
 `.po` 文件完全一致，任何在某人笔记本上编译出来的东西都永远不会被发布。
+
+它们如何随产物一起发布，取决于你部署的是什么。wheel 把它们当作包数据携带，这意味着
+目录必须放在包目录*内部*——是 `src/myapp/locales/`，而不是顶层的 `locales/`——并且
+必须告诉构建后端包含那些通常被 `.gitignore` 隐藏的文件：
+
+=== "Hatchling"
+
+    ```toml
+    [tool.hatch.build]
+    # .mo files are build output, so they are gitignored; name them or the
+    # wheel ships without a single translation.
+    artifacts = ["src/myapp/locales/**/*.mo"]
+    ```
+
+=== "setuptools"
+
+    ```toml
+    [tool.setuptools.package-data]
+    myapp = ["locales/*/LC_MESSAGES/*.mo"]
+    ```
+
+读取时请通过包本身来读，而不要用相对于源码树的路径——wheel 一旦安装，那个路径就
+不复存在了：
+
+```python
+import gettext
+from importlib.resources import as_file, files
+
+with as_file(files("myapp") / "locales") as localedir:
+    translations = gettext.translation("messages", localedir=localedir, languages=["ja"])
+```
+
+容器镜像的活儿更轻松：在构建阶段编译，然后只复制结果，把 Babel 留在那个阶段里。
+
+```dockerfile
+FROM python:3.14-slim AS build
+COPY . /src
+RUN cd /src && python -m pip install ".[babel]" \
+    && pybabel compile -d src/myapp/locales
+
+FROM python:3.14-slim
+COPY --from=build /src /src
+RUN python -m pip install /src   # no [babel]: rendering needs the stdlib only
+```
 
 发布之前，本页可以归结为这份清单：
 

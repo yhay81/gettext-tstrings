@@ -11,7 +11,7 @@ i18n težji, kot je videti.
 
 Vsak razdelek spodaj je nekaj, kar je tu resnično šlo narobe, kakšno je bilo
 tedaj videti in kje poteka meja med tem, kaj knjižnica preveri namesto vas, in
-tem, kaj ostane vaša presoja.
+tem, kar še vedno terja človeško presojo.
 
 ## Preimenovanje spremenljivke pošlje poved znova v prevod { #renaming-a-variable-retranslates-a-sentence }
 
@@ -124,8 +124,18 @@ izvirnika — kar prestane preverjanje, ki med njima primerja bloke kode, saj gr
 za isto datoteko.
 
 Ne prvega ne drugega prevajalska knjižnica ne more videti. Oboje je poceni
-preveriti, ko enkrat veste, da je treba: primerjajte z izvirnikom in zahtevajte
-razliko.
+preveriti, a ne tako, da bi od vsakega vnosa zahtevali razliko od izvirnika:
+`OK`, imena izdelkov, osebna imena, kratice in kodni identifikatorji se vsi
+prevedejo sami vase in preverjanje, ki to prepove, bo lažne prijave sprožalo
+večno.
+
+Merite raje *delež*, čez cel katalog ali čez celo stran, izstopajoče primere pa
+pošljite človeku. Test tega spletišča počne natanko to — vrstice proze vsake
+različice primerja z angleškim izvirnikom in pade nad 25 % enakih. Ponarejena
+različica je bila pri 87 %; vsak pristen prevod je med 4 % in 8 %, kar je tisti
+majhen rep vrstic, ki se upravičeno ujemajo, na primer naslovi URL in navedeni
+izpisi programov. Populaciji sta dovolj narazen, da pragu ni treba biti
+natančen.
 
 ## Katalog ni edina prevedena stvar { #the-catalog-is-not-the-only-translated-thing }
 

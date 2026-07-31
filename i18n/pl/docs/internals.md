@@ -130,24 +130,26 @@ formie, której angielski nie ma.
 Nic z tego nie jest hipotetyczne: katalog interfejsu tej strony niesie
 komunikat w liczbie mnogiej `Built {n} localized page` / `Built {n} localized
 pages` — dwie angielskie gałęzie — a wydania językowe strony tłumaczą ten
-jeden komunikat na od jednej formy aż do sześciu:
+jeden komunikat na od jednej formy aż do sześciu.
 
-| Katalog | Formy | Tłumaczenia w kolejności form |
-| --- | --- | --- |
-| Japoński | 1 | `ローカライズ済みページを{n}件ビルドしました` |
-| Turecki | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` — dwa razy, identycznie: tureckie rzeczowniki pozostają w liczbie pojedynczej po liczebniku |
-| Włoski | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` — imiesłów uzgadnia się w rodzaju i liczbie |
-| Łotewski | 3 | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` — trzecia forma jest **wyłącznie dla zera** |
-| Rosyjski | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
-| Polski | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
-| Słoweński | 4 | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` — druga to **liczba podwójna**, dla dokładnie dwóch |
-| Irlandzki | 5 | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` — jeden, dwa, 3–6, 7–10 i reszta; temat się wymienia, ale *leathanach* zaczyna się na `l`, na którym żadna irlandzka mutacja nie jest zapisywana, więc kilka form się pokrywa |
-| Arabski | 6 | wśród nich `تم إنشاء صفحة مترجمة واحدة ({n})` dla dokładnie jednego i `تم إنشاء {n} صفحات مترجمة` dla kilku |
+??? example "Dziewięć z tych wydań, w kolejności form"
 
-Każdy wiersz to żywy wpis w `i18n/*/LC_MESSAGES/site.po` tego repozytorium,
-renderowany przez [wielojęzyczny build](index.md) przy każdym wydaniu — a
-test przypina tę tabelę do tych katalogów, więc nie mogą się od siebie
-rozjechać.
+    | Katalog | Formy | Tłumaczenia w kolejności form |
+    | --- | --- | --- |
+    | Japoński | 1 | `ローカライズ済みページを{n}件ビルドしました` |
+    | Turecki | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` — dwa razy, identycznie: tureckie rzeczowniki pozostają w liczbie pojedynczej po liczebniku |
+    | Włoski | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` — imiesłów uzgadnia się w rodzaju i liczbie |
+    | Łotewski | 3 | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` — trzecia forma jest **wyłącznie dla zera** |
+    | Rosyjski | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
+    | Polski | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
+    | Słoweński | 4 | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` — druga to **liczba podwójna**, dla dokładnie dwóch |
+    | Irlandzki | 5 | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` — jeden, dwa, 3–6, 7–10 i reszta; temat się wymienia, ale *leathanach* zaczyna się na `l`, na którym żadna irlandzka mutacja nie jest zapisywana, więc kilka form się pokrywa |
+    | Arabski | 6 | wśród nich `تم إنشاء صفحة مترجمة واحدة ({n})` dla dokładnie jednego i `تم إنشاء {n} صفحات مترجمة` dla kilku |
+
+    Każdy wiersz to żywy wpis w `i18n/*/LC_MESSAGES/site.po` tego repozytorium,
+    renderowany przez [wielojęzyczny build](index.md) przy każdym wydaniu — a
+    test przypina tę tabelę do tych katalogów, więc nie mogą się od siebie
+    rozjechać.
 
 W tych granicach zmiana kolejności i powtarzanie są celowo nieograniczone.
 Oba bywają gramatycznie konieczne w prawdziwych językach, a ograniczanie
@@ -252,16 +254,19 @@ Trzy pamięci podręczne, po jednej na etap:
 Każda pamięć podręczna jest ograniczona i żadna nie zatrzymuje
 interpolowanych *wartości* — tylko statyczną strukturę i tekst wzorców.
 Wynik, zmierzony przez
-[`benchmarks/runtime.py`](https://github.com/yhay81/gettext-tstrings/blob/main/benchmarks/runtime.py):
-około 0,4 µs dla komunikatu z jednym polem, wliczając konstrukcję samego
-t-stringa, czyli około 2,5× więcej niż zwykły
-`gettext(...).format(...)`, który niczego nie sprawdza. Komentarz na górze
+[`benchmarks/runtime.py`](https://github.com/yhay81/gettext-tstrings/blob/main/benchmarks/runtime.py)
+na CPythonie 3.14.6, macOS 26 na laptopie arm64: około 0,4 µs dla komunikatu
+z jednym polem, wliczając konstrukcję samego t-stringa, czyli około 2,7×
+więcej niż zwykły `gettext(...).format(...)`, który niczego nie sprawdza. To
+są liczby jednej maszyny — skrypt wypisuje swój interpreter i platformę w
+nagłówku, uruchom go więc na sprzęcie, na który naprawdę wdrażasz, zanim
+uznasz jakikolwiek stosunek za swój. Komentarz na górze
 [`core.py`](https://github.com/yhay81/gettext-tstrings/blob/main/src/gettext_tstrings/core.py)
 odnotowuje poszczególne pomiary stojące za tym kształtem.
 
 ## Reimplementacja { #reimplementing-it }
 
-Nic z powyższego nie jest prywatną wiedzą tajemną: konwencja jest spisana
+Nic z powyższego nie jest właściwe tylko tej implementacji: konwencja jest spisana
 jako [spec v1](spec.md), a jej maszynowo czytelny
 [zestaw testów zgodności](spec.md#conformance) pozwala ekstraktorowi,
 wtyczce IDE albo implementacji w innym języku sprawdzić się względem każdej

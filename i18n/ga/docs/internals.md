@@ -134,24 +134,26 @@ bith ag an mBéarla.
 Níl aon chuid de sin hipitéiseach: iompraíonn catalóg chróm an tsuímh seo féin
 an teachtaireacht iolra `Built {n} localized page` / `Built {n} localized
 pages` — dhá bhrainse Béarla — agus aistríonn eagráin an tsuímh an
-teachtaireacht amháin sin go dtí idir foirm amháin agus sé cinn:
+teachtaireacht amháin sin go dtí idir foirm amháin agus sé cinn.
 
-| Catalóg | Foirmeacha | Na haistriúcháin, in ord na bhfoirmeacha |
-| --- | --- | --- |
-| Seapáinis | 1 | `ローカライズ済みページを{n}件ビルドしました` |
-| Tuircis | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` — faoi dhó, mar an gcéanna: fanann ainmfhocail na Tuircise san uatha i ndiaidh uimhreach |
-| Iodáilis | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` — réitíonn an rangabháil in inscne agus in uimhir |
-| Laitvis | 3 | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` — níl an tríú foirm ann ach do **nialas amháin** |
-| Rúisis | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
-| Polainnis | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
-| Slóivéinis | 4 | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` — is **déach** í an dara ceann, do dhá cheann go beacht |
-| Gaeilge | 5 | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` — a haon, a dó, 3–6, 7–10, agus an chuid eile; malartaíonn an gas, ach tosaíonn *leathanach* le `l`, litir nach scríobhtar aon athrú tosaigh Gaeilge uirthi, agus mar sin tagann roinnt foirmeacha le chéile |
-| Araibis | 6 | ina measc `تم إنشاء صفحة مترجمة واحدة ({n})` do cheann amháin go beacht agus `تم إنشاء {n} صفحات مترجمة` do bheagán |
+??? example "Naoi gcinn de na heagráin sin, in ord na bhfoirmeacha"
 
-Is iontráil bheo é gach ró in `i18n/*/LC_MESSAGES/site.po` na stórlainne seo,
-rindreáilte ag an [tógáil ilteangach](index.md) ag gach eisiúint — agus
-greamaíonn tástáil an tábla seo do na catalóga sin, mar sin ní féidir leis an
-dá cheann imeacht óna chéile.
+    | Catalóg | Foirmeacha | Na haistriúcháin, in ord na bhfoirmeacha |
+    | --- | --- | --- |
+    | Seapáinis | 1 | `ローカライズ済みページを{n}件ビルドしました` |
+    | Tuircis | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` — faoi dhó, mar an gcéanna: fanann ainmfhocail na Tuircise san uatha i ndiaidh uimhreach |
+    | Iodáilis | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` — réitíonn an rangabháil in inscne agus in uimhir |
+    | Laitvis | 3 | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` — níl an tríú foirm ann ach do **nialas amháin** |
+    | Rúisis | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
+    | Polainnis | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
+    | Slóivéinis | 4 | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` — is **déach** í an dara ceann, do dhá cheann go beacht |
+    | Gaeilge | 5 | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` — a haon, a dó, 3–6, 7–10, agus an chuid eile; malartaíonn an gas, ach tosaíonn *leathanach* le `l`, litir nach scríobhtar aon athrú tosaigh Gaeilge uirthi, agus mar sin tagann roinnt foirmeacha le chéile |
+    | Araibis | 6 | ina measc `تم إنشاء صفحة مترجمة واحدة ({n})` do cheann amháin go beacht agus `تم إنشاء {n} صفحات مترجمة` do bheagán |
+
+    Is iontráil bheo é gach ró in `i18n/*/LC_MESSAGES/site.po` na stórlainne seo,
+    rindreáilte ag an [tógáil ilteangach](index.md) ag gach eisiúint — agus
+    greamaíonn tástáil an tábla seo do na catalóga sin, mar sin ní féidir leis an
+    dá cheann imeacht óna chéile.
 
 Laistigh de na teorainneacha sin, tá an t-athordú agus an t-athdhéanamh gan
 srian d'aon ghnó. Tá an dá rud riachtanach ó thaobh na gramadaí de i
@@ -260,16 +262,20 @@ Trí thaisce, ceann in aghaidh na céime:
 Tá teorainn le gach taisce, agus ní choinníonn ceann ar bith *luachanna*
 idirshuite — níl ann ach struchtúr statach agus téacs patrúin. An toradh, arna
 thomhas ag
-[`benchmarks/runtime.py`](https://github.com/yhay81/gettext-tstrings/blob/main/benchmarks/runtime.py):
-thart ar 0.4 µs do theachtaireacht a bhfuil réimse amháin inti, tógáil an
-t-string féin san áireamh, thart ar 2.5× gnáth-`gettext(...).format(...)` nach
-seiceálann faic. Taifeadann an tráchtaireacht ag barr
+[`benchmarks/runtime.py`](https://github.com/yhay81/gettext-tstrings/blob/main/benchmarks/runtime.py)
+ar CPython 3.14.6, macOS 26 ar ríomhaire glúine arm64: thart ar 0.4 µs do
+theachtaireacht a bhfuil réimse amháin inti, tógáil an t-string féin san
+áireamh, thart ar 2.7× gnáth-`gettext(...).format(...)` nach seiceálann faic.
+Is iad sin figiúirí meaisín amháin — priontálann an script a léirmhínitheoir
+agus a hardán ina ceanntásc, mar sin rith ar an gcrua-earra a n-imscarann tú
+air i ndáiríre í sula nglacfaidh tú le cóimheas ar bith mar cheann s'agatsa.
+Taifeadann an tráchtaireacht ag barr
 [`core.py`](https://github.com/yhay81/gettext-tstrings/blob/main/src/gettext_tstrings/core.py)
 na tomhais aonair atá taobh thiar den chruth sin.
 
 ## É a athchur i bhfeidhm { #reimplementing-it }
 
-Ní seanchas príobháideach é aon chuid de sin: tá an coinbhinsiún scríofa síos
+Níl aon chuid de sin sainiúil don chur i bhfeidhm seo: tá an coinbhinsiún scríofa síos
 mar [shonraíocht v1](spec.md), agus ligeann a
 [sraith comhréireachta](spec.md#conformance) atá inléite ag meaisín
 d'eastóscóir, do bhreiseán IDE, nó do chur i bhfeidhm i dteanga eile é féin a

@@ -131,8 +131,19 @@ die codeblokken tussen beide vergelijkt doorstaat, omdat het hetzelfde bestand
 is.
 
 Geen van beide is iets dat een vertaalbibliotheek kan zien. Beide zijn goedkoop
-te testen zodra je weet dat het moet: vergelijk met de bron en eis een
-verschil.
+te testen, maar niet door van elke entry te eisen dat ze van haar bron
+verschilt: `OK`, productnamen, persoonsnamen, acroniemen en code-identifiers
+vertalen allemaal naar zichzelf, en een controle die dat verbiedt levert voor
+altijd valse positieven op.
+
+Meet in plaats daarvan het *percentage*, over een hele catalogus of een hele
+pagina, en stuur de uitschieters naar een mens. De test van deze site doet
+precies dat — hij vergelijkt de prozaregels van elke editie met de Engelse bron
+en faalt boven 25% identiek. De vervalste editie zat op 87%; elke echte
+vertaling zit tussen 4% en 8%, wat de kleine staart is van regels die
+legitiem samenvallen, zoals URL's en geciteerde programma-uitvoer. De twee
+populaties liggen ver genoeg uit elkaar dat de drempel niet precies hoeft te
+zijn.
 
 ## De catalogus is niet het enige vertaalde ding { #the-catalog-is-not-the-only-translated-thing }
 

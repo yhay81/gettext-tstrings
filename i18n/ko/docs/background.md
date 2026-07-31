@@ -108,7 +108,7 @@ Lysandros Nikolaou, Dave Peck의 [PEP 750]이 이 아이디어를 t-string으로
 논의는 끝나지 않았고, 이 프로젝트는 그 논의에 대한 판결이 아니라
 참여자입니다. 이 선택들과 관련된 프로덕션 gettext 경험이 있다면,
 [같은 스레드][discuss-thread]와 이 저장소의
-[Discussions][gh-discussions]가 그것을 논쟁하는 자리입니다.
+[Discussions][gh-discussions]에서 그 논의가 이어지고 있습니다.
 
 ## 타임라인 { #timeline }
 

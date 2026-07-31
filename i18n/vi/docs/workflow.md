@@ -233,9 +233,8 @@ trên là thứ biến "nền tảng có lẽ đã kiểm tra rồi" thành "th�
 ## Gắn ngôn ngữ lúc chạy { #binding-a-language-at-runtime }
 
 Mọi thứ đến giờ đều tạo ra catalog. Quyết định còn lại là ứng dụng chọn một
-catalog ở đâu, và câu hỏi này có một câu trả lời thẳng thắn: gắn một lần cho
-mỗi *phạm vi của một ngôn ngữ* — tiến trình đối với CLI, request đối với
-dịch vụ web.
+catalog ở đâu. Hãy gắn một lần cho mỗi *phạm vi của một ngôn ngữ* — tiến
+trình đối với CLI, request đối với dịch vụ web.
 
 === "Một tiến trình, một ngôn ngữ"
 
@@ -350,6 +349,54 @@ Babel là phụ thuộc dành cho phát triển và CI — hãy giữ
 trong chính bản build tạo ra sản phẩm bạn triển khai, để các tệp `.mo` bên
 trong nó đúng là các tệp `.po` đã được review, và không thứ gì biên dịch
 trên laptop của ai đó từng được xuất xưởng.
+
+Cách chúng đi theo sản phẩm còn tùy vào thứ bạn triển khai. Một wheel mang
+chúng dưới dạng package data, nghĩa là các catalog phải nằm *bên trong* thư
+mục gói — `src/myapp/locales/`, chứ không phải một `locales/` ở cấp cao nhất
+— và build backend phải được báo cho biết để đưa vào cả những tệp mà
+`.gitignore` thường che đi:
+
+=== "Hatchling"
+
+    ```toml
+    [tool.hatch.build]
+    # .mo files are build output, so they are gitignored; name them or the
+    # wheel ships without a single translation.
+    artifacts = ["src/myapp/locales/**/*.mo"]
+    ```
+
+=== "setuptools"
+
+    ```toml
+    [tool.setuptools.package-data]
+    myapp = ["locales/*/LC_MESSAGES/*.mo"]
+    ```
+
+Hãy đọc chúng trở lại qua chính gói phần mềm, thay vì qua một đường dẫn
+tương đối với cây mã nguồn — thứ không còn tồn tại ngay khi wheel được cài
+đặt:
+
+```python
+import gettext
+from importlib.resources import as_file, files
+
+with as_file(files("myapp") / "locales") as localedir:
+    translations = gettext.translation("messages", localedir=localedir, languages=["ja"])
+```
+
+Một container image có việc dễ hơn: biên dịch trong stage build rồi sao chép
+kết quả, để Babel ở lại trong stage đó.
+
+```dockerfile
+FROM python:3.14-slim AS build
+COPY . /src
+RUN cd /src && python -m pip install ".[babel]" \
+    && pybabel compile -d src/myapp/locales
+
+FROM python:3.14-slim
+COPY --from=build /src /src
+RUN python -m pip install /src   # no [babel]: rendering needs the stdlib only
+```
 
 Trước một bản phát hành, danh sách kiểm tra mà trang này quy về là:
 

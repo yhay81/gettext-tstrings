@@ -188,6 +188,17 @@ python -m pip install "gettext-tstrings[babel]"
 
 ## Statws { #status }
 
+| | |
+| --- | --- |
+| Fersiwn y pecyn | 0.1.0a7 |
+| Sefydlogrwydd yr API | alffa — efallai y bydd yr API Python yn newid eto |
+| [Manyleb](spec.md) | v1, gyda [chyfres gydymffurfio](spec.md#conformance) |
+| Python | 3.14 a mwy newydd; wedi'i brofi ar 3.14, 3.14t (di-edau) a 3.15 |
+| Babel | 2.18 neu fwy newydd, a dim ond ple mae `pybabel` yn rhedeg |
+| Dibyniaethau rhedeg | dim — `gettext` y llyfrgell safonol |
+| Fformat catalog | POT, PO ac MO cyffredin |
+| Newidiadau | [CHANGELOG](https://github.com/yhay81/gettext-tstrings/blob/main/CHANGELOG.md) |
+
 Alffa. Mae'r contract yn fach yn fwriadol a'r [fanyleb](spec.md) yw'r rhan
 sefydlog ohono; efallai y bydd yr API Python yn symud eto. Cyn rhyddhad
 sefydlog mae angen ffurfweddiadau iaith ehangach, olrhain perfformiad

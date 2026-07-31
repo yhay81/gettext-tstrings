@@ -121,7 +121,8 @@ maga oldalán:
 A vita nem ért véget, és ez a projekt résztvevője annak, nem ítélete fölötte.
 Ha van olyan éles üzemi gettext-tapasztalatod, amely érinti ezeket a
 döntéseket, [ugyanaz a szál][discuss-thread] és ennek a tárolónak a
-[Discussions][gh-discussions] felülete az a hely, ahol vitatják.
+[Discussions][gh-discussions] felülete az a hely, ahol a beszélgetés
+folytatódik.
 
 ## Idővonal { #timeline }
 

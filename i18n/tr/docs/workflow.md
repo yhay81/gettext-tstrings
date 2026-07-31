@@ -235,8 +235,8 @@ denetledi"yi "bu bozuk sevk edilemez"e çeviren, yukarıdaki CI kapılarıdır.
 ## Çalışma zamanında bir dil bağlamak { #binding-a-language-at-runtime }
 
 Şimdiye kadarki her şey katalog üretir. Kalan karar, uygulamanın birini
-nerede seçtiğidir ve bunun tek dürüst yanıtı vardır: *bir dilin kapsamı*
-başına bir kez bağlayın — bir CLI için süreç, bir web servisi için istek.
+nerede seçtiğidir. *Bir dilin kapsamı* başına bir kez bağlayın — bir CLI için
+süreç, bir web servisi için istek.
 
 === "Tek süreç, tek dil"
 
@@ -351,6 +351,53 @@ yalnızca standart kütüphaneyle çalışır. Katalogları, dağıttığınız 
 üreten aynı derlemede derleyin; böylece içindeki `.mo` dosyaları tam olarak
 incelenmiş `.po` dosyalarıdır ve birinin dizüstünde derlenmiş hiçbir şey asla
 sevk edilmez.
+
+Nasıl yol aldıkları, ne dağıttığınıza bağlıdır. Bir wheel onları paket verisi
+olarak taşır; bu da katalogların paket dizininin *içinde* yaşaması gerektiği
+anlamına gelir — `src/myapp/locales/`, üst düzeydeki bir `locales/` değil — ve
+derleme arka ucuna, `.gitignore`ın normalde sakladığı dosyaları da içermesi
+söylenmelidir:
+
+=== "Hatchling"
+
+    ```toml
+    [tool.hatch.build]
+    # .mo files are build output, so they are gitignored; name them or the
+    # wheel ships without a single translation.
+    artifacts = ["src/myapp/locales/**/*.mo"]
+    ```
+
+=== "setuptools"
+
+    ```toml
+    [tool.setuptools.package-data]
+    myapp = ["locales/*/LC_MESSAGES/*.mo"]
+    ```
+
+Onları, wheel kurulduğu anda var olmaktan çıkan kaynak ağacına göreli bir yol
+üzerinden değil, paketin kendisi üzerinden geri okuyun:
+
+```python
+import gettext
+from importlib.resources import as_file, files
+
+with as_file(files("myapp") / "locales") as localedir:
+    translations = gettext.translation("messages", localedir=localedir, languages=["ja"])
+```
+
+Bir konteyner imajının işi daha kolaydır: derleme aşamasında derleyin ve
+sonucu kopyalayın, Babel'i o aşamada bırakarak.
+
+```dockerfile
+FROM python:3.14-slim AS build
+COPY . /src
+RUN cd /src && python -m pip install ".[babel]" \
+    && pybabel compile -d src/myapp/locales
+
+FROM python:3.14-slim
+COPY --from=build /src /src
+RUN python -m pip install /src   # no [babel]: rendering needs the stdlib only
+```
 
 Bir sürümden önce, bu sayfanın özetlendiği denetim listesi:
 

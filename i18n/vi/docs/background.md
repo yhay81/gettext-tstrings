@@ -118,7 +118,7 @@ Cuộc thảo luận vẫn chưa kết thúc, và dự án này là một bên t
 chứ không phải phán quyết dành cho nó. Nếu bạn có kinh nghiệm vận hành
 gettext trong production liên quan tới các lựa chọn này, thì
 [chính chủ đề đó][discuss-thread] và mục [Discussions][gh-discussions] của
-kho mã này là nơi các lựa chọn được đem ra tranh luận.
+kho mã này là nơi cuộc thảo luận vẫn đang tiếp diễn.
 
 ## Dòng thời gian { #timeline }
 

@@ -245,9 +245,8 @@ msgstr ""
 ## Δέσιμο μιας γλώσσας κατά την εκτέλεση { #binding-a-language-at-runtime }
 
 Όλα τα παραπάνω παράγουν καταλόγους. Η απόφαση που απομένει είναι πού
-επιλέγει έναν η εφαρμογή, και έχει μία τίμια απάντηση: δέστε μία φορά ανά
-*εμβέλεια μιας γλώσσας* — τη διεργασία για ένα CLI, το αίτημα για μια
-υπηρεσία ιστού.
+επιλέγει έναν η εφαρμογή. Δέστε μία φορά ανά *εμβέλεια μιας γλώσσας* — τη
+διεργασία για ένα CLI, το αίτημα για μια υπηρεσία ιστού.
 
 === "Μία διεργασία, μία γλώσσα"
 
@@ -366,6 +365,55 @@ msgstr ""
 build που παράγει το τεχνούργημα που αναπτύσσετε, ώστε τα αρχεία `.mo` μέσα
 του να είναι ακριβώς τα αναθεωρημένα αρχεία `.po`, και τίποτα μεταγλωττισμένο
 στον φορητό υπολογιστή κάποιου να μην αποστέλλεται ποτέ.
+
+Το πώς ταξιδεύουν εξαρτάται από το τι αναπτύσσετε. Ένα wheel τα μεταφέρει ως
+δεδομένα πακέτου, πράγμα που σημαίνει ότι οι κατάλογοι πρέπει να βρίσκονται
+*μέσα* στον κατάλογο του πακέτου — `src/myapp/locales/`, όχι ένα `locales/`
+στο ανώτατο επίπεδο — και ότι πρέπει να πείτε στο backend του build να
+συμπεριλάβει αρχεία που το `.gitignore` συνήθως κρύβει:
+
+=== "Hatchling"
+
+    ```toml
+    [tool.hatch.build]
+    # .mo files are build output, so they are gitignored; name them or the
+    # wheel ships without a single translation.
+    artifacts = ["src/myapp/locales/**/*.mo"]
+    ```
+
+=== "setuptools"
+
+    ```toml
+    [tool.setuptools.package-data]
+    myapp = ["locales/*/LC_MESSAGES/*.mo"]
+    ```
+
+Διαβάστε τα πίσω μέσω του πακέτου και όχι μέσω μιας διαδρομής σχετικής με το
+δέντρο πηγαίου κώδικα, που παύει να υπάρχει τη στιγμή που εγκαθίσταται το
+wheel:
+
+```python
+import gettext
+from importlib.resources import as_file, files
+
+with as_file(files("myapp") / "locales") as localedir:
+    translations = gettext.translation("messages", localedir=localedir, languages=["ja"])
+```
+
+Μια εικόνα container έχει ευκολότερη δουλειά: μεταγλωττίστε κατά το στάδιο
+του build και αντιγράψτε το αποτέλεσμα, αφήνοντας το Babel πίσω σε εκείνο το
+στάδιο.
+
+```dockerfile
+FROM python:3.14-slim AS build
+COPY . /src
+RUN cd /src && python -m pip install ".[babel]" \
+    && pybabel compile -d src/myapp/locales
+
+FROM python:3.14-slim
+COPY --from=build /src /src
+RUN python -m pip install /src   # no [babel]: rendering needs the stdlib only
+```
 
 Πριν από μια έκδοση, η λίστα ελέγχου στην οποία συνοψίζεται αυτή η σελίδα:
 

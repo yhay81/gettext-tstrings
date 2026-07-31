@@ -101,8 +101,8 @@ Les sections qui suivent détaillent chaque compromis, une méthode à la fois.
 _("Hello %(name)s") % {"name": name}
 ```
 
-Ce qui peut mal tourner : une seule lettre supprimée dans une traduction fait
-planter le rendu.
+Ce qui peut mal tourner : un marqueur endommagé devient une exception à
+l'exécution, à moins que la validation du catalogue ne l'attrape avant.
 
 La chaîne du catalogue contient la syntaxe printf, notamment une lettre de type
 finale — le `s` de `%(name)s` — facile à ignorer et facile à endommager :
@@ -301,7 +301,7 @@ un fragment. Les t-strings ([PEP 750]) gardent le texte statique et les valeurs
 séparés, tout en conservant une syntaxe proche des f-strings et une liaison
 explicite des valeurs.
 
-Comment Python est arrivé à cette croisée des chemins — deux PEP à dix ans
+Comment Python en est arrivé là — deux PEP à dix ans
 d'écart, et la discussion sur la bibliothèque standard close sans réponse —
 est raconté, sources à l'appui, sur la page [Contexte](background.md).
 

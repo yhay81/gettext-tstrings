@@ -243,9 +243,9 @@ an t-ardán é seo" ina "ní féidir é seo a sheoladh briste".
 ## Teanga a cheangal ag am rite { #binding-a-language-at-runtime }
 
 Táirgeann gach rud go dtí seo catalóga. Is é an cinneadh atá fágtha cén áit a
-roghnaíonn an feidhmchlár ceann acu, agus níl ach freagra macánta amháin air:
-ceangail uair amháin in aghaidh *raon feidhme teanga* — an próiseas i gcás
-CLI, an t-iarratas i gcás seirbhíse gréasáin.
+roghnaíonn an feidhmchlár ceann acu. Ceangail uair amháin in aghaidh *raon
+feidhme teanga* — an próiseas i gcás CLI, an t-iarratas i gcás seirbhíse
+gréasáin.
 
 === "Próiseas amháin, teanga amháin"
 
@@ -363,6 +363,53 @@ tógáil chéanna a tháirgeann an déantán a imscarann tú, ionas gurb iad na
 comhaid `.po` ar a ndearnadh athbhreithniú go díreach na comhaid `.mo` atá
 istigh ann, agus nach seolfar rud ar bith a tiomsaíodh ar ríomhaire glúine
 duine éigin.
+
+Braitheann an tslí a dtaistealaíonn siad ar an rud a imscarann tú. Iompraíonn
+roth iad mar shonraí pacáiste, rud a chiallaíonn go gcaithfidh na catalóga bheith
+*istigh* i gcomhadlann an phacáiste — `src/myapp/locales/`, ní `locales/` ag an
+mbarr — agus go gcaithfear a rá le hinneall na tógála comhaid a chuimsiú a
+cheileann `.gitignore` de ghnáth:
+
+=== "Hatchling"
+
+    ```toml
+    [tool.hatch.build]
+    # .mo files are build output, so they are gitignored; name them or the
+    # wheel ships without a single translation.
+    artifacts = ["src/myapp/locales/**/*.mo"]
+    ```
+
+=== "setuptools"
+
+    ```toml
+    [tool.setuptools.package-data]
+    myapp = ["locales/*/LC_MESSAGES/*.mo"]
+    ```
+
+Léigh ar ais iad tríd an bpacáiste seachas trí chonair atá coibhneasta le crann
+na foinse, crann a scoireann de bheith ann an nóiméad a shuiteáiltear an roth:
+
+```python
+import gettext
+from importlib.resources import as_file, files
+
+with as_file(files("myapp") / "locales") as localedir:
+    translations = gettext.translation("messages", localedir=localedir, languages=["ja"])
+```
+
+Tá post níos éasca ag íomhá coimeádáin: tiomsaigh le linn na céime tógála agus
+cóipeáil an toradh, ag fágáil Babel ina dhiaidh sa chéim sin.
+
+```dockerfile
+FROM python:3.14-slim AS build
+COPY . /src
+RUN cd /src && python -m pip install ".[babel]" \
+    && pybabel compile -d src/myapp/locales
+
+FROM python:3.14-slim
+COPY --from=build /src /src
+RUN python -m pip install /src   # no [babel]: rendering needs the stdlib only
+```
 
 Roimh eisiúint, an tseicliosta a bhfuil an leathanach seo laghdaithe chuige:
 

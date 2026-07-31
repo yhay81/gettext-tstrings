@@ -129,24 +129,26 @@ nevoie de `{n}` într-o formă în care engleza nu are niciuna.
 Nimic din toate acestea nu este ipotetic: catalogul de interfață al acestui sit
 poartă mesajul la plural `Built {n} localized page` / `Built {n} localized
 pages` — două ramuri englezești — iar edițiile sitului traduc acel unic mesaj în
-oriunde între o formă și șase:
+oriunde între o formă și șase.
 
-| Catalog | Forme | Traducerile, în ordinea formelor |
-| --- | --- | --- |
-| Japoneză | 1 | `ローカライズ済みページを{n}件ビルドしました` |
-| Turcă | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` — de două ori, identic: substantivele turcești rămân la singular după un numeral |
-| Italiană | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` — participiul se acordă în gen și număr |
-| Letonă | 3 | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` — a treia formă este pentru **zero, singur** |
-| Rusă | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
-| Poloneză | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
-| Slovenă | 4 | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` — a doua este un **dual**, pentru exact doi |
-| Irlandeză | 5 | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` — unu, doi, 3–6, 7–10 și restul; radicalul alternează, dar *leathanach* începe cu `l`, pe care nicio mutație irlandeză nu o scrie, așa că mai multe forme coincid |
-| Arabă | 6 | printre care `تم إنشاء صفحة مترجمة واحدة ({n})` pentru exact una și `تم إنشاء {n} صفحات مترجمة` pentru câteva |
+??? example "Nouă dintre acele ediții, în ordinea formelor"
 
-Fiecare rând este o intrare vie din `i18n/*/LC_MESSAGES/site.po` al acestui
-depozit, randată de [buildul multilingv](index.md) la fiecare lansare — iar un
-test fixează acest tabel de acele cataloage, așa că cele două nu se pot
-depărta unul de altul.
+    | Catalog | Forme | Traducerile, în ordinea formelor |
+    | --- | --- | --- |
+    | Japoneză | 1 | `ローカライズ済みページを{n}件ビルドしました` |
+    | Turcă | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` — de două ori, identic: substantivele turcești rămân la singular după un numeral |
+    | Italiană | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` — participiul se acordă în gen și număr |
+    | Letonă | 3 | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` — a treia formă este pentru **zero, singur** |
+    | Rusă | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
+    | Poloneză | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
+    | Slovenă | 4 | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` — a doua este un **dual**, pentru exact doi |
+    | Irlandeză | 5 | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` — unu, doi, 3–6, 7–10 și restul; radicalul alternează, dar *leathanach* începe cu `l`, pe care nicio mutație irlandeză nu o scrie, așa că mai multe forme coincid |
+    | Arabă | 6 | printre care `تم إنشاء صفحة مترجمة واحدة ({n})` pentru exact una și `تم إنشاء {n} صفحات مترجمة` pentru câteva |
+
+    Fiecare rând este o intrare vie din `i18n/*/LC_MESSAGES/site.po` al acestui
+    depozit, randată de [buildul multilingv](index.md) la fiecare lansare — iar un
+    test fixează acest tabel de acele cataloage, așa că cele două nu se pot
+    depărta unul de altul.
 
 În limitele acelea, reordonarea și repetarea sunt lăsate intenționat
 neconstrânse. Amândouă sunt necesare gramatical în limbi reale, iar
@@ -249,16 +251,19 @@ Trei cache-uri, câte unul pe etapă:
 
 Fiecare cache este mărginit, și niciunul nu reține *valori* interpolate — doar
 structură statică și textul tiparelor. Rezultatul, măsurat de
-[`benchmarks/runtime.py`](https://github.com/yhay81/gettext-tstrings/blob/main/benchmarks/runtime.py):
-aproximativ 0,4 µs pentru un mesaj cu un singur câmp, inclusiv construcția
-t-stringului însuși, cam de 2,5× cât un `gettext(...).format(...)` simplu, care
-nu verifică nimic. Comentariul din capul lui
+[`benchmarks/runtime.py`](https://github.com/yhay81/gettext-tstrings/blob/main/benchmarks/runtime.py)
+pe CPython 3.14.6, macOS 26, pe un laptop arm64: aproximativ 0,4 µs pentru un
+mesaj cu un singur câmp, inclusiv construcția t-stringului însuși, cam de 2,7×
+cât un `gettext(...).format(...)` simplu, care nu verifică nimic. Acestea sunt
+cifrele unei singure mașini — scriptul își tipărește interpretorul și platforma
+în antet, așa că rulează-l pe hardware-ul pe care chiar desfășori înainte să
+tratezi vreun raport ca fiind al tău. Comentariul din capul lui
 [`core.py`](https://github.com/yhay81/gettext-tstrings/blob/main/src/gettext_tstrings/core.py)
 consemnează măsurătorile individuale din spatele acestei forme.
 
 ## Reimplementarea ei { #reimplementing-it }
 
-Nimic din cele de mai sus nu este cunoaștere ascunsă: convenția este consemnată
+Nimic din cele de mai sus nu este specific acestei implementări: convenția este consemnată
 ca [specificația v1](spec.md), iar
 [suita ei de conformitate](spec.md#conformance) lizibilă de mașină permite unui
 extractor, unui plugin de IDE sau unei implementări în alt limbaj să se verifice

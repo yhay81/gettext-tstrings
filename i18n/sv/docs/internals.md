@@ -125,24 +125,26 @@ har någon.
 Inget av det är hypotetiskt: den här webbplatsens egen katalog för
 sidramverket bär pluralmeddelandet `Built {n} localized page` /
 `Built {n} localized pages` — två engelska grenar — och webbplatsens utgåvor
-översätter det enda meddelandet till allt från en form till sex:
+översätter det enda meddelandet till allt från en form till sex.
 
-| Katalog | Former | Översättningarna, i formordning |
-| --- | --- | --- |
-| Japanska | 1 | `ローカライズ済みページを{n}件ビルドしました` |
-| Turkiska | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` — två gånger, identiskt: turkiska substantiv förblir i singular efter ett räkneord |
-| Italienska | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` — participet kongruerar i genus och numerus |
-| Lettiska | 3 | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` — den tredje formen gäller **enbart noll** |
-| Ryska | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
-| Polska | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
-| Slovenska | 4 | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` — den andra är ett **dualis**, för exakt två |
-| Iriska | 5 | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` — en, två, 3–6, 7–10 och resten; stammen växlar, men *leathanach* börjar på `l`, som ingen irisk mutation skrivs ut på, så flera former sammanfaller |
-| Arabiska | 6 | bland dem `تم إنشاء صفحة مترجمة واحدة ({n})` för exakt en och `تم إنشاء {n} صفحات مترجمة` för några få |
+??? example "Nio av de utgåvorna, i formordning"
 
-Varje rad är en levande post i det här förrådets
-`i18n/*/LC_MESSAGES/site.po`, renderad av det
-[flerspråkiga bygget](index.md) vid varje release — och ett test spikar den
-här tabellen mot de katalogerna, så att de två inte kan glida isär.
+    | Katalog | Former | Översättningarna, i formordning |
+    | --- | --- | --- |
+    | Japanska | 1 | `ローカライズ済みページを{n}件ビルドしました` |
+    | Turkiska | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` — två gånger, identiskt: turkiska substantiv förblir i singular efter ett räkneord |
+    | Italienska | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` — participet kongruerar i genus och numerus |
+    | Lettiska | 3 | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` — den tredje formen gäller **enbart noll** |
+    | Ryska | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
+    | Polska | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
+    | Slovenska | 4 | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` — den andra är ett **dualis**, för exakt två |
+    | Iriska | 5 | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` — en, två, 3–6, 7–10 och resten; stammen växlar, men *leathanach* börjar på `l`, som ingen irisk mutation skrivs ut på, så flera former sammanfaller |
+    | Arabiska | 6 | bland dem `تم إنشاء صفحة مترجمة واحدة ({n})` för exakt en och `تم إنشاء {n} صفحات مترجمة` för några få |
+
+    Varje rad är en levande post i det här förrådets
+    `i18n/*/LC_MESSAGES/site.po`, renderad av det
+    [flerspråkiga bygget](index.md) vid varje release — och ett test spikar den
+    här tabellen mot de katalogerna, så att de två inte kan glida isär.
 
 Inom de gränserna är omflyttning och upprepning avsiktligt obegränsade. Båda
 är grammatiskt nödvändiga i verkliga språk, och att begränsa antalet
@@ -240,16 +242,19 @@ Tre cachar, en per steg:
 
 Varje cache är begränsad, och ingen behåller interpolerade *värden* — bara
 statisk struktur och mönstertext. Resultatet, mätt av
-[`benchmarks/runtime.py`](https://github.com/yhay81/gettext-tstrings/blob/main/benchmarks/runtime.py):
-ungefär 0,4 µs för ett enfältsmeddelande inklusive konstruktionen av själva
-t-strängen, cirka 2,5× en ren `gettext(...).format(...)` som inte
-kontrollerar någonting. Kommentaren överst i
+[`benchmarks/runtime.py`](https://github.com/yhay81/gettext-tstrings/blob/main/benchmarks/runtime.py)
+på CPython 3.14.6, macOS 26 på en arm64-laptop: ungefär 0,4 µs för ett
+enfältsmeddelande inklusive konstruktionen av själva t-strängen, cirka 2,7×
+en ren `gettext(...).format(...)` som inte kontrollerar någonting. Det är en
+enda maskins siffror — skriptet skriver ut sin interpretator och plattform i
+sitt huvud, så kör det på den hårdvara du faktiskt driftsätter på innan du
+betraktar något förhållande som ditt eget. Kommentaren överst i
 [`core.py`](https://github.com/yhay81/gettext-tstrings/blob/main/src/gettext_tstrings/core.py)
 dokumenterar de enskilda mätningarna bakom den formen.
 
 ## Återimplementera det { #reimplementing-it }
 
-Inget av ovanstående är hemlig kunskap: konventionen är nedskriven som
+Inget av ovanstående är specifikt för den här implementationen: konventionen är nedskriven som
 [spec v1](spec.md), och dess maskinläsbara
 [konformitetssvit](spec.md#conformance) låter en extraktor, ett
 IDE-insticksprogram eller en implementation i ett annat språk kontrollera
