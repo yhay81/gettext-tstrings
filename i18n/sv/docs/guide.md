@@ -149,11 +149,14 @@ flätning en pushdown-stack får om bakfoten. Att läsa in en katalog per språk
 billigt: `gettext.translation()` tolkar varje `.mo` en gång och delar ut kopior
 som delar den tolkade katalogen.
 
-!!! warning "En arbetstråd startar obunden"
+!!! warning "Om en arbetstråd ärver bindningen beror på bygget"
 
-    En naken `threading.Thread`, eller `ThreadPoolExecutor.submit`, börjar med
-    en färsk kontext och ärver inte bindningen — anropet faller tillbaka till
-    den processglobala gettext-katalogen. Bär över kontexten explicit:
+    En naken `threading.Thread`, eller `ThreadPoolExecutor.submit`, startar
+    antingen från en kopia av anroparens kontext eller från en tom, och vilken
+    av dem det blir är `sys.flags.thread_inherit_context` — sann som standard i
+    free-threaded-byggen, falsk överallt annars. Samma kod renderar därför det
+    bundna språket på 3.14t och den processglobala katalogen på 3.14. Skicka
+    med kontexten i stället för att förlita dig på standardvärdet:
 
     ```python
     pool.submit(contextvars.copy_context().run, render)

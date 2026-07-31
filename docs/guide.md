@@ -144,11 +144,14 @@ interleaving a pushdown stack gets wrong. Loading a catalog per language is
 cheap: `gettext.translation()` parses each `.mo` once and hands out copies that
 share the parsed catalog.
 
-!!! warning "A worker thread starts unbound"
+!!! warning "Whether a worker thread inherits the binding depends on the build"
 
-    A bare `threading.Thread`, or `ThreadPoolExecutor.submit`, begins with a
-    fresh context and does not inherit the binding — the call falls back to the
-    process-global gettext catalog. Carry the context over explicitly:
+    A bare `threading.Thread`, or `ThreadPoolExecutor.submit`, starts either
+    from a copy of the caller's context or from an empty one, and which of
+    those is `sys.flags.thread_inherit_context` — true by default on
+    free-threaded builds, false everywhere else. The same code therefore
+    renders the bound language on 3.14t and the process-global catalog on
+    3.14. Pass the context rather than depending on the default:
 
     ```python
     pool.submit(contextvars.copy_context().run, render)

@@ -148,12 +148,14 @@ revers. Charger un catalogue par langue coûte peu : `gettext.translation()`
 analyse chaque `.mo` une seule fois et distribue des copies qui partagent le
 catalogue analysé.
 
-!!! warning "Un thread de travail démarre sans liaison"
+!!! warning "Qu'un thread de travail hérite de la liaison dépend du build"
 
-    Un `threading.Thread` nu, ou `ThreadPoolExecutor.submit`, démarre avec un
-    contexte neuf et n'hérite pas de la liaison — l'appel retombe sur le
-    catalogue gettext global au processus. Transportez le contexte
-    explicitement :
+    Un `threading.Thread` nu, ou `ThreadPoolExecutor.submit`, démarre soit depuis
+    une copie du contexte de l'appelant, soit depuis un contexte vide, et ce qui
+    en décide est `sys.flags.thread_inherit_context` — vrai par défaut sur les
+    builds free-threaded, faux partout ailleurs. Le même code rend donc la langue
+    liée sur 3.14t et le catalogue global au processus sur 3.14. Transmettez le
+    contexte plutôt que de dépendre de la valeur par défaut :
 
     ```python
     pool.submit(contextvars.copy_context().run, render)

@@ -131,11 +131,13 @@ for user in users:
 堆疊會弄錯的交錯。逐語言載入目錄的成本很低：`gettext.translation()` 只解析每個
 `.mo` 一次，並交出共用同一份已解析目錄的副本。
 
-!!! warning "工作執行緒起步時是未繫結的"
+!!! warning "工作執行緒會不會繼承繫結，取決於建置版本"
 
-    一個裸的 `threading.Thread`，或 `ThreadPoolExecutor.submit`，是以一個全新的
-    上下文開始的，並不會繼承那個繫結——這次呼叫會回退到行程層級的全域 gettext
-    目錄。請明確地把上下文帶過去：
+    一個裸的 `threading.Thread`，或 `ThreadPoolExecutor.submit`，起步時用的要嘛是
+    呼叫端上下文的一份副本，要嘛是一個空的上下文；決定是哪一種的是
+    `sys.flags.thread_inherit_context`——在自由執行緒建置上預設為真，在其他任何地方
+    都為假。因此同一份程式碼在 3.14t 上渲染出被繫結的語言，在 3.14 上卻渲染出行程
+    層級的全域目錄。請把上下文傳過去，而不要依賴預設值：
 
     ```python
     pool.submit(contextvars.copy_context().run, render)

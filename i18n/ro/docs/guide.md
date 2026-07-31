@@ -148,11 +148,14 @@ cazul în care *ies* din blocurile lor în ordinea în care au intrat, adică ex
 fiecare limbă este ieftină: `gettext.translation()` parsează fiecare `.mo` o
 singură dată și dă mai departe copii care împart catalogul parsat.
 
-!!! warning "Un thread de lucru pornește nelegat"
+!!! warning "Dacă un thread de lucru moștenește legarea depinde de build"
 
-    Un `threading.Thread` gol sau `ThreadPoolExecutor.submit` pornește cu un
-    context proaspăt și nu moștenește legarea — apelul cade înapoi pe catalogul
-    gettext global al procesului. Transportă contextul explicit:
+    Un `threading.Thread` gol sau `ThreadPoolExecutor.submit` pornește fie de la
+    o copie a contextului apelantului, fie de la unul gol, iar care dintre ele
+    este `sys.flags.thread_inherit_context` — adevărat implicit pe build-urile
+    free-threaded, fals peste tot altundeva. Prin urmare, același cod randează
+    limba legată pe 3.14t și catalogul global al procesului pe 3.14. Transmite
+    contextul, în loc să depinzi de valoarea implicită:
 
     ```python
     pool.submit(contextvars.copy_context().run, render)

@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import contextvars
 import gettext
+import sys
 import threading
 
 import pytest
@@ -81,11 +82,13 @@ def test_concurrent_tasks_do_not_share_a_language() -> None:
     assert asyncio.run(both()) == ["Adaさん、こんにちは", "Bonjour Ada"]
 
 
-def test_a_worker_thread_starts_from_an_unbound_context() -> None:
-    # A bare thread begins with a fresh context, so it does not inherit the
-    # binding; contextvars.copy_context() is what carries it across. Pinned
-    # because it is the one hand-off where the documented behaviour surprises
-    # people, and because asyncio.to_thread copies the context for you.
+def test_a_worker_thread_inherits_the_binding_only_when_the_build_says_so() -> None:
+    # Whether a bare thread starts from a copy of the caller's context or an
+    # empty one is sys.flags.thread_inherit_context, which defaults true on
+    # free-threaded builds and false everywhere else — so the same code renders
+    # a different language on 3.14t than on 3.14. Passing the context is what
+    # makes the hand-off mean the same thing on both, and it is what
+    # asyncio.to_thread already does. Found by CI, not by reasoning.
     name = "Ada"
     ja = StubTranslations({"Hello {name}": "{name}さん、こんにちは"})
     rendered: dict[str, str] = {}
@@ -102,7 +105,11 @@ def test_a_worker_thread_starts_from_an_unbound_context() -> None:
         carried.start()
         carried.join()
 
-    assert rendered == {"bare": "Hello Ada", "carried": "Adaさん、こんにちは"}
+    inherited = "Adaさん、こんにちは"
+    assert rendered == {
+        "bare": inherited if sys.flags.thread_inherit_context else "Hello Ada",
+        "carried": inherited,
+    }
 
 
 def test_explicit_translations_override_the_context() -> None:

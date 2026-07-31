@@ -149,12 +149,14 @@ cydblethu y mae pentwr gwthio i lawr yn ei gael yn anghywir. Mae llwytho
 catalog fesul iaith yn rhad: mae `gettext.translation()` yn parsio pob `.mo`
 unwaith ac yn dosbarthu copïau sy'n rhannu'r catalog wedi'i barsio.
 
-!!! warning "Mae edefyn gweithiwr yn cychwyn heb ei rwymo"
+!!! warning "Mae p'un a yw edefyn gweithiwr yn etifeddu'r rhwymiad yn dibynnu ar yr adeiladiad"
 
-    Mae `threading.Thread` noeth, neu `ThreadPoolExecutor.submit`, yn cychwyn â
-    chyd-destun ffres ac nid yw'n etifeddu'r rhwymiad — mae'r alwad yn cwympo'n
-    ôl i gatalog gettext global y broses. Cariwch y cyd-destun drosodd yn
-    benodol:
+    Mae `threading.Thread` noeth, neu `ThreadPoolExecutor.submit`, yn cychwyn
+    naill ai o gopi o gyd-destun y galwr neu o un gwag, a
+    `sys.flags.thread_inherit_context` sy'n penderfynu p'un — yn wir yn ddiofyn
+    ar adeiladiadau edau-rydd, ac yn ffug ym mhobman arall. Felly mae'r un cod
+    yn rendro'r iaith rwym ar 3.14t a chatalog global y broses ar 3.14.
+    Trosglwyddwch y cyd-destun yn hytrach na dibynnu ar y diofyn:
 
     ```python
     pool.submit(contextvars.copy_context().run, render)

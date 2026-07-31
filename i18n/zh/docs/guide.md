@@ -132,10 +132,13 @@ for user in users:
 弄错的交错。按语言加载目录的开销很小：`gettext.translation()` 对每个 `.mo` 只
 解析一次，然后分发共享同一份解析结果的副本。
 
-!!! warning "工作线程一开始并未绑定"
+!!! warning "工作线程是否继承绑定取决于所用的构建"
 
-    裸的 `threading.Thread` 或 `ThreadPoolExecutor.submit` 会以全新的上下文开始，
-    不会继承绑定——此时调用会回退到进程全局的 gettext 目录。请显式携带上下文：
+    裸的 `threading.Thread` 或 `ThreadPoolExecutor.submit`，要么从调用方上下文的
+    副本开始，要么从空上下文开始，而决定这一点的是
+    `sys.flags.thread_inherit_context`——在自由线程构建上默认为真，在其他任何地方
+    都为假。因此同一份代码在 3.14t 上渲染绑定的语言，在 3.14 上渲染进程全局的
+    目录。请传递上下文，而不要依赖默认值：
 
     ```python
     pool.submit(contextvars.copy_context().run, render)

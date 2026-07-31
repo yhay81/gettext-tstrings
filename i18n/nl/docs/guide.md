@@ -150,11 +150,14 @@ binnengingen, precies de vervlechting die een pushdown-stapel fout doet. Een
 catalogus per taal laden is goedkoop: `gettext.translation()` parset elke `.mo`
 één keer en geeft kopieën uit die de geparste catalogus delen.
 
-!!! warning "Een werkthread begint ongebonden"
+!!! warning "Of een werkthread de binding erft, hangt af van de build"
 
-    Een kale `threading.Thread`, of `ThreadPoolExecutor.submit`, begint met een
-    verse context en erft de binding niet — de aanroep valt terug op de
-    proces-globale gettext-catalogus. Neem de context expliciet mee:
+    Een kale `threading.Thread`, of `ThreadPoolExecutor.submit`, begint óf met
+    een kopie van de context van de aanroeper óf met een lege, en welke van
+    die twee het is, bepaalt `sys.flags.thread_inherit_context` — standaard
+    waar op free-threaded builds, elders overal onwaar. Dezelfde code rendert
+    dus de gebonden taal op 3.14t en de proces-globale catalogus op 3.14. Geef
+    de context door in plaats van op de standaardwaarde te vertrouwen:
 
     ```python
     pool.submit(contextvars.copy_context().run, render)

@@ -147,11 +147,15 @@ bu, aşağı itmeli bir yığının yanlış yaptığı geçişmedir. Dil başı
 yüklemek ucuzdur: `gettext.translation()` her `.mo` dosyasını bir kez
 ayrıştırır ve ayrıştırılmış kataloğu paylaşan kopyalar dağıtır.
 
-!!! warning "Bir işçi iş parçacığı bağsız başlar"
+!!! warning "Bir işçi iş parçacığının bağlamayı devralması derlemeye bağlıdır"
 
-    Yalın bir `threading.Thread` ya da `ThreadPoolExecutor.submit`, taze bir
-    bağlamla başlar ve bağlamayı devralmaz — çağrı, sürecin küresel gettext
-    kataloğuna geri düşer. Bağlamı açıkça taşıyın:
+    Yalın bir `threading.Thread` ya da `ThreadPoolExecutor.submit`, ya
+    çağıranın bağlamının bir kopyasıyla ya da boş bir bağlamla başlar;
+    hangisiyle başlayacağını `sys.flags.thread_inherit_context` belirler —
+    serbest iş parçacıklı derlemelerde varsayılan olarak doğru, başka her yerde
+    yanlış. Bu yüzden aynı kod 3.14t üzerinde bağlanmış dili, 3.14 üzerinde ise
+    sürecin küresel kataloğunu render eder. Varsayılana bel bağlamak yerine
+    bağlamı geçirin:
 
     ```python
     pool.submit(contextvars.copy_context().run, render)

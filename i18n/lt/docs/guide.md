@@ -148,11 +148,14 @@ būtent šį persipynimą dėklas apdoroja klaidingai. Įkelti katalogą kiekvie
 kalbai pigu: `gettext.translation()` kiekvieną `.mo` perskaito vieną kartą ir
 dalija kopijas, kurios naudoja tą patį perskaitytą katalogą.
 
-!!! warning "Darbinė gija prasideda nesusieta"
+!!! warning "Ar darbinė gija paveldi susiejimą, priklauso nuo darinio"
 
-    Plika `threading.Thread` ar `ThreadPoolExecutor.submit` pradeda nuo šviežio
-    konteksto ir susiejimo nepaveldi — iškvietimas grįžta prie proceso
-    globalaus gettext katalogo. Perneškite kontekstą aiškiai:
+    Plika `threading.Thread` ar `ThreadPoolExecutor.submit` pradeda arba nuo
+    iškvietėjo konteksto kopijos, arba nuo tuščio, o kuris iš jų —
+    `sys.flags.thread_inherit_context`: laisvų gijų dariniuose jis pagal
+    nutylėjimą teisingas, visur kitur — klaidingas. Todėl tas pats kodas su
+    3.14t atvaizduoja susietą kalbą, o su 3.14 — proceso globalų katalogą.
+    Perduokite kontekstą, užuot pasikliovę numatytąja elgsena:
 
     ```python
     pool.submit(contextvars.copy_context().run, render)

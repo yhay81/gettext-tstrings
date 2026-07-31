@@ -151,12 +151,15 @@ sebuah tumpukan pushdown. Memuat sebuah katalog per bahasa itu murah:
 `gettext.translation()` mengurai tiap `.mo` sekali dan membagikan salinan yang
 berbagi katalog terurai itu.
 
-!!! warning "Sebuah thread pekerja bermula tanpa ikatan"
+!!! warning "Apakah sebuah thread pekerja mewarisi ikatannya bergantung pada build-nya"
 
     Sebuah `threading.Thread` telanjang, atau `ThreadPoolExecutor.submit`,
-    bermula dengan konteks yang segar dan tidak mewarisi ikatannya —
-    panggilannya jatuh kembali ke katalog gettext global proses. Bawa
-    konteksnya secara eksplisit:
+    bermula entah dari salinan konteks pemanggilnya atau dari konteks yang
+    kosong, dan mana di antara keduanya itulah
+    `sys.flags.thread_inherit_context` — benar secara bawaan pada build
+    free-threaded, salah di tempat lain mana pun. Maka kode yang sama merender
+    bahasa yang terikat pada 3.14t dan katalog global proses pada 3.14. Oper
+    konteksnya alih-alih bergantung pada nilai bawaannya:
 
     ```python
     pool.submit(contextvars.copy_context().run, render)

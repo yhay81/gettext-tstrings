@@ -155,12 +155,15 @@ láimhseáil i gceart. Níl sé costasach catalóg a lódáil in aghaidh na tean
 parsálann `gettext.translation()` gach `.mo` uair amháin agus tugann sé amach
 cóipeanna a roinneann an chatalóg pharsáilte.
 
-!!! warning "Tosaíonn snáithe oibre gan cheangal"
+!!! warning "Braitheann oidhreacht an cheangail i snáithe oibre ar an tógáil"
 
-    Tosaíonn `threading.Thread` lom, nó `ThreadPoolExecutor.submit`, le
-    comhthéacs úrnua agus ní fhaigheann sé an ceangal le hoidhreacht — titeann
-    an glao ar ais ar an gcatalóg gettext atá domhanda don phróiseas. Iompair
-    an comhthéacs anonn go follasach:
+    Tosaíonn `threading.Thread` lom, nó `ThreadPoolExecutor.submit`, ó chóip
+    de chomhthéacs an ghlaoiteora nó ó chomhthéacs folamh, agus is é
+    `sys.flags.thread_inherit_context` a shocraíonn cé acu — fíor de réir
+    réamhshocraithe ar thógálacha saorshnáithithe, bréagach i ngach áit eile.
+    Rindreálann an cód céanna, dá bhrí sin, an teanga cheangailte ar 3.14t
+    agus an chatalóg atá domhanda don phróiseas ar 3.14. Seachaid an
+    comhthéacs seachas a bheith ag brath ar an réamhshocrú:
 
     ```python
     pool.submit(contextvars.copy_context().run, render)

@@ -150,12 +150,15 @@ pila. Caricare un catalogo per lingua costa poco: `gettext.translation()`
 analizza ogni `.mo` una sola volta e restituisce copie che condividono il
 catalogo già analizzato.
 
-!!! warning "Un thread di lavoro parte non legato"
+!!! warning "Se un thread di lavoro erediti il binding dipende dalla build"
 
-    Un semplice `threading.Thread`, o `ThreadPoolExecutor.submit`, comincia con
-    un contesto nuovo e non eredita il binding — la chiamata ripiega sul
-    catalogo gettext globale del processo. Portati dietro il contesto in modo
-    esplicito:
+    Un semplice `threading.Thread`, o `ThreadPoolExecutor.submit`, parte o da
+    una copia del contesto del chiamante o da uno vuoto, e quale dei due lo
+    decide `sys.flags.thread_inherit_context` — vero per impostazione
+    predefinita sulle build free-threaded, falso ovunque altrove. Lo stesso
+    codice rende quindi la lingua legata su 3.14t e il catalogo globale del
+    processo su 3.14. Passa il contesto invece di dipendere dal valore
+    predefinito:
 
     ```python
     pool.submit(contextvars.copy_context().run, render)

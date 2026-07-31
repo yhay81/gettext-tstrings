@@ -148,11 +148,15 @@ sem skarast geta ekki gripið tungumál hver annarrar — þar með talið tilvi
 að hlaða þýðingaskrá fyrir hvert tungumál: `gettext.translation()` þáttar
 hverja `.mo`-skrá einu sinni og réttir út afrit sem deila þáttuðu skránni.
 
-!!! warning "Vinnuþráður byrjar óbundinn"
+!!! warning "Hvort vinnuþráður erfir bindinguna fer eftir byggingunni"
 
-    Ber `threading.Thread`, eða `ThreadPoolExecutor.submit`, byrjar með nýju
-    samhengi og erfir ekki bindinguna — kallið fellur þá aftur í altæku
-    gettext-þýðingaskrá ferlisins. Berðu samhengið yfir með skýrum hætti:
+    Ber `threading.Thread`, eða `ThreadPoolExecutor.submit`, byrjar annaðhvort
+    með afriti af samhengi kallandans eða með tómu samhengi, og hvort þeirra
+    það verður ræðst af `sys.flags.thread_inherit_context` — sem er satt
+    sjálfgefið í free-threaded byggingum en ósatt í öllum öðrum. Sami kóðinn
+    birtir því bundna tungumálið á 3.14t en altæku gettext-þýðingaskrá
+    ferlisins á 3.14. Sendu samhengið með í stað þess að reiða þig á
+    sjálfgefna hegðun:
 
     ```python
     pool.submit(contextvars.copy_context().run, render)

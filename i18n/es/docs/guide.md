@@ -148,11 +148,14 @@ entraron, que es el entrelazado que una pila LIFO resuelve mal—. Cargar un
 catálogo por idioma es barato: `gettext.translation()` analiza cada `.mo` una
 sola vez y entrega copias que comparten el catálogo ya analizado.
 
-!!! warning "Un hilo de trabajo empieza sin vinculación"
+!!! warning "Que un hilo de trabajo herede la vinculación depende de la build"
 
-    Un `threading.Thread` sin más, o `ThreadPoolExecutor.submit`, arranca con un
-    contexto nuevo y no hereda la vinculación: la llamada recurre al catálogo
-    gettext global del proceso. Traslada el contexto de forma explícita:
+    Un `threading.Thread` sin más, o `ThreadPoolExecutor.submit`, arranca o bien
+    desde una copia del contexto de quien llama o bien desde uno vacío, y cuál de
+    las dos cosas lo decide `sys.flags.thread_inherit_context` —verdadero por
+    omisión en las builds free-threaded, falso en todo lo demás—. Por eso el
+    mismo código renderiza el idioma vinculado en 3.14t y el catálogo global del
+    proceso en 3.14. Pasa el contexto en lugar de depender del valor por omisión:
 
     ```python
     pool.submit(contextvars.copy_context().run, render)

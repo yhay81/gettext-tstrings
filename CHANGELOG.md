@@ -9,9 +9,13 @@
   language when they leave their blocks in the order they entered them. The
   binding here is a `ContextVar`, so that interleaving resolves per task —
   *Guide* now shows the nesting and the per-recipient loop, *Why t-strings*
-  credits the capability and records the difference, and three tests pin it,
-  including the one hand-off that surprises people: a bare worker thread starts
-  from an unbound context.
+  credits the capability and records the difference, and three tests pin it.
+- One of those tests found that whether a bare `threading.Thread` inherits the
+  binding is `sys.flags.thread_inherit_context`, which defaults true on
+  free-threaded builds and false everywhere else — so the same worker renders
+  the bound language on 3.14t and the process-global catalog on 3.14. *Guide*
+  says to pass the context rather than depend on the default. Found by CI on
+  the free-threaded job, not by reading the documentation.
 
 ## 0.1.0a7 - 2026-07-31
 

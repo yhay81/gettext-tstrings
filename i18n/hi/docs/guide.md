@@ -149,12 +149,15 @@ binding एक `ContextVar` है, किसी साझा ऑब्जेक
 सस्ता है: `gettext.translation()` हर `.mo` को एक बार पार्स करता है और ऐसी
 प्रतियाँ देता है जो वही पार्स किया हुआ कैटलॉग साझा करती हैं।
 
-!!! warning "कोई worker thread अनबाउंड शुरू होता है"
+!!! warning "कोई worker thread binding विरासत में लेता है या नहीं, यह build पर निर्भर करता है"
 
-    कोई नंगा `threading.Thread`, या `ThreadPoolExecutor.submit`, एक ताज़ा
-    context के साथ शुरू होता है और binding विरासत में नहीं लेता — कॉल
-    process-वैश्विक gettext कैटलॉग पर फ़ॉलबैक कर जाती है। context को स्पष्ट
-    रूप से साथ ले जाएँ:
+    कोई नंगा `threading.Thread`, या `ThreadPoolExecutor.submit`, या तो कॉल
+    करने वाले के context की एक प्रतिलिपि से शुरू होता है या किसी ख़ाली
+    context से, और इनमें से कौन-सा — यह `sys.flags.thread_inherit_context`
+    है, जो free-threaded builds पर डिफ़ॉल्ट रूप से सत्य और बाक़ी हर जगह
+    असत्य रहता है। इसलिए वही कोड 3.14t पर बँधी हुई भाषा रेंडर करता है और
+    3.14 पर process-वैश्विक कैटलॉग। डिफ़ॉल्ट पर निर्भर रहने के बजाय context
+    पास करें:
 
     ```python
     pool.submit(contextvars.copy_context().run, render)

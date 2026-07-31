@@ -142,11 +142,14 @@ for user in users:
 טעינת קטלוג לכל שפה היא זולה: `gettext.translation()` מפענחת כל `.mo` פעם
 אחת ומחלקת עותקים החולקים את הקטלוג המפוענח.
 
-!!! warning "תהליכון עובד מתחיל ללא קשירה"
+!!! warning "השאלה אם תהליכון עובד יורש את הקשירה תלויה בבנייה"
 
-    `threading.Thread` חשוף, או `ThreadPoolExecutor.submit`, מתחיל בהקשר טרי
-    ואינו יורש את הקשירה — הקריאה נסוגה לקטלוג gettext הגלובלי של התהליך.
-    העבירו את ההקשר במפורש:
+    `threading.Thread` חשוף, או `ThreadPoolExecutor.submit`, מתחיל או מעותק
+    של ההקשר של הקורא או מהקשר ריק, ואיזו משתי האפשרויות תתקיים נקבע בידי
+    `sys.flags.thread_inherit_context` — אמת כברירת מחדל בבניות free-threaded,
+    שקר בכל מקום אחר. אותו קוד עצמו מציג אפוא את השפה הקשורה ב-3.14t ואת
+    קטלוג gettext הגלובלי של התהליך ב-3.14. העבירו את ההקשר במקום להסתמך על
+    ברירת המחדל:
 
     ```python
     pool.submit(contextvars.copy_context().run, render)

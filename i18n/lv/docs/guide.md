@@ -146,11 +146,14 @@ tieši šo pārklāšanos steks izdara nepareizi. Ielādēt katalogu katrai valo
 lēti: `gettext.translation()` parsē katru `.mo` vienreiz un izsniedz kopijas,
 kas dala parsēto katalogu.
 
-!!! warning "Darba pavediens sākas bez piesaistes"
+!!! warning "Vai darba pavediens manto piesaisti, ir atkarīgs no būvējuma"
 
-    Kails `threading.Thread` vai `ThreadPoolExecutor.submit` sākas ar svaigu
-    kontekstu un piesaisti nemanto — izsaukums atkāpjas uz procesa globālo
-    gettext katalogu. Pārnesiet kontekstu tieši:
+    Kails `threading.Thread` vai `ThreadPoolExecutor.submit` sākas vai nu ar
+    izsaucēja konteksta kopiju, vai ar tukšu, un to, kurš no tiem, nosaka
+    `sys.flags.thread_inherit_context` — pēc noklusējuma patiess brīvpavedienu
+    būvējumos un aplams visur citur. Tāpēc viens un tas pats kods uz 3.14t
+    renderē piesaistīto valodu, bet uz 3.14 — procesa globālo katalogu.
+    Padodiet kontekstu, nevis paļaujieties uz noklusējumu:
 
     ```python
     pool.submit(contextvars.copy_context().run, render)

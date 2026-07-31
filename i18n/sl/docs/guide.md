@@ -145,11 +145,14 @@ prepletanje, ki ga sklad zgreši. Nalaganje kataloga za vsak jezik je poceni:
 `gettext.translation()` vsak `.mo` razčleni enkrat in razdaja kopije, ki si
 razčlenjeni katalog delijo.
 
-!!! warning "Delovna nit se začne nevezana"
+!!! warning "Ali delovna nit podeduje vezavo, je odvisno od gradnje"
 
-    Gola `threading.Thread` ali `ThreadPoolExecutor.submit` se začne s svežim
-    kontekstom in vezave ne podeduje — klic se zateče h globalnemu gettextovemu
-    katalogu procesa. Kontekst prenesite izrecno:
+    Gola `threading.Thread` ali `ThreadPoolExecutor.submit` se začne bodisi s
+    kopijo klicateljevega konteksta bodisi s praznim; katero od tega, določa
+    `sys.flags.thread_inherit_context` — privzeto resničen na prostonitnih
+    gradnjah in neresničen povsod drugod. Ista koda zato na 3.14t izriše vezani
+    jezik, na 3.14 pa globalni gettextov katalog procesa. Kontekst podajte,
+    namesto da bi se zanašali na privzeto vrednost:
 
     ```python
     pool.submit(contextvars.copy_context().run, render)

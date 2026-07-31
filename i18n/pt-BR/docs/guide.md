@@ -144,11 +144,14 @@ ordem em que entraram, que é o intercalamento que uma pilha erra. Carregar um
 catálogo por idioma é barato: `gettext.translation()` analisa cada `.mo` uma vez
 e entrega cópias que compartilham o catálogo já analisado.
 
-!!! warning "Uma thread de trabalho começa sem vínculo"
+!!! warning "Se uma thread de trabalho herda o vínculo depende do build"
 
-    Uma `threading.Thread` pura, ou `ThreadPoolExecutor.submit`, começa com um
-    contexto novo e não herda o vínculo — a chamada recai no catálogo gettext
-    global do processo. Leve o contexto adiante explicitamente:
+    Uma `threading.Thread` pura, ou `ThreadPoolExecutor.submit`, começa ou de uma
+    cópia do contexto de quem chamou ou de um contexto vazio, e quem decide isso
+    é `sys.flags.thread_inherit_context` — verdadeiro por padrão em builds
+    free-threaded, falso em todo o resto. O mesmo código, portanto, renderiza o
+    idioma vinculado no 3.14t e o catálogo global do processo no 3.14. Passe o
+    contexto em vez de depender do padrão:
 
     ```python
     pool.submit(contextvars.copy_context().run, render)

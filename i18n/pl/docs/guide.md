@@ -151,11 +151,14 @@ rozstrzyga błędnie. Wczytywanie katalogu na każdy język jest tanie:
 `gettext.translation()` parsuje każde `.mo` raz i wydaje kopie współdzielące
 sparsowany katalog.
 
-!!! warning "Wątek roboczy startuje bez wiązania"
+!!! warning "To, czy wątek roboczy dziedziczy wiązanie, zależy od builda"
 
-    Goły `threading.Thread` albo `ThreadPoolExecutor.submit` zaczyna od
-    świeżego kontekstu i nie dziedziczy wiązania — wywołanie wraca wtedy do
-    globalnego dla procesu katalogu gettext. Przenieś kontekst jawnie:
+    Goły `threading.Thread` albo `ThreadPoolExecutor.submit` startuje albo od
+    kopii kontekstu wywołującego, albo od pustego, a o tym, który z nich to
+    będzie, decyduje `sys.flags.thread_inherit_context` — domyślnie prawda w
+    buildach free-threaded, fałsz wszędzie indziej. Ten sam kod renderuje więc
+    związany język na 3.14t, a globalny dla procesu katalog na 3.14. Przekaż
+    kontekst, zamiast polegać na wartości domyślnej:
 
     ```python
     pool.submit(contextvars.copy_context().run, render)

@@ -150,11 +150,15 @@ huukosea. Kupakia katalogi kwa kila lugha ni jambo rahisi:
 `gettext.translation()` huchanganua kila `.mo` mara moja na hutoa nakala
 zinazoshiriki katalogi iliyochanganuliwa.
 
-!!! warning "Uzi wa kufanyia kazi huanza bila kufungwa"
+!!! warning "Iwapo uzi wa kufanyia kazi hurithi ufungaji hutegemea jenzi"
 
-    `threading.Thread` ya kawaida, au `ThreadPoolExecutor.submit`, huanza na
-    muktadha mpya na hairithi ufungaji — wito hurejea kwenye katalogi ya
-    gettext ya jumla ya mchakato. Beba muktadha kwa uwazi:
+    `threading.Thread` ya kawaida, au `ThreadPoolExecutor.submit`, huanza ama
+    kwa nakala ya muktadha wa mwitaji ama kwa muktadha mtupu, na kipi kati ya
+    hivyo huamuliwa na `sys.flags.thread_inherit_context` — ni kweli kwa
+    chaguo-msingi kwenye jenzi za nyuzi huru, na si kweli kwingineko kote.
+    Hivyo msimbo uleule huonyesha lugha iliyofungwa kwenye 3.14t na katalogi
+    ya jumla ya mchakato kwenye 3.14. Pitisha muktadha badala ya kutegemea
+    chaguo-msingi:
 
     ```python
     pool.submit(contextvars.copy_context().run, render)

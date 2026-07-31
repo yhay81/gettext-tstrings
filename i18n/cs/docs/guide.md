@@ -149,11 +149,14 @@ což je právě to prokládání, na němž zásobník selhává. Načíst katal
 každý jazyk je levné: `gettext.translation()` rozparsuje každé `.mo` jednou
 a vydává kopie, které sdílejí rozparsovaný katalog.
 
-!!! warning "Pracovní vlákno startuje bez vazby"
+!!! warning "Zda pracovní vlákno vazbu zdědí, závisí na buildu"
 
-    Holé `threading.Thread` nebo `ThreadPoolExecutor.submit` začíná
-    s čerstvým kontextem a vazbu nedědí — volání spadne zpět na procesně
-    globální katalog gettextu. Přeneste kontext výslovně:
+    Holé `threading.Thread` nebo `ThreadPoolExecutor.submit` začíná buď
+    s kopií kontextu volajícího, nebo s prázdným, a které z toho, o tom
+    rozhoduje `sys.flags.thread_inherit_context` — ve výchozím stavu pravdivý
+    na free-threaded buildech a nepravdivý všude jinde. Tentýž kód proto
+    na 3.14t vykreslí navázaný jazyk a na 3.14 procesně globální katalog.
+    Předejte kontext, místo abyste spoléhali na výchozí hodnotu:
 
     ```python
     pool.submit(contextvars.copy_context().run, render)

@@ -152,12 +152,15 @@ vào, vốn là kiểu đan xen mà một ngăn xếp đẩy-xuống làm sai. N
 mỗi ngôn ngữ là việc rẻ: `gettext.translation()` phân tích mỗi tệp `.mo` đúng
 một lần rồi trao ra những bản sao dùng chung catalog đã phân tích.
 
-!!! warning "Một luồng worker khởi đầu ở trạng thái chưa gắn"
+!!! warning "Một luồng worker có kế thừa binding hay không là tuỳ bản dựng"
 
     Một `threading.Thread` trần, hay `ThreadPoolExecutor.submit`, khởi đầu
-    với một ngữ cảnh mới tinh và không kế thừa binding — lời gọi sẽ quay về
-    catalog gettext toàn cục của tiến trình. Hãy mang ngữ cảnh sang một cách
-    tường minh:
+    hoặc từ một bản sao ngữ cảnh của phía gọi, hoặc từ một ngữ cảnh rỗng, và
+    bên nào trong hai bên đó chính là `sys.flags.thread_inherit_context` —
+    mặc định là đúng trên các bản dựng free-threaded, và sai ở mọi nơi khác.
+    Vì thế cùng một đoạn mã sẽ kết xuất ngôn ngữ đã gắn trên 3.14t và catalog
+    toàn cục của tiến trình trên 3.14. Hãy truyền ngữ cảnh sang thay vì phụ
+    thuộc vào giá trị mặc định:
 
     ```python
     pool.submit(contextvars.copy_context().run, render)

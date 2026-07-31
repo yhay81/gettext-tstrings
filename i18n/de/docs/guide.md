@@ -151,12 +151,15 @@ Kellerstapel falsch macht. Einen Katalog pro Sprache zu laden ist günstig:
 `gettext.translation()` parst jede `.mo` einmal und gibt Kopien heraus, die
 sich den geparsten Katalog teilen.
 
-!!! warning "Ein Worker-Thread startet ungebunden"
+!!! warning "Ob ein Worker-Thread die Bindung erbt, hängt vom Build ab"
 
-    Ein einfacher `threading.Thread` oder `ThreadPoolExecutor.submit` beginnt
-    mit einem frischen Kontext und erbt die Bindung nicht — der Aufruf fällt
-    auf den prozessglobalen gettext-Katalog zurück. Nimm den Kontext
-    ausdrücklich mit:
+    Ein einfacher `threading.Thread` oder `ThreadPoolExecutor.submit` startet
+    entweder mit einer Kopie des Kontexts des Aufrufers oder mit einem leeren
+    Kontext; was davon gilt, entscheidet `sys.flags.thread_inherit_context` —
+    auf free-threaded Builds standardmäßig wahr, sonst überall falsch.
+    Derselbe Code rendert daher auf 3.14t die gebundene Sprache und auf 3.14
+    den prozessglobalen Katalog. Gib den Kontext weiter, statt dich auf die
+    Vorgabe zu verlassen:
 
     ```python
     pool.submit(contextvars.copy_context().run, render)

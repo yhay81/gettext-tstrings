@@ -151,12 +151,15 @@ a sorrendben *lépnek ki* a blokkjaikból, ahogy beléptek; épp ezt az
 `gettext.translation()` minden `.mo` fájlt egyszer olvas be, és olyan
 másolatokat ad ki, amelyek osztoznak a beolvasott katalóguson.
 
-!!! warning "A munkaszál kötetlenül indul"
+!!! warning "Az, hogy a munkaszál örökli-e a kötést, a buildtől függ"
 
-    Egy puszta `threading.Thread` vagy a `ThreadPoolExecutor.submit` friss
-    kontextussal indul, és nem örökli a kötést — a hívás a folyamatszintű
-    globális gettext-katalógusra esik vissza. Vidd át a kontextust explicit
-    módon:
+    Egy puszta `threading.Thread`, illetve a `ThreadPoolExecutor.submit` vagy
+    a hívó kontextusának másolatával, vagy egy üres kontextussal indul, és
+    hogy melyikkel, azt a `sys.flags.thread_inherit_context` mondja meg — a
+    szabad szálú buildeken alapértelmezés szerint igaz, mindenhol máshol
+    hamis. Ugyanaz a kód tehát 3.14t alatt a kötött nyelvet, 3.14 alatt a
+    folyamatszintű globális katalógust rendereli. Add át a kontextust ahelyett, hogy az
+    alapértelmezésre hagyatkoznál:
 
     ```python
     pool.submit(contextvars.copy_context().run, render)

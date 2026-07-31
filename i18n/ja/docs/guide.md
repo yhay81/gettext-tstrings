@@ -144,11 +144,14 @@ for user in users:
 `gettext.translation()`は各`.mo`を一度だけ解析し、解析済みカタログを共有する
 コピーを渡します。
 
-!!! warning "ワーカースレッドは未束縛で始まる"
+!!! warning "ワーカースレッドが束縛を引き継ぐかはビルド次第"
 
-    素の`threading.Thread`や`ThreadPoolExecutor.submit`は新しいコンテキストで
-    始まるため、束縛を引き継ぎません。呼び出しはプロセスグローバルなgettext
-    カタログへfallbackします。コンテキストは明示的に持ち込んでください。
+    素の`threading.Thread`や`ThreadPoolExecutor.submit`は、呼び出し側の
+    コンテキストのコピーから始まることも、空のコンテキストから始まることも
+    あります。どちらになるかを決めるのは`sys.flags.thread_inherit_context`で、
+    free-threadedビルドでは既定でtrue、それ以外では既定でfalseです。つまり
+    同じコードが、3.14tでは束縛した言語を、3.14ではプロセスグローバルな
+    カタログを描画します。既定に頼らず、コンテキストを渡してください。
 
     ```python
     pool.submit(contextvars.copy_context().run, render)

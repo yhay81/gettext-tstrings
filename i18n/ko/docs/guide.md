@@ -141,11 +141,14 @@ for user in users:
 저렴합니다. `gettext.translation()`은 각 `.mo`를 한 번만 파싱하고, 파싱된
 카탈로그를 공유하는 복사본을 건네줍니다.
 
-!!! warning "워커 스레드는 바인딩 없이 시작합니다"
+!!! warning "워커 스레드가 바인딩을 물려받는지는 빌드에 달려 있습니다"
 
-    맨 `threading.Thread`나 `ThreadPoolExecutor.submit`은 새 컨텍스트에서
-    시작하므로 바인딩을 물려받지 않습니다. 그 호출은 프로세스 전역
-    gettext 카탈로그로 fallback합니다. 컨텍스트를 명시적으로 넘기세요.
+    맨 `threading.Thread`나 `ThreadPoolExecutor.submit`은 호출자 컨텍스트의
+    복사본에서 시작하거나 빈 컨텍스트에서 시작하며, 둘 중 어느 쪽인지는
+    `sys.flags.thread_inherit_context`가 정합니다 — 프리스레드 빌드에서는
+    기본값이 참이고, 그 밖의 모든 빌드에서는 거짓입니다. 그래서 같은
+    코드가 3.14t에서는 바인딩된 언어를, 3.14에서는 프로세스 전역
+    카탈로그를 렌더링합니다. 기본값에 기대지 말고 컨텍스트를 넘기세요.
 
     ```python
     pool.submit(contextvars.copy_context().run, render)
