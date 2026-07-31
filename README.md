@@ -1,5 +1,11 @@
 # gettext-tstrings
 
+[![CI](https://github.com/yhay81/gettext-tstrings/actions/workflows/ci.yml/badge.svg)](https://github.com/yhay81/gettext-tstrings/actions/workflows/ci.yml)
+[![PyPI](https://img.shields.io/pypi/v/gettext-tstrings)](https://pypi.org/project/gettext-tstrings/)
+[![Python](https://img.shields.io/pypi/pyversions/gettext-tstrings)](https://pypi.org/project/gettext-tstrings/)
+[![License](https://img.shields.io/pypi/l/gettext-tstrings)](https://github.com/yhay81/gettext-tstrings/blob/main/LICENSE)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/yhay81/gettext-tstrings/badge)](https://scorecard.dev/viewer/?uri=github.com/yhay81/gettext-tstrings)
+
 Safe gettext integration for Python 3.14+ t-strings, with first-class
 [Babel](https://babel.pocoo.org/) extraction and validation.
 
