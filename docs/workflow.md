@@ -11,6 +11,18 @@ schedule, and a compiled catalog ships with every release. This page is that
 practice — what stays in the repository, what travels, what CI must gate, and
 where the runtime binds a language.
 
+What it adds up to is six checks, so here they are first; each section below
+sets one of them up.
+
+- `pybabel update --check` passes — no message changed without the catalogs
+  hearing about it.
+- `pybabel compile` gates the build on its exit status.
+- Remaining `fuzzy` entries are intentional — each one renders as source
+  text until a translator confirms it.
+- The test suite renders each shipped language once with `strict=True`.
+- The production artifact contains `.mo` files and no Babel.
+- The `gettext_tstrings` logger is routed to monitoring.
+
 ## The shape of a project
 
 ```text
@@ -32,8 +44,8 @@ them in CI or at packaging time rather than committing them, so a `.po` and
 its `.mo` can never disagree about what ships.
 
 One file has a role in each direction: the `.pot` carries your messages *out*
-to translators, the `.po` files carry translations *back*. Everything below
-is the traffic between those two.
+to translators, the `.po` files carry translations *back*. The rest of this
+page is what moves between them.
 
 ```mermaid
 flowchart LR
@@ -47,10 +59,10 @@ flowchart LR
 
 ## The cycle after the first translation
 
-The tutorial's `pybabel init` runs once per language, ever. From then on the
-working cycle is **extract → update → translate → compile**, and its center
-is `pybabel update`, which folds a fresh template into the existing catalogs
-without discarding the translations already in them.
+The tutorial's `pybabel init` normally runs once, when a language is added.
+From then on the working cycle is **extract → update → translate → compile**,
+and its center is `pybabel update`, which folds a fresh template into the
+existing catalogs without discarding the translations already in them.
 
 Suppose the greeting `Hello {name}` — already translated as
 `こんにちは {name}` — is reworded in code to `Welcome back, {name}`. Extract
@@ -76,9 +88,9 @@ msgstr "こんにちは {name}"
 
 Babel noticed the new msgid resembles a removed one and paired it with the
 old translation — but flagged the pair **fuzzy**: a machine's guess awaiting
-a human. The flag has teeth. `pybabel compile` **excludes fuzzy entries from
-the `.mo`**, so until a translator confirms the pair, the application renders
-the new English text rather than a stale Japanese one:
+a human. The flag changes what compiles. `pybabel compile` **excludes fuzzy
+entries from the `.mo`**, so until a translator confirms the pair, the
+application renders the new English text rather than a stale Japanese one:
 
 ```console
 $ pybabel compile -d locales
@@ -124,31 +136,17 @@ merging code whose messages nobody re-extracted. `pybabel compile` runs the
 placeholder checks of both Babel and this package's
 [registered checker](extraction.md#your-existing-toolchain-validates-these-catalogs).
 
-!!! bug "`--check` cannot gate a catalog that uses contexts"
+!!! bug "Babel 2.18.0: `--check` cannot gate a catalog that uses contexts"
 
     On Babel 2.18.0, `pybabel update --check` reports **every** catalog
-    containing a `msgctxt` as out of date, on every run, no matter how current
-    it is. The comparison runs through `Catalog.is_identical`, which looks each
-    message up by the key it is stored under — and for a contextual message
-    that key is the `(id, context)` pair, which `Catalog.get` does not accept.
-    The lookup returns nothing, and the catalogs never compare equal:
-
-    ```pycon
-    >>> from babel.messages.catalog import Catalog
-    >>> c = Catalog(locale="ja")
-    >>> c.add("Guide", "ガイド", context="navigation")
-    <Message 'Guide' (flags: [])>
-    >>> c.is_identical(c)
-    False
-    ```
-
-    So if you use `pgettext` or `npgettext` at all — and disambiguating a
-    homonym is the reason they exist — this step fails open in the worst way:
-    always red, so a team turns it off, so nothing gates staleness. Until it is
-    fixed upstream, compare the message sets yourself. Reading the template and
-    each catalog with `babel.messages.pofile.read_po` and comparing
-    `{(m.context, m.id) for m in catalog if m.id}` is the whole check, and it is
-    what [this site's own build](index.md) does.
+    containing a `msgctxt` as out of date, on every run, however current it is.
+    A permanently failing gate is worse than no gate, because a team turns it
+    off — so if you use `pgettext` or `npgettext` at all, replace this step
+    rather than living with it. Reading the template and each catalog with
+    `babel.messages.pofile.read_po` and comparing
+    `{(m.context, m.id) for m in catalog if m.id}` is the whole check, and it
+    is what [this site's own build](index.md) does. The cause is
+    [written up on Pitfalls](pitfalls.md#your-tools-have-bugs-too).
 
 !!! danger "Check the exit status, not the log"
 

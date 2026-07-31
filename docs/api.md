@@ -49,9 +49,12 @@ The binding is a `ContextVar`, so it is per-context and safe under concurrency.
 
 | Name | Purpose |
 | --- | --- |
-| `lazy_gettext(template, /, *, strict=False)` | Defer a translation to first use. |
+| `lazy_gettext(template, /, *, strict=False)` | Defer translation until each render. |
 | `lazy_pgettext(context, template, /, *, strict=False)` | The contextual form. |
-| `LazyString` | What both return. Renders through `str()` and `format()`, compares equal to its text, and is deliberately unhashable. |
+| `LazyString` | What both return. Renders through `str()` and `format()` in whatever language is bound at that moment, compares equal to its rendered text, and is deliberately unhashable. |
+
+Worked examples, including why `strict` belongs at the definition, are under
+[Deferred translation](guide.md#deferred-translation).
 
 ## Lower-level
 

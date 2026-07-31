@@ -140,10 +140,24 @@ built at all. Two of this repository's own files exist to fill that gap.
 
 The CI step this documentation recommends for catching stale catalogs,
 `pybabel update --check`, cannot do that job for any project that uses
-`pgettext` or `npgettext` — it reports every catalog with a `msgctxt` as out
-of date, on every run, because of a bug in how the comparison looks messages
-up. It was found here by trying to use it, reported upstream, and is
-[described in full with the workaround](workflow.md#what-ci-gates).
+`pgettext` or `npgettext`. On Babel 2.18.0 it reports every catalog with a
+`msgctxt` as out of date, on every run. The comparison runs through
+`Catalog.is_identical`, which looks each message up by the key it is stored
+under — and for a contextual message that key is the `(id, context)` pair,
+which `Catalog.get` does not accept. The lookup returns nothing, and the
+catalogs never compare equal:
+
+```pycon
+>>> from babel.messages.catalog import Catalog
+>>> c = Catalog(locale="ja")
+>>> c.add("Guide", "ガイド", context="navigation")
+<Message 'Guide' (flags: [])>
+>>> c.is_identical(c)
+False
+```
+
+It was found here by trying to use it, reported upstream, and the replacement
+check is [on the production page](workflow.md#what-ci-gates).
 
 The general lesson is the uncomfortable one: a gate that is always red is
 worse than no gate, because a team turns it off. Verify that your CI check can

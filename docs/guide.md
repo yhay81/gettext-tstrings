@@ -1,5 +1,5 @@
 ---
-description: "The runtime API: binding a catalog, per-request languages, deferred strings, and how a broken translation is reported."
+description: "The runtime API: which entry point to use, binding a catalog, per-request languages, deferred strings, locale-aware values, and how a broken translation is reported."
 ---
 
 # Guide
@@ -10,6 +10,22 @@ with this library once catalogs exist. If you have not yet seen the full loop
 it once in five minutes; creating and validating catalogs is covered in
 [Extraction](extraction.md), and how a team keeps the loop turning — update
 cycles, CI, translation platforms — is [In production](workflow.md).
+
+## Which entry point should I use?
+
+The package exports several ways to translate a message because applications
+bind a language in several different ways. Pick by how your program decides
+what language it is in:
+
+| Your situation | Use |
+| --- | --- |
+| One language for the whole process — a CLI, a desktop app, a script | `Translator`, called as `_` |
+| One language per request or per async task — a web application | `use_translations()` around the work, then `tr()` |
+| A message defined at import time — a form label, an enum, a constant | `lazy_gettext()` or `lazy_pgettext()` |
+| A count decides the wording | `ngettext()` / `npgettext()`, in whichever form above |
+| Rendering a pattern with no catalog involved | `compile_template()` |
+
+Everything below is those five, in that order.
 
 ## Binding a catalog
 
@@ -59,6 +75,7 @@ from gettext_tstrings import tr, use_translations
 
 
 def handle(request):
+    name = request.user.display_name
     translations = load_translations(request.locale)
     with use_translations(translations):
         return render(tr(t"Hello {name}"))
@@ -159,12 +176,51 @@ share the parsed catalog.
 
     `asyncio.to_thread` already does this for you.
 
+## Locale-aware values
+
+This library decides *where* a value appears in a translated message. It does
+not localize the value itself. `{amount:,.2f}` is a Python format spec with
+fixed behavior — a comma every three digits and a dot before the decimals — and
+it produces the same characters whatever language the message is in:
+
+```pycon
+>>> f"{1234.5:,.2f}"  # the same in every locale
+'1,234.50'
+```
+
+German writes that number `1.234,50`, French `1 234,50`, and Hindi groups
+`1234567` as `12,34,567` rather than `1,234,567`. Numbers, currencies, dates,
+times, and units belong to [Babel][babel-numbers]. Format the value first, then
+place the finished string:
+
+```python
+from babel.numbers import format_currency
+
+total = format_currency(amount, "EUR", locale=locale)
+tr(t"Your order comes to {total}")
+```
+
+For a counted message the number does two jobs — it selects the plural form and
+it appears in the text — and only the second one is localized. Keep the raw
+count for the selection and pass the formatted string for display:
+
+```python
+from babel.numbers import format_decimal
+
+shown = format_decimal(n, locale=locale)
+_.ngettext(t"One file", t"{shown} files", n)
+```
+
+Formatting before the call is also what keeps a format spec out of the catalog:
+what a translator sees is a finished piece of text, not a number plus
+instructions for rendering it.
+
 ## What happens when a catalog is wrong
 
 If a translation's placeholders do not match the source — a missing, unknown, or
 reformatted field that slipped past validation, from a hand-edited MO, a vendor
-catalog, or a pipeline that skips the checker — the default is to reproduce the
-source text rather than raise. This mirrors gettext's own contract that a bad
+catalog, or a pipeline that skips the checker — the default is to render the
+source message rather than raise. This mirrors gettext's own contract that a bad
 catalog never breaks the application.
 
 With `Hello {name}` translated as `こんにちは {nombre}`, the render succeeds and
@@ -202,43 +258,14 @@ gettext_tstrings.errors.InvalidTranslationError: translation does not match the
 source placeholders: {name} is missing; {nombre} is not in the source message
 ```
 
-## Reading a failure message
-
 These messages are written for whoever can act on them, which for a catalog
-problem is a translator more often than a programmer. Reporting only that
-`{name}` is missing is a dead end when the reader can see those characters in
-front of them, so where a placeholder looks present but is not, the message says
-why. Against the source `Hello {name}`, each of these is reported under
-`translation does not match the source placeholders:`
-
-| The translation says | The reason it gives |
-| --- | --- |
-| `こんにちは ｛name｝` | `{name}` is missing (the braces around it are not the ASCII `{` and `}`) |
-| `こんにちは {{name}}` | `{name}` is missing (it is written `{{name}}`, which is how a literal brace is escaped) |
-| `こんにちは name` | `{name}` is missing (the name appears, but not inside braces) |
-| `こんにちは {名前}` | `{name}` is missing; `{名前}` is not in the source message |
-
-Characters that cannot be seen get their own treatment. A no-break space inside
-the braces is something an input method produces and no editor shows, so the
-message prints it by code point rather than naming a character the reader cannot
-find:
-
-```text
-placeholder {<U+00A0>name} has a space inside the braces; write {name}
-```
-
-A name whose letters mix writing systems — the homoglyph case, where a Cyrillic
-`а` is indistinguishable from a Latin one — is shown twice, once readably and
-once escaped, which is the only form that tells the two apart:
-
-```text
-translation does not match the source placeholders: {name} is missing;
-{nаme} (n\u0430me) is not in the source message
-```
-
-The same disambiguation applies when a Greek or Cyrillic name written entirely
-in one script conflicts with an ASCII source name, including the one-letter
-Latin `a` / Cyrillic `а` case.
+problem is a translator more often than a programmer — so where a placeholder
+looks present but is not, the message explains why rather than repeating that
+it is missing. Full-width braces, a doubled `{{name}}`, an invisible no-break
+space, a Cyrillic letter among Latin ones: each has its own wording, listed
+with examples on
+[For translators](translators.md#reading-a-failure-message). That page is
+written to be handed to the person editing the `.po`.
 
 ## Rendering a pattern without a catalog
 
@@ -291,3 +318,5 @@ specs. Two things stay the caller's responsibility, exactly as with stdlib
 gettext — **escaping** rendered output for its sink (HTML, shell, terminal), and
 **catalog integrity**, since a hostile catalog can repeat a placeholder to
 amplify output size, which is inherent to any placeholder-based i18n.
+
+  [babel-numbers]: https://babel.pocoo.org/en/latest/api/numbers.html

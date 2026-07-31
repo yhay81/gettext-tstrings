@@ -68,6 +68,10 @@ Interpolations are described structurally, never as Python source:
 }
 ```
 
+The `"spec"` field is **not** a specification version — every case in
+`v1.json` belongs to spec v1. It names the section of `SPEC.md` the case
+exercises, so `"2.2"` reads as §2.2, the rule for deriving a placeholder token.
+
 The reference implementation runs the suite as part of its own test suite, so the
 prose and the code cannot drift apart in silence.
 

@@ -10,8 +10,8 @@ output it actually produces — so at each step you know whether you are on
 track.
 
 You need Python 3.14 or newer, because t-strings are new syntax in 3.14.
-Japanese is this page's example target, but nothing depends on that choice —
-substitute any language in step 4, where the locale code `ja` is the only
+Japanese is this page's example target, but nothing depends on that choice. To
+use another language, replace `ja` in step 4 — that locale code is the only
 thing that names it.
 
 ## 1. Install
@@ -53,9 +53,9 @@ your source language is) is the built-in fallback.
 
 ## 3. Extract the messages
 
-Translators do not read your source code; a small file called a **catalog**
-travels between you and them. The first step toward one is collecting every
-marked message out of the code.
+Translators usually work from catalogs rather than from source code, so a small
+file called a **catalog** travels between you and them. The first step toward
+one is collecting every marked message out of the code.
 
 Tell Babel how to find your messages by creating `babel.cfg`:
 
@@ -126,7 +126,16 @@ source placeholders: {name} is missing; {nome} is not in the source message
 1 errors encountered.
 ```
 
+One caveat worth knowing now: it reports the error and exits non-zero, but
+writes the `.mo` anyway. On a real project it is CI that has to stop on that
+exit status — [In production](workflow.md#what-ci-gates) sets that up.
+
 ## 5. Run it
+
+Steps 2–4 used `tr()`, which looks for a catalog and finds none. Now that one
+exists, load it and bind it once: `Translator` holds a catalog so the call
+sites do not have to name it, and `_` is the conventional gettext name for the
+result.
 
 Point `app.py` at the compiled catalog. Click the markers to see what each
 line is doing:
@@ -144,8 +153,8 @@ print(_(t"Hello {name}"))  # (2)!
 
 1. The standard library loads the compiled `.mo`, and `Translator` binds it
    to a callable. `_` is the conventional gettext name for "translate this" —
-   short because it appears on every user-facing string. It is the same
-   function as `tr`, bound to one catalog.
+   short because it appears on every user-facing string. It performs the same
+   translation as `tr`, bound to one catalog.
 2. At the call: the t-string's text becomes the lookup key `Hello {name}`,
    the catalog answers `こんにちは {name}`, the answer is checked against the
    source placeholders, and only then is the value put in.
@@ -178,5 +187,9 @@ is a refinement of one of those five steps.
   week: updating catalogs, CI gates, and translation platforms.
 - [Extraction](extraction.md) — the full `pybabel` reference: custom function
   names, strict CI mode, and the checks that guard your catalogs.
+- [Migration](migration.md) — if the project you actually want to do this in
+  already has gettext catalogs.
+- [For translators](translators.md) — the one page to hand to whoever fills in
+  those `msgstr` lines.
 
   [Babel]: https://babel.pocoo.org/
