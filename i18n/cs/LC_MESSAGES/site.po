@@ -1,0 +1,86 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: gettext-tstrings documentation\n"
+"PO-Revision-Date: 2026-07-31 00:00+0900\n"
+"Last-Translator: gettext-tstrings contributors\n"
+"Language-Team: Czech\n"
+"Language: cs\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
+
+#. gettext-tstrings
+msgid "Safe gettext and Babel integration for Python t-strings."
+msgstr "Bezpečná integrace gettextu a Babelu pro t-stringy v Pythonu."
+
+#. gettext-tstrings
+msgid "Home"
+msgstr "Domů"
+
+#. gettext-tstrings
+msgid "Tutorial"
+msgstr "Tutoriál"
+
+#. gettext-tstrings
+msgid "Why t-strings"
+msgstr "Proč t-stringy"
+
+#. gettext-tstrings
+msgid "Background"
+msgstr "Pozadí"
+
+#. gettext-tstrings
+msgctxt "navigation"
+msgid "Guide"
+msgstr "Průvodce"
+
+#. gettext-tstrings
+msgid "Extraction"
+msgstr "Extrakce"
+
+#. gettext-tstrings
+msgid "In production"
+msgstr "V produkci"
+
+#. gettext-tstrings
+msgid "How it works"
+msgstr "Jak to funguje"
+
+#. gettext-tstrings
+msgid "Specification"
+msgstr "Specifikace"
+
+#. gettext-tstrings
+msgid "API"
+msgstr "API"
+
+#. gettext-tstrings
+msgid "Switch to dark mode"
+msgstr "Přepnout na tmavý režim"
+
+#. gettext-tstrings
+msgid "Switch to light mode"
+msgstr "Přepnout na světlý režim"
+
+#. gettext-tstrings
+#, python-brace-format
+msgid "Copyright © 2026 {author} · MIT License"
+msgstr "Copyright © 2026 {author} · Licence MIT"
+
+#. gettext-tstrings
+#, python-brace-format
+msgid "Built {n} localized page"
+msgid_plural "Built {n} localized pages"
+msgstr[0] "Sestavena {n} lokalizovaná stránka"
+msgstr[1] "Sestaveny {n} lokalizované stránky"
+msgstr[2] "Sestaveno {n} lokalizovaných stránek"
+
+#. gettext-tstrings
+#, python-brace-format
+msgctxt "build report"
+msgid "Rendered {n} page in {seconds}s"
+msgid_plural "Rendered {n} pages in {seconds}s"
+msgstr[0] "Vykreslena {n} stránka za {seconds} s"
+msgstr[1] "Vykresleny {n} stránky za {seconds} s"
+msgstr[2] "Vykresleno {n} stránek za {seconds} s"

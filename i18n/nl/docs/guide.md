@@ -1,0 +1,244 @@
+---
+description: "De runtime-API: een catalogus binden, talen per request, uitgestelde strings, en hoe een kapotte vertaling wordt gerapporteerd."
+---
+
+# Handleiding
+
+Deze pagina is de runtime-referentie: alles wat je *applicatiecode* met deze
+bibliotheek doet zodra er catalogi bestaan. Heb je de volledige lus —
+markeren, extraheren, vertalen, compileren, uitvoeren — nog niet gezien, dan
+doorloopt de [tutorial](tutorial.md) hem eenmaal in vijf minuten; het
+aanmaken en valideren van catalogi wordt behandeld in
+[Extractie](extraction.md), en hoe een team de lus draaiende houdt —
+updatecycli, CI, vertaalplatforms — staat op [In productie](workflow.md).
+
+## Een catalogus binden { #binding-a-catalog }
+
+De aanbevolen vorm spiegelt gettexts klasse-gebaseerde gebruik: bind één keer
+een standaard vertaalobject en gebruik de aanroepbare processor als `_`.
+
+```python
+import gettext
+
+from gettext_tstrings import Translator
+
+translations = gettext.translation("messages", localedir="locales", languages=["ja"])
+_ = Translator(translations)
+
+name = "Ada"
+print(_(t"Hello {name}"))  # こんにちは Ada
+
+n = 3
+print(_.ngettext(t"One file", t"{n} files", n))  # picks the right plural form for n
+
+filename = "report.txt"
+print(_.pgettext("button", t"Open {filename}"))  # "button" disambiguates homonyms
+```
+
+De functies op moduleniveau volgen de namen van de standaardbibliotheek en
+haar positional-only-aanroepconventie:
+
+```python
+from gettext_tstrings import gettext, ngettext, npgettext, pgettext
+
+gettext(t"Hello {name}", translations=translations)
+ngettext(t"One file", t"{n} files", n, translations=translations)
+pgettext("button", t"Open {filename}", translations=translations)
+npgettext("inbox", t"One message", t"{n} messages", n, translations=translations)
+```
+
+`tr` en `ntr` zijn exacte aliassen van `gettext` en `ngettext`.
+
+## Taal per request { #per-request-language }
+
+Een webframework kiest een taal per request. Bind de vertalingen van het
+request aan de huidige context en elke aanroep op moduleniveau lost op naar
+die taal, veilig over gelijktijdige requests heen:
+
+```python
+from gettext_tstrings import tr, use_translations
+
+
+def handle(request):
+    translations = load_translations(request.locale)
+    with use_translations(translations):
+        return render(tr(t"Hello {name}"))
+```
+
+`set_translations(translations)` bindt zonder `with`-blok, voor frameworks
+die de request-levenscyclus zelf beheren; `get_translations()` leest de
+huidige binding. Een expliciet `translations=`-argument wint altijd van de
+context, en een ongebonden context valt terug op de globaal geïnstalleerde
+gettext-functies van de standaardbibliotheek. Uitgewerkte voorbeelden voor
+Flask en ASGI-middleware staan op de pagina
+[In productie](workflow.md#binding-a-language-at-runtime).
+
+## Uitgestelde vertaling { #deferred-translation }
+
+Een t-string legt zijn waarden gretig vast, wat verkeerd is voor een string
+die bij importtijd gedefinieerd wordt — een formulierlabel, een enum-waarde,
+een moduleconstante — en die moet renderen in welke taal er ook actief is
+wanneer hij *gebruikt* wordt.
+
+```python
+from gettext_tstrings import lazy_gettext, lazy_pgettext, use_translations
+
+SAVE = lazy_gettext(t"Save changes")  # defined once, at import
+OPEN = lazy_pgettext("button", t"Open file")
+
+with use_translations(japanese):
+    assert str(SAVE) == "変更を保存"  # rendered here, in this language
+```
+
+Een `LazyString` rendert via `str()`, `format()` en f-strings, en is gelijk
+aan zijn gerenderde tekst.
+
+!!! note "Bewust unhashable"
+
+    De tekst van een `LazyString` hangt af van de actieve taal, dus een hash
+    zou veranderen bij een taalwissel en elke set of dict die hem bevat
+    stilletjes corrumperen. Roep eerst `str()` aan als je een sleutel nodig
+    hebt.
+
+Meervoudsvormen hangen af van een runtime-telling, dus render die gretig met
+`ngettext` waar de telling bekend is.
+
+## Wat er gebeurt als een catalogus fout is { #what-happens-when-a-catalog-is-wrong }
+
+Als de placeholders van een vertaling niet overeenkomen met de bron — een
+ontbrekend, onbekend of hervormd veld dat langs de validatie glipte, uit een
+handbewerkte MO, een leverancierscatalogus of een pipeline die de checker
+overslaat — is de standaard om de brontekst te reproduceren in plaats van te
+raisen. Dit spiegelt gettexts eigen contract dat een slechte catalogus nooit
+de applicatie breekt.
+
+Met `Hello {name}` vertaald als `こんにちは {nombre}` slaagt de render en
+gaat er één waarschuwing naar de `gettext_tstrings`-logger:
+
+```text
+WARNING gettext_tstrings: invalid translation for msgid 'Hello {name}'; using
+source text: translation does not match the source placeholders: {name} is
+missing; {nombre} is not in the source message
+```
+
+```pycon
+>>> _(t"Hello {name}")
+'Hello Ada'
+```
+
+De waarschuwing vuurt één keer per bericht en patroon, niet één keer per
+render, dus een kapotte catalogusentry overspoelt geen log.
+
+Kies bewust voor luid falen in tests en CI:
+
+```python
+strict = Translator(translations, strict=True)
+tr(t"Hello {name}", translations=translations, strict=True)
+```
+
+Dezelfde opzoeking raist dan, met dezelfde zin maar zonder de helft "using
+source text":
+
+```pycon
+>>> strict(t"Hello {name}")
+Traceback (most recent call last):
+  ...
+gettext_tstrings.errors.InvalidTranslationError: translation does not match the
+source placeholders: {name} is missing; {nombre} is not in the source message
+```
+
+## Een foutmelding lezen { #reading-a-failure-message }
+
+Deze meldingen zijn geschreven voor wie erop kan handelen, en dat is bij een
+catalogusprobleem vaker een vertaler dan een programmeur. Alleen melden dat
+`{name}` ontbreekt is een doodlopende weg wanneer de lezer die tekens vóór
+zich kan zien, dus waar een placeholder aanwezig lijkt maar het niet is, zegt
+de melding waarom. Tegen de bron `Hello {name}` wordt elk van deze
+gerapporteerd onder
+`translation does not match the source placeholders:`
+
+| De vertaling zegt | De reden die ze geeft |
+| --- | --- |
+| `こんにちは ｛name｝` | `{name}` is missing (the braces around it are not the ASCII `{` and `}`) |
+| `こんにちは {{name}}` | `{name}` is missing (it is written `{{name}}`, which is how a literal brace is escaped) |
+| `こんにちは name` | `{name}` is missing (the name appears, but not inside braces) |
+| `こんにちは {名前}` | `{name}` is missing; `{名前}` is not in the source message |
+
+Tekens die niet te zien zijn krijgen hun eigen behandeling. Een harde spatie
+binnen de accolades is iets wat een invoermethode produceert en geen editor
+toont, dus de melding drukt haar af als codepunt in plaats van een teken te
+noemen dat de lezer niet kan vinden:
+
+```text
+placeholder {<U+00A0>name} has a space inside the braces; write {name}
+```
+
+Een naam waarvan de letters schriftsystemen mengen — het homoglief-geval,
+waar een Cyrillische `а` niet te onderscheiden is van een Latijnse — wordt
+twee keer getoond, één keer leesbaar en één keer geëscaped, wat de enige vorm
+is die de twee uit elkaar houdt:
+
+```text
+translation does not match the source placeholders: {name} is missing;
+{nаme} (n\u0430me) is not in the source message
+```
+
+Dezelfde disambiguatie geldt wanneer een Griekse of Cyrillische naam die
+volledig in één schrift geschreven is, botst met een ASCII-bronnaam,
+inclusief het geval van één letter — Latijnse `a` / Cyrillische `а`.
+
+## Een patroon renderen zonder catalogus { #rendering-a-pattern-without-a-catalog }
+
+`compile_template` legt dezelfde machinerie één niveau lager bloot: het zet
+een t-string om in zijn msgid plus een gebonden set waarden, en rendert elk
+patroon dat je het aanreikt.
+
+```python
+from gettext_tstrings import compile_template
+
+name = "Ada"
+compiled = compile_template(t"Hello {name}")
+
+compiled.msgid  # "Hello {name}"
+compiled.placeholders  # ("name",)
+compiled.render("こんにちは {name}")  # "こんにちは Ada"
+```
+
+`render` valideert volgens dezelfde regels en **raist altijd** bij een
+mismatch. Er is hier geen milde modus: mildheid bestaat zodat een
+*catalogus*-opzoeking kan degraderen naar de brontekst, en een patroon dat je
+zelf hebt doorgegeven heeft niets om vanaf te degraderen.
+
+## Veiligheid en reikwijdte { #safety-and-scope }
+
+Dit is geldig:
+
+```python
+tr(t"Hello {name}")
+```
+
+Deze worden met opzet afgewezen:
+
+```python
+tr(t"Hello {user.name}")  # attribute access
+tr(t"Hello {display_name()}")  # a call
+```
+
+Bereken eerst een betekenisvolle waarde:
+
+```python
+name = user.display_name()
+tr(t"Hello {name}")
+```
+
+De beperking levert stabiele catalogussleutels op, geeft vertalers bruikbare
+namen, en voorkomt dat een vertaalde string een expressietaal wordt.
+
+De garantie is beperkt tot *structuur en opmaak*: een vertaling wordt nooit
+geëvalueerd, en kan nooit attribuuttoegang, aanroepen, conversies of
+format-specs toevoegen. Twee dingen blijven de verantwoordelijkheid van de
+aanroeper, precies zoals bij stdlib-gettext — het **escapen** van gerenderde
+uitvoer voor zijn bestemming (HTML, shell, terminal), en
+**catalogusintegriteit**, aangezien een vijandige catalogus een placeholder
+kan herhalen om de uitvoergrootte op te blazen, wat inherent is aan elke
+placeholder-gebaseerde i18n.

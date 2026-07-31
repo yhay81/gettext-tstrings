@@ -1,0 +1,88 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: gettext-tstrings documentation\n"
+"PO-Revision-Date: 2026-07-31 00:00+0900\n"
+"Last-Translator: gettext-tstrings contributors\n"
+"Language-Team: Hebrew\n"
+"Language: he\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=4; plural=(n==1 ? 0 : n==2 ? 1 : n>10 && n%10==0 ? 2 : 3);\n"
+
+#. gettext-tstrings
+msgid "Safe gettext and Babel integration for Python t-strings."
+msgstr "אינטגרציה בטוחה של gettext ו-Babel עבור מחרוזות-t של Python."
+
+#. gettext-tstrings
+msgid "Home"
+msgstr "דף הבית"
+
+#. gettext-tstrings
+msgid "Tutorial"
+msgstr "מדריך המבוא"
+
+#. gettext-tstrings
+msgid "Why t-strings"
+msgstr "למה מחרוזות-t"
+
+#. gettext-tstrings
+msgid "Background"
+msgstr "רקע"
+
+#. gettext-tstrings
+msgctxt "navigation"
+msgid "Guide"
+msgstr "מדריך"
+
+#. gettext-tstrings
+msgid "Extraction"
+msgstr "חילוץ"
+
+#. gettext-tstrings
+msgid "In production"
+msgstr "בסביבת ייצור"
+
+#. gettext-tstrings
+msgid "How it works"
+msgstr "איך זה עובד"
+
+#. gettext-tstrings
+msgid "Specification"
+msgstr "מפרט"
+
+#. gettext-tstrings
+msgid "API"
+msgstr "API"
+
+#. gettext-tstrings
+msgid "Switch to dark mode"
+msgstr "מעבר למצב כהה"
+
+#. gettext-tstrings
+msgid "Switch to light mode"
+msgstr "מעבר למצב בהיר"
+
+#. gettext-tstrings
+#, python-brace-format
+msgid "Copyright © 2026 {author} · MIT License"
+msgstr "זכויות יוצרים © 2026 {author} · רישיון MIT"
+
+#. gettext-tstrings
+#, python-brace-format
+msgid "Built {n} localized page"
+msgid_plural "Built {n} localized pages"
+msgstr[0] "נבנה עמוד מתורגם אחד ({n})"
+msgstr[1] "נבנו שני עמודים מתורגמים ({n})"
+msgstr[2] "נבנו {n} עמוד מתורגם"
+msgstr[3] "נבנו {n} עמודים מתורגמים"
+
+#. gettext-tstrings
+#, python-brace-format
+msgctxt "build report"
+msgid "Rendered {n} page in {seconds}s"
+msgid_plural "Rendered {n} pages in {seconds}s"
+msgstr[0] "רונדר עמוד אחד ({n}) ב-{seconds} שנ׳"
+msgstr[1] "רונדרו שני עמודים ({n}) ב-{seconds} שנ׳"
+msgstr[2] "רונדרו {n} עמוד ב-{seconds} שנ׳"
+msgstr[3] "רונדרו {n} עמודים ב-{seconds} שנ׳"

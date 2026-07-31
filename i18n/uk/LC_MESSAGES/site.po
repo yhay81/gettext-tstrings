@@ -1,0 +1,86 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: gettext-tstrings documentation\n"
+"PO-Revision-Date: 2026-07-31 00:00+0900\n"
+"Last-Translator: gettext-tstrings contributors\n"
+"Language-Team: Ukrainian\n"
+"Language: uk\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+
+#. gettext-tstrings
+msgid "Safe gettext and Babel integration for Python t-strings."
+msgstr "Безпечна інтеграція gettext і Babel для t-рядків Python."
+
+#. gettext-tstrings
+msgid "Home"
+msgstr "Головна"
+
+#. gettext-tstrings
+msgid "Tutorial"
+msgstr "Підручник"
+
+#. gettext-tstrings
+msgid "Why t-strings"
+msgstr "Навіщо t-рядки"
+
+#. gettext-tstrings
+msgid "Background"
+msgstr "Передісторія"
+
+#. gettext-tstrings
+msgctxt "navigation"
+msgid "Guide"
+msgstr "Посібник"
+
+#. gettext-tstrings
+msgid "Extraction"
+msgstr "Видобування"
+
+#. gettext-tstrings
+msgid "In production"
+msgstr "У продакшені"
+
+#. gettext-tstrings
+msgid "How it works"
+msgstr "Як це працює"
+
+#. gettext-tstrings
+msgid "Specification"
+msgstr "Специфікація"
+
+#. gettext-tstrings
+msgid "API"
+msgstr "API"
+
+#. gettext-tstrings
+msgid "Switch to dark mode"
+msgstr "Перемкнути на темну тему"
+
+#. gettext-tstrings
+msgid "Switch to light mode"
+msgstr "Перемкнути на світлу тему"
+
+#. gettext-tstrings
+#, python-brace-format
+msgid "Copyright © 2026 {author} · MIT License"
+msgstr "Copyright © 2026 {author} · Ліцензія MIT"
+
+#. gettext-tstrings
+#, python-brace-format
+msgid "Built {n} localized page"
+msgid_plural "Built {n} localized pages"
+msgstr[0] "Зібрано {n} локалізовану сторінку"
+msgstr[1] "Зібрано {n} локалізовані сторінки"
+msgstr[2] "Зібрано {n} локалізованих сторінок"
+
+#. gettext-tstrings
+#, python-brace-format
+msgctxt "build report"
+msgid "Rendered {n} page in {seconds}s"
+msgid_plural "Rendered {n} pages in {seconds}s"
+msgstr[0] "Відрендерено {n} сторінку за {seconds}с"
+msgstr[1] "Відрендерено {n} сторінки за {seconds}с"
+msgstr[2] "Відрендерено {n} сторінок за {seconds}с"

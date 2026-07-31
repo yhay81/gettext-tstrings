@@ -1,0 +1,82 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: gettext-tstrings documentation\n"
+"PO-Revision-Date: 2026-07-31 00:00+0900\n"
+"Last-Translator: gettext-tstrings contributors\n"
+"Language-Team: Chinese (Traditional)\n"
+"Language: zh_Hant\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#. gettext-tstrings
+msgid "Safe gettext and Babel integration for Python t-strings."
+msgstr "為 Python t-string 提供安全的 gettext 與 Babel 整合。"
+
+#. gettext-tstrings
+msgid "Home"
+msgstr "首頁"
+
+#. gettext-tstrings
+msgid "Tutorial"
+msgstr "教學"
+
+#. gettext-tstrings
+msgid "Why t-strings"
+msgstr "為什麼選擇 t-string"
+
+#. gettext-tstrings
+msgid "Background"
+msgstr "專案背景"
+
+#. gettext-tstrings
+msgctxt "navigation"
+msgid "Guide"
+msgstr "指南"
+
+#. gettext-tstrings
+msgid "Extraction"
+msgstr "擷取"
+
+#. gettext-tstrings
+msgid "In production"
+msgstr "正式環境實務"
+
+#. gettext-tstrings
+msgid "How it works"
+msgstr "運作原理"
+
+#. gettext-tstrings
+msgid "Specification"
+msgstr "規範"
+
+#. gettext-tstrings
+msgid "API"
+msgstr "API"
+
+#. gettext-tstrings
+msgid "Switch to dark mode"
+msgstr "切換至深色模式"
+
+#. gettext-tstrings
+msgid "Switch to light mode"
+msgstr "切換至淺色模式"
+
+#. gettext-tstrings
+#, python-brace-format
+msgid "Copyright © 2026 {author} · MIT License"
+msgstr "版權所有 © 2026 {author} · MIT 授權"
+
+#. gettext-tstrings
+#, python-brace-format
+msgid "Built {n} localized page"
+msgid_plural "Built {n} localized pages"
+msgstr[0] "已建置 {n} 個在地化頁面"
+
+#. gettext-tstrings
+#, python-brace-format
+msgctxt "build report"
+msgid "Rendered {n} page in {seconds}s"
+msgid_plural "Rendered {n} pages in {seconds}s"
+msgstr[0] "已在 {seconds} 秒內渲染 {n} 個頁面"

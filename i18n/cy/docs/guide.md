@@ -1,0 +1,240 @@
+---
+description: "Yr API rhedeg: rhwymo catalog, ieithoedd fesul cais, llinynnau gohiriedig, a sut yr adroddir cyfieithiad toredig."
+---
+
+# Canllaw
+
+Y dudalen hon yw'r cyfeirlyfr rhedeg: popeth y mae *cod eich rhaglen* yn ei
+wneud gyda'r llyfrgell hon unwaith y bydd catalogau'n bodoli. Os nad ydych eto
+wedi gweld y ddolen gyfan — nodi, echdynnu, cyfieithu, crynhoi, rhedeg — mae'r
+[tiwtorial](tutorial.md) yn ei cherdded unwaith mewn pum munud; ymdrinnir â
+chreu a dilysu catalogau yn [Echdynnu](extraction.md), a sut y mae tîm yn cadw'r
+ddolen i droi — cylchoedd diweddaru, CI, llwyfannau cyfieithu — yw
+[Mewn cynhyrchu](workflow.md).
+
+## Rhwymo catalog { #binding-a-catalog }
+
+Mae'r siâp a argymhellir yn adlewyrchu defnydd dosbarth-seiliedig gettext:
+rhwymwch wrthrych cyfieithu safonol unwaith a defnyddiwch y prosesydd galwadwy
+fel `_`.
+
+```python
+import gettext
+
+from gettext_tstrings import Translator
+
+translations = gettext.translation("messages", localedir="locales", languages=["ja"])
+_ = Translator(translations)
+
+name = "Ada"
+print(_(t"Hello {name}"))  # こんにちは Ada
+
+n = 3
+print(_.ngettext(t"One file", t"{n} files", n))  # picks the right plural form for n
+
+filename = "report.txt"
+print(_.pgettext("button", t"Open {filename}"))  # "button" disambiguates homonyms
+```
+
+Mae'r ffwythiannau ar lefel modiwl yn dilyn enwau'r llyfrgell safonol a'i
+chonfensiwn galw safleol-yn-unig:
+
+```python
+from gettext_tstrings import gettext, ngettext, npgettext, pgettext
+
+gettext(t"Hello {name}", translations=translations)
+ngettext(t"One file", t"{n} files", n, translations=translations)
+pgettext("button", t"Open {filename}", translations=translations)
+npgettext("inbox", t"One message", t"{n} messages", n, translations=translations)
+```
+
+Mae `tr` ac `ntr` yn enwau eraill union ar `gettext` ac `ngettext`.
+
+## Iaith fesul cais { #per-request-language }
+
+Mae fframwaith gwe'n dewis iaith fesul cais. Rhwymwch gyfieithiadau'r cais i'r
+cyd-destun presennol a bydd pob galwad ar lefel modiwl yn datrys i'r iaith
+honno, yn ddiogel ar draws ceisiadau cydredol:
+
+```python
+from gettext_tstrings import tr, use_translations
+
+
+def handle(request):
+    translations = load_translations(request.locale)
+    with use_translations(translations):
+        return render(tr(t"Hello {name}"))
+```
+
+Mae `set_translations(translations)` yn rhwymo heb floc `with`, ar gyfer
+fframweithiau sy'n rheoli cylch bywyd y cais eu hunain; mae `get_translations()`
+yn darllen y rhwymiad presennol. Mae ymresymiad `translations=` penodol bob
+amser yn trechu'r cyd-destun, ac mae cyd-destun heb ei rwymo'n cwympo'n ôl i
+ffwythiannau gettext y llyfrgell safonol a osodwyd yn global. Mae enghreifftiau
+wedi'u gweithio ar gyfer Flask a chanolwedd ASGI ar y dudalen
+[Mewn cynhyrchu](workflow.md#binding-a-language-at-runtime).
+
+## Cyfieithu gohiriedig { #deferred-translation }
+
+Mae llinyn-t yn dal ei werthoedd yn awchus, sy'n anghywir ar gyfer llinyn a
+ddiffinnir adeg mewnforio — label ffurflen, gwerth enum, cysonyn modiwl — sydd
+raid iddo rendro yn ba iaith bynnag sy'n weithredol pan gaiff ei *ddefnyddio*.
+
+```python
+from gettext_tstrings import lazy_gettext, lazy_pgettext, use_translations
+
+SAVE = lazy_gettext(t"Save changes")  # defined once, at import
+OPEN = lazy_pgettext("button", t"Open file")
+
+with use_translations(japanese):
+    assert str(SAVE) == "変更を保存"  # rendered here, in this language
+```
+
+Mae `LazyString` yn rendro drwy `str()`, `format()`, a llinynnau-f, ac yn
+cymharu'n gyfartal â'i destun wedi'i rendro.
+
+!!! note "Yn fwriadol anhashadwy"
+
+    Mae testun `LazyString` yn dibynnu ar yr iaith weithredol, felly byddai
+    hash yn newid ar draws newid iaith ac yn llygru'n dawel unrhyw set neu
+    ddict sy'n ei ddal. Galwch `str()` yn gyntaf os oes angen allwedd arnoch.
+
+Mae ffurfiau lluosog yn dibynnu ar gyfrif adeg rhedeg, felly rendrwch y rheini'n
+awchus gydag `ngettext` lle gwyddys y cyfrif.
+
+## Beth sy'n digwydd pan fo catalog yn anghywir { #what-happens-when-a-catalog-is-wrong }
+
+Os nad yw dalwyr lle cyfieithiad yn cyfateb i'r ffynhonnell — maes coll,
+anhysbys, neu wedi'i ailfformatio a lithrodd heibio'r dilysu, o MO a olygwyd â
+llaw, o gatalog gwerthwr, neu o biblinell sy'n hepgor y gwiriwr — y rhagosodiad
+yw atgynhyrchu'r testun ffynhonnell yn hytrach na chodi gwall. Mae hyn yn
+adlewyrchu contract gettext ei hun nad yw catalog gwael byth yn torri'r rhaglen.
+
+Gyda `Hello {name}` wedi'i gyfieithu fel `こんにちは {nombre}`, mae'r rendro'n
+llwyddo ac mae un rhybudd yn mynd i'r cofnodydd `gettext_tstrings`:
+
+```text
+WARNING gettext_tstrings: invalid translation for msgid 'Hello {name}'; using
+source text: translation does not match the source placeholders: {name} is
+missing; {nombre} is not in the source message
+```
+
+```pycon
+>>> _(t"Hello {name}")
+'Hello Ada'
+```
+
+Mae'r rhybudd yn tanio unwaith fesul neges a phatrwm, nid unwaith fesul rendro,
+felly nid yw cofnod catalog toredig yn boddi log.
+
+Dewiswch fethu'n uchel ar gyfer profion a CI:
+
+```python
+strict = Translator(translations, strict=True)
+tr(t"Hello {name}", translations=translations, strict=True)
+```
+
+Mae'r un chwiliad wedyn yn codi gwall, gan gario'r un frawddeg heb yr hanner
+"using source text":
+
+```pycon
+>>> strict(t"Hello {name}")
+Traceback (most recent call last):
+  ...
+gettext_tstrings.errors.InvalidTranslationError: translation does not match the
+source placeholders: {name} is missing; {nombre} is not in the source message
+```
+
+## Darllen neges fethiant { #reading-a-failure-message }
+
+Ysgrifennir y negeseuon hyn ar gyfer pwy bynnag a all weithredu arnynt, sef ar
+gyfer problem gatalog yn amlach cyfieithydd na rhaglennydd. Mae adrodd yn unig
+fod `{name}` ar goll yn ben ffordd pan all y darllenydd weld yr union nodau
+hynny o'i flaen, felly lle mae daliwr lle'n edrych yn bresennol ond nad ydyw,
+mae'r neges yn dweud pam. Yn erbyn y ffynhonnell `Hello {name}`, adroddir pob
+un o'r rhain dan `translation does not match the source placeholders:`
+
+| Yr hyn y mae'r cyfieithiad yn ei ddweud | Y rheswm y mae'n ei roi |
+| --- | --- |
+| `こんにちは ｛name｝` | `{name}` is missing (the braces around it are not the ASCII `{` and `}`) |
+| `こんにちは {{name}}` | `{name}` is missing (it is written `{{name}}`, which is how a literal brace is escaped) |
+| `こんにちは name` | `{name}` is missing (the name appears, but not inside braces) |
+| `こんにちは {名前}` | `{name}` is missing; `{名前}` is not in the source message |
+
+Mae nodau na ellir eu gweld yn cael eu trin ar wahân. Mae bwlch di-dor y tu
+mewn i'r bracedi'n rhywbeth y mae dull mewnbwn yn ei gynhyrchu ac nad oes yr un
+golygydd yn ei ddangos, felly mae'r neges yn ei argraffu wrth ei bwynt cod yn
+hytrach nag enwi nod na all y darllenydd ddod o hyd iddo:
+
+```text
+placeholder {<U+00A0>name} has a space inside the braces; write {name}
+```
+
+Dangosir enw y mae ei lythrennau'n cymysgu systemau ysgrifennu — yr achos
+homoglyff, lle mae `а` Cyrilig yn anwahanadwy oddi wrth un Lladin — ddwywaith,
+unwaith yn ddarllenadwy ac unwaith wedi'i ddianc, sef yr unig ffurf sy'n
+gwahaniaethu rhwng y ddau:
+
+```text
+translation does not match the source placeholders: {name} is missing;
+{nаme} (n\u0430me) is not in the source message
+```
+
+Mae'r un gwahaniaethu'n berthnasol pan fo enw Groeg neu Gyrilig a ysgrifennwyd
+yn gyfan gwbl mewn un sgript yn gwrthdaro ag enw ffynhonnell ASCII, gan gynnwys
+achos yr un llythyren `a` Lladin / `а` Cyrilig.
+
+## Rendro patrwm heb gatalog { #rendering-a-pattern-without-a-catalog }
+
+Mae `compile_template` yn datgelu'r un peirianwaith un lefel yn is: mae'n troi
+llinyn-t yn ei msgid ynghyd â set rwym o werthoedd, ac yn rendro unrhyw batrwm a
+roddwch iddo.
+
+```python
+from gettext_tstrings import compile_template
+
+name = "Ada"
+compiled = compile_template(t"Hello {name}")
+
+compiled.msgid  # "Hello {name}"
+compiled.placeholders  # ("name",)
+compiled.render("こんにちは {name}")  # "こんにちは Ada"
+```
+
+Mae `render` yn dilysu yn ôl yr un rheolau ac yn **codi gwall bob amser** os oes
+anghysondeb. Nid oes modd goddefgar yma: mae goddefgarwch yn bodoli fel y gall
+chwiliad *catalog* ddiraddio i'r testun ffynhonnell, ac nid oes gan batrwm a
+basiwyd i mewn gennych chi eich hun ddim i ddiraddio ohono.
+
+## Diogelwch a chwmpas { #safety-and-scope }
+
+Mae hyn yn ddilys:
+
+```python
+tr(t"Hello {name}")
+```
+
+Caiff y rhain eu gwrthod yn fwriadol:
+
+```python
+tr(t"Hello {user.name}")  # attribute access
+tr(t"Hello {display_name()}")  # a call
+```
+
+Cyfrifwch werth ystyrlon yn gyntaf:
+
+```python
+name = user.display_name()
+tr(t"Hello {name}")
+```
+
+Mae'r cyfyngiad yn cynhyrchu allweddi catalog sefydlog, yn rhoi enwau defnyddiol
+i gyfieithwyr, ac yn atal llinyn wedi'i gyfieithu rhag dod yn iaith ymadroddion.
+
+Mae'r warant wedi'i chwmpasu i *strwythur a fformatio*: ni chaiff cyfieithiad
+byth ei werthuso, ac ni all byth ychwanegu mynediad priodoledd, galwadau,
+trawsnewidiadau, na manylebau fformat. Mae dau beth yn aros yn gyfrifoldeb y
+galwr, yn union fel gyda gettext y llyfrgell safonol — **dianc** allbwn wedi'i
+rendro ar gyfer ei sinc (HTML, cragen, terfynell), a **chywirdeb catalogau**,
+gan y gall catalog gelyniaethus ailadrodd daliwr lle i chwyddo maint yr allbwn,
+sy'n gynhenid i unrhyw i18n sy'n seiliedig ar ddalwyr lle.

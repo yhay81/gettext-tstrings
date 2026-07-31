@@ -1,0 +1,86 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: gettext-tstrings documentation\n"
+"PO-Revision-Date: 2026-07-31 00:00+0900\n"
+"Last-Translator: gettext-tstrings contributors\n"
+"Language-Team: Polish\n"
+"Language: pl\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+
+#. gettext-tstrings
+msgid "Safe gettext and Babel integration for Python t-strings."
+msgstr "Bezpieczna integracja gettext i Babel dla t-stringów Pythona."
+
+#. gettext-tstrings
+msgid "Home"
+msgstr "Strona główna"
+
+#. gettext-tstrings
+msgid "Tutorial"
+msgstr "Samouczek"
+
+#. gettext-tstrings
+msgid "Why t-strings"
+msgstr "Dlaczego t-stringi"
+
+#. gettext-tstrings
+msgid "Background"
+msgstr "Geneza"
+
+#. gettext-tstrings
+msgctxt "navigation"
+msgid "Guide"
+msgstr "Przewodnik"
+
+#. gettext-tstrings
+msgid "Extraction"
+msgstr "Ekstrakcja"
+
+#. gettext-tstrings
+msgid "In production"
+msgstr "W produkcji"
+
+#. gettext-tstrings
+msgid "How it works"
+msgstr "Jak to działa"
+
+#. gettext-tstrings
+msgid "Specification"
+msgstr "Specyfikacja"
+
+#. gettext-tstrings
+msgid "API"
+msgstr "API"
+
+#. gettext-tstrings
+msgid "Switch to dark mode"
+msgstr "Przełącz na tryb ciemny"
+
+#. gettext-tstrings
+msgid "Switch to light mode"
+msgstr "Przełącz na tryb jasny"
+
+#. gettext-tstrings
+#, python-brace-format
+msgid "Copyright © 2026 {author} · MIT License"
+msgstr "Copyright © 2026 {author} · Licencja MIT"
+
+#. gettext-tstrings
+#, python-brace-format
+msgid "Built {n} localized page"
+msgid_plural "Built {n} localized pages"
+msgstr[0] "Zbudowano {n} zlokalizowaną stronę"
+msgstr[1] "Zbudowano {n} zlokalizowane strony"
+msgstr[2] "Zbudowano {n} zlokalizowanych stron"
+
+#. gettext-tstrings
+#, python-brace-format
+msgctxt "build report"
+msgid "Rendered {n} page in {seconds}s"
+msgid_plural "Rendered {n} pages in {seconds}s"
+msgstr[0] "Wyrenderowano {n} stronę w {seconds}s"
+msgstr[1] "Wyrenderowano {n} strony w {seconds}s"
+msgstr[2] "Wyrenderowano {n} stron w {seconds}s"

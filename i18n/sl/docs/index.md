@@ -1,0 +1,166 @@
+---
+description: "Prevajajte celotna sporočila iz t-nizov prek gettexta in Babela, z oblikovanjem, ki ostane zunaj kataloga."
+title: "gettext-tstrings"
+hide:
+  - navigation
+  - toc
+---
+
+<div class="home-hero" markdown>
+
+# Poved napišite enkrat.<br>Prevedite jo v celoti.
+
+Varna integracija z gettextom in Babelom za t-nize v Pythonu 3.14+ — vrednost
+ostane na svojem mestu, katalog pa vidi celotno sporočilo:
+
+```python
+import gettext
+
+from gettext_tstrings import Translator
+
+_ = Translator(gettext.translation("messages", localedir="locales"))
+name = "Ada"
+print(_(t"Hello {name}"))  # with a Japanese catalog: こんにちは Ada
+```
+
+[Začnite vadnico :material-arrow-right:](tutorial.md){ .md-button .md-button--primary }
+[Zakaj t-nizi](comparison.md){ .md-button }
+
+Ta stran uresničuje to, kar dokumentira: vsaka jezikovna različica —
+navigacija, oznake in poročilo o gradnji, ki upošteva množinske oblike — se
+izriše iz katalogov PO s
+[knjižnico `gettext-tstrings` samo](https://github.com/yhay81/gettext-tstrings/blob/main/scripts/build_multilingual_docs.py).
+{ .home-hero-note }
+
+</div>
+
+Katalog prejme celotno poved `Hello {name}`. Prevod sme `{name}` prestaviti ali
+ponoviti; ne sme ga izpustiti, si izmisliti novega ali mu dodati lastnega
+oblikovanja — ta knjižnica to preverja, pokvarjen katalog pa se namesto sesutja
+vrne na izvorno besedilo.
+
+!!! note "Vam je gettext nov? Celoten delovni proces v štirih povedih"
+
+    **gettext** je standardni način prevajanja programske opreme, v Pythonu in
+    daleč zunaj njega. Vaša koda označi prevedljive nize; *ekstraktor* jih zbere
+    v datoteko predloge (`.pot`); prevajalec — običajno ne programer — izpolni
+    po eno katalogno datoteko (`.po`) za vsak jezik, ta pa se prevede v binarno
+    datoteko `.mo`, ki jo vaša aplikacija naloži med izvajanjem. Uveljavljeno
+    ime prevajalske funkcije je `_`, zato se `_(t"Hello {name}")` bere kot
+    »prevedi to poved«. **[Vadnica](tutorial.md)** prehodi celotno pot —
+    označevanje, ekstrakcija, prevajanje, kompilacija, zagon — v približno petih
+    minutah.
+
+## Problem, ki ga rešuje { #the-problem-it-solves }
+
+F-niz je v trenutku, ko ga zagleda katera koli knjižnica, že interpoliran —
+iz `f"Hello {name}"` je nastalo `"Hello Ada"`, prevajanje drobcev okoli
+vrednosti pa poruši slovnico večine jezikov. T-niz ([PEP 750]) hrani statično
+besedilo, ovrednotene vrednosti, izvorne izraze, pretvorbe in formatne
+specifikacije ločeno — in prav to je delitev, ki jo katalog sporočil potrebuje.
+[Kaj to spremeni](comparison.md) v primerjavi z `%(name)s`, `.format()` in
+`$`-nizi.
+
+Toda ne gettext ne Babel ne povesta, kako t-niz postane sporočilo. Ta knjižnica
+to izbiro naredi, jo zapiše kot [verzionirano specifikacijo](spec.md) in
+priloži [zbirko testov skladnosti](spec.md#conformance) za njeno preverjanje.
+
+## Izbira, ki jo naredi { #the-choice-it-makes }
+
+- Prevajati celotna sporočila, nikoli drobcev povedi.
+- Sprejemati le preprosta imena spremenljivk, kot je `{name}`.
+- `!r` in `:.2f` ohraniti pod nadzorom aplikacije, zunaj kataloga.
+- Prevajalcem dovoliti prerazporejanje in ponavljanje znanih ograd — ne pa
+  klicanja atributov in ne dodajanja oblikovnega vedenja.
+- Ponovno uporabiti običajne datoteke POT, PO in MO ter orodja, ki jih znajo
+  brati že danes.
+
+## Namestitev { #install }
+
+```console
+python -m pip install gettext-tstrings
+```
+
+Python 3.14 ali novejši. **Izris nima nobenih odvisnosti** — uporablja
+`gettext` iz standardne knjižnice in nič drugega.
+
+Ekstrakcija in preverjanje katalogov potekata prek orodja [Babel], zato ta
+dodatek namestite povsod, kjer teče `pybabel`, kar je običajno razvojno ali CI
+okolje in ne produkcijska slika:
+
+```console
+python -m pip install "gettext-tstrings[babel]"
+```
+
+## Kam naprej { #where-to-go-next }
+
+Sem prihajajo tri vrste bralcev: nekdo, ki prevaja svoj prvi program, nekdo, ki
+prevajanje vgrajuje v resničen projekt, in nekdo, ki hoče natančno vedeti,
+zakaj je ta mehanizem oblikovan prav tako. Vsak ima svojo pot.
+
+**Za učenje** — brez predpostavljenih izkušenj z gettextom:
+
+<div class="grid cards" markdown>
+
+- **[Vadnica](tutorial.md)** — začnite tukaj: od praznega imenika do delujočega
+  japonskega prevoda v petih korakih, vsak ukaz prikazan skupaj z izpisom.
+- **[Zakaj t-nizi](comparison.md)** — isto sporočilo, zapisano na štiri načine,
+  in kaj katalogu izročijo `%(name)s`, `.format()` in `$`-nizi.
+- **[Ozadje](background.md)** — zakaj ta knjižnica obstaja: trideset let
+  gettexta, dva PEP-a in razprava o standardni knjižnici, ki se je zaključila
+  brez odgovora.
+
+</div>
+
+**Za resno uporabo** — delovne reference:
+
+<div class="grid cards" markdown>
+
+- **[Vodnik](guide.md)** — API med izvajanjem: množinske oblike, jezik na
+  zahtevo, odloženi nizi in kaj se zgodi, kadar je katalog napačen.
+- **[Ekstrakcija](extraction.md)** — referenca za `pybabel`: konfiguracija,
+  lastna imena funkcij in kako obstoječa orodja te kataloge preverijo zastonj.
+- **[V produkciji](workflow.md)** — zanka, kakor jo poganja ekipa: cikel
+  posodobitev, ohlapni (`fuzzy`) vnosi, zaščite v CI, prevajalske platforme in
+  jezik na zahtevo v spletni aplikaciji.
+- **[API](api.md)** — vse, kar paket izvaža, na eni strani.
+
+</div>
+
+**Za razumevanje** — od načel do izvedbe:
+
+<div class="grid cards" markdown>
+
+- **[Kako deluje](internals.md)** — od objekta predloge iz PEP 750 do izrisanega
+  niza in predpomnilnikov, zaradi katerih je preverjanje poceni.
+- **[Specifikacija](spec.md)** — dogovor t-niz ↔ msgid kot stabilna,
+  verzionirana pogodba s strojno berljivo zbirko testov skladnosti.
+
+</div>
+
+## Stanje { #status }
+
+Alfa. Pogodba je namerno majhna in [specifikacija](spec.md) je njen stabilni
+del; Pythonov API se še lahko premakne. Pred stabilno izdajo potrebuje širši
+nabor jezikovnih testnih podatkov, vztrajno spremljanje zmogljivosti, pregled
+API-ja s strani ljudi, ki gettext in Babel uporabljajo zares, ter preverjanje
+združljivosti z vsemi podprtimi izdajami Pythona in Babela.
+
+[Prijave težav in pull requesti](https://github.com/yhay81/gettext-tstrings/issues)
+so dobrodošli — alfa je natanko tisti čas, ko se je o vmesniku še vredno
+prerekati.
+
+## Pridružite se skupnosti { #join-the-community }
+
+- Izberite si
+  [good first issue](https://github.com/yhay81/gettext-tstrings/issues?q=is%3Aissue%20state%3Aopen%20label%3A%22good%20first%20issue%22)
+  za omejen prvi prispevek.
+- Vprašanja o uporabi zastavite v
+  [razpravah Q&A](https://github.com/yhay81/gettext-tstrings/discussions/categories/q-a).
+- Produkcijske delovne procese z gettextom in zamisli za API prinesite v
+  [razprave Ideas](https://github.com/yhay81/gettext-tstrings/discussions/categories/ideas).
+- Preden odprete pull request, preberite
+  [vodnik za prispevanje](https://github.com/yhay81/gettext-tstrings/blob/main/CONTRIBUTING.md).
+
+  [PEP 750]: https://peps.python.org/pep-0750/
+  [Babel]: https://babel.pocoo.org/

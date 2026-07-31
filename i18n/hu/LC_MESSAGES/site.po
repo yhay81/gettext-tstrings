@@ -1,0 +1,82 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: gettext-tstrings documentation\n"
+"PO-Revision-Date: 2026-07-31 00:00+0900\n"
+"Last-Translator: gettext-tstrings contributors\n"
+"Language-Team: Hungarian\n"
+"Language: hu\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#. gettext-tstrings
+msgid "Safe gettext and Babel integration for Python t-strings."
+msgstr "Biztonságos gettext- és Babel-integráció a Python t-stringjeihez."
+
+#. gettext-tstrings
+msgid "Home"
+msgstr "Kezdőlap"
+
+#. gettext-tstrings
+msgid "Tutorial"
+msgstr "Oktatóanyag"
+
+#. gettext-tstrings
+msgid "Why t-strings"
+msgstr "Miért t-string?"
+
+#. gettext-tstrings
+msgid "Background"
+msgstr "Háttér"
+
+#. gettext-tstrings
+msgctxt "navigation"
+msgid "Guide"
+msgstr "Kézikönyv"
+
+#. gettext-tstrings
+msgid "Extraction"
+msgstr "Kinyerés"
+
+#. gettext-tstrings
+msgid "In production"
+msgstr "Éles üzemben"
+
+#. gettext-tstrings
+msgid "How it works"
+msgstr "Hogyan működik"
+
+#. gettext-tstrings
+msgid "Specification"
+msgstr "Specifikáció"
+
+#. gettext-tstrings
+msgid "API"
+msgstr "API"
+
+#. gettext-tstrings
+msgid "Switch to dark mode"
+msgstr "Váltás sötét módra"
+
+#. gettext-tstrings
+msgid "Switch to light mode"
+msgstr "Váltás világos módra"
+
+#. gettext-tstrings
+#, python-brace-format
+msgid "Copyright © 2026 {author} · MIT License"
+msgstr "Copyright © 2026 {author} · MIT licenc"
+
+#. gettext-tstrings
+#, python-brace-format
+msgid "Built {n} localized page"
+msgid_plural "Built {n} localized pages"
+msgstr[0] "Elkészült {n} lokalizált oldal"
+
+#. gettext-tstrings
+#, python-brace-format
+msgctxt "build report"
+msgid "Rendered {n} page in {seconds}s"
+msgid_plural "Rendered {n} pages in {seconds}s"
+msgstr[0] "{n} oldal renderelve {seconds} mp alatt"
