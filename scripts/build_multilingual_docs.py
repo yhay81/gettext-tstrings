@@ -65,24 +65,30 @@ author = "Yusuke Hayashi"
 #
 # A LazyString captures its interpolated values eagerly and defers only the
 # catalog lookup — `author` is read at import, its translation at render.
-SITE_DESCRIPTION = lazy_gettext(t"Safe gettext and Babel integration for Python t-strings.")
-COPYRIGHT = lazy_gettext(t"Copyright © 2026 {author} · MIT License")
-DARK_MODE = lazy_gettext(t"Switch to dark mode")
-LIGHT_MODE = lazy_gettext(t"Switch to light mode")
+# strict=True because a documentation build is CI: a chrome translation that
+# breaks its placeholders should stop the build, not quietly ship in English.
+SITE_DESCRIPTION = lazy_gettext(
+    t"Safe gettext and Babel integration for Python t-strings.",
+    strict=True,
+)
+COPYRIGHT = lazy_gettext(t"Copyright © 2026 {author} · MIT License", strict=True)
+DARK_MODE = lazy_gettext(t"Switch to dark mode", strict=True)
+LIGHT_MODE = lazy_gettext(t"Switch to light mode", strict=True)
 
 # Nav label, page. "Guide" carries a context because the word is a homonym:
 # the sidebar entry and the noun in prose need not translate alike.
 NAV: tuple[tuple[LazyString, str], ...] = (
-    (lazy_gettext(t"Home"), "index.md"),
-    (lazy_gettext(t"Tutorial"), "tutorial.md"),
-    (lazy_gettext(t"Why t-strings"), "comparison.md"),
-    (lazy_gettext(t"Background"), "background.md"),
-    (lazy_pgettext("navigation", t"Guide"), "guide.md"),
-    (lazy_gettext(t"Extraction"), "extraction.md"),
-    (lazy_gettext(t"In production"), "workflow.md"),
-    (lazy_gettext(t"How it works"), "internals.md"),
-    (lazy_gettext(t"Specification"), "spec.md"),
-    (lazy_gettext(t"API"), "api.md"),
+    (lazy_gettext(t"Home", strict=True), "index.md"),
+    (lazy_gettext(t"Tutorial", strict=True), "tutorial.md"),
+    (lazy_gettext(t"Why t-strings", strict=True), "comparison.md"),
+    (lazy_gettext(t"Background", strict=True), "background.md"),
+    (lazy_pgettext("navigation", t"Guide", strict=True), "guide.md"),
+    (lazy_gettext(t"Extraction", strict=True), "extraction.md"),
+    (lazy_gettext(t"In production", strict=True), "workflow.md"),
+    (lazy_gettext(t"Pitfalls", strict=True), "pitfalls.md"),
+    (lazy_gettext(t"How it works", strict=True), "internals.md"),
+    (lazy_gettext(t"Specification", strict=True), "spec.md"),
+    (lazy_gettext(t"API", strict=True), "api.md"),
 )
 
 
@@ -457,10 +463,10 @@ def _quote(value: str | Path) -> str:
 class _FailOnInvalidTranslation(logging.Handler):
     """Turn the library's lenient-mode warnings into a build failure.
 
-    LazyString renders through the lenient path — there is no strict variant of
-    ``lazy_gettext`` — so a chrome message whose translation breaks its
-    placeholders would otherwise fall back to English and ship silently. This is
-    the practice the documentation recommends to every application: route the
+    The chrome strings ask for ``strict=True`` and raise on their own, so what
+    is left for this handler is everything rendered the way an application
+    renders it — the build report, which is deliberately lenient. This is the
+    practice the documentation recommends to every application: route the
     ``gettext_tstrings`` logger somewhere a human looks. Here "somewhere" is a
     non-zero exit.
     """

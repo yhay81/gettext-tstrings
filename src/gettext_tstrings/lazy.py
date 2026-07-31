@@ -47,13 +47,19 @@ class LazyString:
         return NotImplemented
 
 
-def lazy_gettext(template: Template, /) -> LazyString:
-    """Defer translation of one t-string to first use."""
+def lazy_gettext(template: Template, /, *, strict: bool = False) -> LazyString:
+    """Defer translation of one t-string to first use.
+
+    ``strict`` selects the response to a catalog whose placeholders do not match
+    the source, exactly as it does on the eager functions, and is decided here
+    because that is where the message is written — the render happens wherever
+    the string is used, which is rarely a place that knows what it is.
+    """
     # Omitting the translations argument lets gettext() resolve the context at
     # render time, which is what we want and what passing it would restate.
-    return LazyString(lambda: gettext(template))
+    return LazyString(lambda: gettext(template, strict=strict))
 
 
-def lazy_pgettext(context: str, template: Template, /) -> LazyString:
+def lazy_pgettext(context: str, template: Template, /, *, strict: bool = False) -> LazyString:
     """Defer translation of one contextual t-string to first use."""
-    return LazyString(lambda: pgettext(context, template))
+    return LazyString(lambda: pgettext(context, template, strict=strict))
