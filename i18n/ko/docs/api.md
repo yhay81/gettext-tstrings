@@ -8,7 +8,7 @@ description: "gettext_tstrings의 모든 공개 이름: 함수, Translator, 컨�
 공개 API가 아닙니다. 이 페이지는 시그니처 레퍼런스입니다. 각 함수의
 실제 사용 예는 [가이드](guide.md)를 참고하세요.
 
-## 번역
+## 번역 { #translating }
 
 각 함수는 t-string을 위치 인수로 받고 `translations`와 `strict`를
 키워드 인수로 받습니다
@@ -34,7 +34,7 @@ Translator(translations, strict=False)
 호출 가능하며(`_(t"…")`) `gettext`, `ngettext`, `pgettext`, `npgettext`,
 `tr`, `ntr`을 제공합니다.
 
-## 컨텍스트 바인딩
+## 컨텍스트 바인딩 { #context-binding }
 
 | 이름 | 역할 |
 | --- | --- |
@@ -44,7 +44,7 @@ Translator(translations, strict=False)
 
 바인딩은 `ContextVar`를 사용해 동시 실행에 안전합니다.
 
-## 지연 문자열
+## 지연 문자열 { #deferred-strings }
 
 | 이름 | 역할 |
 | --- | --- |
@@ -52,7 +52,7 @@ Translator(translations, strict=False)
 | `lazy_pgettext(context, template, /)` | 컨텍스트가 있는 변형입니다. |
 | `LazyString` | `str()`, `format()`, f-string으로 렌더링하고 텍스트와 비교하며 의도적으로 해시할 수 없습니다. |
 
-## 저수준 API
+## 저수준 API { #lower-level }
 
 ### `compile_template(template, /) -> CompiledTemplate`
 
@@ -66,7 +66,7 @@ Translator(translations, strict=False)
 | `.placeholders` | 처음 등장한 순서의 이름. |
 | `.render(pattern)` | 검증 후 렌더링하며, 불일치하면 **항상 예외를 냅니다**. |
 
-## 타입과 오류
+## 타입과 오류 { #types-and-errors }
 
 ### `Translations`
 
@@ -91,18 +91,19 @@ class Translations(Protocol):
 | `InvalidTemplateError` | 원본 t-string이 규약을 위반합니다. |
 | `InvalidTranslationError` | 번역이 규약을 위반합니다. 완화 모드는 기록 후 원본을 렌더링합니다. |
 
-## 추출 Entry Point
+## 추출 Entry Point { #extraction-entry-points }
 
 | 그룹 | 이름 | 사용처 |
 | --- | --- | --- |
 | `babel.extractors` | `gettext_tstrings` | `babel.cfg`의 `method` |
 | `babel.checkers` | `gettext_tstrings` | `pybabel compile`이 자동 사용 |
 
-## 성능
+## 성능 { #performance }
 
-Apple Silicon에서 필드 하나인 메시지는 t-string 생성까지 약 0.4 µs로,
-`gettext(...).format(...)`의 약 2.5배입니다. 캐시는 크기가 제한되고 보간
-값을 보관하지 않습니다.
+무엇이 캐시되는지, 캐시 키가 무엇인지, 측정된 수치가 얼마인지에 대한
+전체 설명은 [핫 패스](internals.md#the-hot-path)에 있습니다. 요약하면
+검증은 캐시될 뿐 생략되지 않으며, 전체 렌더링 비용은 1마이크로초에
+훨씬 못 미칩니다. 자신의 환경에서 직접 벤치마크를 실행해 보세요.
 
 ```console
 uv run python benchmarks/runtime.py

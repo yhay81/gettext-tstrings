@@ -33,7 +33,7 @@ Le reste de cette page en apporte la preuve, une méthode à la fois.
     contrôle-t-il ?* Dans les exemples, `_` est le nom conventionnel de la
     fonction de traduction, et `tr` celui de cette bibliothèque.
 
-## Format %
+## Format % { #-format }
 
 ```python
 _("Hello %(name)s") % {"name": name}
@@ -56,7 +56,7 @@ Un caractère supprimé dans un éditeur PO devient une traceback en production.
 GNU `msgfmt --check-format` le détecte, mais seulement si le message porte le
 flag `python-format` et si le catalogue passe réellement par msgfmt.
 
-## str.format
+## str.format { #strformat }
 
 ```python
 _("Hello {name}").format(name=name)
@@ -86,7 +86,7 @@ plateforme de traduction, plusieurs mains, retour en `.po`, compilation en
 chaque étape de ce trajet la possibilité d'accéder aux attributs des objets
 fournis.
 
-## Chaînes `$` et flufl.i18n
+## Chaînes `$` et flufl.i18n { #-strings-and-flufli18n }
 
 ```python
 from flufl.i18n import initialize
@@ -125,7 +125,7 @@ attribut, tout en faisant du cadre de l'appelant une partie de l'espace de noms
 de substitution du catalogue. La comparaison ci-dessous décrit
 `flufl.i18n` 6.0.0, pas tous les usages possibles de `string.Template`.
 
-## t-strings
+## t-strings { #t-strings }
 
 ```python
 tr(t"Hello {name}")
@@ -166,7 +166,7 @@ nouvelle, donc les extraire vers un `.pot` demande aujourd'hui un extracteur
 qui les comprend, comme celui que ce paquet
 [fournit pour Babel](extraction.md).
 
-## Comparaison
+## Comparaison { #side-by-side }
 
 | | `%(name)s` | `.format()` | `flufl.i18n` `$name` | `t"…"` |
 | --- | --- | --- | --- | --- |
@@ -194,7 +194,7 @@ marqueurs, pas la compatibilité du catalogue. `aucun` signifie que les outils
 gettext standard peuvent toujours lire et compiler le message, mais que
 `msgfmt --check-format` n'a pas de grammaire de marqueurs `$` à appliquer.
 
-## Le coût
+## Le coût { #what-it-costs }
 
 Une f-string ne peut pas du tout être utilisée ainsi : lorsqu'une bibliothèque
 la reçoit, c'est déjà une chaîne terminée, donc la traduire revient à traduire
@@ -221,6 +221,10 @@ tr(t"Hello {name}")
 C'est une véritable contrainte. Avec la liaison des valeurs côté source et la
 vérification des marqueurs à l'exécution, elle empêche les chaînes du catalogue
 d'évaluer des expressions et conserve des noms de marqueurs explicites.
+
+Comment Python est arrivé à cette croisée des chemins — deux PEP à dix ans
+d'écart, et la discussion sur la bibliothèque standard close sans réponse —
+est raconté, sources à l'appui, sur la page [Contexte](background.md).
 
   [PEP 750]: https://peps.python.org/pep-0750/
   [stdlib-template]: https://docs.python.org/3/library/string.html#template-strings

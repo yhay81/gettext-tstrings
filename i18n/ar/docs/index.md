@@ -1,12 +1,17 @@
 ---
 description: "ترجمة رسائل t-string الكاملة بأمان عبر gettext وBabel مع إبقاء التنسيق خارج الكتالوج."
+title: "gettext-tstrings"
+hide:
+  - navigation
+  - toc
 ---
 
-# gettext-tstrings
+<div class="home-hero" markdown>
 
-تكامل آمن بين t-strings في Python 3.14+ وبين gettext وBabel.
+# اكتب الجملة مرة واحدة.<br>وترجمها كاملة.
 
-اكتب الجملة مرة واحدة، بلغتك المصدرية، والقيمة في موضعها:
+تكامل آمن بين t-strings في Python 3.14+ وبين gettext وBabel — تبقى القيمة
+في موضعها، ويرى الكتالوج الرسالة كاملة:
 
 ```python
 import gettext
@@ -17,6 +22,16 @@ _ = Translator(gettext.translation("messages", localedir="locales"))
 name = "Ada"
 print(_(t"Hello {name}"))  # with a Japanese catalog: こんにちは Ada
 ```
+
+[ابدأ الدرس التعليمي :material-arrow-right:](tutorial.md){ .md-button .md-button--primary }
+[لماذا t-strings؟](comparison.md){ .md-button }
+
+هذا الموقع يطبّق ما يوثّقه: فكل طبعة لغوية — التنقل والتسميات
+وتقرير البناء المعتمد على صيغ الجمع — تُعرض من كتالوجات PO بواسطة
+[`gettext-tstrings` نفسها](https://github.com/yhay81/gettext-tstrings/blob/main/scripts/build_multilingual_docs.py).
+{ .home-hero-note }
+
+</div>
 
 يستقبل الكتالوج الجملة الكاملة `Hello {name}`. يمكن للترجمة تغيير موضع
 `{name}` أو تكراره، لكنها لا تستطيع حذفه أو اختراع عنصر نائب جديد أو إضافة
@@ -33,7 +48,7 @@ print(_(t"Hello {name}"))  # with a Japanese catalog: こんにちは Ada
     على أنها «ترجم هذه الجملة». يمر **[الدرس التعليمي](tutorial.md)**
     بالمسار كاملاً — وسم، استخراج، ترجمة، تجميع، تشغيل — في نحو خمس دقائق.
 
-## المشكلة التي يحلها
+## المشكلة التي يحلها { #the-problem-it-solves }
 
 تكون f-string قد أُجري عليها الاستيفاء قبل أن تراها أي مكتبة — فتكون
 `f"Hello {name}"` قد صارت `"Hello Ada"`، وترجمة الأجزاء المحيطة بالقيمة
@@ -46,7 +61,7 @@ print(_(t"Hello {name}"))  # with a Japanese catalog: こんにちは Ada
 قاعدة واضحة، وتوثقها في [مواصفة ذات إصدارات](spec.md)، وتوفر
 [حزمة اختبارات توافق](spec.md#conformance).
 
-## القرارات الأساسية
+## القرارات الأساسية { #the-choice-it-makes }
 
 - ترجمة الرسائل الكاملة لا أجزاء الجمل.
 - قبول أسماء متغيرات بسيطة فقط مثل `{name}`.
@@ -55,7 +70,7 @@ print(_(t"Hello {name}"))  # with a Japanese catalog: こんにちは Ada
   الخصائص أو إضافة سلوك تنسيق.
 - إعادة استخدام ملفات POT وPO وMO والأدوات الحالية.
 
-## التثبيت
+## التثبيت { #install }
 
 ```console
 python -m pip install gettext-tstrings
@@ -71,7 +86,13 @@ python -m pip install gettext-tstrings
 python -m pip install "gettext-tstrings[babel]"
 ```
 
-## الخطوة التالية
+## الخطوة التالية { #where-to-go-next }
+
+يصل إلى هنا ثلاثة أنواع من القراء: من يترجم برنامجه الأول، ومن يربط
+الترجمة بمشروع حقيقي، ومن يريد أن يعرف بالضبط لماذا اتخذت الآلية هذا
+الشكل. ولكل منهم مسار.
+
+**تعلّمها** — من دون افتراض أي خبرة في gettext:
 
 <div class="grid cards" markdown>
 
@@ -79,26 +100,37 @@ python -m pip install "gettext-tstrings[babel]"
   يابانية عاملة في خمس خطوات، مع عرض كل أمر ومخرجاته.
 - **[لماذا t-strings؟](comparison.md)** — الرسالة نفسها بأربع طرق، وما
   يسلّمه كل من `%(name)s` و`.format()` وسلاسل `$` إلى الكتالوج.
+- **[الخلفية](background.md)** — لماذا توجد هذه المكتبة: ثلاثون عاماً من
+  gettext، ومقترحا PEP، ونقاش المكتبة القياسية الذي أُغلق دون إجابة.
+
+</div>
+
+**استخدامها بجدية** — المراجع العملية:
+
+<div class="grid cards" markdown>
+
 - **[الدليل](guide.md)** — API وقت التشغيل: صيغ الجمع، لغة كل طلب، السلاسل
   المؤجلة، والتعامل مع الكتالوج الخاطئ.
 - **[الاستخراج](extraction.md)** — مرجع `pybabel`: الإعداد وأسماء الدوال
   المخصصة وكيف تتحقق الأدوات الحالية من هذه الكتالوجات مجاناً.
-- **[المواصفة](spec.md)** — اتفاقية t-string ↔ msgid كعقد مستقر ذي إصدارات
-  مع حزمة توافق قابلة للقراءة آلياً.
+- **[في الإنتاج](workflow.md)** — الحلقة كما يديرها فريق: دورة التحديث،
+  وإدخالات fuzzy، وبوابات CI، ومنصات الترجمة، ولغة كل طلب في تطبيق ويب.
 - **[API](api.md)** — كل ما تصدّره الحزمة، في صفحة واحدة.
 
 </div>
 
-## هذا الموقع يستخدم المكتبة فعلياً
+**فهمها** — من المبادئ إلى التنفيذ:
 
-هذه الوثائق ليست مجرد عرض مترجم. فالتنقل وتسميات السمة وسطر حقوق النشر وتقرير
-البناء المعتمد على صيغ الجمع كلها تُعرض من كتالوجات PO بواسطة
-`gettext-tstrings` نفسها. يشغّل
-[الباني متعدد اللغات](https://github.com/yhay81/gettext-tstrings/blob/main/scripts/build_multilingual_docs.py)
-الرسائل ذات السياق والعناصر النائبة المسماة وقواعد الجمع للغات العشر في كل
-بناء صارم.
+<div class="grid cards" markdown>
 
-## الحالة
+- **[كيف تعمل](internals.md)** — من كائن القالب في PEP 750 إلى السلسلة
+  المعروضة، والذواكر المؤقتة التي تجعل الفحص رخيصاً.
+- **[المواصفة](spec.md)** — اتفاقية t-string ↔ msgid كعقد مستقر ذي إصدارات
+  مع حزمة توافق قابلة للقراءة آلياً.
+
+</div>
+
+## الحالة { #status }
 
 المشروع في مرحلة alpha. العقد الصغير والمواصفة هما الجزء المستقر، أما Python
 API فقد يتغير قبل الإصدار المستقر. نحتاج إلى حالات لغوية أوسع وقياس أداء
@@ -106,7 +138,7 @@ API فقد يتغير قبل الإصدار المستقر. نحتاج إلى ح
 
 نرحب بـ[المشكلات وطلبات السحب](https://github.com/yhay81/gettext-tstrings/issues).
 
-## شارك في المجتمع
+## شارك في المجتمع { #join-the-community }
 
 - اختر
   [good first issue](https://github.com/yhay81/gettext-tstrings/issues?q=is%3Aissue%20state%3Aopen%20label%3A%22good%20first%20issue%22)

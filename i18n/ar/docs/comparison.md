@@ -29,7 +29,7 @@ description: "الرسالة القابلة للترجمة نفسها بصيغة
     التنسيق؟* في الأمثلة، `_` هو الاسم المتعارف عليه لدالة الترجمة،
     و`tr` هو اسم هذه المكتبة.
 
-## التنسيق بعلامة %
+## التنسيق بعلامة % { #-format }
 
 ```python
 _("Hello %(name)s") % {"name": name}
@@ -51,7 +51,7 @@ ValueError: incomplete format
 `msgfmt --check-format` من GNU ذلك، لكن فقط للرسائل الموسومة
 `python-format` وعندما يمر الكتالوج فعلاً عبر msgfmt في طريقه إلى تطبيقك.
 
-## str.format
+## str.format { #strformat }
 
 ```python
 _("Hello {name}").format(name=name)
@@ -80,7 +80,7 @@ _("Hello {name}").format(name=name)
 تمنح `.format()` كل محطة في تلك الرحلة حق الوصول إلى خصائص الكائنات التي
 تمررها.
 
-## سلاسل `$` وflufl.i18n
+## سلاسل `$` وflufl.i18n { #-strings-and-flufli18n }
 
 ```python
 from flufl.i18n import initialize
@@ -113,7 +113,7 @@ print(_("Hello $name"))  # Hello Ada — the value came from the caller's locals
 من نطاق أسماء الاستبدال للكتالوج. تصف المقارنة أدناه `flufl.i18n` 6.0.0،
 لا كل استخدام ممكن لـ`string.Template`.
 
-## t-strings
+## t-strings { #t-strings }
 
 ```python
 tr(t"Hello {name}")
@@ -150,7 +150,7 @@ tr(t"Total: {amount:,.2f}")  # msgid is "Total: {amount}"
 `.pot` حالياً مستخرجاً يدرك t-string، مثل الذي
 [توفره هذه الحزمة لـBabel](extraction.md).
 
-## مقارنة مباشرة
+## مقارنة مباشرة { #side-by-side }
 
 | | `%(name)s` | `.format()` | `flufl.i18n` `$name` | `t"…"` |
 | --- | --- | --- | --- | --- |
@@ -176,7 +176,7 @@ tr(t"Total: {amount:,.2f}")  # msgid is "Total: {amount}"
 تعني `لا توجد` أن أدوات gettext القياسية لا تزال تقرأ الرسالة وتجمعها، لكن
 `msgfmt --check-format` لا يملك قواعد لعناصر `$` النائبة كي يطبقها.
 
-## التكلفة
+## التكلفة { #what-it-costs }
 
 لا يمكن استخدام f-string بهذه الطريقة مطلقاً؛ فحين تراها أي مكتبة تكون نصاً
 مكتملاً بالفعل، ولذلك فإن ترجمتها تعني ترجمة جزء. تُبقي t-strings
@@ -199,6 +199,10 @@ tr(t"Hello {name}")
 
 هذا قيد حقيقي. وإلى جانب ربط القيم في المصدر وفحص العناصر النائبة وقت التشغيل،
 يمنع نصوص الكتالوج من تقييم التعبيرات ويحافظ على أسماء عناصر نائبة ذات معنى.
+
+أما كيف وصلت Python إلى مفترق الطرق هذا — مقترحا PEP بينهما عشر سنوات،
+ونقاش المكتبة القياسية الذي أُغلق دون إجابة — فتُروى القصة مع مصادرها في
+صفحة [الخلفية](background.md).
 
   [PEP 750]: https://peps.python.org/pep-0750/
   [stdlib-template]: https://docs.python.org/3/library/string.html#template-strings

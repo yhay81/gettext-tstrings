@@ -10,9 +10,12 @@ avec la sortie qu'elle produit réellement — à chaque étape, vous savez donc
 vous êtes sur la bonne voie.
 
 Il vous faut Python 3.14 ou plus récent, car les t-strings sont une syntaxe
-nouvelle de la version 3.14.
+nouvelle de la version 3.14. Le japonais est la langue cible d'exemple de
+cette page, mais rien ne dépend de ce choix — substituez n'importe quelle
+langue à l'étape 4, où le code de locale `ja` est la seule chose qui la
+nomme.
 
-## 1. Installer
+## 1. Installer { #1-install }
 
 ```console
 python -m pip install "gettext-tstrings[babel]"
@@ -22,7 +25,7 @@ L'extra `[babel]` installe [Babel], l'outil qui collecte vos messages dans des
 fichiers catalogues à l'étape 3. C'est un outil de développement : le code de
 production rend les messages avec la seule bibliothèque standard.
 
-## 2. Marquer un message dans votre code
+## 2. Marquer un message dans votre code { #2-mark-a-message-in-your-code }
 
 Créez `app.py` :
 
@@ -50,7 +53,7 @@ quel. Un programme qui utilise cette bibliothèque n'*exige* jamais de catalogue
 pour fonctionner — l'anglais (ou votre langue source, quelle qu'elle soit) est
 le repli intégré.
 
-## 3. Extraire les messages
+## 3. Extraire les messages { #3-extract-the-messages }
 
 Les traducteurs ne lisent pas votre code source ; un petit fichier appelé
 **catalogue** voyage entre vous et eux. La première étape vers ce catalogue
@@ -86,7 +89,7 @@ msgstr ""
 où va une traduction — mais pas dans ce fichier : un `.pot` est un *modèle*,
 et l'étape suivante le copie une fois par langue.
 
-## 4. Traduire et compiler
+## 4. Traduire et compiler { #4-translate-and-compile }
 
 Créez le catalogue japonais à partir du modèle :
 
@@ -127,40 +130,58 @@ source placeholders: {name} is missing; {nome} is not in the source message
 1 errors encountered.
 ```
 
-## 5. Exécuter
+## 5. Exécuter { #5-run-it }
 
-Pointez `app.py` vers le catalogue compilé :
+Pointez `app.py` vers le catalogue compilé. Cliquez sur les pastilles pour
+voir ce que fait chaque ligne :
 
 ```python
 import gettext
 
 from gettext_tstrings import Translator
 
-_ = Translator(gettext.translation("messages", localedir="locales", languages=["ja"]))
+_ = Translator(gettext.translation("messages", localedir="locales", languages=["ja"]))  # (1)!
 
 name = "Ada"
-print(_(t"Hello {name}"))
+print(_(t"Hello {name}"))  # (2)!
 ```
 
-`_` est le nom gettext conventionnel pour « traduis ceci » — court parce qu'il
-apparaît sur chaque chaîne destinée à l'utilisateur. C'est la même fonction que
-`tr`, liée à un catalogue.
+1. La bibliothèque standard charge le `.mo` compilé, et `Translator` le lie à
+   un appelable. `_` est le nom gettext conventionnel pour « traduis ceci » —
+   court parce qu'il apparaît sur chaque chaîne destinée à l'utilisateur.
+   C'est la même fonction que `tr`, liée à un catalogue.
+2. À l'appel : le texte de la t-string devient la clé de recherche
+   `Hello {name}`, le catalogue répond `こんにちは {name}`, la réponse est
+   vérifiée contre les marqueurs de la source, et alors seulement la valeur
+   est mise en place.
 
 ```console
 $ python app.py
 こんにちは Ada
 ```
 
-Voilà toute la boucle : **marquer → extraire → traduire → compiler →
-exécuter**. Tout le reste de ce site est un approfondissement de l'une de ces
-cinq étapes.
+Voilà toute la boucle, et elle vaut d'être vue en une seule image :
 
-## Pour continuer
+```mermaid
+flowchart LR
+  mark["1–2 marquer<br>t-strings dans le code"] --> extract["3 extraire<br>messages.pot"]
+  extract --> translate["4 traduire<br>ja/…/messages.po"]
+  translate --> compile["4 compiler<br>ja/…/messages.mo"]
+  compile --> run["5 exécuter<br>こんにちは Ada"]
+```
+
+**Marquer → extraire → traduire → compiler → exécuter.** Tout le reste de ce
+site est un approfondissement de l'une de ces cinq étapes.
+
+## Pour continuer { #where-next }
 
 - [Pourquoi les t-strings](comparison.md) — ce dont cette conception vous
   protège, comparée à `%(name)s`, `.format()` et aux chaînes `$`.
 - [Guide](guide.md) — pluriels, langue par requête, chaînes différées et ce
   qui se passe à l'exécution quand un catalogue est malgré tout incorrect.
+- [En production](workflow.md) — cette même boucle telle qu'une équipe la fait
+  tourner, semaine après semaine : mise à jour des catalogues, barrières de CI
+  et plateformes de traduction.
 - [Extraction](extraction.md) — la référence `pybabel` complète : noms de
   fonctions personnalisés, mode strict pour la CI et les contrôles qui
   protègent vos catalogues.

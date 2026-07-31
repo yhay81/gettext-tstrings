@@ -9,11 +9,13 @@ Diese Bibliothek lässt sich nutzen, ohne diese Seite zu lesen — das
 Diese Seite richtet sich an Werkzeugautoren: Der Vertrag ist bewusst klein und
 stabil, damit eine andere Implementierung — ein Extraktor, eine IDE, ein
 Typprüfer oder ein zukünftiges `pygettext` — ihn umsetzen und interoperieren
-kann.
+kann. Für dieselben Regeln samt ihren Gründen, und wie die
+Referenzimplementierung sie umsetzt, lies zuerst
+[Funktionsweise](internals.md).
 
 [Spezifikation v1 lesen :material-arrow-right:](https://github.com/yhay81/gettext-tstrings/blob/main/SPEC.md){ .md-button .md-button--primary }
 
-## Regeln im Überblick
+## Regeln im Überblick { #the-rules-in-one-screen }
 
 Ein **msgid** entsteht aus den Literalteilen in Quellreihenfolge und je einem
 Token `{name}` pro Interpolation. Literale Klammern werden maskiert (`{` wird
@@ -59,7 +61,7 @@ Exception-Typen sind nicht Teil dieser Prüfung.
 
 Die Referenzimplementierung führt diese Suite in ihren Tests aus.
 
-## Versionierung
+## Versionierung { #versioning }
 
 Eine inkompatible Änderung der msgid-Ableitung oder Validierung erhält eine
 neue Version und `conformance/vN.json`. Rein additive Klarstellungen ändern die

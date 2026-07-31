@@ -9,9 +9,11 @@ applicatif* avec cette bibliothèque une fois les catalogues en place. Si vous
 n'avez pas encore vu la boucle complète — marquer, extraire, traduire,
 compiler, exécuter — le [tutoriel](tutorial.md) la parcourt une fois en cinq
 minutes ; la création et la validation des catalogues sont couvertes dans
-[Extraction](extraction.md).
+[Extraction](extraction.md), et la façon dont une équipe fait tourner la
+boucle — cycles de mise à jour, CI, plateformes de traduction — est
+[En production](workflow.md).
 
-## Lier un catalogue
+## Lier un catalogue { #binding-a-catalog }
 
 La forme recommandée reprend l'usage objet de gettext : liez une traduction
 standard une fois et utilisez le processeur appelable comme `_`.
@@ -48,7 +50,7 @@ npgettext("inbox", t"One message", t"{n} messages", n, translations=translations
 
 `tr` et `ntr` sont les alias exacts de `gettext` et `ngettext`.
 
-## Langue par requête
+## Langue par requête { #per-request-language }
 
 Un framework web choisit une langue par requête. Liez sa traduction au contexte
 courant : chaque appel de module utilisera cette langue, y compris entre
@@ -67,9 +69,11 @@ def handle(request):
 `set_translations()` lie sans bloc pour les frameworks qui gèrent eux-mêmes le
 cycle de vie ; `get_translations()` lit la liaison. Un argument
 `translations=` explicite est prioritaire. Sans liaison, les fonctions gettext
-globales de la bibliothèque standard servent de fallback.
+globales de la bibliothèque standard servent de fallback. Des exemples
+complets pour Flask et un middleware ASGI figurent sur la page
+[En production](workflow.md#binding-a-language-at-runtime).
 
-## Traduction différée
+## Traduction différée { #deferred-translation }
 
 Une t-string capture immédiatement ses valeurs. Pour une étiquette, une enum ou
 une constante définie à l'import mais rendue dans la langue active à
@@ -135,7 +139,7 @@ gettext_tstrings.errors.InvalidTranslationError: translation does not match the
 source placeholders: {name} is missing; {nombre} is not in the source message
 ```
 
-## Lire un message d'erreur
+## Lire un message d'erreur { #reading-a-failure-message }
 
 Les messages expliquent aussi pourquoi un marqueur visible n'est pas valide :
 
@@ -162,7 +166,7 @@ translation does not match the source placeholders: {name} is missing;
 Cela couvre aussi les conflits entre noms entièrement grecs ou cyrilliques et
 leurs équivalents ASCII.
 
-## Rendre un pattern sans catalogue
+## Rendre un pattern sans catalogue { #rendering-a-pattern-without-a-catalog }
 
 `compile_template` produit le msgid et les valeurs liées, puis rend un pattern :
 
@@ -180,7 +184,7 @@ compiled.render("こんにちは {name}")  # "こんにちは Ada"
 `render` valide avec les mêmes règles et **lève toujours** en cas d'écart. Il
 n'existe pas de fallback sans recherche de catalogue.
 
-## Sécurité et périmètre
+## Sécurité et périmètre { #safety-and-scope }
 
 Valide :
 

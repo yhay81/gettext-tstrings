@@ -7,10 +7,12 @@ description: "将 t-string 到 msgid 的约定定义为精简、带版本并拥�
 不阅读本页也可以使用本库——日常用法在[教程](tutorial.md)和[指南](guide.md)中
 均有介绍。本页面向工具作者：本库实现的约定被写成一份精简而稳定的契约，使其他
 实现——提取器、IDE、类型检查器或未来的 `pygettext`——也能采用它并实现互操作。
+若想先看到同样这些规则连同其背后的理由，以及参考实现如何执行它们，请先阅读
+[工作原理](internals.md)。
 
 [阅读规范 v1 :material-arrow-right:](https://github.com/yhay81/gettext-tstrings/blob/main/SPEC.md){ .md-button .md-button--primary }
 
-## 一屏内的规则
+## 一屏内的规则 { #the-rules-in-one-screen }
 
 **msgid** 按源代码顺序连接所有字面量片段，并为每个插值加入一个 `{name}` token。
 字面量花括号会被转义（`{` 变成 `{{`）。名称必须是简单占位符名，即
@@ -61,7 +63,7 @@ msgid 和目录 pattern 到渲染结果或拒绝结果的案例。
 参考实现会在自身测试套件中运行这些案例，因此文档和代码不会在无人察觉的情况下
 逐渐偏离。
 
-## 版本管理
+## 版本管理 { #versioning }
 
 当前是规范 v1。若 msgid 派生或翻译验证发生不向后兼容的变化，就提高版本，并在现有
 文件旁提供新的 `conformance/vN.json`。如果补充说明既不改变派生 msgid，也不改变

@@ -8,9 +8,10 @@ description: "カタログの束縛、リクエストごとの言語、遅延文
 *アプリケーションコード*がこのライブラリで行うすべてを説明します。
 マーク、抽出、翻訳、コンパイル、実行という一連のループをまだ見ていない場合は、
 [チュートリアル](tutorial.md)が5分で一巡します。カタログの作成と検証は
-[抽出](extraction.md)で説明します。
+[抽出](extraction.md)で、チームがこのループを回し続ける方法 — 更新サイクル、
+CI、翻訳プラットフォーム — は[実運用](workflow.md)で説明します。
 
-## カタログを束縛する
+## カタログを束縛する { #binding-a-catalog }
 
 推奨する構成はgettextのクラスベースの使い方と同じです。標準の翻訳オブジェクトを
 一度束縛し、呼び出し可能なprocessorを`_`として使います。
@@ -47,7 +48,7 @@ npgettext("inbox", t"One message", t"{n} messages", n, translations=translations
 
 `tr`と`ntr`は、`gettext`と`ngettext`の完全なaliasです。
 
-## リクエストごとの言語
+## リクエストごとの言語 { #per-request-language }
 
 Web frameworkはリクエストごとに言語を選択します。そのリクエストの翻訳を現在の
 コンテキストへ束縛すると、すべてのモジュールレベル呼び出しがその言語で解決されます。
@@ -67,9 +68,11 @@ def handle(request):
 `set_translations(translations)`で`with`ブロックなしに束縛できます。
 `get_translations()`は現在の束縛を返します。明示的な`translations=`引数は
 常にコンテキストより優先されます。コンテキストが未束縛なら、標準ライブラリに
-グローバルにインストールされたgettext関数へfallbackします。
+グローバルにインストールされたgettext関数へfallbackします。FlaskとASGI
+ミドルウェアの実例は[実運用](workflow.md#binding-a-language-at-runtime)の
+ページにあります。
 
-## 遅延翻訳
+## 遅延翻訳 { #deferred-translation }
 
 t-stringは値を即時に取得します。そのため、import時に定義され、*使用時*に有効な
 言語で表示されるべき文字列（フォームラベル、enum値、モジュール定数）には不向きです。
@@ -139,7 +142,7 @@ gettext_tstrings.errors.InvalidTranslationError: translation does not match the
 source placeholders: {name} is missing; {nombre} is not in the source message
 ```
 
-## エラーメッセージを読む
+## エラーメッセージを読む { #reading-a-failure-message }
 
 これらのメッセージは、問題を修正できる人のために書かれています。カタログの問題を
 直すのはprogrammerより翻訳者である場合が多いためです。画面上では文字が見えている
@@ -175,7 +178,7 @@ translation does not match the source placeholders: {name} is missing;
 同じ区別は、GreekまたはCyrillicだけで書かれた名前がASCIIのソース名と衝突する
 場合にも適用されます。Latinの`a`とCyrillicの`а`という1文字の場合も同様です。
 
-## カタログなしでpatternをレンダリングする
+## カタログなしでpatternをレンダリングする { #rendering-a-pattern-without-a-catalog }
 
 `compile_template`は同じ仕組みを1段下で公開します。t-stringをmsgidと束縛済みの
 値の集合へ変換し、渡された任意のpatternをレンダリングします。
@@ -195,7 +198,7 @@ compiled.render("こんにちは {name}")  # "こんにちは Ada"
 モードはありません。lenientは*カタログ*検索がソーステキストへfallbackするための
 ものであり、直接渡したpatternにはfallback元がないためです。
 
-## 安全性と範囲
+## 安全性と範囲 { #safety-and-scope }
 
 これは有効です。
 

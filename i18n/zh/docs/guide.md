@@ -6,9 +6,10 @@ description: "运行时 API：绑定目录、按请求选择语言、延迟字�
 
 本页是运行时参考：目录就绪之后，*应用程序代码*用本库所做的一切都在这里。
 如果你还没有见过完整的循环——标记、提取、翻译、编译、运行——[教程](tutorial.md)
-会在五分钟内走完一遍；目录的创建与验证参阅[提取](extraction.md)。
+会在五分钟内走完一遍；目录的创建与验证参阅[提取](extraction.md)；团队如何让
+循环持续运转——更新周期、CI、翻译平台——参阅[生产实践](workflow.md)。
 
-## 绑定目录
+## 绑定目录 { #binding-a-catalog }
 
 推荐方式与 gettext 基于类的用法一致：绑定一次标准翻译对象，并把可调用的处理器用作
 `_`。
@@ -44,7 +45,7 @@ npgettext("inbox", t"One message", t"{n} messages", n, translations=translations
 
 `tr` 和 `ntr` 分别是 `gettext` 和 `ngettext` 的完全别名。
 
-## 按请求选择语言
+## 按请求选择语言 { #per-request-language }
 
 Web framework 会为每个请求选择语言。把该请求的翻译绑定到当前上下文后，所有模块级
 调用都会解析为对应语言，即使多个请求并发执行也能安全隔离：
@@ -62,9 +63,10 @@ def handle(request):
 对于自行管理请求生命周期的 framework，`set_translations(translations)` 可以不使用
 `with` 块直接绑定；`get_translations()` 用于读取当前绑定。显式的
 `translations=` 参数始终优先于上下文；未绑定的上下文会回退到标准库全局安装的
-gettext 函数。
+gettext 函数。Flask 与 ASGI 中间件的完整示例见
+[生产实践](workflow.md#binding-a-language-at-runtime)页。
 
-## 延迟翻译
+## 延迟翻译 { #deferred-translation }
 
 t-string 会立即捕获其值。对于在 import 时定义、但必须在*使用时*根据当前语言渲染的
 字符串——表单标签、枚举值、模块常量——这种行为并不合适。
@@ -129,7 +131,7 @@ gettext_tstrings.errors.InvalidTranslationError: translation does not match the
 source placeholders: {name} is missing; {nombre} is not in the source message
 ```
 
-## 阅读错误消息
+## 阅读错误消息 { #reading-a-failure-message }
 
 这些消息是为能够解决问题的人编写的；目录问题的处理者往往是翻译者，而不是程序员。
 如果读者眼前明明能看到那些字符，只报告 `{name}` 缺失并没有帮助。因此，当占位符
@@ -161,7 +163,7 @@ translation does not match the source placeholders: {name} is missing;
 当完全用 Greek 或 Cyrillic 写成的名称与 ASCII 源名称冲突时也会这样处理，包括
 单字符 Latin `a` / Cyrillic `а` 的情况。
 
-## 不使用目录渲染 pattern
+## 不使用目录渲染 pattern { #rendering-a-pattern-without-a-catalog }
 
 `compile_template` 将同一机制向下暴露一层：它把 t-string 转成 msgid 和一组绑定值，
 并渲染你提供的任意 pattern。
@@ -181,7 +183,7 @@ compiled.render("こんにちは {name}")  # "こんにちは Ada"
 lenient 是为了让*目录*查询能够回退到源文本，而你直接传入的 pattern 没有可回退的
 来源。
 
-## 安全性与范围
+## 安全性与范围 { #safety-and-scope }
 
 下面的代码有效：
 

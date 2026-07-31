@@ -8,7 +8,7 @@ description: "كل الأسماء العامة في gettext_tstrings: الدوا
 هذه الصفحة مرجع التوقيعات؛ وللاطلاع على أمثلة عملية لكل دالة راجع
 [الدليل](guide.md).
 
-## الترجمة
+## الترجمة { #translating }
 
 تأخذ كل دالة t-string كوسيط موضعي، وتقبل `translations` و`strict` كوسيطين
 مسميين ([راجع الدليل](guide.md#what-happens-when-a-catalog-is-wrong)).
@@ -33,7 +33,7 @@ Translator(translations, strict=False)
 يمكن استدعاؤها (`_(t"…")`) وتوفر `gettext` و`ngettext` و`pgettext`
 و`npgettext` و`tr` و`ntr`.
 
-## ربط السياق
+## ربط السياق { #context-binding }
 
 | الاسم | الدور |
 | --- | --- |
@@ -43,7 +43,7 @@ Translator(translations, strict=False)
 
 يستخدم الربط `ContextVar` وهو آمن مع التنفيذ المتزامن.
 
-## السلاسل المؤجلة
+## السلاسل المؤجلة { #deferred-strings }
 
 | الاسم | الدور |
 | --- | --- |
@@ -51,7 +51,7 @@ Translator(translations, strict=False)
 | `lazy_pgettext(context, template, /)` | صيغة مع سياق. |
 | `LazyString` | تُعرض عبر `str()` و`format()` وf-strings، وتُقارن بالنص، وهي غير قابلة للتجزئة عمداً. |
 
-## المستوى المنخفض
+## المستوى المنخفض { #lower-level }
 
 ### `compile_template(template, /) -> CompiledTemplate`
 
@@ -65,7 +65,7 @@ Translator(translations, strict=False)
 | `.placeholders` | الأسماء بترتيب أول ظهور. |
 | `.render(pattern)` | يتحقق ويعرض، و**يثير استثناء دائماً** عند عدم التطابق. |
 
-## الأنواع والأخطاء
+## الأنواع والأخطاء { #types-and-errors }
 
 ### `Translations`
 
@@ -90,18 +90,19 @@ class Translations(Protocol):
 | `InvalidTemplateError` | تخالف t-string المصدر الاتفاقية. |
 | `InvalidTranslationError` | تخالف الترجمة الاتفاقية؛ يسجل الوضع المرن الخطأ ويعرض المصدر. |
 
-## نقاط دخول الاستخراج
+## نقاط دخول الاستخراج { #extraction-entry-points }
 
 | المجموعة | الاسم | الاستخدام |
 | --- | --- | --- |
 | `babel.extractors` | `gettext_tstrings` | قيمة `method` في `babel.cfg` |
 | `babel.checkers` | `gettext_tstrings` | يستخدمه `pybabel compile` تلقائياً |
 
-## الأداء
+## الأداء { #performance }
 
-تستغرق رسالة ذات حقل واحد نحو 0.4 ميكروثانية على Apple Silicon، بما في ذلك
-إنشاء t-string، أي قرابة 2.5 مرة من `gettext(...).format(...)`. أحجام الذاكرة
-المؤقتة محدودة ولا تحتفظ بالقيم المستوفاة.
+الرواية الكاملة — ما يُخزَّن في الذواكر المؤقتة، وما تعتمد عليه مفاتيحها،
+والأرقام المقيسة — في [المسار الساخن](internals.md#the-hot-path). والخلاصة:
+التحقق يُخزَّن مؤقتاً ولا يُتخطى أبداً، والعرض بأكمله يكلف جزءاً من
+الميكروثانية. شغّل القياس على هدفك الخاص:
 
 ```console
 uv run python benchmarks/runtime.py

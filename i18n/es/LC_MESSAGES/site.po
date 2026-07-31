@@ -27,6 +27,10 @@ msgid "Why t-strings"
 msgstr "Por qué usar t-strings"
 
 #. gettext-tstrings
+msgid "Background"
+msgstr "Trasfondo"
+
+#. gettext-tstrings
 msgctxt "navigation"
 msgid "Guide"
 msgstr "Guía"
@@ -34,6 +38,14 @@ msgstr "Guía"
 #. gettext-tstrings
 msgid "Extraction"
 msgstr "Extracción"
+
+#. gettext-tstrings
+msgid "In production"
+msgstr "En producción"
+
+#. gettext-tstrings
+msgid "How it works"
+msgstr "Cómo funciona"
 
 #. gettext-tstrings
 msgid "Specification"
@@ -62,3 +74,11 @@ msgid "Built {n} localized page"
 msgid_plural "Built {n} localized pages"
 msgstr[0] "Se ha generado {n} página localizada"
 msgstr[1] "Se han generado {n} páginas localizadas"
+
+#. gettext-tstrings
+#, python-brace-format
+msgctxt "build report"
+msgid "Rendered {n} page in {seconds}s"
+msgid_plural "Rendered {n} pages in {seconds}s"
+msgstr[0] "Se ha renderizado {n} página en {seconds} s"
+msgstr[1] "Se han renderizado {n} páginas en {seconds} s"

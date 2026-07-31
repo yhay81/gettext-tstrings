@@ -1,12 +1,17 @@
 ---
 description: "通过 gettext 和 Babel 翻译完整的 t-string 消息，同时将格式控制保留在目录之外。"
+title: "gettext-tstrings"
+hide:
+  - navigation
+  - toc
 ---
 
-# gettext-tstrings
+<div class="home-hero" markdown>
 
-面向 Python 3.14+ t-string 的安全 gettext 与 Babel 集成。
+# 句子只写一次。<br>整句交给翻译。
 
-用源语言把句子完整写一次，值就放在句子中：
+面向 Python 3.14+ t-string 的安全 gettext 与 Babel 集成——值留在原位，目录
+看到的是完整消息：
 
 ```python
 import gettext
@@ -17,6 +22,17 @@ _ = Translator(gettext.translation("messages", localedir="locales"))
 name = "Ada"
 print(_(t"Hello {name}"))  # with a Japanese catalog: こんにちは Ada
 ```
+
+[开始教程 :material-arrow-right:](tutorial.md){ .md-button .md-button--primary }
+[为什么选择 t-string](comparison.md){ .md-button }
+
+本站身体力行自己所记录的内容：每一个语言版本——导航、标签和支持复数规则的
+构建报告——都由
+[`gettext-tstrings` 自身](https://github.com/yhay81/gettext-tstrings/blob/main/scripts/build_multilingual_docs.py)
+从 PO 目录渲染。
+{ .home-hero-note }
+
+</div>
 
 目录收到的是完整句子 `Hello {name}`。翻译可以调整或重复 `{name}`，但不能删除它、
 凭空增加其他名称，也不能自行添加格式——本库会检查这一点，目录损坏时会回退到
@@ -31,7 +47,7 @@ print(_(t"Hello {name}"))  # with a Japanese catalog: こんにちは Ada
     **[教程](tutorial.md)**用大约五分钟走完整条路径——标记、提取、翻译、编译、
     运行。
 
-## 它解决的问题
+## 它解决的问题 { #the-problem-it-solves }
 
 在任何库看到 f-string 之前，插值已经完成——`f"Hello {name}"` 已经变成
 `"Hello Ada"`，而围绕一个值去翻译前后的片段会破坏大多数语言的语法。t-string
@@ -43,7 +59,7 @@ print(_(t"Hello {name}"))  # with a Japanese catalog: こんにちは Ada
 选择，将其写成[带版本的规范](spec.md)，并提供[一致性测试套件](spec.md#conformance)
 来验证实现。
 
-## 它选择的设计
+## 它选择的设计 { #the-choice-it-makes }
 
 - 始终翻译完整消息，而不是句子片段。
 - 只接受 `{name}` 这样的简单变量名。
@@ -51,7 +67,7 @@ print(_(t"Hello {name}"))  # with a Japanese catalog: こんにちは Ada
 - 允许翻译者调整和重复已知占位符，但不能访问属性，也不能增加格式行为。
 - 继续使用普通的 POT、PO、MO 文件以及现有工具。
 
-## 安装
+## 安装 { #install }
 
 ```console
 python -m pip install gettext-tstrings
@@ -67,7 +83,12 @@ python -m pip install gettext-tstrings
 python -m pip install "gettext-tstrings[babel]"
 ```
 
-## 接下来
+## 接下来 { #where-to-go-next }
+
+来到这里的读者有三类：正在翻译自己第一个程序的人、正在把翻译接入真实项目的人，
+以及想确切知道这套机制为何如此成形的人。每一类都有自己的路径。
+
+**入门** — 不要求任何 gettext 经验：
 
 <div class="grid cards" markdown>
 
@@ -75,24 +96,37 @@ python -m pip install "gettext-tstrings[babel]"
   命令都附带其输出。
 - **[为什么选择 t-string](comparison.md)** — 用四种方式编写同一条消息，并比较
   `%(name)s`、`.format()` 和 `$`-string 分别把什么交给目录。
+- **[项目背景](background.md)** — 本库为何存在：三十年的 gettext、两个 PEP，
+  以及无果而终的标准库讨论。
+
+</div>
+
+**正式使用** — 日常工作的参考：
+
+<div class="grid cards" markdown>
+
 - **[指南](guide.md)** — 运行时 API：复数、按请求选择语言、延迟字符串，以及目录
   出错时的处理方式。
 - **[提取](extraction.md)** — `pybabel` 参考：配置、自定义函数名，以及现有工具
   如何免费验证这些目录。
-- **[规范](spec.md)** — 将 t-string ↔ msgid 约定定义为稳定、带版本且拥有机器可读
-  一致性测试套件的契约。
+- **[生产实践](workflow.md)** — 团队实际运转的循环：更新周期、fuzzy 条目、CI
+  关卡、翻译平台，以及 Web 应用中的按请求语言。
 - **[API](api.md)** — 本包导出的全部内容，集中在一页。
 
 </div>
 
-## 本站自身就在使用
+**深入理解** — 从原理到实现：
 
-这份文档不只是一个翻译演示。导航、主题文字、版权行和支持复数规则的构建结果，
-都由 `gettext-tstrings` 自身从 PO 目录渲染。
-[多语言构建器](https://github.com/yhay81/gettext-tstrings/blob/main/scripts/build_multilingual_docs.py)
-在每次严格构建中实际执行带上下文的消息、具名占位符以及全部十种语言的复数规则。
+<div class="grid cards" markdown>
 
-## 状态
+- **[工作原理](internals.md)** — 从 PEP 750 的 template 对象到渲染后的字符串，
+  以及让检查变得廉价的缓存。
+- **[规范](spec.md)** — 将 t-string ↔ msgid 约定定义为稳定、带版本且拥有机器可读
+  一致性测试套件的契约。
+
+</div>
+
+## 状态 { #status }
 
 目前是 alpha 版本。契约刻意保持精简，其中稳定的部分是[规范](spec.md)；Python API
 仍有可能调整。稳定发布之前，还需要更广泛的语言 fixture、持续性能跟踪、真正使用
@@ -102,7 +136,7 @@ gettext 和 Babel 的用户参与 API 评审，以及覆盖所有受支持 Pytho
 欢迎提交 [Issue 和 Pull Request](https://github.com/yhay81/gettext-tstrings/issues)。
 alpha 阶段正是讨论接口最有价值的时候。
 
-## 加入社区
+## 加入社区 { #join-the-community }
 
 - 从范围明确的
   [good first issue](https://github.com/yhay81/gettext-tstrings/issues?q=is%3Aissue%20state%3Aopen%20label%3A%22good%20first%20issue%22)

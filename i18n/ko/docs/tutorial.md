@@ -10,8 +10,11 @@ description: "빈 디렉터리에서 일본어로 인사하는 프로그램까�
 확인할 수 있습니다.
 
 t-string은 3.14의 새 문법이므로 Python 3.14 이상이 필요합니다.
+일본어는 이 페이지의 예시 대상일 뿐, 그 선택에 의존하는 것은 아무것도
+없습니다 — 4단계에서 어떤 언어로든 바꿀 수 있으며, 로케일 코드 `ja`만이
+그 언어를 지정하는 유일한 부분입니다.
 
-## 1. 설치
+## 1. 설치 { #1-install }
 
 ```console
 python -m pip install "gettext-tstrings[babel]"
@@ -21,7 +24,7 @@ python -m pip install "gettext-tstrings[babel]"
 [Babel]을 설치합니다. 개발 시점 도구이며, 프로덕션 코드는 표준
 라이브러리만으로 렌더링합니다.
 
-## 2. 코드에 메시지 표시
+## 2. 코드에 메시지 표시 { #2-mark-a-message-in-your-code }
 
 `app.py`를 만듭니다.
 
@@ -47,7 +50,7 @@ Hello Ada
 라이브러리를 쓰는 프로그램은 실행에 카탈로그를 *요구*하지 않습니다.
 영어(또는 여러분의 원본 언어)가 내장된 fallback입니다.
 
-## 3. 메시지 추출
+## 3. 메시지 추출 { #3-extract-the-messages }
 
 번역자는 소스 코드를 읽지 않습니다. **카탈로그**라는 작은 파일이
 여러분과 번역자 사이를 오갑니다. 그 첫걸음은 코드에 표시된 모든 메시지를
@@ -83,7 +86,7 @@ msgstr ""
 이 파일에 쓰지는 않습니다. `.pot`은 *템플릿*이며, 다음 단계에서 언어마다
 한 번씩 복사합니다.
 
-## 4. 번역과 컴파일
+## 4. 번역과 컴파일 { #4-translate-and-compile }
 
 템플릿에서 일본어 카탈로그를 만듭니다.
 
@@ -122,39 +125,57 @@ source placeholders: {name} is missing; {nome} is not in the source message
 1 errors encountered.
 ```
 
-## 5. 실행
+## 5. 실행 { #5-run-it }
 
-`app.py`가 컴파일된 카탈로그를 가리키게 합니다.
+`app.py`가 컴파일된 카탈로그를 가리키게 합니다. 각 줄이 무엇을 하는지
+마커를 클릭해 확인하세요.
 
 ```python
 import gettext
 
 from gettext_tstrings import Translator
 
-_ = Translator(gettext.translation("messages", localedir="locales", languages=["ja"]))
+_ = Translator(gettext.translation("messages", localedir="locales", languages=["ja"]))  # (1)!
 
 name = "Ada"
-print(_(t"Hello {name}"))
+print(_(t"Hello {name}"))  # (2)!
 ```
 
-`_`는 "이것을 번역하라"를 뜻하는 gettext의 관례적인 이름입니다. 사용자에게
-보이는 모든 문자열에 등장하므로 짧습니다. `tr`과 같은 함수를 하나의
-카탈로그에 바인딩한 것입니다.
+1. 표준 라이브러리가 컴파일된 `.mo`를 로드하고, `Translator`가 이를
+   호출 가능한 객체로 바인딩합니다. `_`는 "이것을 번역하라"를 뜻하는
+   gettext의 관례적인 이름입니다. 사용자에게 보이는 모든 문자열에
+   등장하므로 짧습니다. `tr`과 같은 함수를 하나의 카탈로그에 바인딩한
+   것입니다.
+2. 호출 시점에는 이렇게 됩니다. t-string의 텍스트가 조회 키
+   `Hello {name}`이 되고, 카탈로그가 `こんにちは {name}`으로 답하며, 그
+   답을 원본 플레이스홀더와 대조해 검사한 뒤에야 값이 들어갑니다.
 
 ```console
 $ python app.py
 こんにちは Ada
 ```
 
-이것이 전체 루프입니다. **표시 → 추출 → 번역 → 컴파일 → 실행**.
-이 사이트의 나머지 내용은 모두 이 다섯 단계 중 하나를 다듬은 것입니다.
+이것이 전체 루프이며, 한 장의 그림으로 볼 가치가 있습니다.
 
-## 다음 단계
+```mermaid
+flowchart LR
+  mark["1–2 표시<br>코드의 t-string"] --> extract["3 추출<br>messages.pot"]
+  extract --> translate["4 번역<br>ja/…/messages.po"]
+  translate --> compile["4 컴파일<br>ja/…/messages.mo"]
+  compile --> run["5 실행<br>こんにちは Ada"]
+```
+
+**표시 → 추출 → 번역 → 컴파일 → 실행.** 이 사이트의 나머지 내용은 모두
+이 다섯 단계 중 하나를 다듬은 것입니다.
+
+## 다음 단계 { #where-next }
 
 - [왜 t-string인가](comparison.md) — `%(name)s`, `.format()`, `$` 문자열과
   비교해 이 설계가 무엇으로부터 보호해 주는지.
 - [가이드](guide.md) — 복수형, 요청별 언어, 지연 문자열, 그리고 그럼에도
   카탈로그가 잘못되었을 때 런타임에 일어나는 일.
+- [프로덕션에서](workflow.md) — 팀이 매주 굴리는 바로 이 루프: 카탈로그
+  업데이트, CI 게이트, 번역 플랫폼.
 - [추출](extraction.md) — 전체 `pybabel` 레퍼런스: 사용자 정의 함수 이름,
   strict CI 모드, 카탈로그를 지키는 검사.
 

@@ -33,7 +33,7 @@ El resto de esta página es la evidencia, método a método.
     catálogo?* En los ejemplos, `_` es el nombre convencional de la función de
     traducción y `tr` es la de esta biblioteca.
 
-## Formato %
+## Formato % { #-format }
 
 ```python
 _("Hello %(name)s") % {"name": name}
@@ -57,7 +57,7 @@ producción. GNU `msgfmt --check-format` puede detectarlo, pero solo en mensajes
 marcados como `python-format` y si el catálogo pasa realmente por msgfmt antes
 de llegar a la aplicación.
 
-## str.format
+## str.format { #strformat }
 
 ```python
 _("Hello {name}").format(name=name)
@@ -86,7 +86,7 @@ traducción, pasa por varias manos, vuelve como `.po`, se compila como `.mo` y a
 veces se incorpora desde un proyecto externo. `.format()` permite que cualquier
 paso de ese recorrido acceda a los atributos de los objetos proporcionados.
 
-## Cadenas `$` y flufl.i18n
+## Cadenas `$` y flufl.i18n { #-strings-and-flufli18n }
 
 ```python
 from flufl.i18n import initialize
@@ -125,7 +125,7 @@ pero también convierte el marco del llamador en parte del espacio de nombres de
 sustitución del catálogo. La comparación siguiente describe `flufl.i18n` 6.0.0,
 no todos los usos posibles de `string.Template`.
 
-## t-strings
+## t-strings { #t-strings }
 
 ```python
 tr(t"Hello {name}")
@@ -165,7 +165,7 @@ Una diferencia más son las herramientas: las t-strings son sintaxis nueva, así
 que extraerlas a un `.pot` requiere actualmente un extractor que las entienda,
 como el que este paquete [proporciona para Babel](extraction.md).
 
-## Comparación
+## Comparación { #side-by-side }
 
 | | `%(name)s` | `.format()` | `flufl.i18n` `$name` | `t"…"` |
 | --- | --- | --- | --- | --- |
@@ -193,7 +193,7 @@ marcadores, no a la compatibilidad del catálogo. `ninguna` significa que las
 herramientas gettext estándar aún pueden leer y compilar el mensaje, pero
 `msgfmt --check-format` no dispone de una gramática de marcadores `$` que aplicar.
 
-## El coste
+## El coste { #what-it-costs }
 
 Una f-string no puede utilizarse así: cuando cualquier biblioteca la recibe ya
 es una cadena terminada, por lo que traducirla significa traducir un fragmento.
@@ -221,6 +221,10 @@ Es una restricción real. Junto con la vinculación de valores en el código fue
 y la comprobación de marcadores en tiempo de ejecución, impide que las cadenas
 del catálogo evalúen expresiones y mantiene significativos los nombres de los
 marcadores.
+
+Cómo llegó Python a esta encrucijada —dos PEP con diez años de diferencia y
+la discusión sobre la biblioteca estándar que se cerró sin una respuesta— se
+cuenta con sus fuentes en [Trasfondo](background.md).
 
   [PEP 750]: https://peps.python.org/pep-0750/
   [stdlib-template]: https://docs.python.org/3/library/string.html#template-strings

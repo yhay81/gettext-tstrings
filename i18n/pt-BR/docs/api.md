@@ -8,7 +8,7 @@ Todos os nomes abaixo são exportados por `gettext_tstrings`. Nenhum outro nome
 é público. Esta página é a referência de assinaturas; para exemplos práticos de
 cada função, consulte o [guia](guide.md).
 
-## Tradução
+## Tradução { #translating }
 
 Cada função recebe sua t-string de forma posicional e aceita `translations` e
 `strict` como argumentos nomeados
@@ -34,7 +34,7 @@ Translator(translations, strict=False)
 É chamável (`_(t"…")`) e fornece `gettext`, `ngettext`, `pgettext`,
 `npgettext`, `tr` e `ntr`.
 
-## Vínculo de contexto
+## Vínculo de contexto { #context-binding }
 
 | Nome | Função |
 | --- | --- |
@@ -44,7 +44,7 @@ Translator(translations, strict=False)
 
 O vínculo usa `ContextVar` e é seguro em concorrência.
 
-## Strings preguiçosas
+## Strings preguiçosas { #deferred-strings }
 
 | Nome | Função |
 | --- | --- |
@@ -52,7 +52,7 @@ O vínculo usa `ContextVar` e é seguro em concorrência.
 | `lazy_pgettext(context, template, /)` | Variante com contexto. |
 | `LazyString` | Renderiza por `str()`, `format()` e f-strings, compara-se ao texto e não é hashable de propósito. |
 
-## Baixo nível
+## Baixo nível { #lower-level }
 
 ### `compile_template(template, /) -> CompiledTemplate`
 
@@ -66,7 +66,7 @@ Compila uma t-string reutilizando seu plano estático em cache.
 | `.placeholders` | Nomes na ordem da primeira ocorrência. |
 | `.render(pattern)` | Valida e renderiza; **sempre lança** em caso de diferença. |
 
-## Tipos e erros
+## Tipos e erros { #types-and-errors }
 
 ### `Translations`
 
@@ -91,18 +91,19 @@ Babel atendem ao protocolo.
 | `InvalidTemplateError` | A t-string de origem viola a convenção. |
 | `InvalidTranslationError` | A tradução viola a convenção; o modo flexível registra e renderiza a origem. |
 
-## Entry points de extração
+## Entry points de extração { #extraction-entry-points }
 
 | Grupo | Nome | Usado por |
 | --- | --- | --- |
 | `babel.extractors` | `gettext_tstrings` | `method` no `babel.cfg` |
 | `babel.checkers` | `gettext_tstrings` | automaticamente por `pybabel compile` |
 
-## Desempenho
+## Desempenho { #performance }
 
-Uma mensagem com um campo leva cerca de 0,4 µs em Apple Silicon, incluindo a
-criação da t-string: aproximadamente 2,5 vezes `gettext(...).format(...)`. Os
-caches são limitados e nunca retêm os valores interpolados.
+O relato completo — o que é cacheado, quais são as chaves dos caches e os
+números medidos — está em [O caminho quente](internals.md#the-hot-path). A
+versão curta: a validação é cacheada, nunca pulada, e a renderização inteira
+custa uma fração de microssegundo. Execute o benchmark no seu próprio alvo:
 
 ```console
 uv run python benchmarks/runtime.py

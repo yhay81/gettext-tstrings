@@ -33,7 +33,7 @@ Der Rest dieser Seite ist der Beleg dafür, eine Methode nach der anderen.
     kontrollieren?* In den Beispielen ist `_` der konventionelle Name der
     Übersetzungsfunktion und `tr` der Name dieser Bibliothek.
 
-## %-Formatierung
+## %-Formatierung { #-format }
 
 ```python
 _("Hello %(name)s") % {"name": name}
@@ -58,7 +58,7 @@ Traceback in Produktion. GNU `msgfmt --check-format` erkennt das zwar, aber
 nur bei Nachrichten mit dem Flag `python-format` und nur, wenn der Katalog auf
 dem Weg in deine Anwendung tatsächlich msgfmt durchläuft.
 
-## str.format
+## str.format { #strformat }
 
 ```python
 _("Hello {name}").format(name=name)
@@ -88,7 +88,7 @@ zu einer `.mo`, manchmal komplett von außerhalb des Projekts übernommen.
 `.format()` gibt jeder Station dieser Reise Attributzugriff auf die
 übergebenen Objekte.
 
-## `$`-Strings und flufl.i18n
+## `$`-Strings und flufl.i18n { #-strings-and-flufli18n }
 
 ```python
 from flufl.i18n import initialize
@@ -127,7 +127,7 @@ macht aber zugleich den Frame des Aufrufers zum Teil des
 Ersetzungsnamensraums des Katalogs. Der folgende Vergleich beschreibt
 `flufl.i18n` 6.0.0, nicht jede mögliche Verwendung von `string.Template`.
 
-## t-strings
+## t-strings { #t-strings }
 
 ```python
 tr(t"Hello {name}")
@@ -168,7 +168,7 @@ Extraktion in eine `.pot` benötigt daher derzeit einen t-string-fähigen
 Extraktor, etwa den, den dieses Paket
 [für Babel bereitstellt](extraction.md).
 
-## Direktvergleich
+## Direktvergleich { #side-by-side }
 
 | | `%(name)s` | `.format()` | `flufl.i18n` `$name` | `t"…"` |
 | --- | --- | --- | --- | --- |
@@ -196,7 +196,7 @@ die Katalogkompatibilität. `keines` bedeutet, dass Standard-gettext-Werkzeuge
 die Nachricht weiterhin lesen und kompilieren, `msgfmt --check-format` aber
 keine Grammatik für `$`-Platzhalter anwenden kann.
 
-## Der Preis
+## Der Preis { #what-it-costs }
 
 Ein f-String kann auf diese Weise gar nicht verwendet werden: Sobald eine
 Bibliothek ihn sieht, ist er bereits eine fertige Zeichenkette, sodass eine
@@ -223,6 +223,10 @@ tr(t"Hello {name}")
 Das ist eine echte Einschränkung. Zusammen mit der quellseitigen Wertebindung
 und der Laufzeitprüfung der Platzhalter verhindert sie, dass Katalogstrings
 Ausdrücke auswerten, und hält die Platzhalternamen aussagekräftig.
+
+Wie Python an diese Weggabelung gelangt ist — zwei PEPs im Abstand von zehn
+Jahren und die stdlib-Diskussion, die ohne Antwort geschlossen wurde —
+erzählt, mit Quellen, die Seite [Hintergrund](background.md).
 
   [PEP 750]: https://peps.python.org/pep-0750/
   [stdlib-template]: https://docs.python.org/3/library/string.html#template-strings

@@ -33,7 +33,7 @@ O restante desta página é a evidência, um método por vez.
     pode controlar?* Nos exemplos, `_` é o nome convencional da função de
     tradução, e `tr` é o desta biblioteca.
 
-## Formatação com %
+## Formatação com % { #-format }
 
 ```python
 _("Hello %(name)s") % {"name": name}
@@ -57,7 +57,7 @@ produção. O GNU `msgfmt --check-format` detecta o problema, mas somente em
 mensagens marcadas como `python-format` e somente se o catálogo realmente
 passar pelo msgfmt a caminho da sua aplicação.
 
-## str.format
+## str.format { #strformat }
 
 ```python
 _("Hello {name}").format(name=name)
@@ -86,7 +86,7 @@ tradução, passa por várias mãos, volta como `.po`, é compilado em `.mo`, à
 vezes é até incorporado de fora do seu projeto. `.format()` dá a cada etapa
 dessa viagem acesso aos atributos dos objetos que você fornece.
 
-## Strings `$` e flufl.i18n
+## Strings `$` e flufl.i18n { #-strings-and-flufli18n }
 
 ```python
 from flufl.i18n import initialize
@@ -124,7 +124,7 @@ atributo, mas também torna o frame de quem chama parte do namespace de
 substituição do catálogo. A comparação abaixo descreve o `flufl.i18n` 6.0.0,
 e não todos os usos possíveis de `string.Template`.
 
-## t-strings
+## t-strings { #t-strings }
 
 ```python
 tr(t"Hello {name}")
@@ -163,7 +163,7 @@ Mais uma diferença é o ferramental: t-strings são sintaxe nova, então extra�
 para um `.pot` atualmente exige um extrator que entenda t-strings, como o que
 este pacote [fornece para o Babel](extraction.md).
 
-## Lado a lado
+## Lado a lado { #side-by-side }
 
 | | `%(name)s` | `.format()` | `flufl.i18n` `$name` | `t"…"` |
 | --- | --- | --- | --- | --- |
@@ -191,7 +191,7 @@ compatibilidade do catálogo. `nenhuma` significa que as ferramentas gettext
 padrão ainda leem e compilam a mensagem, mas `msgfmt --check-format` não tem
 uma gramática de marcadores `$` para aplicar.
 
-## O custo
+## O custo { #what-it-costs }
 
 Uma f-string não pode ser usada assim de forma alguma: quando qualquer
 biblioteca a vê, ela já é uma string pronta, portanto traduzi-la significa
@@ -217,6 +217,10 @@ tr(t"Hello {name}")
 Essa é uma restrição real. Junto com a vinculação de valores no código-fonte e
 a verificação de marcadores em tempo de execução, ela impede que strings de
 catálogo avaliem expressões e mantém os nomes dos marcadores significativos.
+
+Como o Python chegou a essa encruzilhada — duas PEPs com dez anos de
+intervalo, e a discussão na biblioteca padrão encerrada sem resposta — está
+contado, com as fontes, em [Contexto](background.md).
 
   [PEP 750]: https://peps.python.org/pep-0750/
   [stdlib-template]: https://docs.python.org/3/library/string.html#template-strings

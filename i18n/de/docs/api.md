@@ -8,7 +8,7 @@ Alle folgenden Namen werden von `gettext_tstrings` exportiert. Andere Namen
 sind nicht öffentlich. Diese Seite ist die Signaturreferenz; ausgearbeitete
 Beispiele zu jeder Funktion stehen in der [Anleitung](guide.md).
 
-## Übersetzung
+## Übersetzung { #translating }
 
 Jede Funktion nimmt ihre t-string positionell sowie `translations` und `strict`
 als Keyword-Argumente ([Anleitung](guide.md#what-happens-when-a-catalog-is-wrong)).
@@ -33,7 +33,7 @@ Translator(translations, strict=False)
 Sie ist aufrufbar (`_(t"…")`) und stellt `gettext`, `ngettext`, `pgettext`,
 `npgettext`, `tr` und `ntr` bereit.
 
-## Kontextbindung
+## Kontextbindung { #context-binding }
 
 | Name | Aufgabe |
 | --- | --- |
@@ -43,7 +43,7 @@ Sie ist aufrufbar (`_(t"…")`) und stellt `gettext`, `ngettext`, `pgettext`,
 
 Die Bindung nutzt `ContextVar` und ist nebenläufigkeitssicher.
 
-## Verzögerte Strings
+## Verzögerte Strings { #deferred-strings }
 
 | Name | Aufgabe |
 | --- | --- |
@@ -51,7 +51,7 @@ Die Bindung nutzt `ContextVar` und ist nebenläufigkeitssicher.
 | `lazy_pgettext(context, template, /)` | Variante mit Kontext. |
 | `LazyString` | Wird über `str()`, `format()` und f-strings gerendert, vergleicht sich mit Text und ist absichtlich nicht hashbar. |
 
-## Low-Level-API
+## Low-Level-API { #lower-level }
 
 ### `compile_template(template, /) -> CompiledTemplate`
 
@@ -65,7 +65,7 @@ Kompiliert eine t-string und verwendet ihren gecachten statischen Plan.
 | `.placeholders` | Namen in der Reihenfolge ihres ersten Auftretens. |
 | `.render(pattern)` | Prüft und rendert; **löst bei Abweichungen immer aus**. |
 
-## Typen und Fehler
+## Typen und Fehler { #types-and-errors }
 
 ### `Translations`
 
@@ -90,19 +90,20 @@ class Translations(Protocol):
 | `InvalidTemplateError` | Die Quell-t-string verletzt die Konvention. |
 | `InvalidTranslationError` | Die Übersetzung verletzt sie; der weiche Modus protokolliert und rendert die Quelle. |
 
-## Entry Points für Extraktion
+## Entry Points für Extraktion { #extraction-entry-points }
 
 | Gruppe | Name | Verwendung |
 | --- | --- | --- |
 | `babel.extractors` | `gettext_tstrings` | `method` in `babel.cfg` |
 | `babel.checkers` | `gettext_tstrings` | automatisch durch `pybabel compile` |
 
-## Performance
+## Performance { #performance }
 
-Eine Nachricht mit einem Feld benötigt auf Apple Silicon einschließlich
-t-string-Erzeugung etwa 0,4 µs, ungefähr 2,5-mal so viel wie
-`gettext(...).format(...)`. Caches sind begrenzt und halten nie interpolierte
-Werte.
+Die vollständige Darstellung — was gecacht wird, worauf die Caches schlüsseln
+und die gemessenen Zahlen — steht in
+[Der Hot Path](internals.md#the-hot-path). Die Kurzfassung: Die Validierung
+wird gecacht, nie übersprungen, und das gesamte Rendern kostet einen Bruchteil
+einer Mikrosekunde. Führe den Benchmark auf deinem eigenen Zielsystem aus:
 
 ```console
 uv run python benchmarks/runtime.py

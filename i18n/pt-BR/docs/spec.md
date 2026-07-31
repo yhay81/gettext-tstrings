@@ -9,11 +9,13 @@ Você pode usar esta biblioteca sem ler esta página — o
 página é para quem escreve ferramentas: a convenção que a biblioteca implementa
 está registrada como um contrato pequeno e estável, para que outra
 implementação — um extrator, uma IDE, um verificador de tipos ou um futuro
-`pygettext` — possa segui-lo e interoperar.
+`pygettext` — possa segui-lo e interoperar. Para as mesmas regras explicadas
+com seus motivos, e como a implementação de referência as executa, leia antes
+[Como funciona](internals.md).
 
 [Leia a especificação v1 :material-arrow-right:](https://github.com/yhay81/gettext-tstrings/blob/main/SPEC.md){ .md-button .md-button--primary }
 
-## Regras em uma tela
+## Regras em uma tela { #the-rules-in-one-screen }
 
 Um **msgid** concatena segmentos literais na ordem da origem e um token `{name}`
 para cada interpolação. Chaves literais são escapadas (`{` vira `{{`). O nome
@@ -58,7 +60,7 @@ das mensagens de erro ou dos tipos de exceção.
 
 A implementação de referência executa essa suíte em seus próprios testes.
 
-## Versionamento
+## Versionamento { #versioning }
 
 Uma alteração incompatível na geração do msgid ou na validação cria uma nova
 versão e um novo `conformance/vN.json`. Um esclarecimento aditivo que não muda
