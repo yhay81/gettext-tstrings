@@ -144,11 +144,25 @@ skrár í þessari geymslu eru til þess eins að fylla það gat.
 
 CI-skrefið sem þessi skjölun mælir með til að grípa úreltar þýðingaskrár,
 `pybabel update --check`, ræður ekki við það verk í neinu verkefni sem notar
-`pgettext` eða `npgettext` — það tilkynnir hverja þýðingaskrá sem inniheldur
-`msgctxt` sem úrelta, í hverri einustu keyrslu, vegna galla í því hvernig
-samanburðurinn flettir skilaboðum upp. Þetta fannst hér við tilraun til að
-nota það, var tilkynnt til upprunaverkefnisins og er
-[lýst til fulls ásamt lausninni](workflow.md#what-ci-gates).
+`pgettext` eða `npgettext`. Á Babel 2.18.0 tilkynnir það hverja þýðingaskrá
+sem inniheldur `msgctxt` sem úrelta, í hverri einustu keyrslu. Samanburðurinn
+fer gegnum `Catalog.is_identical`, sem flettir hverjum skilaboðum upp eftir
+þeim lykli sem þau eru geymd undir — og fyrir skilaboð með samhengi er sá
+lykill parið `(id, context)`, sem `Catalog.get` tekur ekki við. Uppflettingin
+skilar engu og þýðingaskrárnar reynast aldrei jafnar:
+
+```pycon
+>>> from babel.messages.catalog import Catalog
+>>> c = Catalog(locale="ja")
+>>> c.add("Guide", "ガイド", context="navigation")
+<Message 'Guide' (flags: [])>
+>>> c.is_identical(c)
+False
+```
+
+Þetta fannst hér við tilraun til að nota það, var tilkynnt til
+upprunaverkefnisins og staðgengilsathugunin er
+[á útgáfusíðunni](workflow.md#what-ci-gates).
 
 Almenna lærdóminn er óþægilegt að draga: hlið sem er alltaf rautt er verra en
 ekkert hlið, því teymi slekkur á því. Gakktu úr skugga um að CI-athugunin þín

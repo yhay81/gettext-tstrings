@@ -11,8 +11,8 @@ agat ag gach céim an bhfuil tú ar an mbóthar ceart.
 
 Teastaíonn Python 3.14 nó níos nuaí uait, mar gur comhréir nua i 3.14 iad na
 t-strings. Is í an tSeapáinis sprioc shamplach an leathanaigh seo, ach níl aon
-rud ag brath ar an rogha sin — cuir teanga ar bith ina hionad i gcéim 4, áit
-nach bhfuil ach an cód logánaithe `ja` á hainmniú.
+rud ag brath ar an rogha sin. Chun teanga eile a úsáid, cuir rud éigin in
+ionad `ja` i gcéim 4 — níl ach an cód logánaithe sin á hainmniú.
 
 ## 1. Suiteáil { #1-install }
 
@@ -54,9 +54,10 @@ ionsuite.
 
 ## 3. Eastósc na teachtaireachtaí { #3-extract-the-messages }
 
-Ní léann aistritheoirí do chód foinseach; taistealaíonn comhad beag ar a
-dtugtar **catalóg** idir tú féin agus iad. Is é an chéad chéim i dtreo
-catalóige gach teachtaireacht mharcáilte a bhailiú amach as an gcód.
+Is gnách go n-oibríonn aistritheoirí ó chatalóga seachas ón gcód foinseach,
+mar sin taistealaíonn comhad beag ar a dtugtar **catalóg** idir tú féin agus
+iad. Is é an chéad chéim i dtreo catalóige gach teachtaireacht mharcáilte a
+bhailiú amach as an gcód.
 
 Inis do Babel conas do chuid teachtaireachtaí a aimsiú trí `babel.cfg` a
 chruthú:
@@ -131,7 +132,17 @@ source placeholders: {name} is missing; {nome} is not in the source message
 1 errors encountered.
 ```
 
+Rabhadh amháin is fiú a bheith ar eolas anois: tuairiscíonn sé an earráid agus
+scoireann sé le stádas neamhnialasach, ach scríobhann sé an `.mo` mar sin
+féin. Ar fhíorthionscadal is é CI a chaithfidh stopadh ar an stádas scoir sin
+— socraíonn [I dtáirgeadh](workflow.md#what-ci-gates) é sin.
+
 ## 5. Rith é { #5-run-it }
+
+Bhain céimeanna 2–4 úsáid as `tr()`, a lorgaíonn catalóg agus nach bhfaigheann
+ceann ar bith. Anois agus ceann ann, luchtaigh é agus ceangail uair amháin é:
+coinníonn `Translator` catalóg ionas nach gá do na láithreáin ghlaonna í a
+ainmniú, agus is é `_` an gnáthainm gettext ar an toradh.
 
 Dírigh `app.py` ar an gcatalóg thiomsaithe. Cliceáil na marcóirí le feiceáil
 cad tá ar siúl ag gach líne:
@@ -150,8 +161,8 @@ print(_(t"Hello {name}"))  # (2)!
 1. Luchtaíonn an leabharlann chaighdeánach an `.mo` tiomsaithe, agus
    ceanglaíonn `Translator` le hoibiacht inghairthe é. Is é `_` an gnáthainm
    gettext ar "aistrigh é seo" — gairid mar go bhfeictear ar gach teaghrán a
-   fheiceann an t-úsáideoir é. Is í an fheidhm chéanna í agus `tr`, ceangailte
-   le catalóg amháin.
+   fheiceann an t-úsáideoir é. Déanann sé an t-aistriúchán céanna le `tr`,
+   ceangailte le catalóg amháin.
 2. Ag an nglao: éiríonn téacs an t-string ina eochair chuardaigh
    `Hello {name}`, freagraíonn an chatalóg le `こんにちは {name}`, seiceáiltear
    an freagra i gcoinne sealbhóirí ionaid na foinse, agus ansin amháin a
@@ -188,5 +199,9 @@ an suíomh seo ach mionchoigeartú ar cheann de na cúig chéim sin.
 - [Eastóscadh](extraction.md) — an tagairt iomlán do `pybabel`: ainmneacha
   feidhme saincheaptha, mód dian CI, agus na seiceálacha a chosnaíonn do
   chatalóga.
+- [Aistriú anonn](migration.md) — má tá catalóga gettext cheana féin ag an
+  tionscadal ar mhaith leat é seo a dhéanamh ann i ndáiríre.
+- [D'aistritheoirí](translators.md) — an leathanach amháin le tabhairt do
+  cibé duine a líonann isteach na línte `msgstr` sin.
 
   [Babel]: https://babel.pocoo.org/

@@ -1,5 +1,5 @@
 ---
-description: "Yr API rhedeg: rhwymo catalog, ieithoedd fesul cais, llinynnau gohiriedig, a sut yr adroddir cyfieithiad toredig."
+description: "Yr API rhedeg: pa bwynt mynediad i'w ddefnyddio, rhwymo catalog, ieithoedd fesul cais, llinynnau gohiriedig, gwerthoedd locale-ymwybodol, a sut yr adroddir cyfieithiad toredig."
 ---
 
 # Canllaw
@@ -11,6 +11,22 @@ wedi gweld y ddolen gyfan — nodi, echdynnu, cyfieithu, crynhoi, rhedeg — mae
 chreu a dilysu catalogau yn [Echdynnu](extraction.md), a sut y mae tîm yn cadw'r
 ddolen i droi — cylchoedd diweddaru, CI, llwyfannau cyfieithu — yw
 [Mewn cynhyrchu](workflow.md).
+
+## Pa bwynt mynediad y dylwn ei ddefnyddio? { #which-entry-point-should-i-use }
+
+Mae'r pecyn yn allforio sawl ffordd o gyfieithu neges am fod rhaglenni'n rhwymo
+iaith mewn sawl ffordd wahanol. Dewiswch yn ôl sut y mae eich rhaglen yn
+penderfynu pa iaith y mae ynddi:
+
+| Eich sefyllfa | Defnyddiwch |
+| --- | --- |
+| Un iaith i'r broses gyfan — CLI, rhaglen bwrdd gwaith, sgript | `Translator`, wedi'i galw fel `_` |
+| Un iaith fesul cais neu fesul tasg anghydamserol — rhaglen we | `use_translations()` o amgylch y gwaith, wedyn `tr()` |
+| Neges a ddiffinnir adeg mewnforio — label ffurflen, enum, cysonyn | `lazy_gettext()` neu `lazy_pgettext()` |
+| Cyfrif sy'n penderfynu'r geiriad | `ngettext()` / `npgettext()`, yn unrhyw un o'r ffurfiau uchod |
+| Rendro patrwm heb gatalog yn y cwestiwn | `compile_template()` |
+
+Y pump hynny, yn y drefn honno, yw popeth isod.
 
 ## Rhwymo catalog { #binding-a-catalog }
 
@@ -61,6 +77,7 @@ from gettext_tstrings import tr, use_translations
 
 
 def handle(request):
+    name = request.user.display_name
     translations = load_translations(request.locale)
     with use_translations(translations):
         return render(tr(t"Hello {name}"))
@@ -164,12 +181,52 @@ unwaith ac yn dosbarthu copïau sy'n rhannu'r catalog wedi'i barsio.
 
     Mae `asyncio.to_thread` eisoes yn gwneud hyn drosoch.
 
+## Gwerthoedd locale-ymwybodol { #locale-aware-values }
+
+Mae'r llyfrgell hon yn penderfynu *ble* mae gwerth yn ymddangos mewn neges
+wedi'i chyfieithu. Nid yw'n lleoleiddio'r gwerth ei hun. Manyleb fformat Python
+ag ymddygiad sefydlog yw `{amount:,.2f}` — atalnod bob tri digid a dot o flaen y
+degolion — ac mae'n cynhyrchu'r un nodau pa iaith bynnag y mae'r neges ynddi:
+
+```pycon
+>>> f"{1234.5:,.2f}"  # the same in every locale
+'1,234.50'
+```
+
+Mae Almaeneg yn ysgrifennu'r rhif hwnnw'n `1.234,50`, Ffrangeg yn `1 234,50`,
+ac mae Hindi'n grwpio `1234567` yn `12,34,567` yn hytrach nag yn `1,234,567`.
+Mae rhifau, arian, dyddiadau, amserau ac unedau'n perthyn i
+[Babel][babel-numbers]. Fformatiwch y gwerth yn gyntaf, wedyn rhowch y llinyn
+gorffenedig yn ei le:
+
+```python
+from babel.numbers import format_currency
+
+total = format_currency(amount, "EUR", locale=locale)
+tr(t"Your order comes to {total}")
+```
+
+Ar gyfer neges a gyfrifir mae'r rhif yn gwneud dau waith — mae'n dewis y ffurf
+luosog ac mae'n ymddangos yn y testun — a dim ond yr ail a leoleiddir. Cadwch y
+cyfrif crai ar gyfer y dewis a phasiwch y llinyn wedi'i fformatio i'w ddangos:
+
+```python
+from babel.numbers import format_decimal
+
+shown = format_decimal(n, locale=locale)
+_.ngettext(t"One file", t"{shown} files", n)
+```
+
+Fformatio cyn yr alwad hefyd yw'r hyn sy'n cadw manyleb fformat allan o'r
+catalog: yr hyn y mae cyfieithydd yn ei weld yw darn gorffenedig o destun, nid
+rhif ynghyd â chyfarwyddiadau ar gyfer ei rendro.
+
 ## Beth sy'n digwydd pan fo catalog yn anghywir { #what-happens-when-a-catalog-is-wrong }
 
 Os nad yw dalwyr lle cyfieithiad yn cyfateb i'r ffynhonnell — maes coll,
 anhysbys, neu wedi'i ailfformatio a lithrodd heibio'r dilysu, o MO a olygwyd â
 llaw, o gatalog gwerthwr, neu o biblinell sy'n hepgor y gwiriwr — y rhagosodiad
-yw atgynhyrchu'r testun ffynhonnell yn hytrach na chodi gwall. Mae hyn yn
+yw rendro'r neges ffynhonnell yn hytrach na chodi gwall. Mae hyn yn
 adlewyrchu contract gettext ei hun nad yw catalog gwael byth yn torri'r rhaglen.
 
 Gyda `Hello {name}` wedi'i gyfieithu fel `こんにちは {nombre}`, mae'r rendro'n
@@ -207,44 +264,14 @@ gettext_tstrings.errors.InvalidTranslationError: translation does not match the
 source placeholders: {name} is missing; {nombre} is not in the source message
 ```
 
-## Darllen neges fethiant { #reading-a-failure-message }
-
 Ysgrifennir y negeseuon hyn ar gyfer pwy bynnag a all weithredu arnynt, sef ar
-gyfer problem gatalog yn amlach cyfieithydd na rhaglennydd. Mae adrodd yn unig
-fod `{name}` ar goll yn ben ffordd pan all y darllenydd weld yr union nodau
-hynny o'i flaen, felly lle mae daliwr lle'n edrych yn bresennol ond nad ydyw,
-mae'r neges yn dweud pam. Yn erbyn y ffynhonnell `Hello {name}`, adroddir pob
-un o'r rhain dan `translation does not match the source placeholders:`
-
-| Yr hyn y mae'r cyfieithiad yn ei ddweud | Y rheswm y mae'n ei roi |
-| --- | --- |
-| `こんにちは ｛name｝` | `{name}` is missing (the braces around it are not the ASCII `{` and `}`) |
-| `こんにちは {{name}}` | `{name}` is missing (it is written `{{name}}`, which is how a literal brace is escaped) |
-| `こんにちは name` | `{name}` is missing (the name appears, but not inside braces) |
-| `こんにちは {名前}` | `{name}` is missing; `{名前}` is not in the source message |
-
-Mae nodau na ellir eu gweld yn cael eu trin ar wahân. Mae bwlch di-dor y tu
-mewn i'r bracedi'n rhywbeth y mae dull mewnbwn yn ei gynhyrchu ac nad oes yr un
-golygydd yn ei ddangos, felly mae'r neges yn ei argraffu wrth ei bwynt cod yn
-hytrach nag enwi nod na all y darllenydd ddod o hyd iddo:
-
-```text
-placeholder {<U+00A0>name} has a space inside the braces; write {name}
-```
-
-Dangosir enw y mae ei lythrennau'n cymysgu systemau ysgrifennu — yr achos
-homoglyff, lle mae `а` Cyrilig yn anwahanadwy oddi wrth un Lladin — ddwywaith,
-unwaith yn ddarllenadwy ac unwaith wedi'i ddianc, sef yr unig ffurf sy'n
-gwahaniaethu rhwng y ddau:
-
-```text
-translation does not match the source placeholders: {name} is missing;
-{nаme} (n\u0430me) is not in the source message
-```
-
-Mae'r un gwahaniaethu'n berthnasol pan fo enw Groeg neu Gyrilig a ysgrifennwyd
-yn gyfan gwbl mewn un sgript yn gwrthdaro ag enw ffynhonnell ASCII, gan gynnwys
-achos yr un llythyren `a` Lladin / `а` Cyrilig.
+gyfer problem gatalog yn amlach cyfieithydd na rhaglennydd — felly lle mae
+daliwr lle'n edrych yn bresennol ond nad ydyw, mae'r neges yn esbonio pam yn
+hytrach nag ailadrodd ei fod ar goll. Bracedi lled-llawn, `{{name}}` wedi'i
+ddyblu, bwlch di-dor anweledig, llythyren Gyrilig ymhlith rhai Lladin: mae gan
+bob un ei eiriad ei hun, wedi'u rhestru ag enghreifftiau ar
+[I gyfieithwyr](translators.md#reading-a-failure-message). Ysgrifennwyd y
+dudalen honno i'w rhoi i'r person sy'n golygu'r `.po`.
 
 ## Rendro patrwm heb gatalog { #rendering-a-pattern-without-a-catalog }
 
@@ -300,3 +327,5 @@ galwr, yn union fel gyda gettext y llyfrgell safonol — **dianc** allbwn wedi'i
 rendro ar gyfer ei sinc (HTML, cragen, terfynell), a **chywirdeb catalogau**,
 gan y gall catalog gelyniaethus ailadrodd daliwr lle i chwyddo maint yr allbwn,
 sy'n gynhenid i unrhyw i18n sy'n seiliedig ar ddalwyr lle.
+
+  [babel-numbers]: https://babel.pocoo.org/en/latest/api/numbers.html

@@ -11,6 +11,18 @@ eigen schema, en met elke release wordt een gecompileerde catalogus
 uitgeleverd. Deze pagina is die praktijk — wat in de repository blijft, wat
 reist, wat CI moet bewaken, en waar de runtime een taal bindt.
 
+Waar het op neerkomt zijn zes controles, dus die staan hier eerst; elke
+sectie hieronder zet er één van op.
+
+- `pybabel update --check` slaagt — geen bericht is veranderd zonder dat de
+  catalogi ervan gehoord hebben.
+- `pybabel compile` laat de build afhangen van zijn exitstatus.
+- Overgebleven `fuzzy`-entries zijn bedoeld — elk daarvan rendert als
+  brontekst tot een vertaler hem bevestigt.
+- De testsuite rendert elke uitgeleverde taal één keer met `strict=True`.
+- Het productieartefact bevat `.mo`-bestanden en geen Babel.
+- De `gettext_tstrings`-logger is naar monitoring geleid.
+
 ## De vorm van een project { #the-shape-of-a-project }
 
 ```text
@@ -33,7 +45,7 @@ bij het inpakken in plaats van ze te committen, zodat een `.po` en zijn
 
 Eén bestand heeft in elke richting een rol: de `.pot` draagt je berichten
 *naar buiten*, naar vertalers, de `.po`-bestanden dragen vertalingen *terug*.
-Alles hieronder is het verkeer tussen die twee.
+De rest van deze pagina is wat er tussen die twee beweegt.
 
 ```mermaid
 flowchart LR
@@ -47,8 +59,8 @@ flowchart LR
 
 ## De cyclus na de eerste vertaling { #the-cycle-after-the-first-translation }
 
-De `pybabel init` uit de tutorial draait één keer per taal, ooit. Vanaf dan
-is de werkcyclus **extraheren → updaten → vertalen → compileren**, en het
+De `pybabel init` uit de tutorial draait normaal gesproken één keer, wanneer
+een taal wordt toegevoegd. Vanaf dan is de werkcyclus **extraheren → updaten → vertalen → compileren**, en het
 middelpunt ervan is `pybabel update`, dat een vers sjabloon in de bestaande
 catalogi vouwt zonder de vertalingen die er al in staan weg te gooien.
 
@@ -76,7 +88,8 @@ msgstr "こんにちは {name}"
 
 Babel merkte op dat de nieuwe msgid lijkt op een verwijderde en paarde hem
 met de oude vertaling — maar markeerde het paar **fuzzy**: de gok van een
-machine in afwachting van een mens. De vlag heeft tanden. `pybabel compile`
+machine in afwachting van een mens. De vlag verandert wat er compileert.
+`pybabel compile`
 **sluit fuzzy-entries uit van de `.mo`**, zodat de applicatie, totdat een
 vertaler het paar bevestigt, de nieuwe Engelse tekst rendert in plaats van
 een verouderde Japanse:
@@ -128,33 +141,18 @@ placeholdercontroles van zowel Babel als de
 [geregistreerde checker](extraction.md#your-existing-toolchain-validates-these-catalogs)
 van dit pakket.
 
-!!! bug "`--check` kan geen catalogus bewaken die contexten gebruikt"
+!!! bug "Babel 2.18.0: `--check` kan geen catalogus bewaken die contexten gebruikt"
 
     Op Babel 2.18.0 rapporteert `pybabel update --check` **elke** catalogus
     die een `msgctxt` bevat als verouderd, bij elke run, hoe actueel hij ook
-    is. De vergelijking loopt via `Catalog.is_identical`, dat elk bericht
-    opzoekt onder de sleutel waaronder het is opgeslagen — en voor een
-    contextueel bericht is die sleutel het paar `(id, context)`, dat
-    `Catalog.get` niet accepteert. De opzoeking levert niets op, en de
-    catalogi blijken nooit gelijk:
-
-    ```pycon
-    >>> from babel.messages.catalog import Catalog
-    >>> c = Catalog(locale="ja")
-    >>> c.add("Guide", "ガイド", context="navigation")
-    <Message 'Guide' (flags: [])>
-    >>> c.is_identical(c)
-    False
-    ```
-
-    Dus als je `pgettext` of `npgettext` überhaupt gebruikt — en het
-    ondubbelzinnig maken van een homoniem is precies waarvoor ze bestaan —
-    faalt deze stap op de slechtst denkbare manier: altijd rood, dus zet een
-    team hem uit, dus bewaakt niets meer de veroudering. Totdat dit upstream
-    is opgelost, vergelijk je de berichtenverzamelingen zelf. Het sjabloon en
-    elke catalogus lezen met `babel.messages.pofile.read_po` en
+    is. Een permanent falende poort is erger dan geen poort, want een team
+    zet hem uit — dus als je `pgettext` of `npgettext` überhaupt gebruikt,
+    vervang deze stap dan liever dan ermee te leven. Het sjabloon en elke
+    catalogus lezen met `babel.messages.pofile.read_po` en
     `{(m.context, m.id) for m in catalog if m.id}` vergelijken is de hele
     controle, en het is wat [de eigen build van deze site](index.md) doet.
+    De oorzaak is
+    [uitgeschreven op Valkuilen](pitfalls.md#your-tools-have-bugs-too).
 
 !!! danger "Controleer de exitstatus, niet het log"
 

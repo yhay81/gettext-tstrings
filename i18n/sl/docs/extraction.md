@@ -42,10 +42,13 @@ Ekstraktor `gettext_tstrings` obdela tudi običajne klice `_()`, `gettext()` in
 `_()`, štiri standardna imena gettexta, vzdevka `tr()` / `ntr()` in odložena
 `lazy_gettext()` / `lazy_pgettext()`.
 
-!!! warning "`-c` ni neobvezen"
+!!! warning "Komentarje za prevajalce vklopite s `-c`"
 
     `pybabel extract` zbere komentarje za prevajalce le, kadar podate
-    `-c "Translators:"`, natanko tako kot pri običajnih klicih gettexta.
+    `-c "Translators:"`, natanko tako kot pri običajnih klicih gettexta. Če
+    ga izpustite, ekstrakcija še vedno deluje — komentarji le nikoli ne
+    pridejo v katalog, kjer so [najcenejši vzvod kakovosti](workflow.md#working-with-translators-and-platforms)
+    v vsem delovnem procesu.
 
 ## Registracija lastnih imen funkcij { #registering-your-own-function-names }
 
@@ -85,9 +88,9 @@ Možnosti so `tr_functions`, `ntr_functions`, `gettext_functions`,
     `pgettext` kontekst in nato sporočilo, pri `npgettext` kontekst, nato
     ednina, nato množina.
 
-## Robusten privzeto { #robust-by-default }
+## Prizanesljivo lokalno, strogo v CI { #lenient-locally-strict-in-ci }
 
-Ena slaba datoteka ne konča teka:
+Privzeto ena slaba datoteka ne konča teka:
 
 - T-niz, ki ga ekstraktor zavrne — dostop do atributa, izraz, napačen
   argument —, se javi kot opozorilo in preskoči.
@@ -95,8 +98,30 @@ Ena slaba datoteka ne konča teka:
 - Prav tako datoteka, ki jo zavrne le `tokenize`, medtem ko jo `ast` sprejme in
   na kateri bi Babelov lastni prehod sicer klonil.
 
-Če želite vse to spremeniti v trdo odpoved, v možnostih preslikave nastavite
-`strict = true` — kar je tisto, kar hočete v CI.
+To je udobno, dokler urejate, in nevarno, kadar ne. Preskočeno sporočilo je
+preprosto **odsotno iz POT**, zato ni nikoli prevedeno in tega nič ne pove.
+Povsod, kjer ekstrakcije ne opazuje človek, v možnostih preslikave nastavite
+`strict = true`:
+
+=== "babel.cfg"
+
+    ```ini
+    [gettext_tstrings: **.py]
+    encoding = utf-8
+    strict = true
+    ```
+
+=== "babel.toml"
+
+    ```toml
+    [[mappings]]
+    method = "gettext_tstrings"
+    pattern = "**.py"
+    strict = true
+    ```
+
+Vsako zgornje opozorilo tedaj postane trda odpoved. To imejte za produkcijsko
+nastavitev, privzeto pa za lokalno.
 
 ## Vaša obstoječa orodna veriga te kataloge preveri { #your-existing-toolchain-validates-these-catalogs }
 
@@ -123,8 +148,8 @@ msgfmt: found 1 fatal error
 
 Weblate isto preverjanje dokumentira kot [Python brace format][weblate-checks],
 komercialne platforme pa imajo svoj nadzor kakovosti ograd, vezan na isto
-zastavico. Njihovo vedenje je njihova stvar; spodnji orodji sta tisti, ki sta
-preverjeni tukaj.
+zastavico. Vedenje vsake platforme je njena lastna stvar; spodnji orodji sta
+tisti, ki sta preverjeni tukaj.
 
   [weblate-checks]: https://docs.weblate.org/en/latest/user/checks.html
 
@@ -154,8 +179,8 @@ match the source placeholders: {n} is missing
     odpremil; [Kaj zapira CI](workflow.md#what-ci-gates) prikaže gradbeni
     korak, ki mu to omogoči.
 
-Preverjanji nista odveč. Priloženi preverjevalnik je strožja stran vsaj na dveh
-mestih:
+Preverjanji nista odveč. Preverjevalnik iz paketa je strožji vsaj v dveh
+primerih:
 
 - Msgid, katerega edini zaviti oklepaji so ubežno zapisani
   (`Config {{raw}} only`), zastavice `python-brace-format` nikoli ne dobi, zato

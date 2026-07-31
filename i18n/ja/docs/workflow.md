@@ -11,6 +11,17 @@ description: "チームが回すgettextループを説明します。繰り返�
 その実践を説明します。リポジトリに残すもの、行き来するもの、CIが防ぐべきもの、
 そしてランタイムが言語を束縛する場所です。
 
+まとめると6つの検査になります。先にその一覧を挙げておきます。以下の各節が、
+そのうちの1つずつを組み立てていきます。
+
+- `pybabel update --check`が通る — カタログの知らないメッセージ変更はない。
+- `pybabel compile`の終了statusでビルドをゲートしている。
+- 残っている`fuzzy`エントリは意図的なもの — 各エントリは翻訳者が確認する
+  までソーステキストで表示される。
+- テストスイートが、出荷する各言語を`strict=True`で一度レンダリングしている。
+- 本番成果物には`.mo`ファイルが含まれ、Babelは含まれない。
+- `gettext_tstrings` loggerがmonitoringへルーティングされている。
+
 ## プロジェクトの形 { #the-shape-of-a-project }
 
 ```text
@@ -33,7 +44,7 @@ myapp/
 
 1つのファイル形式が、それぞれの方向で役割を持ちます。`.pot`はあなたの
 メッセージを翻訳者へ*運び出し*、`.po`ファイルは翻訳を*持ち帰り*ます。
-以下で説明することはすべて、この2つの間の往来です。
+このページの残りは、その2つの間を動くものについての説明です。
 
 ```mermaid
 flowchart LR
@@ -47,7 +58,7 @@ flowchart LR
 
 ## 最初の翻訳の後のサイクル { #the-cycle-after-the-first-translation }
 
-チュートリアルの`pybabel init`を実行するのは、言語ごとに一度きりです。
+チュートリアルの`pybabel init`は通常、言語を追加するときに一度だけ実行します。
 それ以降の作業サイクルは**抽出 → 更新 → 翻訳 → コンパイル**であり、その中心は
 `pybabel update`です。新しいtemplateを既存のカタログへ折り込みながら、すでに
 入っている翻訳を破棄しません。
@@ -75,9 +86,10 @@ msgstr "こんにちは {name}"
 
 Babelは、新しいmsgidが削除されたmsgidに似ていることに気付き、古い翻訳と
 組にしました。ただし、その組に**fuzzy**フラグを付けています。人間の確認を待つ
-機械の推測という意味です。このフラグには実効性があります。`pybabel compile`は
-**fuzzyエントリを`.mo`から除外する**ため、翻訳者が組を確認するまで、
-アプリケーションは古い日本語ではなく新しい英語テキストを表示します。
+機械の推測という意味です。このフラグはコンパイルされる内容を変えます。
+`pybabel compile`は**fuzzyエントリを`.mo`から除外する**ため、翻訳者が組を
+確認するまで、アプリケーションは古い日本語ではなく新しい英語テキストを
+表示します。
 
 ```console
 $ pybabel compile -d locales
@@ -123,31 +135,17 @@ Welcome back, Ada
 [登録済みchecker](extraction.md#your-existing-toolchain-validates-these-catalogs)
 の両方のプレースホルダー検査を実行します。
 
-!!! bug "`--check`はコンテキストを使うカタログのガードにならない"
+!!! bug "Babel 2.18.0：`--check`はコンテキストを使うカタログのガードにならない"
 
     Babel 2.18.0では、`pybabel update --check`は`msgctxt`を含むカタログを
-    **すべて**、どれだけ最新であっても、実行のたびに古いと報告します。比較は
-    `Catalog.is_identical`を通ります。これは各メッセージを、格納に使われた
-    キーで引きます — そしてコンテキスト付きメッセージのそのキーは
-    `(id, context)`の組であり、`Catalog.get`はそれを受け付けません。参照は
-    何も返さず、カタログ同士が等しいと判定されることは決してありません。
-
-    ```pycon
-    >>> from babel.messages.catalog import Catalog
-    >>> c = Catalog(locale="ja")
-    >>> c.add("Guide", "ガイド", context="navigation")
-    <Message 'Guide' (flags: [])>
-    >>> c.is_identical(c)
-    False
-    ```
-
-    そのため、`pgettext`や`npgettext`を少しでも使うなら — 同音異義語を区別する
-    ことがそれらの存在理由です — このステップは最悪の形で骨抜きになります。常に
-    赤なのでチームはこれを切り、結果として古さを防ぐものが何もなくなります。
-    上流で修正されるまでは、メッセージ集合を自分で比較してください。templateと
-    各カタログを`babel.messages.pofile.read_po`で読み、
+    **すべて**、どれだけ最新であっても、実行のたびに古いと報告します。常に赤い
+    ゲートは、ゲートが無いより悪いのです。チームがそれを切ってしまうからです。
+    そのため、`pgettext`や`npgettext`を少しでも使うなら、このステップは我慢して
+    使うのではなく置き換えてください。templateと各カタログを
+    `babel.messages.pofile.read_po`で読み、
     `{(m.context, m.id) for m in catalog if m.id}`を比較する — これが検査の
-    すべてであり、[このサイト自身のビルド](index.md)がしていることです。
+    すべてであり、[このサイト自身のビルド](index.md)がしていることです。原因は
+    [落とし穴のページに詳しく書いてあります](pitfalls.md#your-tools-have-bugs-too)。
 
 !!! danger "ログではなく終了statusを確認する"
 

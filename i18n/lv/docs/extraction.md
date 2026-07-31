@@ -42,10 +42,13 @@ tā `fuzzy` ieraksti nozīmē laidienam — ir izstaigāts lapā
 atpazīst `_()`, četrus standarta gettext nosaukumus, `tr()` / `ntr()`
 aizstājvārdus un atliktos `lazy_gettext()` / `lazy_pgettext()`.
 
-!!! warning "`-c` nav neobligāts"
+!!! warning "Ieslēdziet tulkotāju komentārus ar `-c`"
 
     `pybabel extract` savāc tulkotāju komentārus tikai tad, ja padodat
     `-c "Translators:"` — tieši tāpat kā parasto gettext izsaukumu gadījumā.
+    Ja to nepadodat, ekstrakcija joprojām strādā — komentāri vienkārši nekad
+    nenonāk katalogā, kur tie ir [lētākā kvalitātes svira](workflow.md#working-with-translators-and-platforms)
+    visā darbplūsmā.
 
 ## Savu funkciju nosaukumu reģistrēšana { #registering-your-own-function-names }
 
@@ -85,9 +88,9 @@ Opcijas ir `tr_functions`, `ntr_functions`, `gettext_functions`,
     `pgettext` gadījumā konteksts, tad ziņojums; `npgettext` gadījumā
     konteksts, tad vienskaitlis, tad daudzskaitlis.
 
-## Izturīgs pēc noklusējuma { #robust-by-default }
+## Iecietīgs lokāli, stingrs CI vidē { #lenient-locally-strict-in-ci }
 
-Viens slikts fails neizbeidz visu izpildi:
+Pēc noklusējuma viens slikts fails neizbeidz visu izpildi:
 
 - T-virkne, ko ekstraktors noraida — piekļuve atribūtiem, izteiksme, nepareizs
   arguments —, tiek ziņota kā brīdinājums un izlaista.
@@ -95,8 +98,30 @@ Viens slikts fails neizbeidz visu izpildi:
 - Tāpat arī fails, ko atsakās pieņemt tikai `tokenize`, kamēr `ast` to pieņem
   un uz kura paša Babel gājiens citādi pārtrauktu darbu.
 
-Iestatiet attēlojuma opcijās `strict = true`, lai katru no šiem pārvērstu par
-smagu kļūmi, un tieši to jūs gribat CI vidē.
+Tas ir ērti, kamēr jūs rediģējat, un bīstami, kad ne: izlaists ziņojums
+vienkārši **nav POT failā**, tāpēc tas nekad netiek iztulkots un neviens to
+nepasaka. Iestatiet attēlojuma opcijās `strict = true` visur, kur ekstrakciju
+nevēro cilvēks:
+
+=== "babel.cfg"
+
+    ```ini
+    [gettext_tstrings: **.py]
+    encoding = utf-8
+    strict = true
+    ```
+
+=== "babel.toml"
+
+    ```toml
+    [[mappings]]
+    method = "gettext_tstrings"
+    pattern = "**.py"
+    strict = true
+    ```
+
+Tad katrs augšminētais brīdinājums kļūst par smagu kļūmi. Uzskatiet to par
+produkcijas iestatījumu, bet noklusējumu — par lokālo.
 
 ## Jūsu esošā rīkkopa validē šos katalogus { #your-existing-toolchain-validates-these-catalogs }
 
@@ -123,8 +148,8 @@ msgfmt: found 1 fatal error
 
 Weblate dokumentē to pašu pārbaudi kā [Python brace format][weblate-checks], un
 komerciālajām platformām ir sava vietturu kvalitātes kontrole, kas balstās uz
-to pašu karogu. Viņu uzvedība ir viņu ziņā; abi zemāk minētie rīki ir tie, kas
-šeit ir pārbaudīti.
+to pašu karogu. Katras platformas uzvedība ir tās pašas ziņā; abi zemāk minētie
+rīki ir tie, kas šeit ir pārbaudīti.
 
   [weblate-checks]: https://docs.weblate.org/en/latest/user/checks.html
 
@@ -154,8 +179,8 @@ match the source placeholders: {n} is missing
     konveijeram to piegādāt; [Ko CI aiztur](workflow.md#what-ci-gates) parāda
     būvēšanas soli, kas to izdara.
 
-Abas pārbaudes nav lieks dublējums. Komplektā iekļautais pārbaudītājs vismaz
-divās vietās ir stingrākā puse:
+Abas pārbaudes nav lieks dublējums. Pakotnes pārbaudītājs ir stingrāks vismaz
+divos gadījumos:
 
 - Msgid, kura vienīgās figūriekavas ir atsoļotas (`Config {{raw}} only`), nekad
   nesaņem `python-brace-format` karogu, tāpēc to nevalidē neviens ārējs rīks.

@@ -11,8 +11,8 @@ se sei sulla strada giusta.
 
 Serve Python 3.14 o più recente, perché le t-string sono sintassi nuova
 della 3.14. Il giapponese è la lingua di esempio di questa pagina, ma niente
-dipende da quella scelta — sostituisci qualsiasi lingua al passo 4, dove il
-codice di locale `ja` è l'unica cosa che la nomina.
+dipende da quella scelta. Per usare un'altra lingua, sostituisci `ja` al
+passo 4 — quel codice di locale è l'unica cosa che la nomina.
 
 ## 1. Installa { #1-install }
 
@@ -54,9 +54,9 @@ catalogo per funzionare — l'inglese (o qualunque sia la tua lingua sorgente)
 
 ## 3. Estrai i messaggi { #3-extract-the-messages }
 
-I traduttori non leggono il tuo codice sorgente; tra te e loro viaggia un
-piccolo file chiamato **catalogo**. Il primo passo verso di esso è raccogliere
-dal codice ogni messaggio marcato.
+I traduttori di solito lavorano sui cataloghi anziché sul codice sorgente,
+quindi tra te e loro viaggia un piccolo file chiamato **catalogo**. Il primo
+passo verso di esso è raccogliere dal codice ogni messaggio marcato.
 
 Di' a Babel come trovare i tuoi messaggi creando `babel.cfg`:
 
@@ -129,7 +129,17 @@ source placeholders: {name} is missing; {nome} is not in the source message
 1 errors encountered.
 ```
 
+Un avvertimento che vale la pena conoscere fin d'ora: segnala l'errore ed esce
+con stato diverso da zero, ma scrive comunque il `.mo`. Su un progetto vero è
+la CI a doversi fermare su quello stato di uscita —
+[In produzione](workflow.md#what-ci-gates) lo configura.
+
 ## 5. Eseguilo { #5-run-it }
+
+I passi 2–4 hanno usato `tr()`, che cerca un catalogo e non ne trova nessuno.
+Ora che ne esiste uno, caricalo e legalo una volta sola: `Translator` tiene un
+catalogo perché i punti di chiamata non debbano nominarlo, e `_` è il nome
+gettext convenzionale per il risultato.
 
 Punta `app.py` al catalogo compilato. Fai clic sui marcatori per vedere che
 cosa fa ogni riga:
@@ -147,8 +157,8 @@ print(_(t"Hello {name}"))  # (2)!
 
 1. La libreria standard carica il `.mo` compilato e `Translator` lo lega a un
    callable. `_` è il nome gettext convenzionale per "traduci questo" — corto
-   perché compare su ogni stringa rivolta all'utente. È la stessa funzione di
-   `tr`, legata a un solo catalogo.
+   perché compare su ogni stringa rivolta all'utente. Esegue la stessa
+   traduzione di `tr`, legata a un solo catalogo.
 2. Alla chiamata: il testo della t-string diventa la chiave di ricerca
    `Hello {name}`, il catalogo risponde `こんにちは {name}`, la risposta
    viene verificata contro i segnaposto sorgente, e solo allora il valore
@@ -184,5 +194,9 @@ sito è un raffinamento di uno di quei cinque passi.
 - [Estrazione](extraction.md) — il riferimento completo per `pybabel`: nomi
   di funzione personalizzati, modalità strict per la CI e i controlli che
   proteggono i tuoi cataloghi.
+- [Migrazione](migration.md) — se il progetto in cui vuoi davvero fare tutto
+  questo ha già cataloghi gettext.
+- [Per i traduttori](translators.md) — l'unica pagina da consegnare a chi
+  riempie quelle righe `msgstr`.
 
   [Babel]: https://babel.pocoo.org/

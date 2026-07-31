@@ -72,6 +72,11 @@ Interpolaties worden structureel beschreven, nooit als Python-broncode:
 }
 ```
 
+Het veld `"spec"` is **geen** specificatieversie — elk geval in `v1.json`
+hoort bij spec v1. Het benoemt de sectie van `SPEC.md` die het geval
+uitoefent, dus `"2.2"` leest als §2.2, de regel voor het afleiden van een
+placeholder-token.
+
 De referentie-implementatie draait de suite als onderdeel van haar eigen
 testsuite, zodat het proza en de code niet in stilte uit elkaar kunnen
 drijven.

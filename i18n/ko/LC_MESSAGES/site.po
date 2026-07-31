@@ -84,3 +84,27 @@ msgctxt "build report"
 msgid "Rendered {n} page in {seconds}s"
 msgid_plural "Rendered {n} pages in {seconds}s"
 msgstr[0] "{n}개의 페이지를 {seconds}s 만에 렌더링했습니다"
+
+#. gettext-tstrings
+msgid "Start here"
+msgstr "여기서 시작"
+
+#. gettext-tstrings
+msgid "Use it"
+msgstr "사용하기"
+
+#. gettext-tstrings
+msgid "Migration"
+msgstr "마이그레이션"
+
+#. gettext-tstrings
+msgid "For translators"
+msgstr "번역자를 위한 안내"
+
+#. gettext-tstrings
+msgid "Understand it"
+msgstr "이해하기"
+
+#. gettext-tstrings
+msgid "Reference"
+msgstr "레퍼런스"

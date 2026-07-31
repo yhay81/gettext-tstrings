@@ -39,10 +39,12 @@ pybabel compile -d locales
 所以單一份 mapping 就能涵蓋混合的程式庫。它認得 `_()`、四個標準 gettext 名稱、
 `tr()` / `ntr()` 別名，以及延遲版的 `lazy_gettext()` / `lazy_pgettext()`。
 
-!!! warning "`-c` 不是可有可無的"
+!!! warning "用 `-c` 打開譯者註解"
 
     `pybabel extract` 只有在你傳入 `-c "Translators:"` 時才會收集譯者註解，這一點
-    與它對待一般 gettext 呼叫的方式完全相同。
+    與它對待一般 gettext 呼叫的方式完全相同。不加它，擷取照樣跑得動——只是那些
+    註解永遠到不了目錄，而在目錄裡，它們是[整條工作流程中成本最低的品質
+    槓桿](workflow.md#working-with-translators-and-platforms)。
 
 ## 註冊你自己的函式名稱 { #registering-your-own-function-names }
 
@@ -80,17 +82,38 @@ ini 檔給的是一個字串，TOML mapping 給的是一份列表，而在字串
     只支援標準的引數順序：訊息在前，`pgettext` 是上下文接訊息，`npgettext` 是
     上下文接單數再接複數。
 
-## 預設就夠穩健 { #robust-by-default }
+## 本地寬容，CI 嚴格 { #lenient-locally-strict-in-ci }
 
-一個壞掉的檔案不會終結整次執行：
+預設情況下，一個壞掉的檔案不會終結整次執行：
 
 - 被擷取器拒絕的 t-string——屬性存取、運算式、錯誤的引數——會被回報為警告並略過。
 - 剖析不了的檔案也以同樣方式略過。
 - 只有 `tokenize` 拒絕而 `ast` 接受的檔案同樣如此，而 Babel 自己那一遍原本會在這裡
   中止。
 
-在 mapping 選項裡設定 `strict = true`，就能把上述每一種情況都變成硬性失敗，而那正是
-你在 CI 裡想要的。
+這在你正在改程式時很方便，在你沒盯著它時卻很危險：被略過的訊息就是**在 POT 裡
+缺席**，於是它永遠不會被翻譯，而且沒有任何東西會出聲。凡是擷取過程沒有人看著的
+地方，都請在 mapping 選項裡設定 `strict = true`：
+
+=== "babel.cfg"
+
+    ```ini
+    [gettext_tstrings: **.py]
+    encoding = utf-8
+    strict = true
+    ```
+
+=== "babel.toml"
+
+    ```toml
+    [[mappings]]
+    method = "gettext_tstrings"
+    pattern = "**.py"
+    strict = true
+    ```
+
+如此一來，上面每一則警告都會變成硬性失敗。請把它當成正式環境的設定，而把預設值
+當成本機開發的設定。
 
 ## 你既有的工具鏈就能驗證這些目錄 { #your-existing-toolchain-validates-these-catalogs }
 
@@ -115,8 +138,8 @@ msgfmt: found 1 fatal error
 ```
 
 Weblate 把同一項檢查記載為 [Python brace format][weblate-checks]，而商用平台也有
-各自以同一個旗標為觸發條件的佔位符 QA。它們的行為由它們自己決定；下面那兩個工具，
-才是這裡驗證過的。
+各自以同一個旗標為觸發條件的佔位符 QA。每個平台的行為都是它自己的事；下面那兩個
+工具，才是這裡驗證過的。
 
   [weblate-checks]: https://docs.weblate.org/en/latest/user/checks.html
 
@@ -144,7 +167,7 @@ match the source placeholders: {n} is missing
     唯有那個離開狀態碼能阻止流水線把它送出去；[CI 把守什麼](workflow.md#what-ci-gates)
     展示了讓它能夠阻止的那個建置步驟。
 
-這兩項檢查並不重複。內附的檢查器至少在兩個地方是比較嚴格的一方：
+這兩項檢查並不重複。本套件的檢查器至少在兩種情況下比較嚴格：
 
 - 大括號全部都被跳脫掉的 msgid（`Config {{raw}} only`）永遠拿不到
   `python-brace-format` 旗標，所以根本沒有外部工具會驗證它。

@@ -51,9 +51,12 @@ segura con concurrencia.
 
 | Nombre | Finalidad |
 | --- | --- |
-| `lazy_gettext(template, /, *, strict=False)` | Difiere una traducción hasta el primer uso. |
+| `lazy_gettext(template, /, *, strict=False)` | Difiere la traducción hasta cada renderizado. |
 | `lazy_pgettext(context, template, /, *, strict=False)` | La forma con contexto. |
-| `LazyString` | El tipo que devuelven ambas. Se renderiza mediante `str()`, `format()` y f-strings, se compara con su texto y deliberadamente no admite hash. |
+| `LazyString` | El tipo que devuelven ambas. Se renderiza mediante `str()` y `format()` en el idioma que esté vinculado en ese instante, se compara con su texto renderizado y deliberadamente no admite hash. |
+
+Hay ejemplos resueltos, incluido por qué `strict` corresponde al punto de
+definición, en [Traducción diferida](guide.md#deferred-translation).
 
 ## Bajo nivel { #lower-level }
 

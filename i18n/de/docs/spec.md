@@ -59,6 +59,11 @@ Exception-Typen sind nicht Teil dieser Prüfung.
 }
 ```
 
+Das Feld `"spec"` ist **keine** Versionsnummer der Spezifikation — jeder Fall
+in `v1.json` gehört zu Spec v1. Es benennt den Abschnitt von `SPEC.md`, den der
+Fall prüft; `"2.2"` liest sich also als §2.2, die Regel zur Ableitung eines
+Platzhalter-Tokens.
+
 Die Referenzimplementierung führt diese Suite in ihren Tests aus.
 
 ## Versionierung { #versioning }

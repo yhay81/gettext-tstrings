@@ -47,9 +47,12 @@ Translator(translations, strict=False)
 
 | 名稱 | 用途 |
 | --- | --- |
-| `lazy_gettext(template, /, *, strict=False)` | 把翻譯延後到第一次使用時。 |
+| `lazy_gettext(template, /, *, strict=False)` | 把翻譯延後到每一次渲染時才做。 |
 | `lazy_pgettext(context, template, /, *, strict=False)` | 帶上下文的形式。 |
-| `LazyString` | 兩者的回傳值。可透過 `str()` 與 `format()` 渲染，與渲染後的文字相等，並且刻意不可雜湊。 |
+| `LazyString` | 兩者的回傳值。可透過 `str()` 與 `format()` 以當下繫結的語言渲染，與渲染後的文字相等，並且刻意不可雜湊。 |
+
+實際範例，包括 `strict` 為什麼該放在定義處，都在
+[延遲翻譯](guide.md#deferred-translation)一節。
 
 ## 較低層 { #lower-level }
 

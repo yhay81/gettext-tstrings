@@ -200,7 +200,8 @@ bu yüzden mesajlar üç kuralla hesaplanır:
 Aynı ilkeyle, *var gibi görünen* "eksik" bir yer tutucunun yokluğu açıklanır
 — Doğu Asya giriş yönteminden gelen tam genişlikli ayraçlar, bir kaçışlama
 gidiş dönüşünden kalan `{{name}}` ikilemesi, ayraçların dışında kalmış ad.
-[Kılavuzun hata okuma tablosu](guide.md#reading-a-failure-message), bu
+Çevirmenler için yazılmış
+[hata okuma tablosu](translators.md#reading-a-failure-message), bu
 mesajların her birini birebir gösterir.
 
 ## Sıcak yol { #the-hot-path }

@@ -88,3 +88,27 @@ msgid_plural "Rendered {n} pages in {seconds}s"
 msgstr[0] "S-a randat {n} pagină în {seconds}s"
 msgstr[1] "S-au randat {n} pagini în {seconds}s"
 msgstr[2] "S-au randat {n} de pagini în {seconds}s"
+
+#. gettext-tstrings
+msgid "Start here"
+msgstr "Începe aici"
+
+#. gettext-tstrings
+msgid "Use it"
+msgstr "Folosește-l"
+
+#. gettext-tstrings
+msgid "Migration"
+msgstr "Migrare"
+
+#. gettext-tstrings
+msgid "For translators"
+msgstr "Pentru traducători"
+
+#. gettext-tstrings
+msgid "Understand it"
+msgstr "Înțelege-l"
+
+#. gettext-tstrings
+msgid "Reference"
+msgstr "Referință"

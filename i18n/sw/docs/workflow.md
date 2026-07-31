@@ -11,6 +11,19 @@ ratiba yake mwenyewe, na katalogi iliyokusanywa husafirishwa na kila toleo.
 Ukurasa huu ni utendaji huo — kinachobaki katika hazina, kinachosafiri,
 kinachopaswa kuzuiwa na CI, na mahali wakati wa utekelezaji unapofunga lugha.
 
+Yote hayo hujumlika kuwa ukaguzi sita, hivyo hii hapa kwanza; kila sehemu iliyo
+hapa chini huweka mmojawapo.
+
+- `pybabel update --check` hupita — hakuna ujumbe uliobadilika bila katalogi
+  kusikia habari zake.
+- `pybabel compile` huzuia ujenzi kwa hali yake ya kutoka.
+- Maingizo ya `fuzzy` yaliyobaki ni ya makusudi — kila moja huonyeshwa kama
+  maandishi chanzo hadi mfasiri atakapolithibitisha.
+- Seti ya majaribio huonyesha kila lugha inayosafirishwa mara moja kwa
+  `strict=True`.
+- Bidhaa ya uzalishaji ina mafaili ya `.mo` wala si Babel.
+- Kumbukumbu ya `gettext_tstrings` huelekezwa kwenye ufuatiliaji.
+
 ## Umbo la mradi { #the-shape-of-a-project }
 
 ```text
@@ -33,8 +46,8 @@ hazina, ili `.po` na `.mo` yake zisiweze kamwe kutofautiana kuhusu
 kinachosafirishwa.
 
 Faili moja lina jukumu kwa kila upande: `.pot` hubeba jumbe zako *kwenda* kwa
-wafasiri, mafaili ya `.po` hubeba tafsiri *kurudi*. Kila kitu kilicho hapa
-chini ni msafara kati ya hayo mawili.
+wafasiri, mafaili ya `.po` hubeba tafsiri *kurudi*. Sehemu iliyobaki ya ukurasa
+huu ni kile kinachohama kati ya hayo mawili.
 
 ```mermaid
 flowchart LR
@@ -48,10 +61,11 @@ flowchart LR
 
 ## Mzunguko baada ya tafsiri ya kwanza { #the-cycle-after-the-first-translation }
 
-`pybabel init` ya mafunzo huendeshwa mara moja kwa kila lugha, milele. Kuanzia
-hapo mzunguko wa kazi ni **toa → sasisha → tafsiri → kusanya**, na kitovu chake
-ni `pybabel update`, ambayo huingiza kiolezo kipya ndani ya katalogi zilizopo
-bila kutupa tafsiri zilizomo tayari.
+`pybabel init` ya mafunzo kwa kawaida huendeshwa mara moja, lugha
+inapoongezwa. Kuanzia hapo mzunguko wa kazi ni
+**toa → sasisha → tafsiri → kusanya**, na kitovu chake ni `pybabel update`,
+ambayo huingiza kiolezo kipya ndani ya katalogi zilizopo bila kutupa tafsiri
+zilizomo tayari.
 
 Tuseme salamu `Hello {name}` — iliyotafsiriwa tayari kama `こんにちは {name}` —
 inaandikwa upya ndani ya msimbo kuwa `Welcome back, {name}`. Toa na usasishe:
@@ -76,10 +90,10 @@ msgstr "こんにちは {name}"
 
 Babel iliona kuwa msgid mpya inafanana na ile iliyoondolewa nayo ikaioanisha na
 tafsiri ya zamani — lakini ikaweka alama ya **fuzzy** kwenye jozi hiyo: kisio
-la mashine linalosubiri binadamu. Alama hiyo ina meno. `pybabel compile`
-**huyaacha maingizo ya fuzzy nje ya `.mo`**, hivyo hadi mfasiri athibitishe
-jozi hiyo, programu huonyesha maandishi mapya ya Kiingereza badala ya ya
-Kijapani yaliyopitwa na wakati:
+la mashine linalosubiri binadamu. Alama hiyo hubadilisha kinachokusanywa.
+`pybabel compile` **huyaacha maingizo ya fuzzy nje ya `.mo`**, hivyo hadi
+mfasiri athibitishe jozi hiyo, programu huonyesha maandishi mapya ya Kiingereza
+badala ya ya Kijapani yaliyopitwa na wakati:
 
 ```console
 $ pybabel compile -d locales
@@ -128,32 +142,17 @@ na wa
 [kikaguzi kilichosajiliwa](extraction.md#your-existing-toolchain-validates-these-catalogs)
 cha kifurushi hiki.
 
-!!! bug "`--check` haiwezi kuzuia katalogi inayotumia miktadha"
+!!! bug "Babel 2.18.0: `--check` haiwezi kuzuia katalogi inayotumia miktadha"
 
     Kwenye Babel 2.18.0, `pybabel update --check` huripoti **kila** katalogi
     yenye `msgctxt` kuwa imepitwa na wakati, katika kila mzunguko, hata iwe ni
-    mpya kiasi gani. Ulinganisho hupitia `Catalog.is_identical`, ambayo hutafuta
-    kila ujumbe kwa ufunguo unaohifadhiwa nao — na kwa ujumbe wenye muktadha
-    ufunguo huo ni jozi ya `(id, context)`, ambayo `Catalog.get` haiikubali.
-    Utafutaji hurudisha si kitu, na katalogi hazilingani kamwe:
-
-    ```pycon
-    >>> from babel.messages.catalog import Catalog
-    >>> c = Catalog(locale="ja")
-    >>> c.add("Guide", "ガイド", context="navigation")
-    <Message 'Guide' (flags: [])>
-    >>> c.is_identical(c)
-    False
-    ```
-
-    Kwa hiyo ukitumia `pgettext` au `npgettext` hata kidogo — na kutofautisha
-    maneno yenye sura moja ndiyo sababu ya kuwepo kwake — hatua hii hushindwa
-    kwa namna mbaya kabisa: daima nyekundu, hivyo timu huizima, hivyo hakuna
-    kinachozuia ukale. Hadi itakaporekebishwa upande wa juu, linganisha seti za
-    jumbe mwenyewe. Kusoma kiolezo na kila katalogi kwa
-    `babel.messages.pofile.read_po` na kulinganisha
+    mpya kiasi gani. Kizuizi kinachoshindwa daima ni kibaya kuliko kutokuwa na
+    kizuizi kabisa, kwa sababu timu huizima — hivyo ukitumia `pgettext` au
+    `npgettext` hata kidogo, badilisha hatua hii badala ya kuishi nayo. Kusoma
+    kiolezo na kila katalogi kwa `babel.messages.pofile.read_po` na kulinganisha
     `{(m.context, m.id) for m in catalog if m.id}` ndio ukaguzi mzima, nao ndio
-    [ujenzi wa tovuti hii yenyewe](index.md) unaofanya.
+    [ujenzi wa tovuti hii yenyewe](index.md) unaofanya. Chanzo chake
+    [kimeandikwa katika Mitego](pitfalls.md#your-tools-have-bugs-too).
 
 !!! danger "Kagua hali ya kutoka, si kumbukumbu"
 

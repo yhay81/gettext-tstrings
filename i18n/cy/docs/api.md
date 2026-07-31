@@ -51,9 +51,12 @@ dan gydredoldeb.
 
 | Enw | Pwrpas |
 | --- | --- |
-| `lazy_gettext(template, /, *, strict=False)` | Gohirio cyfieithiad tan y defnydd cyntaf. |
+| `lazy_gettext(template, /, *, strict=False)` | Gohirio'r cyfieithu tan bob rendrad. |
 | `lazy_pgettext(context, template, /, *, strict=False)` | Y ffurf gyd-destunol. |
-| `LazyString` | Yr hyn y mae'r ddau yn ei ddychwelyd. Mae'n rendro drwy `str()` a `format()`, yn cymharu'n gyfartal â'i destun, ac yn fwriadol anhashadwy. |
+| `LazyString` | Yr hyn y mae'r ddau yn ei ddychwelyd. Mae'n rendro drwy `str()` a `format()` yn yr iaith sydd wedi'i rhwymo ar y foment honno, yn cymharu'n gyfartal â'i destun wedi'i rendro, ac yn fwriadol anhashadwy. |
+
+Mae enghreifftiau ymarferol, gan gynnwys pam mae `strict` yn perthyn i'r
+diffiniad, o dan [Cyfieithu gohiriedig](guide.md#deferred-translation).
 
 ## Lefel is { #lower-level }
 

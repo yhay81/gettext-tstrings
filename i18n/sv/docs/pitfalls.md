@@ -146,11 +146,25 @@ att fylla den luckan.
 
 CI-steget som den här dokumentationen rekommenderar för att fånga inaktuella
 kataloger, `pybabel update --check`, klarar inte det jobbet för något projekt
-som använder `pgettext` eller `npgettext` — det rapporterar varje katalog med
-ett `msgctxt` som inaktuell, vid varje körning, på grund av en bugg i hur
-jämförelsen slår upp meddelanden. Den hittades här genom att någon försökte
-använda verktyget, rapporterades uppströms och är
-[beskriven i sin helhet med lösningen](workflow.md#what-ci-gates).
+som använder `pgettext` eller `npgettext`. På Babel 2.18.0 rapporterar det
+varje katalog med ett `msgctxt` som inaktuell, vid varje körning. Jämförelsen
+går genom `Catalog.is_identical`, som slår upp varje meddelande under den
+nyckel det lagras under — och för ett kontextbärande meddelande är den nyckeln
+paret `(id, context)`, som `Catalog.get` inte tar emot. Uppslagningen ger
+ingenting, och katalogerna blir aldrig lika:
+
+```pycon
+>>> from babel.messages.catalog import Catalog
+>>> c = Catalog(locale="ja")
+>>> c.add("Guide", "ガイド", context="navigation")
+<Message 'Guide' (flags: [])>
+>>> c.is_identical(c)
+False
+```
+
+Den hittades här genom att någon försökte använda verktyget, rapporterades
+uppströms, och ersättningskontrollen finns
+[på produktionssidan](workflow.md#what-ci-gates).
 
 Den allmänna lärdomen är den obekväma: en grind som alltid lyser rött är sämre
 än ingen grind alls, eftersom ett team stänger av den. Kontrollera att din

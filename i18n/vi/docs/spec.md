@@ -73,6 +73,10 @@ Python:
 }
 ```
 
+Trường `"spec"` **không phải** là phiên bản đặc tả — mọi trường hợp trong
+`v1.json` đều thuộc đặc tả v1. Nó gọi tên mục nào của `SPEC.md` mà trường hợp
+đó thử thách, nên `"2.2"` đọc là §2.2, quy tắc dẫn xuất một token placeholder.
+
 Hiện thực tham chiếu chạy bộ kiểm thử này như một phần trong bộ kiểm thử của
 chính nó, nên phần văn xuôi và phần mã không thể lặng lẽ trôi dạt xa nhau.
 

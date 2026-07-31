@@ -10,9 +10,9 @@ den utdata det faktiskt producerar — så att du i varje steg vet om du är på
 rätt spår.
 
 Du behöver Python 3.14 eller nyare, eftersom t-strings är ny syntax i 3.14.
-Japanska är sidans exempelmål, men ingenting hänger på det valet — byt till
-vilket språk som helst i steg 4, där språkkoden `ja` är det enda som namnger
-det.
+Japanska är sidans exempelmål, men ingenting hänger på det valet. För att
+använda ett annat språk byter du ut `ja` i steg 4 — den språkkoden är det enda
+som namnger det.
 
 ## 1. Installera { #1-install }
 
@@ -54,9 +54,9 @@ reservlösningen.
 
 ## 3. Extrahera meddelandena { #3-extract-the-messages }
 
-Översättare läser inte din källkod; en liten fil som kallas **katalog** reser
-mellan dig och dem. Första steget mot en sådan är att samla ihop varje
-markerat meddelande ur koden.
+Översättare arbetar oftast utifrån kataloger snarare än utifrån källkod, så en
+liten fil som kallas **katalog** reser mellan dig och dem. Första steget mot en
+sådan är att samla ihop varje markerat meddelande ur koden.
 
 Berätta för Babel hur den hittar dina meddelanden genom att skapa `babel.cfg`:
 
@@ -128,7 +128,17 @@ source placeholders: {name} is missing; {nome} is not in the source message
 1 errors encountered.
 ```
 
+En sak värd att känna till redan nu: det rapporterar felet och avslutar med
+nollskild status, men skriver `.mo`-filen ändå. I ett riktigt projekt är det CI
+som måste stanna på den statusen — [I produktion](workflow.md#what-ci-gates)
+sätter upp det.
+
 ## 5. Kör det { #5-run-it }
+
+Steg 2–4 använde `tr()`, som letar efter en katalog och inte hittar någon. Nu
+när det finns en: läs in den och bind den en gång. `Translator` håller en
+katalog så att anropsställena slipper namnge den, och `_` är det konventionella
+gettext-namnet för resultatet.
 
 Peka `app.py` mot den kompilerade katalogen. Klicka på markörerna för att se
 vad varje rad gör:
@@ -147,8 +157,8 @@ print(_(t"Hello {name}"))  # (2)!
 1. Standardbiblioteket läser in den kompilerade `.mo`-filen, och `Translator`
    binder den till en anropbar funktion. `_` är det konventionella
    gettext-namnet för "översätt det här" — kort eftersom det förekommer vid
-   varje sträng som möter användaren. Det är samma funktion som `tr`, bunden
-   till en katalog.
+   varje sträng som möter användaren. Den utför samma översättning som `tr`,
+   bunden till en katalog.
 2. Vid anropet: t-strängens text blir uppslagsnyckeln `Hello {name}`,
    katalogen svarar `こんにちは {name}`, svaret kontrolleras mot källans
    platshållare, och först därefter sätts värdet in.
@@ -181,5 +191,9 @@ webbplatsen är en förfining av något av dessa fem steg.
   efter vecka: kataloguppdateringar, CI-grindar och översättningsplattformar.
 - [Extrahering](extraction.md) — den fullständiga `pybabel`-referensen: egna
   funktionsnamn, strikt CI-läge och kontrollerna som vaktar dina kataloger.
+- [Migrering](migration.md) — om projektet du egentligen vill göra det här i
+  redan har gettext-kataloger.
+- [För översättare](translators.md) — den enda sidan att räcka över till den
+  som fyller i de där `msgstr`-raderna.
 
   [Babel]: https://babel.pocoo.org/

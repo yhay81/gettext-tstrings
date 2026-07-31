@@ -43,11 +43,14 @@ Kitoaji cha `gettext_tstrings` pia hushughulikia miito ya kawaida ya `_()`,
 Hutambua `_()`, majina manne sanifu ya gettext, visawe vya `tr()` / `ntr()`, na
 `lazy_gettext()` / `lazy_pgettext()` zilizoahirishwa.
 
-!!! warning "`-c` si ya hiari"
+!!! warning "Wezesha maoni ya wafasiri kwa `-c`"
 
     `pybabel extract` hukusanya maoni ya wafasiri tu unapopitisha
     `-c "Translators:"`, sawasawa na inavyofanya kwa miito ya kawaida ya
-    gettext.
+    gettext. Ukiiacha, utoaji bado hufanya kazi — maoni tu hayafiki kamwe
+    kwenye katalogi, ambako ndiyo [kigezo cha ubora chenye gharama ndogo
+    kuliko vyote](workflow.md#working-with-translators-and-platforms) katika
+    mtiririko mzima wa kazi.
 
 ## Kusajili majina yako mwenyewe ya vitendakazi { #registering-your-own-function-names }
 
@@ -87,9 +90,9 @@ Machaguo ni `tr_functions`, `ntr_functions`, `gettext_functions`,
     Mpangilio sanifu tu wa hoja unaungwa mkono: ujumbe kwanza, muktadha kisha
     ujumbe kwa `pgettext`, muktadha kisha umoja kisha wingi kwa `npgettext`.
 
-## Imara kwa chaguo-msingi { #robust-by-default }
+## Legevu ndani ya kompyuta yako, kali katika CI { #lenient-locally-strict-in-ci }
 
-Faili moja bovu halikomeshi mzunguko mzima:
+Kwa chaguo-msingi faili moja bovu halikomeshi mzunguko mzima:
 
 - t-string ambayo kitoaji hukikataa — ufikiaji wa sifa, usemi, hoja isiyo
   sahihi — huripotiwa kama onyo na kurukwa.
@@ -97,9 +100,31 @@ Faili moja bovu halikomeshi mzunguko mzima:
 - Vivyo hivyo faili ambalo `tokenize` pekee hulikataa huku `ast` ikilikubali,
   ambalo pasipo hivyo pitio la Babel lenyewe lingelisimamisha.
 
-Weka `strict = true` katika machaguo ya ramani ili kila mojawapo ya hayo
-kigeuke kuwa kushindwa kabisa badala yake, ambacho ndicho unachokitaka katika
-CI.
+Hilo ni la kufaa unapokuwa unahariri nalo ni hatari usipokuwa: ujumbe
+uliorukwa **haupo tu ndani ya POT**, hivyo hautafsiriwi kamwe na hakuna
+kinachosema hivyo. Weka `strict = true` katika machaguo ya ramani mahali popote
+ambapo utoaji hautazamwi na binadamu:
+
+=== "babel.cfg"
+
+    ```ini
+    [gettext_tstrings: **.py]
+    encoding = utf-8
+    strict = true
+    ```
+
+=== "babel.toml"
+
+    ```toml
+    [[mappings]]
+    method = "gettext_tstrings"
+    pattern = "**.py"
+    strict = true
+    ```
+
+Kila onyo lililo hapo juu ndipo hugeuka kuwa kushindwa kabisa. Chukulia hili
+kama mpangilio wa uzalishaji nacho chaguo-msingi kama cha ndani ya kompyuta
+yako.
 
 ## Zana zako zilizopo huthibitisha katalogi hizi { #your-existing-toolchain-validates-these-catalogs }
 
@@ -126,8 +151,8 @@ msgfmt: found 1 fatal error
 
 Weblate huandika ukaguzi uleule kama [Python brace format][weblate-checks], na
 majukwaa ya kibiashara yana QA yao ya vishika nafasi inayotegemea bendera
-ileile. Tabia yao ni yao; zana mbili zilizo hapa chini ndizo zilizothibitishwa
-hapa.
+ileile. Tabia ya kila jukwaa ni yake lenyewe; zana mbili zilizo hapa chini ndizo
+zilizothibitishwa hapa.
 
   [weblate-checks]: https://docs.weblate.org/en/latest/user/checks.html
 
@@ -157,8 +182,8 @@ match the source placeholders: {n} is missing
     mkondo usiisafirishe; [Kile CI inachozuia](workflow.md#what-ci-gates)
     huonyesha hatua ya ujenzi inayoiwezesha.
 
-Ukaguzi huo wa aina mbili haurudufiani. Kikaguzi kilichosambazwa ndicho upande
-mkali zaidi katika angalau maeneo mawili:
+Ukaguzi huo wa aina mbili haurudufiani. Kikaguzi cha kifurushi ni kikali zaidi
+katika angalau visa viwili:
 
 - msgid ambayo mabano yake pekee yamekwepwa (`Config {{raw}} only`) haipati
   kamwe bendera ya `python-brace-format`, hivyo hakuna zana ya nje inayoithibitisha

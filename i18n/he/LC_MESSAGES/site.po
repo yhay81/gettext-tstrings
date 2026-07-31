@@ -90,3 +90,27 @@ msgstr[0] "רונדר עמוד אחד ({n}) ב-{seconds} שנ׳"
 msgstr[1] "רונדרו שני עמודים ({n}) ב-{seconds} שנ׳"
 msgstr[2] "רונדרו {n} עמוד ב-{seconds} שנ׳"
 msgstr[3] "רונדרו {n} עמודים ב-{seconds} שנ׳"
+
+#. gettext-tstrings
+msgid "Start here"
+msgstr "מתחילים כאן"
+
+#. gettext-tstrings
+msgid "Use it"
+msgstr "שימוש בפועל"
+
+#. gettext-tstrings
+msgid "Migration"
+msgstr "מעבר מקיים"
+
+#. gettext-tstrings
+msgid "For translators"
+msgstr "למתרגמים"
+
+#. gettext-tstrings
+msgid "Understand it"
+msgstr "העמקה"
+
+#. gettext-tstrings
+msgid "Reference"
+msgstr "עיון מהיר"

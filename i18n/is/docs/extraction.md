@@ -43,11 +43,14 @@ gegnum í [Í rekstri](workflow.md#the-cycle-after-the-first-translation).
 Það þekkir `_()`, gettext-nöfnin fjögur, samheitin `tr()` / `ntr()` og
 frestuðu `lazy_gettext()` / `lazy_pgettext()`.
 
-!!! warning "`-c` er ekki valfrjálst"
+!!! warning "Kveiktu á athugasemdum til þýðenda með `-c`"
 
     `pybabel extract` safnar athugasemdum til þýðenda aðeins þegar þú gefur
     `-c "Translators:"`, nákvæmlega eins og það gerir fyrir venjuleg
-    gettext-köll.
+    gettext-köll. Sleppirðu því virkar útdrátturinn eftir sem áður —
+    athugasemdirnar rata einfaldlega aldrei í þýðingaskrána, þar sem þær eru
+    [ódýrasta gæðastillingin](workflow.md#working-with-translators-and-platforms)
+    í allri hringrásinni.
 
 ## Að skrá þín eigin fallanöfn { #registering-your-own-function-names }
 
@@ -87,9 +90,9 @@ Valkostirnir eru `tr_functions`, `ntr_functions`, `gettext_functions`,
     skilaboð fyrir `pgettext`, samhengi og svo eintala og svo fleirtala
     fyrir `npgettext`.
 
-## Þolið sjálfgefið { #robust-by-default }
+## Eftirgefanlegt staðbundið, strangt í CI { #lenient-locally-strict-in-ci }
 
-Ein léleg skrá bindur ekki enda á keyrsluna:
+Sjálfgefið bindur ein léleg skrá ekki enda á keyrsluna:
 
 - t-strengur sem útdráttartólið hafnar — aðgangur að eigindi, segð, rangt
   viðfang — er tilkynntur sem viðvörun og honum sleppt.
@@ -97,8 +100,30 @@ Ein léleg skrá bindur ekki enda á keyrsluna:
 - Sömuleiðis skrá sem aðeins `tokenize` hafnar meðan `ast` tekur við henni,
   en á henni myndi eigin yfirferð Babel annars stöðvast.
 
-Settu `strict = true` í valkosti vörpunarinnar til að breyta hverju og einu
-þessara í harða bilun í staðinn, sem er það sem þú vilt í CI.
+Það er þægilegt meðan þú ert að breyta og hættulegt þegar svo er ekki:
+skilaboð sem sleppt er eru einfaldlega **fjarverandi úr POT-skránni**, svo þau
+eru aldrei þýdd og ekkert segir frá því. Settu `strict = true` í valkosti
+vörpunarinnar hvar sem manneskja fylgist ekki með útdrættinum:
+
+=== "babel.cfg"
+
+    ```ini
+    [gettext_tstrings: **.py]
+    encoding = utf-8
+    strict = true
+    ```
+
+=== "babel.toml"
+
+    ```toml
+    [[mappings]]
+    method = "gettext_tstrings"
+    pattern = "**.py"
+    strict = true
+    ```
+
+Hver viðvörun hér að ofan verður þá að harðri bilun. Líttu á þetta sem
+stillinguna fyrir rekstur og sjálfgefna gildið sem þá staðbundnu.
 
 ## Tólakeðjan sem þú átt fyrir staðfestir þessar þýðingaskrár { #your-existing-toolchain-validates-these-catalogs }
 
@@ -124,8 +149,8 @@ msgfmt: found 1 fatal error
 
 Weblate skjalfestir sömu athugun sem [Python brace format][weblate-checks], og
 viðskiptavettvangarnir eru með sína eigin gæðaathugun á staðgenglum sem er
-lyklað á sama flagg. Hegðun þeirra er þeirra mál; tólin tvö hér að neðan eru
-þau sem hafa verið staðfest hér.
+lyklað á sama flagg. Hegðun hvers vettvangs er hans eigin mál; tólin tvö hér
+að neðan eru þau sem hafa verið staðfest hér.
 
   [weblate-checks]: https://docs.weblate.org/en/latest/user/checks.html
 
@@ -157,8 +182,8 @@ match the source placeholders: {n} is missing
     [Hvað CI stöðvar](workflow.md#what-ci-gates) sýnir byggingarskrefið sem
     leyfir það.
 
-Athuganirnar tvær eru ekki óþarfa endurtekning. Meðfylgjandi athugarinn er
-strangari aðilinn á að minnsta kosti tveimur stöðum:
+Athuganirnar tvær eru ekki óþarfa endurtekning. Athugari pakkans er strangari
+í að minnsta kosti tveimur tilvikum:
 
 - Msgid þar sem einu slaufusvigarnir eru escape-ritaðir
   (`Config {{raw}} only`) fær aldrei `python-brace-format`-flaggið, svo að

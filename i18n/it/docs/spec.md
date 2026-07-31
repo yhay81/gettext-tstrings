@@ -73,6 +73,11 @@ Le interpolazioni sono descritte strutturalmente, mai come sorgente Python:
 }
 ```
 
+Il campo `"spec"` **non** è una versione della specifica: ogni caso in
+`v1.json` appartiene alla spec v1. Nomina la sezione di `SPEC.md` che il caso
+mette alla prova, quindi `"2.2"` si legge come §2.2, la regola per derivare il
+token di un segnaposto.
+
 L'implementazione di riferimento esegue la suite come parte della propria
 suite di test, così la prosa e il codice non possono allontanarsi in
 silenzio.

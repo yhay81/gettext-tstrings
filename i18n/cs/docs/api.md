@@ -51,9 +51,12 @@ souběžnosti.
 
 | Název | Účel |
 | --- | --- |
-| `lazy_gettext(template, /, *, strict=False)` | Odloží překlad do prvního použití. |
+| `lazy_gettext(template, /, *, strict=False)` | Odloží překlad až na každé jednotlivé vykreslení. |
 | `lazy_pgettext(context, template, /, *, strict=False)` | Kontextová podoba. |
-| `LazyString` | To, co obě vracejí. Vykresluje se přes `str()` a `format()`, je roven svému textu a je záměrně nehashovatelný. |
+| `LazyString` | To, co obě vracejí. Vykresluje se přes `str()` a `format()` v tom jazyce, který je v daném okamžiku navázán, je roven svému vykreslenému textu a je záměrně nehashovatelný. |
+
+Propracované příklady — včetně toho, proč `strict` patří k definici —
+najdete v [Odloženém překladu](guide.md#deferred-translation).
 
 ## Nižší úroveň { #lower-level }
 

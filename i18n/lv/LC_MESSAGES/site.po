@@ -88,3 +88,27 @@ msgid_plural "Rendered {n} pages in {seconds}s"
 msgstr[0] "Renderēta {n} lapa {seconds} s laikā"
 msgstr[1] "Renderētas {n} lapas {seconds} s laikā"
 msgstr[2] "Renderēts {n} lapu {seconds} s laikā"
+
+#. gettext-tstrings
+msgid "Start here"
+msgstr "Sāciet šeit"
+
+#. gettext-tstrings
+msgid "Use it"
+msgstr "Lietojiet"
+
+#. gettext-tstrings
+msgid "Migration"
+msgstr "Migrācija"
+
+#. gettext-tstrings
+msgid "For translators"
+msgstr "Tulkotājiem"
+
+#. gettext-tstrings
+msgid "Understand it"
+msgstr "Izprotiet"
+
+#. gettext-tstrings
+msgid "Reference"
+msgstr "Atsauce"

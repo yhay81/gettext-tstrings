@@ -84,3 +84,27 @@ msgctxt "build report"
 msgid "Rendered {n} page in {seconds}s"
 msgid_plural "Rendered {n} pages in {seconds}s"
 msgstr[0] "Đã kết xuất {n} trang trong {seconds}s"
+
+#. gettext-tstrings
+msgid "Start here"
+msgstr "Bắt đầu từ đây"
+
+#. gettext-tstrings
+msgid "Use it"
+msgstr "Sử dụng"
+
+#. gettext-tstrings
+msgid "Migration"
+msgstr "Di chuyển"
+
+#. gettext-tstrings
+msgid "For translators"
+msgstr "Dành cho người dịch"
+
+#. gettext-tstrings
+msgid "Understand it"
+msgstr "Tìm hiểu"
+
+#. gettext-tstrings
+msgid "Reference"
+msgstr "Tham khảo"

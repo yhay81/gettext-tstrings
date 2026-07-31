@@ -9,6 +9,16 @@ description: "gettext 循环在团队中的实际运转：反复出现的更新�
 都要附带编译好的目录。本页讲的正是这种日常实践——什么留在仓库里，什么在外部
 流转，CI 必须把住哪些关口，以及运行时在哪里绑定语言。
 
+这一切归结起来就是六项检查，所以先把它们列在这里；下面每一节各自负责搭起其中
+一项。
+
+- `pybabel update --check` 通过——没有消息在目录不知情的情况下被修改。
+- `pybabel compile` 以退出状态作为构建关卡。
+- 剩余的 `fuzzy` 条目都是有意保留的——在翻译者确认之前，每一条都渲染为源文本。
+- 测试套件用 `strict=True` 把每种要发布的语言各渲染一次。
+- 生产产物包含 `.mo` 文件，且不含 Babel。
+- `gettext_tstrings` logger 已接入监控。
+
 ## 项目的形态 { #the-shape-of-a-project }
 
 ```text
@@ -29,7 +39,7 @@ myapp/
 产生分歧。
 
 有一个文件在每个方向上各承担一个角色：`.pot` 把你的消息*送出去*给翻译者，
-`.po` 文件把翻译*带回来*。下面的一切都是这两者之间的往来。
+`.po` 文件把翻译*带回来*。本页其余部分讲的就是这两者之间流动的东西。
 
 ```mermaid
 flowchart LR
@@ -43,7 +53,7 @@ flowchart LR
 
 ## 第一次翻译之后的周期 { #the-cycle-after-the-first-translation }
 
-教程里的 `pybabel init` 每种语言只运行一次，之后再也不用。从那以后，工作周期
+教程里的 `pybabel init` 通常只在新增一种语言时运行一次。从那以后，工作周期
 变成**提取 → 更新 → 翻译 → 编译**，其核心是 `pybabel update`：它把新鲜的模板
 并入既有目录，而不会丢弃其中已有的翻译。
 
@@ -69,7 +79,7 @@ msgstr "こんにちは {name}"
 ```
 
 Babel 注意到新 msgid 与一条被删除的相似，于是把它与旧翻译配了对——但给这一对
-打上了 **fuzzy** 标志：机器的猜测，等待人来确认。这个标志是有牙齿的。
+打上了 **fuzzy** 标志：机器的猜测，等待人来确认。这个标志会改变编译的结果。
 `pybabel compile` **会把 fuzzy 条目排除在 `.mo` 之外**，因此在翻译者确认这一对
 之前，应用程序渲染的是新的英文文本，而不是一句过时的日文：
 
@@ -114,29 +124,16 @@ Welcome back, Ada
 checker](extraction.md#your-existing-toolchain-validates-these-catalogs)
 双方的占位符检查。
 
-!!! bug "`--check` 无法为使用上下文的目录把关"
+!!! bug "Babel 2.18.0：`--check` 无法为使用上下文的目录把关"
 
     在 Babel 2.18.0 上，`pybabel update --check` 会把**每一个**包含 `msgctxt`
-    的目录都报告为已过时，每次运行都如此，无论它有多新。这项比较经由
-    `Catalog.is_identical` 完成，它按每条消息的存储键去查找消息——而对带上下文
-    的消息来说，那个键是 `(id, context)` 这个二元组，`Catalog.get` 并不接受它。
-    于是查找一无所获，两个目录也就永远不会比较相等：
-
-    ```pycon
-    >>> from babel.messages.catalog import Catalog
-    >>> c = Catalog(locale="ja")
-    >>> c.add("Guide", "ガイド", context="navigation")
-    <Message 'Guide' (flags: [])>
-    >>> c.is_identical(c)
-    False
-    ```
-
-    所以只要你用到了 `pgettext` 或 `npgettext`——而消除同形异义词的歧义正是它们
-    存在的理由——这一步就会以最糟糕的方式失效开放：永远是红的，于是团队把它关掉，
-    于是再没有任何东西为过时把关。在上游修复之前，请自己比较消息集合。用
+    的目录都报告为已过时，每次运行都如此，无论它有多新。一个永远失败的关卡比
+    没有关卡更糟，因为团队会把它关掉——所以只要你用到了 `pgettext` 或
+    `npgettext`，就请替换掉这一步，而不要将就着用。用
     `babel.messages.pofile.read_po` 读取模板和每个目录，再比较
     `{(m.context, m.id) for m in catalog if m.id}`，这就是检查的全部，也正是
-    [本站自己的构建](index.md)所做的事。
+    [本站自己的构建](index.md)所做的事。成因
+    [记录在“陷阱”页上](pitfalls.md#your-tools-have-bugs-too)。
 
 !!! danger "检查退出状态，而不是日志"
 

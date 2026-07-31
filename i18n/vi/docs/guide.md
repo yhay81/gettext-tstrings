@@ -1,5 +1,5 @@
 ---
-description: "API lúc chạy: gắn một catalog, ngôn ngữ theo từng request, chuỗi trì hoãn, và cách một bản dịch hỏng được báo cáo."
+description: "API lúc chạy: nên dùng điểm vào nào, gắn một catalog, ngôn ngữ theo từng request, chuỗi trì hoãn, giá trị theo locale, và cách một bản dịch hỏng được báo cáo."
 ---
 
 # Cẩm nang
@@ -12,6 +12,22 @@ việc tạo và kiểm tra tính hợp lệ của catalog được trình bày 
 [Trích xuất](extraction.md), còn cách một đội ngũ giữ cho vòng lặp tiếp tục
 quay — chu kỳ cập nhật, CI, nền tảng dịch thuật — nằm ở
 [Vận hành thực tế](workflow.md).
+
+## Nên dùng điểm vào nào? { #which-entry-point-should-i-use }
+
+Gói này xuất ra vài cách để dịch một thông điệp, bởi các ứng dụng gắn ngôn ngữ
+theo vài cách khác nhau. Hãy chọn theo cách chương trình của bạn quyết định nó
+đang ở ngôn ngữ nào:
+
+| Tình huống của bạn | Hãy dùng |
+| --- | --- |
+| Một ngôn ngữ cho cả tiến trình — một CLI, một ứng dụng desktop, một script | `Translator`, gọi dưới tên `_` |
+| Một ngôn ngữ cho mỗi request hoặc mỗi tác vụ async — một ứng dụng web | `use_translations()` bao quanh phần việc, rồi `tr()` |
+| Một thông điệp được định nghĩa lúc import — nhãn biểu mẫu, một enum, một hằng số | `lazy_gettext()` hoặc `lazy_pgettext()` |
+| Một con số quyết định cách diễn đạt | `ngettext()` / `npgettext()`, ở bất cứ dạng nào bên trên |
+| Kết xuất một pattern mà không dính dáng catalog nào | `compile_template()` |
+
+Toàn bộ phần dưới đây là năm mục đó, theo đúng thứ tự ấy.
 
 ## Gắn một catalog { #binding-a-catalog }
 
@@ -62,6 +78,7 @@ from gettext_tstrings import tr, use_translations
 
 
 def handle(request):
+    name = request.user.display_name
     translations = load_translations(request.locale)
     with use_translations(translations):
         return render(tr(t"Hello {name}"))
@@ -168,12 +185,52 @@ một lần rồi trao ra những bản sao dùng chung catalog đã phân tích
 
     `asyncio.to_thread` đã làm sẵn điều này cho bạn.
 
+## Giá trị theo locale { #locale-aware-values }
+
+Thư viện này quyết định một giá trị xuất hiện *ở đâu* trong thông điệp đã
+dịch. Nó không bản địa hóa chính giá trị ấy. `{amount:,.2f}` là một format spec
+của Python với hành vi cố định — một dấu phẩy mỗi ba chữ số và một dấu chấm
+trước phần thập phân — và nó sinh ra đúng những ký tự đó bất kể thông điệp
+đang ở ngôn ngữ nào:
+
+```pycon
+>>> f"{1234.5:,.2f}"  # the same in every locale
+'1,234.50'
+```
+
+Tiếng Đức viết con số ấy là `1.234,50`, tiếng Pháp `1 234,50`, còn tiếng Hindi
+nhóm `1234567` thành `12,34,567` chứ không phải `1,234,567`. Số, tiền tệ, ngày,
+giờ và đơn vị thuộc về [Babel][babel-numbers]. Hãy định dạng giá trị trước, rồi
+mới đặt chuỗi đã hoàn chỉnh vào chỗ của nó:
+
+```python
+from babel.numbers import format_currency
+
+total = format_currency(amount, "EUR", locale=locale)
+tr(t"Your order comes to {total}")
+```
+
+Với một thông điệp có đếm số, con số làm hai việc — nó chọn dạng số nhiều và
+nó xuất hiện trong văn bản — nhưng chỉ việc thứ hai mới được bản địa hóa. Hãy
+giữ con số thô cho việc chọn dạng và truyền chuỗi đã định dạng để hiển thị:
+
+```python
+from babel.numbers import format_decimal
+
+shown = format_decimal(n, locale=locale)
+_.ngettext(t"One file", t"{shown} files", n)
+```
+
+Việc định dạng trước khi gọi cũng chính là thứ giữ cho một format spec nằm
+ngoài catalog: cái người dịch nhìn thấy là một mẩu văn bản đã hoàn chỉnh, chứ
+không phải một con số kèm chỉ dẫn cách kết xuất nó.
+
 ## Điều gì xảy ra khi một catalog bị sai { #what-happens-when-a-catalog-is-wrong }
 
 Nếu các placeholder của một bản dịch không khớp với nguồn — một trường bị
 thiếu, không xác định, hoặc bị định dạng lại đã lọt qua khâu kiểm tra, đến từ
 một tệp MO sửa tay, một catalog của nhà cung cấp, hay một pipeline bỏ qua bộ
-kiểm tra — thì hành vi mặc định là tái tạo văn bản nguồn thay vì ném ngoại
+kiểm tra — thì hành vi mặc định là kết xuất thông điệp nguồn thay vì ném ngoại
 lệ. Điều này phản chiếu đúng cam kết của chính gettext rằng một catalog hỏng
 không bao giờ làm đổ vỡ ứng dụng.
 
@@ -212,45 +269,15 @@ gettext_tstrings.errors.InvalidTranslationError: translation does not match the
 source placeholders: {name} is missing; {nombre} is not in the source message
 ```
 
-## Đọc một thông điệp lỗi { #reading-a-failure-message }
-
 Những thông điệp này được viết cho người có thể hành động dựa trên chúng, mà
-với một vấn đề của catalog thì đó thường là người dịch hơn là lập trình viên.
-Chỉ báo rằng `{name}` bị thiếu là một ngõ cụt khi người đọc có thể thấy rõ
-những ký tự ấy ngay trước mắt, vì vậy ở những chỗ một placeholder trông như
-có mặt nhưng thực ra không, thông điệp sẽ nói rõ vì sao. Đối chiếu với nguồn
-`Hello {name}`, mỗi trường hợp dưới đây được báo cáo dưới dòng
-`translation does not match the source placeholders:`
-
-| Bản dịch viết | Lý do được đưa ra |
-| --- | --- |
-| `こんにちは ｛name｝` | `{name}` is missing (the braces around it are not the ASCII `{` and `}`) |
-| `こんにちは {{name}}` | `{name}` is missing (it is written `{{name}}`, which is how a literal brace is escaped) |
-| `こんにちは name` | `{name}` is missing (the name appears, but not inside braces) |
-| `こんにちは {名前}` | `{name}` is missing; `{名前}` is not in the source message |
-
-Những ký tự không thể nhìn thấy được đối xử theo cách riêng. Một dấu cách
-không ngắt bên trong cặp ngoặc nhọn là thứ mà một bộ gõ có thể sinh ra còn
-không trình soạn thảo nào hiển thị, nên thông điệp in nó ra theo code point
-thay vì gọi tên một ký tự mà người đọc không thể tìm thấy:
-
-```text
-placeholder {<U+00A0>name} has a space inside the braces; write {name}
-```
-
-Một tên có các chữ cái pha trộn nhiều hệ chữ viết — trường hợp homoglyph, nơi
-chữ `а` Kirin không thể phân biệt được với chữ Latinh — được hiển thị hai
-lần, một lần ở dạng dễ đọc và một lần ở dạng thoát chuỗi, vốn là dạng duy
-nhất phân biệt được hai chữ đó:
-
-```text
-translation does not match the source placeholders: {name} is missing;
-{nаme} (n\u0430me) is not in the source message
-```
-
-Cách khử nhập nhằng tương tự cũng áp dụng khi một tên viết hoàn toàn bằng chữ
-Hy Lạp hay Kirin xung đột với một tên nguồn ASCII, kể cả trường hợp một chữ
-cái `a` Latinh / `а` Kirin.
+với một vấn đề của catalog thì đó thường là người dịch hơn là lập trình viên —
+nên ở những chỗ một placeholder trông như có mặt nhưng thực ra không, thông
+điệp sẽ giải thích vì sao thay vì chỉ nhắc lại rằng nó bị thiếu. Dấu ngoặc
+nhọn toàn độ rộng, một `{{name}}` bị nhân đôi, một dấu cách không ngắt vô
+hình, một chữ cái Kirin lọt giữa các chữ Latinh: mỗi trường hợp có cách diễn
+đạt riêng, được liệt kê kèm ví dụ ở
+[Dành cho người dịch](translators.md#reading-a-failure-message). Trang đó được
+viết để đưa thẳng cho người đang sửa tệp `.po`.
 
 ## Kết xuất một pattern không cần catalog { #rendering-a-pattern-without-a-catalog }
 
@@ -307,3 +334,5 @@ nhiệm của bên gọi, hệt như với gettext của thư viện chuẩn —
 của catalog**, vì một catalog ác ý có thể lặp lại một placeholder để khuếch
 đại kích thước đầu ra, điều vốn cố hữu ở mọi cơ chế i18n dựa trên
 placeholder.
+
+  [babel-numbers]: https://babel.pocoo.org/en/latest/api/numbers.html

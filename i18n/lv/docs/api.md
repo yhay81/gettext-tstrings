@@ -51,9 +51,12 @@ vienlaicīgumā.
 
 | Nosaukums | Nolūks |
 | --- | --- |
-| `lazy_gettext(template, /, *, strict=False)` | Atliek tulkojumu līdz pirmajai lietošanai. |
+| `lazy_gettext(template, /, *, strict=False)` | Atliek tulkojumu līdz katrai renderēšanai. |
 | `lazy_pgettext(context, template, /, *, strict=False)` | Kontekstuālā forma. |
-| `LazyString` | Tas, ko abas atgriež. Renderējas caur `str()` un `format()`, salīdzinājumā ir vienāda ar savu tekstu un ir apzināti nehešojama. |
+| `LazyString` | Tas, ko abas atgriež. Renderējas caur `str()` un `format()` tajā valodā, kas attiecīgajā brīdī ir piesaistīta, salīdzinājumā ir vienāda ar savu renderēto tekstu un ir apzināti nehešojama. |
+
+Praktiski piemēri, tostarp tas, kāpēc `strict` pieder pie definīcijas, ir
+sadaļā [Atliktais tulkojums](guide.md#deferred-translation).
 
 ## Zemāka līmeņa { #lower-level }
 

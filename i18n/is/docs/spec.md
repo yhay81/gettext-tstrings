@@ -71,6 +71,11 @@ Innskeytingum er lýst eftir byggingu, aldrei sem Python-frumkóða:
 }
 ```
 
+Reiturinn `"spec"` er **ekki** útgáfunúmer forskriftar — hvert tilvik í
+`v1.json` heyrir undir forskrift v1. Hann nefnir þann kafla `SPEC.md` sem
+tilvikið reynir á, svo `"2.2"` lesist sem §2.2, reglan um að leiða út
+staðgengilstákn.
+
 Viðmiðunarútfærslan keyrir prófmengið sem hluta af sínu eigin prófmengi,
 svo að textinn og kóðinn geta ekki rekið hljóðlaust í sundur.
 

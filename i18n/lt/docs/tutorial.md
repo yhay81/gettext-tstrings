@@ -11,8 +11,8 @@ parodyta su ta išvestimi, kurią ji iš tikrųjų pateikia — kad kiekviename
 
 Jums reikia Python 3.14 arba naujesnės versijos, nes t-eilutės yra nauja 3.14
 sintaksė. Japonų kalba yra šio puslapio pavyzdinė tikslinė kalba, tačiau niekas
-nuo to pasirinkimo nepriklauso — 4 žingsnyje įrašykite bet kurią kalbą, ten
-lokalės kodas `ja` yra vienintelis dalykas, kuris ją įvardija.
+nuo to pasirinkimo nepriklauso. Norėdami naudoti kitą kalbą, 4 žingsnyje
+pakeiskite `ja` — tas lokalės kodas yra vienintelis dalykas, kuris ją įvardija.
 
 ## 1. Įdiekite { #1-install }
 
@@ -53,9 +53,9 @@ atsarginis variantas.
 
 ## 3. Ištraukite pranešimus { #3-extract-the-messages }
 
-Vertėjai neskaito jūsų pirminio kodo; tarp jūsų ir jų keliauja nedidelis
-failas, vadinamas **katalogu**. Pirmas žingsnis link jo — surinkti iš kodo
-kiekvieną pažymėtą pranešimą.
+Vertėjai paprastai dirba su katalogais, o ne su pirminiu kodu, tad tarp jūsų ir
+jų keliauja nedidelis failas, vadinamas **katalogu**. Pirmas žingsnis link jo —
+surinkti iš kodo kiekvieną pažymėtą pranešimą.
 
 Nurodykite Babel, kaip rasti jūsų pranešimus, sukurdami `babel.cfg`:
 
@@ -127,7 +127,17 @@ source placeholders: {name} is missing; {nome} is not in the source message
 1 errors encountered.
 ```
 
+Vieną išlygą verta žinoti jau dabar: klaida pranešama ir išeities kodas
+grąžinamas nenulinis, tačiau `.mo` vis tiek įrašomas. Realiame projekte būtent
+CI turi sustoti dėl to išeities kodo — [Realioje
+aplinkoje](workflow.md#what-ci-gates) tai sutvarko.
+
 ## 5. Paleiskite { #5-run-it }
+
+2–4 žingsniuose naudota `tr()`, kuri ieško katalogo ir jo neranda. Dabar, kai
+katalogas yra, įkelkite jį ir susiekite vieną kartą: `Translator` laiko
+katalogą, tad iškvietimo vietoms jo įvardyti nebereikia, o `_` yra įprastas
+gettext pavadinimas rezultatui.
 
 Nukreipkite `app.py` į sukompiliuotą katalogą. Spustelėkite žymeklius, kad
 pamatytumėte, ką daro kiekviena eilutė:
@@ -146,7 +156,7 @@ print(_(t"Hello {name}"))  # (2)!
 1. Standartinė biblioteka įkelia sukompiliuotą `.mo`, o `Translator` susieja jį
    su iškviečiamu objektu. `_` yra įprastas gettext pavadinimas reikšme
    „išversk tai“ — trumpas, nes pasitaiko prie kiekvienos naudotojui matomos
-   eilutės. Tai ta pati funkcija kaip `tr`, tik susieta su vienu katalogu.
+   eilutės. Ji atlieka tą patį vertimą kaip `tr`, tik susieta su vienu katalogu.
 2. Iškvietimo metu: t-eilutės tekstas tampa paieškos raktu `Hello {name}`,
    katalogas atsako `こんにちは {name}`, atsakymas patikrinamas pagal pirminius
    vietaženklius, ir tik tada įdedama reikšmė.
@@ -180,5 +190,9 @@ svetainėje yra vieno iš tų penkių žingsnių patikslinimas.
   platformos.
 - [Ištraukimas](extraction.md) — pilnas `pybabel` žinynas: savi funkcijų
   vardai, griežtas CI režimas ir patikros, saugančios jūsų katalogus.
+- [Migracija](migration.md) — jeigu projektas, kuriame iš tikrųjų norite tai
+  daryti, jau turi gettext katalogus.
+- [Vertėjams](translators.md) — vienintelis puslapis, kurį verta perduoti tam,
+  kas pildo tas `msgstr` eilutes.
 
   [Babel]: https://babel.pocoo.org/

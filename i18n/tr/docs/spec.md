@@ -72,6 +72,10 @@ betimlenir:
 }
 ```
 
+`"spec"` alanı bir belirtim sürümü **değildir** — `v1.json`daki her durum
+spec v1'e aittir. `SPEC.md`nin durumun sınadığı bölümünü adlandırır; yani
+`"2.2"`, §2.2 olarak, bir yer tutucu jetonu türetme kuralı olarak okunur.
+
 Referans gerçekleştirim, paketi kendi test paketinin bir parçası olarak
 çalıştırır; böylece düzyazı ile kod sessizce birbirinden uzaklaşamaz.
 

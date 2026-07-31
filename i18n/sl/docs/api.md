@@ -50,9 +50,12 @@ Vezava je `ContextVar`, zato je vezana na kontekst in varna pri sočasnosti.
 
 | Ime | Namen |
 | --- | --- |
-| `lazy_gettext(template, /, *, strict=False)` | Odloži prevod do prve rabe. |
+| `lazy_gettext(template, /, *, strict=False)` | Odloži prevod do vsakega izrisa. |
 | `lazy_pgettext(context, template, /, *, strict=False)` | Kontekstna oblika. |
-| `LazyString` | Tisto, kar vrneta obe. Izriše se skozi `str()` in `format()`, je enak svojemu besedilu in namenoma ni zgoščljiv. |
+| `LazyString` | Tisto, kar vrneta obe. Izriše se skozi `str()` in `format()` v jeziku, ki je vezan v tistem trenutku, je enak svojemu izrisanemu besedilu in namenoma ni zgoščljiv. |
+
+Obdelani primeri, vključno s tem, zakaj `strict` sodi k definiciji, so pod
+[Odloženo prevajanje](guide.md#deferred-translation).
 
 ## Nižja raven { #lower-level }
 

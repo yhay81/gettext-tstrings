@@ -197,8 +197,8 @@ Pēc tā paša principa “trūkstošs” vietturis, kas *izskatās* klāt esoš
 sava trūkuma paskaidrojumu — pilnplatuma figūriekavas no Austrumāzijas ievades
 metodes, `{{name}}` dubultojums no atsoļošanas turp-atpakaļ gājiena,
 nosaukums ārpus jebkādām figūriekavām.
-[Ceļveža kļūmju lasīšanas tabula](guide.md#reading-a-failure-message) parāda
-katru no šiem ziņojumiem burtiski.
+Tulkotājiem rakstītā [kļūmju lasīšanas tabula](translators.md#reading-a-failure-message)
+parāda katru no šiem ziņojumiem burtiski.
 
 ## Karstais ceļš { #the-hot-path }
 

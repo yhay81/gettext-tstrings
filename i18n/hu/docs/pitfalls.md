@@ -152,12 +152,26 @@ Ennek a tárolónak két saját fájlja azért létezik, hogy betöltse ezt a h�
 
 Az a CI-lépés, amelyet ez a dokumentáció az elavult katalógusok elkapására
 ajánl, a `pybabel update --check`, egyetlen olyan projektben sem tudja
-elvégezni ezt a munkát, amely `pgettext`et vagy `npgettext`et használ — minden
-`msgctxt`-tel rendelkező katalógust elavultnak jelent, minden futáskor, mert
-hiba van abban, ahogyan az összehasonlítás megkeresi az üzeneteket. Itt derült
-ki, azzal, hogy megpróbáltuk használni; jelentettük az upstreamnek, és
-[teljes egészében, a kerülőmegoldással együtt le van
-írva](workflow.md#what-ci-gates).
+elvégezni ezt a munkát, amely `pgettext`et vagy `npgettext`et használ. A Babel
+2.18.0 verzióján minden `msgctxt`-tel rendelkező katalógust elavultnak jelent,
+minden futáskor. Az összehasonlítás a `Catalog.is_identical` metóduson át
+megy, amely minden üzenetet azon a kulcson keres ki, amely alatt tárolva van —
+egy kontextusos üzenetnél pedig ez a kulcs az `(id, context)` pár, amelyet a
+`Catalog.get` nem fogad el. A keresés semmit sem ad vissza, és a katalógusok
+soha nem bizonyulnak egyenlőnek:
+
+```pycon
+>>> from babel.messages.catalog import Catalog
+>>> c = Catalog(locale="ja")
+>>> c.add("Guide", "ガイド", context="navigation")
+<Message 'Guide' (flags: [])>
+>>> c.is_identical(c)
+False
+```
+
+Itt derült ki, azzal, hogy megpróbáltuk használni; jelentettük az upstreamnek,
+a helyettesítő ellenőrzés pedig [az üzemeltetési oldalon
+található](workflow.md#what-ci-gates).
 
 Az általános tanulság a kellemetlen: a mindig piros kapu rosszabb, mint a kapu
 hiánya, mert a csapat kikapcsolja. Győződj meg róla, hogy a CI-ellenőrzésed

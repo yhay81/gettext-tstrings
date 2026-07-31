@@ -200,9 +200,9 @@ aklavietė, todėl pranešimai apskaičiuojami pagal tris taisykles:
 Tuo pačiu principu „trūkstamas“ vietaženklis, kuris *atrodo* esantis, gauna
 savo nebuvimo paaiškinimą — viso pločio skliaustai iš Rytų Azijos įvesties
 metodo, `{{name}}` padvigubinimas po ekranavimo kelionės pirmyn atgal, vardas
-už bet kokių skliaustų. [Vadovo klaidų skaitymo
-lentelė](guide.md#reading-a-failure-message) parodo kiekvieną iš šių pranešimų
-pažodžiui.
+už bet kokių skliaustų. Vertėjams parašyta [klaidų skaitymo
+lentelė](translators.md#reading-a-failure-message) parodo kiekvieną iš šių
+pranešimų pažodžiui.
 
 ## Karštasis kelias { #the-hot-path }
 

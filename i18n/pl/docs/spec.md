@@ -72,6 +72,11 @@ Interpolacje są opisywane strukturalnie, nigdy jako źródło w Pythonie:
 }
 ```
 
+Pole `"spec"` **nie jest** wersją specyfikacji — każdy przypadek w `v1.json`
+należy do spec v1. Nazywa ono sekcję `SPEC.md`, którą dany przypadek sprawdza,
+więc `"2.2"` czyta się jako §2.2, czyli regułę wyprowadzania tokenu
+zastępnika.
+
 Implementacja referencyjna uruchamia ten zestaw jako część własnych
 testów, więc proza i kod nie mogą po cichu się rozjechać.
 

@@ -1,22 +1,16 @@
 ---
-description: "Tas pats verstinas pranešimas, parašytas su %-formatu, .format(), flufl.i18n $ eilutėmis ir t-eilute, įskaitant tai, kaip kiekvienas iš jų susieja reikšmes ir elgiasi su sugadintu katalogu."
+description: "Tas pats verstinas pranešimas, parašytas su %-formatu, .format(), flufl.i18n $ eilutėmis ir t-eilute, palygintas pagal vertėjų klaidas, katalogo galią ir integravimo kainą."
 ---
 
 # Kodėl t-eilutės
 
 Keturi būdai įdėti reikšmę į verstiną pranešimą, palyginti ant to paties
-sakinio. Trumpai:
+pranešimo. Visi keturi savo vietaženklius pavadina ir leidžia vertėjui juos
+perstatyti; jie skiriasi tuo, kas nutinka, kai vertimas klaidingas, kiek jūsų
+programos katalogas gali pasiekti ir kiek kainuoja juos perimti.
 
-- Su **%-formatu** vertėjo ištrinta viena raidė virsta lūžiu produkcijoje.
-- Su **str.format** vertimas gali nuskaityti atributus iš objektų, kuriuos
-  perduoda jūsų kodas — įskaitant paslaptis.
-- Su **`$` eilutėmis** (flufl.i18n) reikšmės netiesiogiai traukiamos iš
-  kviečiančiosios funkcijos kintamųjų, o vietaženkliai su taškais taip pat
-  pasiekia atributus.
-- Su **t-eilutėmis** formatavimas lieka jūsų kode, vertimai tikrinami veikimo
-  metu, o sugadintas katalogas grįžta prie pirminio teksto, o ne nulūžta.
-
-Likusi šio puslapio dalis yra įrodymai, po vieną būdą iš eilės.
+Pirmiausia eina lentelės, kad rastumėte jus dominančią eilutę ir perskaitytumėte
+tik už jos esantį skyrių.
 
 !!! note "Kiekvieną išverstą pranešimą paliečia trys šalys"
 
@@ -29,6 +23,72 @@ Likusi šio puslapio dalis yra įrodymai, po vieną būdą iš eilės.
     į tą patį klausimą atsako kitaip: *kiek formatavimo kalbos katalogui
     leidžiama valdyti?* Pavyzdžiuose `_` yra įprastas vertimo funkcijos
     pavadinimas, o `tr` — šios bibliotekos.
+
+## Greta { #side-by-side }
+
+**Kai vertėjas suklysta.** Katalogas pereina daugybę rankų, ir dauguma jame
+atsirandančių bėdų yra atsitiktinės:
+
+| | `%(name)s` | `.format()` | `flufl.i18n` `$name` | `t"…"` |
+| --- | --- | --- | --- | --- |
+| Vertimas *praleidžia* vietaženklį — kas atvaizduojama? | reikšmė tyliai dingsta | reikšmė tyliai dingsta | reikšmė tyliai dingsta | pirminis pranešimas, su įspėjimu ([pagal nutylėjimą](guide.md#what-happens-when-a-catalog-is-wrong)) |
+| Vertimas *prideda* nežinomą vietaženklį — kas atvaizduojama? | išimtis | išimtis | vietaženklis lieka matomas kaip tekstas | pirminis pranešimas, su įspėjimu ([pagal nutylėjimą](guide.md#what-happens-when-a-catalog-is-wrong)) |
+| Vertimas *performatuoja* vietaženklį — kas atvaizduojama? | tai, ko paprašė katalogas, arba išimtis, jei tipo raidė reikšmei nebetinka | tai, ko paprašė katalogas | `$` eilutėmis neišreiškiama | pirminis pranešimas, su įspėjimu |
+| Ar vietaženkliai tikrinami atvaizdavimo metu? | ne | ne | ne | taip (žr. žemiau) |
+
+**Kokią galią turi katalogas.** Vertimas yra duomenys iš už jūsų saugyklos ribų,
+ir kiekvienas stilius jam suteikia skirtingą galios kiekį:
+
+| | `%(name)s` | `.format()` | `flufl.i18n` `$name` | `t"…"` |
+| --- | --- | --- | --- | --- |
+| Iš kur ateina reikšmės? | iš aiškaus atvaizdžio | iš aiškių argumentų | iš kviečiančiojo vietinių ir globalių kintamųjų bei neprivalomo `extras` | iš reikšmių, pagautų t-eilutės viduje |
+| Ar katalogas gali pakeisti reikšmės formatavimą? | taip | taip | ne | ne |
+| Ar katalogas gali siekti į objektų vidų (prieiga prie atributų)? | ne | taip | taip, su taškiniais vardais | ne |
+| Kur gyvena „dabartinė kalba“? | ten, kur ją padeda programa | ten, kur ją padeda programa | kalbų kodų dėkle, esančiame bendrame programos objekte | `ContextVar` kintamajame, kiekvienai užduočiai ar užklausai atskirai |
+
+**Kiek kainuoja integravimas.** Visa, kas aukščiau, yra nemokama, jei įrankiai
+tinka; štai kur jie gali netikti:
+
+| | `%(name)s` | `.format()` | `flufl.i18n` `$name` | `t"…"` |
+| --- | --- | --- | --- | --- |
+| Mažiausia Python versija | bet kuri | bet kuri | 3.10 | **3.14** |
+| Branda | standartinė biblioteka | standartinė biblioteka | stabilus leidimas | **alfa** |
+| Ar naudoja įprastus PO/MO katalogus? | taip | taip | taip | taip |
+| Ar reikia savo pirminio kodo ištraukiklio? | ne | ne | ne | taip, šiuo metu |
+| Kokią PO žymą Babel nustato, kad jau turimi įrankiai galėtų tikrinti? | `python-format` | `python-brace-format` | jokios | `python-brace-format` |
+
+Dėl atvaizdavimo meto patikros: vienaskaitos pranešimai tikrinami dėl tikslaus
+vietaženklių sutapimo. Daugiskaitos pranešimai taip pat tikrinami — pagal
+[sąjungos/sankirtos taisyklę](spec.md), kuri leidžia tikslinės kalbos
+daugiskaitos formoms skirtis nuo pirminės kalbos; griežtesnė kiekvienos formos
+patikra vykdoma kompiliuojant katalogus ([Ištraukimas](extraction.md)).
+
+Formato žymos eilutė kalba apie vietaženklius suprantantį tikrinimą, o ne apie
+katalogų suderinamumą. `jokios` reiškia, kad standartiniai gettext įrankiai vis
+tiek perskaito ir sukompiliuoja pranešimą, bet `msgfmt --check-format` neturi
+jokios `$` vietaženklių gramatikos, kurią galėtų pritaikyti.
+
+## Suderinamumas ir branda { #compatibility-and-maturity }
+
+Pirmosios dvi paskutinės lentelės eilutės yra tos, kurios nulemia perėmimą,
+todėl jas verta pasakyti aiškiai, o ne langeliais.
+
+`%`-formatas ir `.format()` yra įmontuoti į Python ir jiems apskritai nereikia
+jokios priklausomybės. [`flufl.i18n`][flufl-i18n] yra brandus paketas — išleistas
+ir naudojamas produkcijoje — veikiantis su Python 3.10 ir naujesniais.
+`gettext-tstrings` yra **alfa** ir reikalauja **Python 3.14 ar naujesnio**, nes
+t-eilutės yra nauja 3.14 sintaksė — atgalinio perkėlimo nėra ir negali būti. Jo
+[specifikacija](spec.md) yra stabilioji dalis; Python API iki 1.0 dar gali
+pasislinkti.
+
+Ko nė vienas iš jų nekainuoja, tai katalogų suderinamumo. Visi keturi pagamina
+įprastus POT/PO/MO failus, kuriuos jau skaito kiekvienas PO redaktorius,
+vertimo platforma ir GNU gettext įrankis, tad žemiau aprašomas pasirinkimas yra
+atšaukiamas taip, kaip katalogų *formatų* keitimas nebūtų.
+[Migracija](migration.md) apima esamo projekto perkėlimą.
+
+Žemiau esantys skyriai kiekvieną kompromisą parodo išsamiai, po vieną būdą iš
+eilės.
 
 ## %-formatas { #-format }
 
@@ -48,8 +108,9 @@ Traceback (most recent call last):
 ValueError: incomplete format
 ```
 
-Vieno simbolio pataisa PO redaktoriuje virsta klaidos pėdsaku produkcijoje. GNU
-`msgfmt --check-format` tai pagauna, bet tik pranešimams, pažymėtiems
+Vieno simbolio pataisa PO redaktoriuje virsta veikimo meto išimtimi, nebent
+katalogo tikrinimas ją pagauna anksčiau. GNU `msgfmt --check-format` šitą
+pagauna, bet tik pranešimams, pažymėtiems
 `python-format`, ir tik jei katalogas pakeliui į jūsų programą iš tikrųjų
 praeina pro msgfmt.
 
@@ -115,8 +176,8 @@ kaip `$settings.api_key`, o jo [vertėjas][translator] tuos kelius išsprendžia
 pagal kviečiančiojo reikšmes. Išverstas vietaženklis gali įvardyti bet kurį
 prieinamą kviečiančiojo vietinį ar globalų kintamąjį ir, su taškine sintakse,
 keliauti per jo atributus. Tai patogu, kai pranešimui reikia atributo, tačiau kartu
-kviečiančiojo rėmelis tampa katalogo pakeitimų vardų erdvės dalimi. Toliau
-esantis palyginimas apibūdina `flufl.i18n` 6.0.0, o ne visus įmanomus
+kviečiančiojo rėmelis tampa katalogo pakeitimų vardų erdvės dalimi. Šis
+palyginimas apibūdina `flufl.i18n` 6.0.0, o ne visus įmanomus
 `string.Template` naudojimo būdus.
 
 Jis atsako ir į klausimą, kurį kiti du formatavimo stiliai visiškai palieka
@@ -179,7 +240,7 @@ pranešimo vietaženklius ir priima tik plikus vardus, nieko daugiau. Prieš
 | `{nombre}` | translation does not match the source placeholders: `{name}` is missing; `{nombre}` is not in the source message |
 
 Atmesta nereiškia sudužo: pagal nutylėjimą biblioteka užrašo įspėjimą ir
-atvaizduoja pirminį tekstą, todėl blogas katalogas niekada nepargriauna
+atvaizduoja pirminį pranešimą, todėl blogas katalogas niekada nepargriauna
 programos —
 [toks pat kontraktas, kokio laikosi pats gettext](guide.md#what-happens-when-a-catalog-is-wrong).
 
@@ -191,52 +252,18 @@ tr(t"Total: {amount:,.2f}")  # msgid is "Total: {amount}"
 ```
 
 `:,.2f` niekada nepasiekia katalogo, todėl joks vertimas negali jo pakeisti ir
-jokiam vertėjui nereikia į jį žiūrėti.
+jokiam vertėjui nereikia į jį žiūrėti. Vis dėlto tai *fiksuotas*, o ne
+lokalizuotas formatas — skaitmenų ir skirtukų parinkimas pagal kalbą yra
+[Babel darbas, atliekamas prieš iškvietimą](guide.md#locale-aware-values).
 
 Dar vienas skirtumas yra įrankiai: t-eilutės yra nauja sintaksė, todėl jų
 ištraukimui į `.pot` šiuo metu reikia t-eilutes suprantančio ištraukiklio,
 tokio kaip tas, kurį šis paketas [pateikia Babel'iui](extraction.md).
 
-## Greta { #side-by-side }
+## Apribojimo kaina { #the-cost-of-the-restriction }
 
-| | `%(name)s` | `.format()` | `flufl.i18n` `$name` | `t"…"` |
-| --- | --- | --- | --- | --- |
-| Ar vietaženklis pavadintas? | taip | taip | taip | taip |
-| Ar vertėjas gali perstatyti vietaženklius? | taip | taip | taip | taip |
-| Iš kur ateina reikšmės? | iš aiškaus atvaizdžio | iš aiškių argumentų | iš kviečiančiojo vietinių ir globalių kintamųjų bei neprivalomo `extras` | iš reikšmių, pagautų t-eilutės viduje |
-| Ar katalogas gali pakeisti reikšmės formatavimą? | taip | taip | ne | ne |
-| Ar katalogas gali siekti į objektų vidų (prieiga prie atributų)? | ne | taip | taip, su taškiniais vardais | ne |
-| Vertimas *praleidžia* vietaženklį — kas atvaizduojama? | reikšmė tyliai dingsta | reikšmė tyliai dingsta | reikšmė tyliai dingsta | pirminis tekstas, su įspėjimu ([pagal nutylėjimą](guide.md#what-happens-when-a-catalog-is-wrong)) |
-| Vertimas *prideda* nežinomą vietaženklį — kas atvaizduojama? | išimtis | išimtis | vietaženklis lieka matomas kaip tekstas | pirminis tekstas, su įspėjimu ([pagal nutylėjimą](guide.md#what-happens-when-a-catalog-is-wrong)) |
-| Ar vietaženkliai tikrinami atvaizdavimo metu? | ne | ne | ne | taip (žr. žemiau) |
-| Kokią PO žymą Babel nustato, kad jau turimi įrankiai galėtų tikrinti? | `python-format` | `python-brace-format` | jokios | `python-brace-format` |
-| Ar naudoja įprastus PO/MO katalogus? | taip | taip | taip | taip |
-| Ar reikia savo pirminio kodo ištraukiklio? | ne | ne | ne | taip, šiuo metu |
-| Kur gyvena „dabartinė kalba“? | ten, kur ją padeda programa | ten, kur ją padeda programa | kalbų kodų dėkle, esančiame bendrame programos objekte | `ContextVar` kintamajame, kiekvienai užduočiai ar užklausai atskirai |
-
-Dėl atvaizdavimo meto patikros: vienaskaitos pranešimai tikrinami dėl tikslaus
-vietaženklių sutapimo. Daugiskaitos pranešimai taip pat tikrinami — pagal
-[sąjungos/sankirtos taisyklę](spec.md), kuri leidžia tikslinės kalbos
-daugiskaitos formoms skirtis nuo pirminės kalbos; griežtesnė kiekvienos formos
-patikra vykdoma kompiliuojant katalogus ([Ištraukimas](extraction.md)).
-
-Formato žymos eilutė kalba apie vietaženklius suprantantį tikrinimą, o ne apie
-katalogų suderinamumą. `jokios` reiškia, kad standartiniai gettext įrankiai vis
-tiek perskaito ir sukompiliuoja pranešimą, bet `msgfmt --check-format` neturi
-jokios `$` vietaženklių gramatikos, kurią galėtų pritaikyti.
-
-## Kiek tai kainuoja { #what-it-costs }
-
-F-eilutės taip panaudoti apskritai neįmanoma — tuo metu, kai ją pamato bet kuri
-biblioteka, ji jau yra baigta eilutė, tad jos vertimas reiškia nuotrupos
-vertimą. T-eilutės ([PEP 750]) laiko statinį tekstą ir reikšmes atskirai,
-išlaikydamos į f-eilutes panašią sintaksę ir aiškų reikšmių susiejimą.
-`$` eilutės jau siūlo glaustą alternatyvą su kitokiu susiejimo ir gedimų
-modeliu. `flufl.i18n` yra brandus paketas, veikiantis su Python 3.10 ir
-naujesniais; `gettext-tstrings` šiuo metu yra alfa, o kadangi t-eilutės yra
-nauja sintaksė, jam reikia Python 3.14 arba naujesnio.
-
-Kita kaina — pats apribojimas: interpoliacija turi būti paprastas vardas.
+Be Python versijos reikalavimo, viso to kaina yra viena taisyklė: interpoliacija
+turi būti paprastas vardas.
 
 ```python
 tr(t"Hello {user.name}")  # raises InvalidTemplateError at the call site
@@ -247,9 +274,15 @@ name = user.name  # compute it first
 tr(t"Hello {name}")
 ```
 
-Tai tikras apribojimas. Kartu su reikšmių susiejimu pirminiame kode ir
+Tai tikras apribojimas — ir būtent tas pats apribojimas pagamina aukščiau
+išvardytas garantijas. Kartu su reikšmių susiejimu pirminiame kode ir
 vietaženklių tikrinimu veikimo metu jis neleidžia katalogo eilutėms skaičiuoti
-reiškinių ir išlaiko vietaženklių vardus prasmingus.
+reiškinių ir išlaiko vietaženklių vardus prasmingus tam, kas juos verčia.
+
+F-eilutės taip panaudoti apskritai neįmanoma — tuo metu, kai ją pamato bet kuri
+biblioteka, ji jau yra baigta eilutė, tad jos vertimas reiškia nuotrupos
+vertimą. T-eilutės ([PEP 750]) laiko statinį tekstą ir reikšmes atskirai,
+išlaikydamos į f-eilutes panašią sintaksę ir aiškų reikšmių susiejimą.
 
 Kaip Python priėjo šią sankryžą — du PEP'ai, parašyti su dešimties metų
 tarpu, ir standartinės bibliotekos diskusija, užsibaigusi be atsakymo —

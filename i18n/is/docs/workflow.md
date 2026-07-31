@@ -11,6 +11,18 @@ vinnur annars staðar og á sínum eigin tíma, og vistþýdd þýðingaskrá fy
 hverri útgáfu. Þessi síða er sú iðja — hvað dvelur í geymslunni, hvað
 ferðast, hvað CI verður að stöðva, og hvar keyrslutíminn bindur tungumál.
 
+Það sem þetta leggur sig saman í eru sex athuganir, svo hér eru þær fyrst;
+hver kafli hér að neðan setur eina þeirra upp.
+
+- `pybabel update --check` stenst — engum skilaboðum var breytt án þess að
+  þýðingaskrárnar frétti af því.
+- `pybabel compile` stöðvar bygginguna út frá lokastöðu sinni.
+- Þær `fuzzy`-færslur sem eftir standa eru ásetningur — hver þeirra birtist
+  sem frumtexti þar til þýðandi staðfestir hana.
+- Prófmengið birtir hvert útgefið tungumál einu sinni með `strict=True`.
+- Rekstrarafurðin inniheldur `.mo`-skrár og engan Babel.
+- Atburðaskrárritill `gettext_tstrings` er leiddur til vöktunar.
+
 ## Lag verkefnisins { #the-shape-of-a-project }
 
 ```text
@@ -33,8 +45,8 @@ geymsluna, svo að `.po`-skrá og `.mo`-skrá hennar geti aldrei verið
 ósammála um hvað fer út.
 
 Ein skrá gegnir hlutverki í hvora átt: `.pot` ber skilaboðin þín *út* til
-þýðenda, `.po`-skrárnar bera þýðingarnar *til baka*. Allt hér að neðan er
-umferðin milli þeirra tveggja.
+þýðenda, `.po`-skrárnar bera þýðingarnar *til baka*. Afgangur þessarar síðu er
+það sem hreyfist á milli þeirra.
 
 ```mermaid
 flowchart LR
@@ -48,8 +60,8 @@ flowchart LR
 
 ## Ferlið eftir fyrstu þýðinguna { #the-cycle-after-the-first-translation }
 
-`pybabel init` úr kennsluefninu keyrir einu sinni fyrir hvert tungumál, í eitt
-skipti fyrir öll. Upp frá því er vinnuferlið **draga út → uppfæra → þýða →
+`pybabel init` úr kennsluefninu keyrir að jafnaði einu sinni, þegar tungumáli
+er bætt við. Upp frá því er vinnuferlið **draga út → uppfæra → þýða →
 vistþýða**, og miðja þess er `pybabel update`, sem fellir nýtt sniðmát inn í
 þýðingaskrárnar sem fyrir eru án þess að fleygja þýðingunum sem þegar eru í
 þeim.
@@ -77,9 +89,9 @@ msgstr "こんにちは {name}"
 
 Babel tók eftir að nýja msgid-ið líkist einu sem var fjarlægt og paraði það
 við gömlu þýðinguna — en merkti parið **fuzzy**: ágiskun vélar sem bíður
-manneskju. Flaggið hefur tennur. `pybabel compile` **skilur fuzzy-færslur
-undan `.mo`-skránni**, svo að þar til þýðandi staðfestir parið birtir forritið
-nýja enska textann fremur en úreltan japanskan:
+manneskju. Flaggið breytir því hvað vistþýðist. `pybabel compile` **skilur
+fuzzy-færslur undan `.mo`-skránni**, svo að þar til þýðandi staðfestir parið
+birtir forritið nýja enska textann fremur en úreltan japanskan:
 
 ```console
 $ pybabel compile -d locales
@@ -126,33 +138,17 @@ núlli þegar þýðingaskrá er ekki í takt við nýútdregna sniðmátið —
 [skráða athugarann](extraction.md#your-existing-toolchain-validates-these-catalogs)
 úr þessum pakka.
 
-!!! bug "`--check` getur ekki stöðvað þýðingaskrá sem notar samhengi"
+!!! bug "Babel 2.18.0: `--check` getur ekki stöðvað þýðingaskrá sem notar samhengi"
 
     Í Babel 2.18.0 tilkynnir `pybabel update --check` **hverja** þýðingaskrá
     sem inniheldur `msgctxt` sem úrelta, í hverri einustu keyrslu, hversu
-    fersk sem hún er. Samanburðurinn fer gegnum `Catalog.is_identical`, sem
-    flettir hverjum skilaboðum upp eftir þeim lykli sem þau eru geymd undir —
-    og fyrir skilaboð með samhengi er sá lykill parið `(id, context)`, sem
-    `Catalog.get` tekur ekki við. Uppflettingin skilar engu, og
-    þýðingaskrárnar reynast aldrei jafnar:
-
-    ```pycon
-    >>> from babel.messages.catalog import Catalog
-    >>> c = Catalog(locale="ja")
-    >>> c.add("Guide", "ガイド", context="navigation")
-    <Message 'Guide' (flags: [])>
-    >>> c.is_identical(c)
-    False
-    ```
-
-    Svo að ef þú notar `pgettext` eða `npgettext` yfirleitt — og að greina
-    samhljóða orð að er einmitt ástæðan fyrir tilvist þeirra — þá bilar þetta
-    skref á versta veg: alltaf rautt, svo teymið slekkur á því, svo ekkert
-    stöðvar úreldingu. Þar til þetta er lagað hjá upprunaverkefninu skaltu
-    bera skilaboðamengin saman sjálfur. Að lesa sniðmátið og hverja
-    þýðingaskrá með `babel.messages.pofile.read_po` og bera saman
-    `{(m.context, m.id) for m in catalog if m.id}` er öll athugunin, og það er
-    það sem [bygging þessa vefs sjálfs](index.md) gerir.
+    fersk sem hún er. Hlið sem bilar varanlega er verra en ekkert hlið, því
+    teymið slekkur á því — svo að ef þú notar `pgettext` eða `npgettext`
+    yfirleitt skaltu skipta þessu skrefi út fremur en að búa við það. Að lesa
+    sniðmátið og hverja þýðingaskrá með `babel.messages.pofile.read_po` og
+    bera saman `{(m.context, m.id) for m in catalog if m.id}` er öll
+    athugunin, og það er það sem [bygging þessa vefs sjálfs](index.md) gerir.
+    Orsökin er [rakin á Fallgryfjum](pitfalls.md#your-tools-have-bugs-too).
 
 !!! danger "Athugaðu lokastöðuna, ekki atburðaskrána"
 

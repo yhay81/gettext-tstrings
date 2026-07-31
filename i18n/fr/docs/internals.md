@@ -212,8 +212,8 @@ Sur le même principe, un marqueur « manquant » qui *semble* présent voit son
 absence expliquée — accolades pleine chasse d'une méthode de saisie
 est-asiatique, doublement `{{name}}` issu d'un aller-retour d'échappement,
 nom hors de toute accolade. Le
-[tableau de lecture des erreurs du guide](guide.md#reading-a-failure-message)
-montre chacun de ces messages mot pour mot.
+[tableau de lecture des erreurs](translators.md#reading-a-failure-message)
+rédigé pour les traducteurs montre chacun de ces messages mot pour mot.
 
 ## Le chemin chaud { #the-hot-path }
 

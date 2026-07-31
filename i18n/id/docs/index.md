@@ -1,5 +1,5 @@
 ---
-description: "Terjemahkan pesan t-string secara utuh melalui gettext dan Babel, dengan pemformatan yang dijaga tetap di luar katalog."
+description: "Terjemahkan pesan t-string secara utuh melalui gettext dan Babel, dengan nilai dan pemformatan yang dijaga tetap di luar katalog."
 title: "gettext-tstrings"
 hide:
   - navigation
@@ -8,10 +8,11 @@ hide:
 
 <div class="home-hero" markdown>
 
-# Tulis kalimatnya sekali.<br>Terjemahkan seutuhnya.
+# Terjemahkan pesan utuh,<br>bukan penggalan string.
 
-Integrasi gettext dan Babel yang aman untuk t-string Python 3.14+ — nilainya
-tetap di tempat, dan katalog melihat pesan seutuhnya:
+`gettext-tstrings` menghubungkan t-string Python 3.14+ ke katalog gettext
+standar dan perkakas Babel. Nilai dan pemformatan tetap di kode aplikasi;
+katalog memegang pesan lengkap dengan placeholder `{name}` yang sederhana:
 
 ```python
 import gettext
@@ -24,7 +25,10 @@ print(_(t"Hello {name}"))  # with a Japanese catalog: こんにちは Ada
 ```
 
 [Mulai tutorial :material-arrow-right:](tutorial.md){ .md-button .md-button--primary }
-[Mengapa t-string](comparison.md){ .md-button }
+[Bandingkan alternatifnya](comparison.md){ .md-button }
+
+Alpha · Python 3.14+ · katalog PO/MO biasa · tanpa dependensi runtime
+{ .home-facts }
 
 Situs ini mempraktikkan apa yang didokumentasikannya: setiap edisi bahasa —
 navigasi, label, dan laporan build yang sadar bentuk jamak — dirender dari
@@ -34,22 +38,48 @@ katalog PO oleh
 
 </div>
 
-Katalog menerima kalimat lengkap `Hello {name}`. Sebuah terjemahan boleh
-mengurutkan ulang atau mengulang `{name}`; ia tidak boleh menghilangkannya,
-mengarang yang baru, atau menambahkan pemformatan sendiri — pustaka ini
-memeriksanya, dan katalog yang rusak kembali ke teks sumber alih-alih membuat
-aplikasi crash.
+## Apakah ini untuk Anda? { #is-this-for-you }
+
+**Cocok hari ini bila** aplikasi Anda berjalan di Python 3.14 atau lebih baru;
+Anda sudah memakai gettext dan Babel, atau ingin mengadopsi alur kerja PO/MO
+mereka; dan Anda menginginkan sintaks t-string dengan placeholder bernama yang
+diperiksa sebelum dirender.
+
+**Belum cocok bila** Anda membutuhkan Python 3.13 atau lebih lama; Anda
+menuntut API Python yang stabil — ini sebuah alpha, dan
+[spesifikasinya](spec.md) adalah bagian yang sudah mengendap; atau hampir
+seluruh teks Anda yang dapat diterjemahkan berada di bahasa templat alih-alih
+di sumber Python.
+
+Sudah punya katalog? Katalog itu tetap bekerja.
+`_("Hello {name}").format(name=name)` dan `tr(t"Hello {name}")` menghasilkan
+msgid yang sama, sehingga terjemahan yang ada selamat melewati peralihannya —
+[Migrasi](migration.md) menempuh keseluruhan perpindahannya.
+
+## Apa yang boleh dikatakan katalog { #what-the-catalog-may-say }
+
+Katalog menerima pesan lengkap `Hello {name}`. Sebuah terjemahan boleh
+mengurutkan ulang atau mengulang `{name}`, dan boleh menulis ulang setiap kata
+lain di sekelilingnya. Ia tidak boleh menghilangkan placeholder-nya, mengarang
+yang baru, menjangkau lewat placeholder itu ke dalam objek Anda, atau
+menambahkan pemformatan sendiri.
+
+Itulah keseluruhan janjinya: **sebuah terjemahan tidak dapat mengubah struktur
+pesan yang diterjemahkannya.** Pustaka ini memeriksanya saat masuk — ketika
+katalog dikompilasi — dan sekali lagi saat perenderan; entri rusak yang tetap
+sampai ke produksi mencatat sebuah peringatan dan merender pesan sumbernya
+alih-alih membuat aplikasi crash.
 
 !!! note "Baru mengenal gettext? Seluruh alur kerjanya dalam empat kalimat"
 
     **gettext** adalah cara standar perangkat lunak diterjemahkan, di Python
-    dan jauh di luarnya. Kode Anda menandai string yang dapat diterjemahkan;
+    dan jauh di luarnya. Kode Anda menandai pesan yang dapat diterjemahkan;
     sebuah *ekstraktor* mengumpulkannya ke dalam berkas templat (`.pot`);
     seorang penerjemah — biasanya bukan programmer — mengisi satu berkas
     katalog (`.po`) per bahasa, yang dikompilasi menjadi `.mo` biner yang
     dimuat aplikasi Anda saat runtime. Nama konvensional untuk fungsi
     penerjemah adalah `_`, sehingga `_(t"Hello {name}")` terbaca sebagai
-    "terjemahkan kalimat ini". **[Tutorial](tutorial.md)** menempuh seluruh
+    "terjemahkan pesan ini". **[Tutorial](tutorial.md)** menempuh seluruh
     jalurnya — tandai, ekstrak, terjemahkan, kompilasi, jalankan — dalam
     sekitar lima menit.
 
@@ -69,16 +99,23 @@ sebuah t-string menjadi sebuah pesan. Pustaka ini mengambil pilihan itu,
 menuliskannya sebagai [spesifikasi berversi](spec.md), dan menyertakan
 [suite konformans](spec.md#conformance) untuk memeriksanya.
 
-## Pilihan yang diambilnya { #the-choice-it-makes }
+## Aturan desainnya { #the-design-rules }
 
 - Menerjemahkan pesan secara utuh, tidak pernah penggalan kalimat.
 - Hanya menerima nama variabel sederhana seperti `{name}`.
 - Menjaga `!r` dan `:.2f` di bawah kendali aplikasi, di luar katalog.
-- Membiarkan penerjemah mengurutkan ulang dan mengulang placeholder yang
-  dikenal — tetapi tidak memanggil atribut, dan tidak menambahkan perilaku
+- Mengizinkan terjemahan mengurutkan ulang dan mengulang placeholder yang
+  dikenal, sekaligus mencegahnya menjangkau atribut atau menambahkan
   pemformatan.
 - Menggunakan kembali berkas POT, PO, dan MO biasa, serta perkakas yang sudah
   membacanya.
+
+Dan daftar penyandingnya, apa yang sengaja tidak disentuhnya: ia tidak
+melokalkan angka, mata uang, atau tanggal —
+[format semua itu lebih dulu](guide.md#locale-aware-values) dengan Babel; ia
+tidak meng-escape keluaran yang dirender untuk HTML, shell, atau terminal; dan
+ia tidak dapat menilai apakah sebuah terjemahan *benar*, hanya apakah
+placeholder-nya utuh.
 
 ## Instalasi { #install }
 
@@ -99,47 +136,58 @@ python -m pip install "gettext-tstrings[babel]"
 
 ## Ke mana selanjutnya { #where-to-go-next }
 
-Tiga jenis pembaca tiba di sini: orang yang menerjemahkan program pertamanya,
-orang yang memasang penerjemahan ke proyek nyata, dan orang yang ingin tahu
-persis mengapa mesinnya berbentuk seperti ini. Masing-masing punya jalurnya.
-
-**Mempelajarinya** — tanpa mengandaikan pengalaman gettext:
+**Mulai di sini** — tanpa mengandaikan pengalaman gettext:
 
 <div class="grid cards" markdown>
 
-- **[Tutorial](tutorial.md)** — mulai di sini: dari direktori kosong ke
-  terjemahan bahasa Jepang yang berjalan dalam lima langkah, setiap perintah
-  ditampilkan dengan keluarannya.
+- **[Tutorial](tutorial.md)** — dari direktori kosong ke terjemahan bahasa
+  Jepang yang berjalan dalam lima langkah, setiap perintah ditampilkan dengan
+  keluarannya.
 - **[Mengapa t-string](comparison.md)** — pesan yang sama ditulis empat cara,
   dan apa yang `%(name)s`, `.format()`, serta `$`-string masing-masing serahkan
   ke katalog.
-- **[Latar belakang](background.md)** — mengapa pustaka ini ada: tiga puluh
-  tahun gettext, dua PEP, dan diskusi stdlib yang ditutup tanpa jawaban.
 
 </div>
 
-**Menggunakannya secara serius** — referensi kerjanya:
+**Menggunakannya** — referensi kerjanya:
 
 <div class="grid cards" markdown>
 
-- **[Panduan](guide.md)** — API runtime: bentuk jamak, bahasa per permintaan,
-  string tertunda, dan apa yang terjadi ketika sebuah katalog salah.
+- **[Panduan](guide.md)** — API runtime: titik masuk mana yang dipakai, bentuk
+  jamak, bahasa per permintaan, string tertunda, dan apa yang terjadi ketika
+  sebuah katalog salah.
 - **[Ekstraksi](extraction.md)** — referensi `pybabel`: konfigurasi, nama
   fungsi kustom, dan bagaimana perkakas yang sudah ada memvalidasi katalog ini
   secara cuma-cuma.
 - **[Dalam produksi](workflow.md)** — putaran itu sebagaimana dijalankan
   sebuah tim: siklus pembaruan, entri fuzzy, gerbang CI, platform
-  penerjemahan, dan bahasa per permintaan di aplikasi web.
-- **[API](api.md)** — semua yang diekspor paket ini, dalam satu halaman.
+  penerjemahan, dan pengiriman.
+- **[Migrasi](migration.md)** — mengadopsi ini di proyek yang sudah punya
+  katalog, satu tempat pemanggilan pada satu waktu.
+- **[Untuk penerjemah](translators.md)** — satu halaman untuk diserahkan
+  kepada siapa pun yang menyunting berkas `.po`.
 
 </div>
 
-**Memahaminya** — dari prinsip hingga implementasi:
+**Memahaminya** — dari sejarah hingga implementasi:
 
 <div class="grid cards" markdown>
 
+- **[Latar belakang](background.md)** — mengapa pustaka ini ada: tiga puluh
+  tahun gettext, dua PEP, dan diskusi stdlib yang ditutup tanpa jawaban.
+- **[Jebakan umum](pitfalls.md)** — apa yang benar-benar rusak ketika situs ini
+  diterjemahkan ke tiga puluh lima bahasa, dan separuh mana yang dapat
+  ditangkap sebuah perkakas.
 - **[Cara kerjanya](internals.md)** — dari objek template PEP 750 hingga
   string yang dirender, dan cache yang membuat pemeriksaannya murah.
+
+</div>
+
+**Referensi** — kontraknya:
+
+<div class="grid cards" markdown>
+
+- **[API](api.md)** — semua yang diekspor paket ini, dalam satu halaman.
 - **[Spesifikasi](spec.md)** — konvensi t-string ↔ msgid sebagai kontrak yang
   stabil dan berversi, dengan suite konformans yang terbaca mesin.
 

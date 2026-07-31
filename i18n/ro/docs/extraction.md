@@ -43,11 +43,14 @@ Extractorul `gettext_tstrings` tratează și apelurile obișnuite `_()`,
 mixtă. Recunoaște `_()`, cele patru nume gettext standard, aliasurile `tr()` /
 `ntr()` și `lazy_gettext()` / `lazy_pgettext()` amânate.
 
-!!! warning "`-c` nu este opțional"
+!!! warning "Activează comentariile pentru traducători cu `-c`"
 
     `pybabel extract` adună comentariile pentru traducători numai când îi
     transmiți `-c "Translators:"`, exact așa cum face și pentru apelurile
-    gettext obișnuite.
+    gettext obișnuite. Lasă-l deoparte și extragerea funcționează în
+    continuare — doar că acele comentarii nu ajung niciodată în catalog, unde
+    sunt [cea mai ieftină pârghie de calitate](workflow.md#working-with-translators-and-platforms)
+    din tot fluxul.
 
 ## Înregistrarea propriilor nume de funcții { #registering-your-own-function-names }
 
@@ -88,9 +91,9 @@ Opțiunile sunt `tr_functions`, `ntr_functions`, `gettext_functions`,
     contextul apoi mesajul pentru `pgettext`, contextul apoi singularul apoi
     pluralul pentru `npgettext`.
 
-## Robust în mod implicit { #robust-by-default }
+## Îngăduitor local, strict în CI { #lenient-locally-strict-in-ci }
 
-Un singur fișier prost nu încheie rularea:
+În mod implicit, un singur fișier prost nu încheie rularea:
 
 - Un t-string pe care extractorul îl respinge — acces la atribut, o expresie,
   un argument greșit — este raportat ca avertisment și sărit.
@@ -98,8 +101,30 @@ Un singur fișier prost nu încheie rularea:
 - La fel și un fișier pe care doar `tokenize` îl refuză, în timp ce `ast` îl
   acceptă — un fișier pe care trecerea proprie a lui Babel ar aborta altfel.
 
-Pune `strict = true` în opțiunile mapării ca să transformi fiecare dintre
-acestea într-un eșec dur, ceea ce și vrei în CI.
+Asta este comod cât timp editezi și primejdios cât timp nu o faci: un mesaj
+sărit este pur și simplu **absent din POT**, așa că nu este tradus niciodată și
+nimic nu o spune. Pune `strict = true` în opțiunile mapării oriunde extragerea
+nu este privită de un om:
+
+=== "babel.cfg"
+
+    ```ini
+    [gettext_tstrings: **.py]
+    encoding = utf-8
+    strict = true
+    ```
+
+=== "babel.toml"
+
+    ```toml
+    [[mappings]]
+    method = "gettext_tstrings"
+    pattern = "**.py"
+    strict = true
+    ```
+
+Fiecare avertisment de mai sus devine atunci un eșec dur. Tratează asta drept
+setarea de producție, iar valoarea implicită drept cea locală.
 
 ## Lanțul tău de unelte existent validează aceste cataloage { #your-existing-toolchain-validates-these-catalogs }
 
@@ -127,8 +152,8 @@ msgfmt: found 1 fatal error
 
 Weblate documentează aceeași verificare sub numele
 [Python brace format][weblate-checks], iar platformele comerciale au propriul
-lor QA de substituenți legat de același flag. Comportamentul lor este treaba
-lor; cele două unelte de mai jos sunt cele verificate aici.
+lor QA de substituenți legat de același flag. Comportamentul fiecărei platforme
+este al ei; cele două unelte de mai jos sunt cele verificate aici.
 
   [weblate-checks]: https://docs.weblate.org/en/latest/user/checks.html
 
@@ -160,8 +185,8 @@ match the source placeholders: {n} is missing
     [Ce anume păzește CI-ul](workflow.md#what-ci-gates) arată pasul de build
     care îi permite asta.
 
-Cele două verificări nu sunt redundante. Verificatorul livrat este partea mai
-strictă în cel puțin două locuri:
+Cele două verificări nu sunt redundante. Verificatorul pachetului este mai
+strict în cel puțin două cazuri:
 
 - Un msgid ale cărui singure acolade sunt escapate (`Config {{raw}} only`) nu
   primește niciodată flagul `python-brace-format`, așa că nicio unealtă externă

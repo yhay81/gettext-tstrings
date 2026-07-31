@@ -1,5 +1,5 @@
 ---
-description: "Traduce mensajes t-string completos con gettext y Babel, manteniendo el formato fuera del catálogo."
+description: "Traduce mensajes t-string completos con gettext y Babel, manteniendo los valores y el formato fuera del catálogo."
 title: "gettext-tstrings"
 hide:
   - navigation
@@ -10,8 +10,10 @@ hide:
 
 # Escribe la frase una vez.<br>Tradúcela entera.
 
-Integración segura de gettext y Babel para las t-strings de Python 3.14+: el
-valor se queda en su sitio y el catálogo ve el mensaje completo:
+`gettext-tstrings` conecta las t-strings de Python 3.14+ con los catálogos
+gettext estándar y las herramientas de Babel. Los valores y el formato se
+quedan en el código de la aplicación; el catálogo guarda un mensaje completo
+con marcadores `{name}` sencillos:
 
 ```python
 import gettext
@@ -24,7 +26,10 @@ print(_(t"Hello {name}"))  # with a Japanese catalog: こんにちは Ada
 ```
 
 [Empieza el tutorial :material-arrow-right:](tutorial.md){ .md-button .md-button--primary }
-[Por qué usar t-strings](comparison.md){ .md-button }
+[Compara las alternativas](comparison.md){ .md-button }
+
+Alpha · Python 3.14+ · catálogos PO/MO normales · sin dependencias en tiempo de ejecución
+{ .home-facts }
 
 Este sitio practica lo que documenta: cada edición lingüística
 —navegación, etiquetas y el informe de compilación con plurales— se renderiza
@@ -34,10 +39,35 @@ desde catálogos PO mediante
 
 </div>
 
-El catálogo recibe la frase completa `Hello {name}`. Una traducción puede
-reordenar o repetir `{name}`; no puede omitirlo, inventar otro nombre ni añadir
-formato por su cuenta: esta biblioteca lo comprueba, y un catálogo dañado
-recurre al texto de origen en lugar de provocar un fallo.
+## ¿Es para ti? { #is-this-for-you }
+
+**Encaja hoy si** tu aplicación se ejecuta en Python 3.14 o posterior; ya
+utilizas gettext y Babel, o quieres adoptar su flujo de trabajo PO/MO; y
+quieres la sintaxis de las t-strings con marcadores con nombre que se
+comprueban antes de renderizarse.
+
+**Todavía no encaja si** necesitas Python 3.13 o anterior; requieres una API de
+Python estable —esto es una versión alpha, y la [especificación](spec.md) es la
+parte que ya se ha asentado—; o casi todo tu texto traducible vive en un
+lenguaje de plantillas y no en código Python.
+
+¿Ya tienes catálogos? Siguen funcionando. `_("Hello {name}").format(name=name)`
+y `tr(t"Hello {name}")` producen el mismo msgid, así que las traducciones
+existentes sobreviven al cambio: [Migración](migration.md) recorre el traslado
+completo.
+
+## Qué puede decir el catálogo { #what-the-catalog-may-say }
+
+El catálogo recibe el mensaje completo `Hello {name}`. Una traducción puede
+reordenar o repetir `{name}`, y puede reescribir todas las demás palabras que
+lo rodean. No puede omitir el marcador, inventar uno nuevo, atravesarlo para
+llegar a tus objetos ni añadir formato por su cuenta.
+
+Esa es toda la promesa: **una traducción no puede cambiar la estructura del
+mensaje que traduce.** La biblioteca lo comprueba a la entrada —cuando se
+compilan los catálogos— y de nuevo al renderizar; una entrada dañada que aun
+así llegue a producción registra una advertencia y renderiza el texto de origen
+en lugar de provocar un fallo.
 
 !!! note "¿Nuevo en gettext? Todo el flujo de trabajo en cuatro frases"
 
@@ -67,14 +97,21 @@ mensaje. Esta biblioteca toma esa decisión, la documenta como una
 [especificación versionada](spec.md) e incluye una
 [suite de conformidad](spec.md#conformance) para comprobarla.
 
-## La decisión que toma { #the-choice-it-makes }
+## Las reglas de diseño { #the-design-rules }
 
 - Traduce mensajes completos, nunca fragmentos de frases.
 - Acepta solo nombres de variable sencillos como `{name}`.
 - Mantiene `!r` y `:.2f` bajo el control de la aplicación, fuera del catálogo.
-- Permite que los traductores reordenen y repitan marcadores conocidos, pero no
-  que accedan a atributos ni que añadan comportamiento de formato.
-- Reutiliza los archivos POT, PO y MO habituales y las herramientas existentes.
+- Permite que las traducciones reordenen y repitan marcadores conocidos, pero
+  les impide acceder a atributos o añadir formato.
+- Reutiliza los archivos POT, PO y MO habituales y las herramientas que ya los
+  leen.
+
+Y la lista correspondiente de lo que deja deliberadamente en paz: no localiza
+números, monedas ni fechas —[formatéalos antes](guide.md#locale-aware-values),
+con Babel—; no escapa la salida renderizada para HTML, un intérprete de
+comandos o un terminal; y no puede juzgar si una traducción es *correcta*, solo
+si sus marcadores están intactos.
 
 ## Instalación { #install }
 
@@ -95,48 +132,57 @@ python -m pip install "gettext-tstrings[babel]"
 
 ## Próximos pasos { #where-to-go-next }
 
-Aquí llegan tres tipos de lectores: quien traduce su primer programa, quien
-integra la traducción en un proyecto real y quien quiere saber exactamente por
-qué la maquinaria tiene esta forma. Cada uno tiene su camino.
-
-**Aprenderla** — sin experiencia previa con gettext:
+**Empieza aquí** — sin experiencia previa con gettext:
 
 <div class="grid cards" markdown>
 
-- **[Tutorial](tutorial.md)** — empieza aquí: de un directorio vacío a una
-  traducción japonesa en funcionamiento en cinco pasos, con la salida de cada
-  comando.
+- **[Tutorial](tutorial.md)** — de un directorio vacío a una traducción japonesa
+  en funcionamiento en cinco pasos, con la salida de cada comando.
 - **[Por qué usar t-strings](comparison.md)** — el mismo mensaje escrito de
   cuatro formas y qué entregan al catálogo `%(name)s`, `.format()` y las
   cadenas `$`.
-- **[Trasfondo](background.md)** — por qué existe esta biblioteca: treinta
-  años de gettext, dos PEP y la discusión sobre la biblioteca estándar que
-  se cerró sin una respuesta.
 
 </div>
 
-**Usarla en serio** — las referencias de trabajo:
+**Úsalo** — las referencias de trabajo:
 
 <div class="grid cards" markdown>
 
-- **[Guía](guide.md)** — la API de ejecución: plurales, idiomas por petición,
-  cadenas diferidas y qué ocurre cuando un catálogo es incorrecto.
+- **[Guía](guide.md)** — la API de ejecución: qué punto de entrada utilizar,
+  plurales, idiomas por petición, cadenas diferidas y qué ocurre cuando un
+  catálogo es incorrecto.
 - **[Extracción](extraction.md)** — la referencia de `pybabel`: configuración,
   nombres de función propios y cómo las herramientas existentes validan estos
   catálogos sin coste añadido.
 - **[En producción](workflow.md)** — el ciclo tal como lo ejecuta un equipo:
   el ciclo de actualización, las entradas fuzzy, las puertas de CI, las
-  plataformas de traducción y los idiomas por petición en una aplicación web.
-- **[API](api.md)** — todo lo que exporta el paquete, en una sola página.
+  plataformas de traducción y la publicación.
+- **[Migración](migration.md)** — adoptarlo en un proyecto que ya tiene
+  catálogos, un punto de llamada cada vez.
+- **[Para traductores](translators.md)** — una única página para entregar a
+  quien edita los archivos `.po`.
 
 </div>
 
-**Entenderla** — de los principios a la implementación:
+**Entiéndelo** — de la historia a la implementación:
 
 <div class="grid cards" markdown>
 
+- **[Trasfondo](background.md)** — por qué existe esta biblioteca: treinta
+  años de gettext, dos PEP y la discusión sobre la biblioteca estándar que
+  se cerró sin una respuesta.
+- **[Escollos](pitfalls.md)** — qué rompió realmente traducir este sitio a
+  treinta y cinco idiomas, y qué mitad puede detectar una herramienta.
 - **[Cómo funciona](internals.md)** — del objeto plantilla del PEP 750 a la
   cadena renderizada, y las cachés que abaratan las comprobaciones.
+
+</div>
+
+**Referencia** — los contratos:
+
+<div class="grid cards" markdown>
+
+- **[API](api.md)** — todo lo que exporta el paquete, en una sola página.
 - **[Especificación](spec.md)** — la convención t-string ↔ msgid como contrato
   estable y versionado, con una suite de conformidad legible por máquinas.
 

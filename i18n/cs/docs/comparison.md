@@ -1,23 +1,17 @@
 ---
-description: "Tatáž přeložitelná zpráva zapsaná pomocí %-formátu, .format(), $-stringů flufl.i18n a t-stringu, včetně toho, jak každý z nich váže hodnoty a jak zachází s poškozeným katalogem."
+description: "Tatáž přeložitelná zpráva zapsaná pomocí %-formátu, .format(), $-stringů flufl.i18n a t-stringu, porovnaná podle chyb překladatelů, pravomoci katalogu a ceny za integraci."
 ---
 
 # Proč t-stringy
 
 Čtyři způsoby, jak vložit hodnotu do přeložitelné zprávy, porovnané na téže
-větě. Stručná verze:
+zprávě. Všechny čtyři své zástupné symboly pojmenovávají a dovolují
+překladateli je přeuspořádat; liší se v tom, co se stane, když je překlad
+špatně, jak velké části vašeho programu katalog dosáhne a co stojí jejich
+zavedení.
 
-- U **%-formátu** se jedno písmeno smazané překladatelem stane pádem
-  v produkci.
-- U **str.format** může překlad číst atributy objektů, které váš kód
-  předává — včetně tajemství.
-- U **$-stringů** (flufl.i18n) se hodnoty berou implicitně z proměnných
-  volající funkce a tečkované zástupné symboly dosáhnou i na atributy.
-- U **t-stringů** zůstává formátování ve vašem kódu, překlady se kontrolují
-  za běhu a poškozený katalog se vrátí ke zdrojovému textu, místo aby
-  způsobil pád.
-
-Zbytek této stránky jsou důkazy, metoda po metodě.
+Tabulky jsou na začátku, abyste našli řádek, který vás zajímá, a přečetli
+si jen ten oddíl, který za ním stojí.
 
 !!! note "Každé přeložené zprávy se dotýkají tři strany"
 
@@ -30,6 +24,72 @@ Zbytek této stránky jsou důkazy, metoda po metodě.
     tutéž otázku jinak: *jak velkou část formátovacího jazyka smí katalog
     ovládat?* V příkladech je `_` konvenční jméno překládací funkce a `tr`
     je jméno z této knihovny.
+
+## Vedle sebe { #side-by-side }
+
+**Když překladatel udělá chybu.** Katalog projde mnoha rukama a většina
+toho, co se v něm pokazí, je nechtěná:
+
+| | `%(name)s` | `.format()` | `flufl.i18n` `$name` | `t"…"` |
+| --- | --- | --- | --- | --- |
+| Překlad zástupný symbol *vypustí* — co se vykreslí? | hodnota tiše zmizí | hodnota tiše zmizí | hodnota tiše zmizí | zdrojový text, s varováním ([ve výchozím nastavení](guide.md#what-happens-when-a-catalog-is-wrong)) |
+| Překlad *přidá* neznámý zástupný symbol — co se vykreslí? | výjimka | výjimka | zástupný symbol zůstane viditelný jako text | zdrojový text, s varováním ([ve výchozím nastavení](guide.md#what-happens-when-a-catalog-is-wrong)) |
+| Překlad zástupný symbol *přeformátuje* — co se vykreslí? | to, oč katalog požádal, nebo výjimka, pokud písmeno typu už k hodnotě nesedí | to, oč katalog požádal | v `$`-stringech nevyjádřitelné | zdrojový text, s varováním |
+| Kontrolují se zástupné symboly při vykreslování? | ne | ne | ne | ano (viz níže) |
+
+**Jakou pravomoc má katalog.** Překlad jsou data zvenčí vašeho repozitáře
+a každý styl jim předává jinou míru moci:
+
+| | `%(name)s` | `.format()` | `flufl.i18n` `$name` | `t"…"` |
+| --- | --- | --- | --- | --- |
+| Odkud pocházejí hodnoty? | explicitní mapování | explicitní argumenty | lokální a globální proměnné volajícího, plus volitelné `extras` | hodnoty zachycené uvnitř t-stringu |
+| Může katalog změnit způsob formátování hodnoty? | ano | ano | ne | ne |
+| Může katalog sahat do objektů (přístup k atributům)? | ne | ano | ano, tečkovanými jmény | ne |
+| Kde žije „aktuální jazyk“? | tam, kam si jej aplikace uloží | tam, kam si jej aplikace uloží | zásobník kódů jazyků na sdíleném objektu aplikace | `ContextVar`, pro každou úlohu či požadavek |
+
+**Co stojí integrace.** Všechno výše je zadarmo, pokud sedí nástroje;
+tady sedět nemusí:
+
+| | `%(name)s` | `.format()` | `flufl.i18n` `$name` | `t"…"` |
+| --- | --- | --- | --- | --- |
+| Minimální Python | libovolný | libovolný | 3.10 | **3.14** |
+| Zralost | standardní knihovna | standardní knihovna | stabilní vydání | **alfa** |
+| Používá obyčejné katalogy PO/MO? | ano | ano | ano | ano |
+| Potřebuje vlastní extraktor zdrojů? | ne | ne | ne | ano, zatím |
+| Jaký PO příznak odvodí Babel, aby existující nástroje validovaly? | `python-format` | `python-brace-format` | žádný | `python-brace-format` |
+
+Ke kontrole při vykreslování: zprávy v jednotném čísle se kontrolují na
+přesnou shodu zástupných symbolů. Zprávy v množném čísle také — vůči
+[pravidlu sjednocení a průniku](spec.md), které dovoluje, aby se tvary
+množného čísla cílového jazyka lišily od zdrojových; přísnější kontrola
+po jednotlivých tvarech běží při kompilaci katalogů
+([Extrakce](extraction.md)).
+
+Řádek o formátovacím příznaku se týká validace znalé zástupných symbolů,
+nikoli kompatibility katalogů. `žádný` znamená, že standardní nástroje
+gettext zprávu stále přečtou a zkompilují, ale `msgfmt --check-format`
+nemá žádnou gramatiku `$`-symbolů, kterou by mohl uplatnit.
+
+## Kompatibilita a zralost { #compatibility-and-maturity }
+
+První dva řádky poslední tabulky jsou ty, které rozhodují o zavedení,
+takže stojí za to je vyslovit naplno, a ne jen jako buňky.
+
+`%`-formát a `.format()` jsou zabudované v Pythonu a nepotřebují vůbec
+žádnou závislost. [`flufl.i18n`][flufl-i18n] je zralý balíček, vydaný
+a používaný v produkci, který běží na Pythonu 3.10 a novějším.
+`gettext-tstrings` je **alfa** a vyžaduje **Python 3.14 nebo novější**,
+protože t-stringy jsou v 3.14 nová syntaxe — neexistuje žádný back-port
+a ani existovat nemůže. Stabilní částí je jeho [specifikace](spec.md);
+Python API se před 1.0 ještě může měnit.
+
+Co nestojí ani jeden z nich, je kompatibilita katalogů. Všechny čtyři
+produkují obyčejné soubory POT/PO/MO, které už dnes přečte každý PO
+editor, každá překladatelská platforma i každý nástroj GNU gettext, takže
+volba níže je vratná způsobem, jakým by změna *formátu* katalogů nebyla.
+[Migrace](migration.md) se věnuje přesunu existujícího projektu.
+
+Oddíly níže ukazují každý kompromis podrobně, metodu po metodě.
 
 ## %-formát { #-format }
 
@@ -49,10 +109,10 @@ Traceback (most recent call last):
 ValueError: incomplete format
 ```
 
-Jednoznaková úprava v PO editoru se stane tracebackem v produkci. GNU
-`msgfmt --check-format` to sice zachytí, ale jen u zpráv označených
-příznakem `python-format`, a jen pokud katalog na cestě do vaší aplikace
-skutečně projde přes msgfmt.
+Jednoznaková úprava v PO editoru se stane výjimkou za běhu, pokud ji
+dřív nezachytí validace katalogu. GNU `msgfmt --check-format` právě tuhle
+zachytí, ale jen u zpráv označených příznakem `python-format`, a jen
+pokud katalog na cestě do vaší aplikace skutečně projde přes msgfmt.
 
 ## str.format { #strformat }
 
@@ -119,7 +179,7 @@ Přeložený zástupný symbol může pojmenovat kteroukoli dostupnou lokální
 nebo globální proměnnou volajícího a tečkovanou syntaxí procházet její
 atributy. To je pohodlné, když zpráva potřebuje atribut, zároveň to však
 činí rámec volajícího součástí substitučního prostoru katalogu. Srovnání
-níže popisuje `flufl.i18n` 6.0.0, nikoli každé možné použití
+zde popisuje `flufl.i18n` 6.0.0, nikoli každé možné použití
 `string.Template`.
 
 Odpovídá také na otázku, kterou zbylé dva formátovací styly nechávají zcela
@@ -193,54 +253,19 @@ tr(t"Total: {amount:,.2f}")  # msgid is "Total: {amount}"
 ```
 
 `:,.2f` se do katalogu nikdy nedostane, takže jej žádný překlad nemůže
-změnit a žádný překladatel se na něj nemusí dívat.
+změnit a žádný překladatel se na něj nemusí dívat. Je to ovšem formát
+*pevný*, nikoli lokalizovaný — volba číslic a oddělovačů podle jazyka je
+[úkol Babelu, ještě před voláním](guide.md#locale-aware-values).
 
 Ještě jeden rozdíl jsou nástroje: t-stringy jsou nová syntaxe, takže
 jejich extrakce do `.pot` v současnosti vyžaduje extraktor, který
 t-stringům rozumí, například ten, který tento balíček
 [poskytuje pro Babel](extraction.md).
 
-## Vedle sebe { #side-by-side }
+## Cena za omezení { #the-cost-of-the-restriction }
 
-| | `%(name)s` | `.format()` | `flufl.i18n` `$name` | `t"…"` |
-| --- | --- | --- | --- | --- |
-| Je zástupný symbol pojmenovaný? | ano | ano | ano | ano |
-| Může překladatel zástupné symboly přeuspořádat? | ano | ano | ano | ano |
-| Odkud pocházejí hodnoty? | explicitní mapování | explicitní argumenty | lokální a globální proměnné volajícího, plus volitelné `extras` | hodnoty zachycené uvnitř t-stringu |
-| Může katalog změnit způsob formátování hodnoty? | ano | ano | ne | ne |
-| Může katalog sahat do objektů (přístup k atributům)? | ne | ano | ano, tečkovanými jmény | ne |
-| Překlad zástupný symbol *vypustí* — co se vykreslí? | hodnota tiše zmizí | hodnota tiše zmizí | hodnota tiše zmizí | zdrojový text, s varováním ([ve výchozím nastavení](guide.md#what-happens-when-a-catalog-is-wrong)) |
-| Překlad *přidá* neznámý zástupný symbol — co se vykreslí? | výjimka | výjimka | zástupný symbol zůstane viditelný jako text | zdrojový text, s varováním ([ve výchozím nastavení](guide.md#what-happens-when-a-catalog-is-wrong)) |
-| Kontrolují se zástupné symboly při vykreslování? | ne | ne | ne | ano (viz níže) |
-| Jaký PO příznak odvodí Babel, aby existující nástroje validovaly? | `python-format` | `python-brace-format` | žádný | `python-brace-format` |
-| Používá obyčejné katalogy PO/MO? | ano | ano | ano | ano |
-| Potřebuje vlastní extraktor zdrojů? | ne | ne | ne | ano, zatím |
-| Kde žije „aktuální jazyk“? | tam, kam si jej aplikace uloží | tam, kam si jej aplikace uloží | zásobník kódů jazyků na sdíleném objektu aplikace | `ContextVar`, pro každou úlohu či požadavek |
-
-Ke kontrole při vykreslování: zprávy v jednotném čísle se kontrolují na
-přesnou shodu zástupných symbolů. Zprávy v množném čísle také — vůči
-[pravidlu sjednocení a průniku](spec.md), které dovoluje, aby se tvary
-množného čísla cílového jazyka lišily od zdrojových; přísnější kontrola
-po jednotlivých tvarech běží při kompilaci katalogů
-([Extrakce](extraction.md)).
-
-Řádek o formátovacím příznaku se týká validace znalé zástupných symbolů,
-nikoli kompatibility katalogů. `žádný` znamená, že standardní nástroje
-gettext zprávu stále přečtou a zkompilují, ale `msgfmt --check-format`
-nemá žádnou gramatiku `$`-symbolů, kterou by mohl uplatnit.
-
-## Co to stojí { #what-it-costs }
-
-F-string se takto použít vůbec nedá — než jej jakákoli knihovna uvidí, je
-už hotovým řetězcem, takže jeho překlad znamená překládat fragment.
-T-stringy ([PEP 750]) drží statický text a hodnoty odděleně a přitom
-zachovávají syntaxi podobnou f-stringům a explicitní vázání hodnot.
-`$`-stringy už dnes nabízejí stručnou alternativu s jiným modelem vázání
-a selhání. `flufl.i18n` je zralý balíček běžící na Pythonu 3.10 a novějším;
-`gettext-tstrings` je v současnosti alfa, a protože t-stringy jsou nová
-syntaxe, vyžaduje Python 3.14 nebo novější.
-
-Druhou cenou je samo omezení: interpolace musí být prosté jméno.
+Kromě požadavku na Python je cenou toho všeho jediné pravidlo:
+interpolace musí být prosté jméno.
 
 ```python
 tr(t"Hello {user.name}")  # raises InvalidTemplateError at the call site
@@ -251,9 +276,16 @@ name = user.name  # compute it first
 tr(t"Hello {name}")
 ```
 
-To je skutečné omezení. Spolu s vázáním hodnot na straně zdroje a
-kontrolou zástupných symbolů za běhu brání tomu, aby řetězce z katalogu
-vyhodnocovaly výrazy, a udržuje jména zástupných symbolů smysluplná.
+To je skutečné omezení a je to totéž omezení, které produkuje záruky
+uvedené výše. Spolu s vázáním hodnot na straně zdroje a kontrolou
+zástupných symbolů za běhu brání tomu, aby řetězce z katalogu
+vyhodnocovaly výrazy, a udržuje jména zástupných symbolů srozumitelná
+pro toho, kdo je překládá.
+
+F-string se takto použít vůbec nedá — než jej jakákoli knihovna uvidí, je
+už hotovým řetězcem, takže jeho překlad znamená překládat fragment.
+T-stringy ([PEP 750]) drží statický text a hodnoty odděleně a přitom
+zachovávají syntaxi podobnou f-stringům a explicitní vázání hodnot.
 
 Jak Python dospěl k této křižovatce — dva PEPy s odstupem deseti let a
 diskuse o standardní knihovně uzavřená bez odpovědi — vypráví s prameny

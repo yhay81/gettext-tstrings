@@ -50,9 +50,12 @@ Translator(translations, strict=False)
 
 | שם | תפקיד |
 | --- | --- |
-| `lazy_gettext(template, /, *, strict=False)` | דוחה תרגום עד לשימוש הראשון. |
+| `lazy_gettext(template, /, *, strict=False)` | דוחה את התרגום עד לכל רינדור. |
 | `lazy_pgettext(context, template, /, *, strict=False)` | הצורה ההקשרית. |
-| `LazyString` | מה ששתיהן מחזירות. עוברת רינדור דרך `str()` ו-`format()`, נחשבת שווה לטקסט שלה, ובלתי ניתנת לגיבוב בכוונה. |
+| `LazyString` | מה ששתיהן מחזירות. עוברת רינדור דרך `str()` ו-`format()` בשפה הקשורה באותו רגע, נחשבת שווה לטקסט המרונדר שלה, ובלתי ניתנת לגיבוב בכוונה. |
+
+דוגמאות מלאות, ובכללן ההסבר למה `strict` שייך למקום ההגדרה, נמצאות תחת
+[תרגום דחוי](guide.md#deferred-translation).
 
 ## רמה נמוכה יותר { #lower-level }
 

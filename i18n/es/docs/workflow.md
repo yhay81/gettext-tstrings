@@ -12,6 +12,19 @@ catálogo compilado. Esta página es esa práctica: qué permanece en el
 repositorio, qué viaja, qué debe bloquear la CI y dónde vincula un idioma el
 tiempo de ejecución.
 
+Todo ello se resume en seis comprobaciones, así que van primero; cada una de
+las secciones siguientes configura una de ellas.
+
+- `pybabel update --check` pasa: ningún mensaje ha cambiado sin que los
+  catálogos se enteren.
+- `pybabel compile` condiciona la build a su estado de salida.
+- Las entradas `fuzzy` que quedan son intencionadas: cada una se renderiza como
+  texto de origen hasta que un traductor la confirme.
+- La suite de pruebas renderiza una vez cada idioma distribuido con
+  `strict=True`.
+- El artefacto de producción contiene archivos `.mo` y nada de Babel.
+- El logger `gettext_tstrings` está enrutado a la monitorización.
+
 ## La forma de un proyecto { #the-shape-of-a-project }
 
 ```text
@@ -34,7 +47,7 @@ nunca puedan discrepar sobre lo que se distribuye.
 
 Un archivo tiene un papel en cada dirección: el `.pot` lleva tus mensajes
 *hacia* los traductores y los archivos `.po` traen las traducciones *de
-vuelta*. Todo lo que sigue es el tráfico entre esos dos.
+vuelta*. El resto de esta página es lo que se mueve entre ambos.
 
 ```mermaid
 flowchart LR
@@ -48,8 +61,8 @@ flowchart LR
 
 ## El ciclo tras la primera traducción { #the-cycle-after-the-first-translation }
 
-El `pybabel init` del tutorial se ejecuta una sola vez por idioma, para
-siempre. A partir de ahí el ciclo de trabajo es **extraer → actualizar →
+El `pybabel init` del tutorial se ejecuta normalmente una sola vez, al añadir
+un idioma. A partir de ahí el ciclo de trabajo es **extraer → actualizar →
 traducir → compilar**, y su centro es `pybabel update`, que incorpora una
 plantilla recién extraída a los catálogos existentes sin descartar las
 traducciones que ya contienen.
@@ -78,7 +91,7 @@ msgstr "こんにちは {name}"
 Babel ha notado que el nuevo msgid se parece a uno eliminado y lo ha
 emparejado con la traducción antigua, pero ha marcado la pareja como
 **fuzzy**: la suposición de una máquina a la espera de un humano. La marca
-tiene consecuencias. `pybabel compile` **excluye las entradas fuzzy del
+cambia lo que se compila. `pybabel compile` **excluye las entradas fuzzy del
 `.mo`**, así que, hasta que un traductor confirme la pareja, la aplicación
 renderiza el nuevo texto inglés en lugar de un japonés obsoleto:
 
@@ -129,33 +142,18 @@ del
 [checker registrado](extraction.md#your-existing-toolchain-validates-these-catalogs)
 de este paquete.
 
-!!! bug "`--check` no puede controlar un catálogo que usa contextos"
+!!! bug "Babel 2.18.0: `--check` no puede controlar un catálogo que usa contextos"
 
     En Babel 2.18.0, `pybabel update --check` informa de que **todos** los
     catálogos que contienen un `msgctxt` están desactualizados, en cada
-    ejecución, por muy al día que estén. La comparación pasa por
-    `Catalog.is_identical`, que busca cada mensaje por la clave con la que está
-    almacenado —y, en un mensaje con contexto, esa clave es el par
-    `(id, context)`, que `Catalog.get` no acepta—. La búsqueda no devuelve
-    nada, y los catálogos nunca resultan iguales:
-
-    ```pycon
-    >>> from babel.messages.catalog import Catalog
-    >>> c = Catalog(locale="ja")
-    >>> c.add("Guide", "ガイド", context="navigation")
-    <Message 'Guide' (flags: [])>
-    >>> c.is_identical(c)
-    False
-    ```
-
-    Así que, si usas `pgettext` o `npgettext` aunque sea mínimamente —y
-    desambiguar un homónimo es la razón por la que existen—, este paso falla
-    hacia el lado peor: siempre en rojo, así que el equipo lo desactiva, así
-    que nada controla la obsolescencia. Hasta que se corrija aguas arriba,
-    compara tú mismo los conjuntos de mensajes. Leer la plantilla y cada
-    catálogo con `babel.messages.pofile.read_po` y comparar
+    ejecución, por muy al día que estén. Una puerta que falla siempre es peor
+    que no tener puerta, porque el equipo acaba desactivándola; así que, si usas
+    `pgettext` o `npgettext` aunque sea mínimamente, sustituye este paso en
+    lugar de convivir con él. Leer la plantilla y cada catálogo con
+    `babel.messages.pofile.read_po` y comparar
     `{(m.context, m.id) for m in catalog if m.id}` es toda la comprobación, y
-    es lo que hace [la propia build de este sitio](index.md).
+    es lo que hace [la propia build de este sitio](index.md). La causa está
+    [documentada en Escollos](pitfalls.md#your-tools-have-bugs-too).
 
 !!! danger "Comprueba el código de salida, no el log"
 

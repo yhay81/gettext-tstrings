@@ -1,5 +1,5 @@
 ---
-description: "Běhové API: navázání katalogu, jazyky podle požadavku, odložené řetězce a způsob, jakým se hlásí poškozený překlad."
+description: "Běhové API: který vstupní bod použít, navázání katalogu, jazyky podle požadavku, odložené řetězce, hodnoty zohledňující locale a způsob, jakým se hlásí poškozený překlad."
 ---
 
 # Průvodce
@@ -11,6 +11,22 @@ spustit — [tutoriál](tutorial.md) ji jednou projde za pět minut; vytvářen�
 a validaci katalogů popisuje [Extrakce](extraction.md) a to, jak tým
 udržuje smyčku v chodu — aktualizační cykly, CI, překladatelské platformy —
 stránka [V produkci](workflow.md).
+
+## Který vstupní bod mám použít? { #which-entry-point-should-i-use }
+
+Balíček exportuje několik způsobů, jak zprávu přeložit, protože aplikace
+vážou jazyk několika různými způsoby. Vybírejte podle toho, jak váš program
+rozhoduje, v jakém je jazyce:
+
+| Vaše situace | Použijte |
+| --- | --- |
+| Jeden jazyk pro celý proces — CLI, desktopová aplikace, skript | `Translator`, volaný jako `_` |
+| Jeden jazyk na požadavek nebo na asynchronní úlohu — webová aplikace | `use_translations()` kolem práce, pak `tr()` |
+| Zpráva definovaná v době importu — popisek formuláře, výčet, konstanta | `lazy_gettext()` nebo `lazy_pgettext()` |
+| O formulaci rozhoduje počet | `ngettext()` / `npgettext()`, v kterékoli z podob výše |
+| Vykreslení vzoru bez jakéhokoli katalogu | `compile_template()` |
+
+Všechno níže je právě těchto pět, v tomto pořadí.
 
 ## Navázání katalogu { #binding-a-catalog }
 
@@ -60,6 +76,7 @@ from gettext_tstrings import tr, use_translations
 
 
 def handle(request):
+    name = request.user.display_name
     translations = load_translations(request.locale)
     with use_translations(translations):
         return render(tr(t"Hello {name}"))
@@ -164,12 +181,52 @@ a vydává kopie, které sdílejí rozparsovaný katalog.
 
     `asyncio.to_thread` to za vás už dělá.
 
+## Hodnoty zohledňující locale { #locale-aware-values }
+
+Tato knihovna rozhoduje o tom, *kde* se hodnota v přeložené zprávě objeví.
+Nelokalizuje samotnou hodnotu. `{amount:,.2f}` je pythonovská formátovací
+specifikace s pevným chováním — čárka po každých třech číslicích a tečka
+před desetinnými místy — a produkuje tytéž znaky bez ohledu na to, v jakém
+jazyce je zpráva:
+
+```pycon
+>>> f"{1234.5:,.2f}"  # the same in every locale
+'1,234.50'
+```
+
+Němčina totéž číslo píše `1.234,50`, francouzština `1 234,50` a hindština
+seskupuje `1234567` jako `12,34,567`, nikoli `1,234,567`. Čísla, měny, data,
+časy a jednotky patří [Babelu][babel-numbers]. Naformátujte hodnotu nejdřív
+a teprve pak hotový řetězec vložte:
+
+```python
+from babel.numbers import format_currency
+
+total = format_currency(amount, "EUR", locale=locale)
+tr(t"Your order comes to {total}")
+```
+
+U počítané zprávy plní číslo dvě úlohy — vybírá tvar množného čísla a
+zároveň se objevuje v textu — a lokalizuje se jen ta druhá. Pro výběr si
+nechte surový počet a k zobrazení předejte naformátovaný řetězec:
+
+```python
+from babel.numbers import format_decimal
+
+shown = format_decimal(n, locale=locale)
+_.ngettext(t"One file", t"{shown} files", n)
+```
+
+Formátování před voláním je zároveň to, co drží formátovací specifikaci
+mimo katalog: překladatel vidí hotový kus textu, ne číslo doplněné pokyny
+k jeho vykreslení.
+
 ## Co se stane, když je katalog chybný { #what-happens-when-a-catalog-is-wrong }
 
 Pokud zástupné symboly překladu neodpovídají zdroji — chybějící, neznámé
 nebo přeformátované pole, které proklouzlo validací, z ručně upraveného MO,
 katalogu od dodavatele nebo z pipeline, která checker přeskakuje — výchozím
-chováním je reprodukovat zdrojový text, nikoli vyvolat výjimku. To zrcadlí
+chováním je vykreslit zdrojovou zprávu, nikoli vyvolat výjimku. To zrcadlí
 vlastní kontrakt gettextu, podle nějž špatný katalog nikdy nerozbije
 aplikaci.
 
@@ -208,44 +265,14 @@ gettext_tstrings.errors.InvalidTranslationError: translation does not match the
 source placeholders: {name} is missing; {nombre} is not in the source message
 ```
 
-## Čtení zprávy o selhání { #reading-a-failure-message }
-
 Tyto zprávy jsou psány pro toho, kdo s nimi může něco udělat, což je u
-problému s katalogem častěji překladatel než programátor. Hlásit jen to, že
-`{name}` chybí, je slepá ulička, když čtenář ty znaky vidí před sebou —
-takže tam, kde zástupný symbol vypadá jako přítomný, ale není, zpráva
-říká proč. Vůči zdroji `Hello {name}` je každý z následujících případů
-hlášen pod
-`translation does not match the source placeholders:`
-
-| Překlad říká | Uvedený důvod |
-| --- | --- |
-| `こんにちは ｛name｝` | `{name}` is missing (the braces around it are not the ASCII `{` and `}`) |
-| `こんにちは {{name}}` | `{name}` is missing (it is written `{{name}}`, which is how a literal brace is escaped) |
-| `こんにちは name` | `{name}` is missing (the name appears, but not inside braces) |
-| `こんにちは {名前}` | `{name}` is missing; `{名前}` is not in the source message |
-
-Znaky, které nelze vidět, dostávají vlastní zacházení. Nezlomitelná mezera
-uvnitř složených závorek je něco, co vyprodukuje metoda vstupu a co žádný
-editor nezobrazí, takže zpráva ji vypíše jako kódový bod, místo aby
-jmenovala znak, který čtenář nenajde:
-
-```text
-placeholder {<U+00A0>name} has a space inside the braces; write {name}
-```
-
-Jméno, jehož písmena míchají písemné soustavy — případ homoglyfů, kdy je
-cyrilské `а` k nerozeznání od latinského — se zobrazí dvakrát, jednou
-čitelně a jednou v escapované podobě, jediné, která je od sebe odliší:
-
-```text
-translation does not match the source placeholders: {name} is missing;
-{nаme} (n\u0430me) is not in the source message
-```
-
-Stejné rozlišení se uplatní, když řecké nebo cyrilské jméno zapsané celé
-jedním písmem koliduje s ASCII jménem ve zdroji, včetně jednopísmenného
-případu latinského `a` a cyrilského `а`.
+problému s katalogem častěji překladatel než programátor — takže tam, kde
+zástupný symbol vypadá jako přítomný, ale není, zpráva vysvětlí proč, místo
+aby jen opakovala, že chybí. Závorky plné šířky, zdvojené `{{name}}`,
+neviditelná nezlomitelná mezera, cyrilské písmeno mezi latinskými: každý
+případ má vlastní formulaci a všechny jsou i s příklady vypsané na stránce
+[Pro překladatele](translators.md#reading-a-failure-message). Ta stránka je
+psaná tak, aby se dala předat tomu, kdo `.po` upravuje.
 
 ## Vykreslení vzoru bez katalogu { #rendering-a-pattern-without-a-catalog }
 
@@ -302,3 +329,5 @@ výstupu pro jeho cíl (HTML, shell, terminál) a **integrita katalogu**,
 protože nepřátelský katalog může zástupný symbol opakovat, a tím znásobit
 velikost výstupu, což je vlastní každé i18n založené na zástupných
 symbolech.
+
+  [babel-numbers]: https://babel.pocoo.org/en/latest/api/numbers.html

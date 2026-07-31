@@ -1,5 +1,5 @@
 ---
-description: "Çalışma zamanı API'si: bir katalog bağlamak, istek başına diller, ertelenmiş dizgiler ve bozuk bir çevirinin nasıl raporlandığı."
+description: "Çalışma zamanı API'si: hangi giriş noktasını kullanmalı, bir katalog bağlamak, istek başına diller, ertelenmiş dizgiler, yerel ayara duyarlı değerler ve bozuk bir çevirinin nasıl raporlandığı."
 ---
 
 # Kılavuz
@@ -11,6 +11,22 @@ onu beş dakikada bir kez yürür; katalogların oluşturulması ve doğrulanmas
 [Çıkarma](extraction.md) sayfasında, bir ekibin döngüyü nasıl döndürdüğü —
 güncelleme çevrimleri, CI, çeviri platformları — ise
 [Üretimde](workflow.md) sayfasındadır.
+
+## Hangi giriş noktasını kullanmalıyım? { #which-entry-point-should-i-use }
+
+Paket bir mesajı çevirmenin birkaç yolunu dışa aktarır; çünkü uygulamalar bir
+dili birkaç farklı biçimde bağlar. Programınızın hangi dilde olduğuna nasıl
+karar verdiğine göre seçin:
+
+| Durumunuz | Kullanın |
+| --- | --- |
+| Tüm süreç için tek bir dil — bir CLI, bir masaüstü uygulaması, bir betik | `Translator`, `_` olarak çağrılır |
+| İstek ya da async görev başına tek bir dil — bir web uygulaması | İşin etrafında `use_translations()`, sonra `tr()` |
+| İçe aktarma anında tanımlanan bir mesaj — bir form etiketi, bir enum, bir sabit | `lazy_gettext()` ya da `lazy_pgettext()` |
+| Sözcük seçimini bir sayı belirliyor | Yukarıdaki hangi biçimdeyse onun içinde `ngettext()` / `npgettext()` |
+| Hiçbir katalog devrede olmadan bir desen render etmek | `compile_template()` |
+
+Aşağıdaki her şey, bu sırayla, bu beşidir.
 
 ## Bir katalog bağlamak { #binding-a-catalog }
 
@@ -61,6 +77,7 @@ from gettext_tstrings import tr, use_translations
 
 
 def handle(request):
+    name = request.user.display_name
     translations = load_translations(request.locale)
     with use_translations(translations):
         return render(tr(t"Hello {name}"))
@@ -163,13 +180,52 @@ ayrıştırır ve ayrıştırılmış kataloğu paylaşan kopyalar dağıtır.
 
     `asyncio.to_thread` bunu sizin için zaten yapar.
 
+## Yerel ayara duyarlı değerler { #locale-aware-values }
+
+Bu kütüphane, bir değerin çevrilmiş bir mesajın *neresinde* görüneceğine karar
+verir. Değerin kendisini yerelleştirmez. `{amount:,.2f}`, davranışı sabit bir
+Python biçim belirtimidir — her üç basamakta bir virgül ve ondalıklardan önce
+bir nokta — ve mesaj hangi dilde olursa olsun aynı karakterleri üretir:
+
+```pycon
+>>> f"{1234.5:,.2f}"  # the same in every locale
+'1,234.50'
+```
+
+Almanca bu sayıyı `1.234,50`, Fransızca `1 234,50` yazar; Hintçe ise `1234567`
+sayısını `1,234,567` yerine `12,34,567` olarak gruplar. Sayılar, para
+birimleri, tarihler, saatler ve birimler [Babel][babel-numbers]'e aittir. Önce
+değeri biçimlendirin, sonra bitmiş dizgiyi yerleştirin:
+
+```python
+from babel.numbers import format_currency
+
+total = format_currency(amount, "EUR", locale=locale)
+tr(t"Your order comes to {total}")
+```
+
+Sayılı bir mesajda sayı iki iş yapar — çoğul biçimi seçer ve metinde görünür —
+ve yalnızca ikincisi yerelleştirilir. Seçim için ham sayıyı koruyun,
+görüntüleme için biçimlendirilmiş dizgiyi geçirin:
+
+```python
+from babel.numbers import format_decimal
+
+shown = format_decimal(n, locale=locale)
+_.ngettext(t"One file", t"{shown} files", n)
+```
+
+Çağrıdan önce biçimlendirmek, aynı zamanda bir biçim belirtimini katalogdan
+uzak tutan şeydir: çevirmenin gördüğü, bir sayı artı onu render etme
+talimatları değil, bitmiş bir metin parçasıdır.
+
 ## Bir katalog yanlış olduğunda ne olur { #what-happens-when-a-catalog-is-wrong }
 
 Bir çevirinin yer tutucuları kaynağa uymuyorsa — doğrulamadan sıyrılmış
 eksik, bilinmeyen ya da yeniden biçimlendirilmiş bir alan; elle düzenlenmiş
 bir MO'dan, bir tedarikçi kataloğundan ya da denetleyiciyi atlayan bir boru
-hattından — varsayılan davranış, hata fırlatmak yerine kaynak metni yeniden
-üretmektir. Bu, gettext'in kötü bir kataloğun uygulamayı asla bozmayacağı
+hattından — varsayılan davranış, hata fırlatmak yerine kaynak mesajı render
+etmektir. Bu, gettext'in kötü bir kataloğun uygulamayı asla bozmayacağı
 yolundaki kendi sözleşmesini yansıtır.
 
 `Hello {name}` mesajı `こんにちは {nombre}` olarak çevrilmişse render başarılı
@@ -207,45 +263,15 @@ gettext_tstrings.errors.InvalidTranslationError: translation does not match the
 source placeholders: {name} is missing; {nombre} is not in the source message
 ```
 
-## Bir hata mesajını okumak { #reading-a-failure-message }
-
 Bu mesajlar, onlara müdahale edebilecek kişi için yazılmıştır; bu da bir
-katalog sorununda çoğunlukla bir programcıdan çok bir çevirmendir. Okur o
-karakterleri gözünün önünde görebiliyorken yalnızca `{name}` eksik demek
-çıkmaz sokaktır; bu yüzden bir yer tutucu var gibi görünüp de yoksa, mesaj
-nedenini söyler. `Hello {name}` kaynağı karşısında, aşağıdakilerin her biri
-`translation does not match the source placeholders:` başlığı altında
-raporlanır:
-
-| Çeviri şöyle diyor | Verdiği gerekçe |
-| --- | --- |
-| `こんにちは ｛name｝` | `{name}` is missing (the braces around it are not the ASCII `{` and `}`) |
-| `こんにちは {{name}}` | `{name}` is missing (it is written `{{name}}`, which is how a literal brace is escaped) |
-| `こんにちは name` | `{name}` is missing (the name appears, but not inside braces) |
-| `こんにちは {名前}` | `{name}` is missing; `{名前}` is not in the source message |
-
-Görülemeyen karakterler kendi muamelesini görür. Ayraçların içindeki
-bölünmesiz boşluk, bir giriş yönteminin ürettiği ve hiçbir editörün
-göstermediği bir şeydir; bu yüzden mesaj, okurun bulamayacağı bir karakteri
-adlandırmak yerine onu kod noktasıyla yazdırır:
-
-```text
-placeholder {<U+00A0>name} has a space inside the braces; write {name}
-```
-
-Harfleri yazı sistemlerini karıştıran bir ad — Kiril `а` harfinin Latin
-olanından ayırt edilemediği homoglif durumu — iki kez gösterilir: bir kez
-okunur biçimde, bir kez kaçışlanmış olarak; ikisini birbirinden ayıran tek
-biçim budur:
-
-```text
-translation does not match the source placeholders: {name} is missing;
-{nаme} (n\u0430me) is not in the source message
-```
-
-Aynı belirsizlik giderme, tamamı tek bir yazı sistemiyle yazılmış Yunanca ya
-da Kiril bir adın ASCII bir kaynak adla çakıştığı durumda da uygulanır; tek
-harflik Latin `a` / Kiril `а` durumu dahil.
+katalog sorununda çoğunlukla bir programcıdan çok bir çevirmendir — bu yüzden
+bir yer tutucu var gibi görünüp de yoksa, mesaj eksik olduğunu yinelemek
+yerine nedenini açıklar. Tam genişlikli ayraçlar, ikilenmiş bir `{{name}}`,
+görünmez bir bölünmesiz boşluk, Latin harfler arasına karışmış bir Kiril
+harfi: her birinin kendi ifadesi vardır ve örnekleriyle birlikte
+[Çevirmenler için](translators.md#reading-a-failure-message) sayfasında
+listelenir. O sayfa, `.po` dosyasını düzenleyen kişiye verilmek üzere
+yazılmıştır.
 
 ## Katalogsuz bir deseni render etmek { #rendering-a-pattern-without-a-catalog }
 
@@ -301,3 +327,5 @@ sorumluluğunda kalır — render edilmiş çıktıyı gideceği yere (HTML, kab
 terminal) göre **kaçışlamak** ve **katalog bütünlüğü**; çünkü düşmanca bir
 katalog, çıktı boyutunu şişirmek için bir yer tutucuyu yineleyebilir; bu da
 yer tutucu tabanlı her i18n'in doğasında vardır.
+
+  [babel-numbers]: https://babel.pocoo.org/en/latest/api/numbers.html

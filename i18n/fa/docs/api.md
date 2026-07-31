@@ -51,9 +51,12 @@ Translator(translations, strict=False)
 
 | نام | کارکرد |
 | --- | --- |
-| `lazy_gettext(template, /, *, strict=False)` | ترجمه را تا نخستین استفاده به تعویق می‌اندازد. |
+| `lazy_gettext(template, /, *, strict=False)` | ترجمه را تا هر بار رندر به تعویق می‌اندازد. |
 | `lazy_pgettext(context, template, /, *, strict=False)` | صورت بافتاری آن. |
-| `LazyString` | آنچه هر دو برمی‌گردانند. از راه `str()` و `format()` رندر می‌شود، با متن خود برابر مقایسه می‌شود، و عمداً hash‌ناپذیر است. |
+| `LazyString` | آنچه هر دو برمی‌گردانند. از راه `str()` و `format()` به هر زبانی که در آن لحظه مقید است رندر می‌شود، با متنِ رندرشدهٔ خود برابر مقایسه می‌شود، و عمداً hash‌ناپذیر است. |
+
+نمونه‌های کارشده، از جمله اینکه چرا `strict` جایش در محلِ تعریف است، در
+[ترجمهٔ معوق](guide.md#deferred-translation) آمده است.
 
 ## سطح پایین‌تر { #lower-level }
 

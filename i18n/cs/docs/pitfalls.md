@@ -146,11 +146,24 @@ soubory v tomto repozitáři existují právě proto, aby tuto mezeru zaplnily.
 
 Krok CI, který tato dokumentace doporučuje k odhalení zastaralých
 katalogů, `pybabel update --check`, tuto práci nezvládne u žádného
-projektu, který používá `pgettext` nebo `npgettext` — každý katalog s
-`msgctxt` hlásí jako zastaralý, při každém spuštění, kvůli chybě v tom,
-jak si porovnání vyhledává zprávy. Byla nalezena tady, při pokusu ten krok
-použít, nahlášena upstreamu a je [popsána v úplnosti i s náhradním
-řešením](workflow.md#what-ci-gates).
+projektu, který používá `pgettext` nebo `npgettext`. Na Babelu 2.18.0 hlásí
+každý katalog s `msgctxt` jako zastaralý, při každém spuštění. Porovnání
+probíhá přes `Catalog.is_identical`, které každou zprávu vyhledá podle
+klíče, pod nímž je uložena — a u kontextové zprávy je tímto klíčem dvojice
+`(id, context)`, kterou `Catalog.get` nepřijímá. Vyhledání nevrátí nic a
+katalogy nikdy nevyjdou jako shodné:
+
+```pycon
+>>> from babel.messages.catalog import Catalog
+>>> c = Catalog(locale="ja")
+>>> c.add("Guide", "ガイド", context="navigation")
+<Message 'Guide' (flags: [])>
+>>> c.is_identical(c)
+False
+```
+
+Byla nalezena tady, při pokusu ten krok použít, nahlášena upstreamu a
+náhradní kontrolu najdete [na stránce o produkci](workflow.md#what-ci-gates).
 
 Obecné poučení je to nepříjemné: brána, která je vždycky červená, je horší
 než žádná brána, protože ji tým vypne. Ověřte si, že vaše kontrola v CI

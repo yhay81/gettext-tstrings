@@ -205,8 +205,8 @@ Trên cùng nguyên tắc đó, một placeholder "bị thiếu" mà *trông nh�
 được giải thích vì sao nó vắng — dấu ngoặc nhọn toàn độ rộng từ một bộ gõ
 Đông Á, kiểu nhân đôi `{{name}}` sinh ra từ một vòng thoát chuỗi, cái tên
 nằm ngoài mọi cặp ngoặc.
-[Bảng đọc thông điệp lỗi của Cẩm nang](guide.md#reading-a-failure-message)
-trình bày nguyên văn từng thông điệp này.
+[Bảng đọc thông điệp lỗi](translators.md#reading-a-failure-message) viết cho
+người dịch trình bày nguyên văn từng thông điệp này.
 
 ## Đường nóng { #the-hot-path }
 

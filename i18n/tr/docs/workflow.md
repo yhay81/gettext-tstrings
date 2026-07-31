@@ -11,6 +11,18 @@ description: "gettext döngüsünün bir ekip tarafından işletilişi: yinelene
 pratiktir — depoda ne kalır, ne yolculuk eder, CI neyi kapılamak zorundadır
 ve çalışma zamanı bir dili nerede bağlar.
 
+Hepsi altı denetime çıkıyor; o yüzden önce onlar. Aşağıdaki her bölüm
+bunlardan birini kurar.
+
+- `pybabel update --check` geçiyor — kataloglar haberdar olmadan hiçbir mesaj
+  değişmemiş.
+- `pybabel compile`, derlemeyi kendi çıkış durumuyla kapılıyor.
+- Kalan `fuzzy` girdiler kasıtlı — her biri, bir çevirmen onaylayana dek
+  kaynak metin olarak render edilir.
+- Test paketi, sevk edilen her dili `strict=True` ile bir kez render ediyor.
+- Üretim artefaktı `.mo` dosyalarını içeriyor ve Babel'i içermiyor.
+- `gettext_tstrings` günlükçüsü izlemeye yönlendirilmiş.
+
 ## Bir projenin biçimi { #the-shape-of-a-project }
 
 ```text
@@ -32,8 +44,8 @@ commit'lemek yerine CI'da ya da paketleme anında üretin; böylece bir `.po`
 ile `.mo`su, neyin sevk edildiği konusunda asla anlaşmazlığa düşemez.
 
 Bir dosyanın her yönde birer rolü vardır: `.pot`, mesajlarınızı çevirmenlere
-*götürür*; `.po` dosyaları çevirileri *geri getirir*. Aşağıdaki her şey, bu
-ikisi arasındaki trafiktir.
+*götürür*; `.po` dosyaları çevirileri *geri getirir*. Bu sayfanın geri kalanı,
+o ikisi arasında hareket eden şeydir.
 
 ```mermaid
 flowchart LR
@@ -47,8 +59,9 @@ flowchart LR
 
 ## İlk çeviriden sonraki çevrim { #the-cycle-after-the-first-translation }
 
-Öğreticideki `pybabel init`, her dil için yalnızca bir kez çalışır. Ondan
-sonra çalışma çevrimi **çıkar → güncelle → çevir → derle** olur ve merkezinde
+Öğreticideki `pybabel init`, normalde bir dil eklendiğinde bir kez çalışır.
+Ondan sonra çalışma çevrimi **çıkar → güncelle → çevir → derle** olur ve
+merkezinde
 `pybabel update` durur: taze bir şablonu, içlerindeki mevcut çevirileri
 atmadan var olan katalogların içine katlar.
 
@@ -76,7 +89,8 @@ msgstr "こんにちは {name}"
 
 Babel, yeni msgid'nin kaldırılmış bir msgid'ye benzediğini fark etti ve onu
 eski çeviriyle eşleştirdi — ama çifti **fuzzy** olarak işaretledi: bir insanı
-bekleyen bir makine tahmini. Bayrağın dişleri vardır. `pybabel compile`,
+bekleyen bir makine tahmini. Bayrak, neyin derleneceğini değiştirir.
+`pybabel compile`,
 **fuzzy girdileri `.mo` dosyasının dışında bırakır**; böylece bir çevirmen
 çifti onaylayana dek uygulama, bayat bir Japonca metin yerine yeni İngilizce
 metni render eder:
@@ -128,33 +142,18 @@ budur. `pybabel compile`, hem Babel'in hem de bu paketin
 [kayıtlı denetleyicisinin](extraction.md#your-existing-toolchain-validates-these-catalogs)
 yer tutucu denetimlerini çalıştırır.
 
-!!! bug "`--check`, bağlam kullanan bir kataloğu kapılayamaz"
+!!! bug "Babel 2.18.0: `--check`, bağlam kullanan bir kataloğu kapılayamaz"
 
     Babel 2.18.0'da `pybabel update --check`, `msgctxt` içeren **her**
     kataloğu, ne kadar güncel olursa olsun, her çalıştırmada güncel değil
-    diye raporlar. Karşılaştırma `Catalog.is_identical` üzerinden yürür; o
-    da her mesajı saklandığı anahtara göre arar — bağlamlı bir mesajda ise
-    o anahtar `(id, context)` çiftidir ve `Catalog.get` bunu kabul etmez.
-    Arama hiçbir şey döndürmez ve kataloglar asla eşit çıkmaz:
-
-    ```pycon
-    >>> from babel.messages.catalog import Catalog
-    >>> c = Catalog(locale="ja")
-    >>> c.add("Guide", "ガイド", context="navigation")
-    <Message 'Guide' (flags: [])>
-    >>> c.is_identical(c)
-    False
-    ```
-
-    Yani `pgettext` ya da `npgettext` kullanıyorsanız — ki bir eşadlıyı
-    ayırt etmek zaten onların var oluş nedenidir — bu adım en kötü biçimde
-    açığa düşer: hep kırmızı, dolayısıyla ekip onu kapatır, dolayısıyla
-    bayatlamayı hiçbir şey kapılamaz. Yukarı akışta düzeltilene dek mesaj
-    kümelerini kendiniz karşılaştırın. Şablonu ve her kataloğu
-    `babel.messages.pofile.read_po` ile okuyup
+    diye raporlar. Sürekli başarısız olan bir kapı, hiç kapı olmamasından
+    kötüdür; çünkü ekip onu kapatır — bu yüzden `pgettext` ya da `npgettext`
+    kullanıyorsanız, bu adımla yaşamak yerine onu değiştirin. Şablonu ve her
+    kataloğu `babel.messages.pofile.read_po` ile okuyup
     `{(m.context, m.id) for m in catalog if m.id}` kümelerini karşılaştırmak
     denetimin tamamıdır; [bu sitenin kendi derlemesinin](index.md) yaptığı da
-    budur.
+    budur. Nedeni
+    [Tuzaklar sayfasında yazılıdır](pitfalls.md#your-tools-have-bugs-too).
 
 !!! danger "Günlüğü değil, çıkış durumunu denetleyin"
 

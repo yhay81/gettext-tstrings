@@ -1,5 +1,5 @@
 ---
-description: "Körnings-API:et: binda en katalog, språk per förfrågan, uppskjutna strängar, och hur en trasig översättning rapporteras."
+description: "Körnings-API:et: vilken ingång du ska använda, binda en katalog, språk per förfrågan, uppskjutna strängar, lokalanpassade värden, och hur en trasig översättning rapporteras."
 ---
 
 # Guide
@@ -11,6 +11,22 @@ kretsloppet — markera, extrahera, översätta, kompilera, köra — går
 validera kataloger täcks i [Extrahering](extraction.md), och hur ett team
 håller kretsloppet snurrande — uppdateringscykler, CI,
 översättningsplattformar — är [I produktion](workflow.md).
+
+## Vilken ingång ska jag använda? { #which-entry-point-should-i-use }
+
+Paketet exporterar flera sätt att översätta ett meddelande, eftersom
+applikationer binder ett språk på flera olika sätt. Välj utifrån hur ditt
+program avgör vilket språk det befinner sig i:
+
+| Din situation | Använd |
+| --- | --- |
+| Ett språk för hela processen — ett CLI, ett skrivbordsprogram, ett skript | `Translator`, anropad som `_` |
+| Ett språk per förfrågan eller per async-uppgift — en webbapplikation | `use_translations()` runt arbetet, sedan `tr()` |
+| Ett meddelande som definieras vid importtillfället — en formuläretikett, ett enum, en konstant | `lazy_gettext()` eller `lazy_pgettext()` |
+| Ett antal avgör formuleringen | `ngettext()` / `npgettext()`, i vilken av formerna ovan som helst |
+| Rendering av ett mönster utan någon katalog inblandad | `compile_template()` |
+
+Allt nedanför är de fem, i den ordningen.
 
 ## Binda en katalog { #binding-a-catalog }
 
@@ -61,6 +77,7 @@ from gettext_tstrings import tr, use_translations
 
 
 def handle(request):
+    name = request.user.display_name
     translations = load_translations(request.locale)
     with use_translations(translations):
         return render(tr(t"Hello {name}"))
@@ -164,12 +181,51 @@ som delar den tolkade katalogen.
 
     `asyncio.to_thread` gör redan detta åt dig.
 
+## Lokalanpassade värden { #locale-aware-values }
+
+Det här biblioteket avgör *var* ett värde hamnar i ett översatt meddelande. Det
+lokaliserar inte värdet självt. `{amount:,.2f}` är en Python-formatspecifikation
+med fast beteende — ett komma var tredje siffra och en punkt före decimalerna —
+och den ger samma tecken oavsett vilket språk meddelandet är på:
+
+```pycon
+>>> f"{1234.5:,.2f}"  # the same in every locale
+'1,234.50'
+```
+
+Tyskan skriver det talet `1.234,50`, franskan `1 234,50`, och hindi grupperar
+`1234567` som `12,34,567` snarare än `1,234,567`. Tal, valutor, datum, tider
+och enheter hör hemma hos [Babel][babel-numbers]. Formatera värdet först,
+placera sedan den färdiga strängen:
+
+```python
+from babel.numbers import format_currency
+
+total = format_currency(amount, "EUR", locale=locale)
+tr(t"Your order comes to {total}")
+```
+
+I ett räknat meddelande gör talet två jobb — det väljer pluralform och det syns
+i texten — och bara det andra lokaliseras. Behåll det råa antalet för valet och
+skicka in den formaterade strängen för visning:
+
+```python
+from babel.numbers import format_decimal
+
+shown = format_decimal(n, locale=locale)
+_.ngettext(t"One file", t"{shown} files", n)
+```
+
+Att formatera före anropet är också det som håller en formatspecifikation
+utanför katalogen: vad en översättare ser är en färdig textbit, inte ett tal
+plus instruktioner för hur det ska renderas.
+
 ## Vad som händer när en katalog är fel { #what-happens-when-a-catalog-is-wrong }
 
 Om en översättnings platshållare inte matchar källan — ett saknat, okänt
 eller omformaterat fält som slunkit förbi valideringen, från en handredigerad
 MO, en leverantörskatalog eller en pipeline som hoppar över kontrollen — är
-standardbeteendet att återge källtexten i stället för att kasta undantag.
+standardbeteendet att rendera källmeddelandet i stället för att kasta undantag.
 Detta speglar gettexts eget kontrakt att en dålig katalog aldrig knäcker
 applikationen.
 
@@ -208,45 +264,14 @@ gettext_tstrings.errors.InvalidTranslationError: translation does not match the
 source placeholders: {name} is missing; {nombre} is not in the source message
 ```
 
-## Läsa ett felmeddelande { #reading-a-failure-message }
-
 De här meddelandena skrivs för den som kan agera på dem, vilket för ett
-katalogproblem oftare är en översättare än en programmerare. Att bara
-rapportera att `{name}` saknas är en återvändsgränd när läsaren kan se de
-tecknen framför sig, så där en platshållare ser ut att finnas men inte gör
-det säger meddelandet varför. Mot källan `Hello {name}` rapporteras vart och
-ett av dessa under
-`translation does not match the source placeholders:`
-
-| Översättningen säger | Skälet den anger |
-| --- | --- |
-| `こんにちは ｛name｝` | `{name}` is missing (the braces around it are not the ASCII `{` and `}`) |
-| `こんにちは {{name}}` | `{name}` is missing (it is written `{{name}}`, which is how a literal brace is escaped) |
-| `こんにちは name` | `{name}` is missing (the name appears, but not inside braces) |
-| `こんにちは {名前}` | `{name}` is missing; `{名前}` is not in the source message |
-
-Tecken som inte kan ses får sin egen behandling. Ett hårt mellanslag inne i
-klamrarna är något en inmatningsmetod producerar och ingen redigerare visar,
-så meddelandet skriver ut det med kodpunkt i stället för att namnge ett
-tecken läsaren inte kan hitta:
-
-```text
-placeholder {<U+00A0>name} has a space inside the braces; write {name}
-```
-
-Ett namn vars bokstäver blandar skriftsystem — homoglyffallet, där ett
-kyrilliskt `а` inte går att skilja från ett latinskt — visas två gånger, en
-gång läsbart och en gång med escape-sekvens, vilket är den enda form som
-skiljer de två åt:
-
-```text
-translation does not match the source placeholders: {name} is missing;
-{nаme} (n\u0430me) is not in the source message
-```
-
-Samma särskiljning gäller när ett grekiskt eller kyrilliskt namn skrivet helt
-i ett skriftsystem kolliderar med ett ASCII-källnamn, inklusive fallet med
-enbokstaviga latinska `a` / kyrilliska `а`.
+katalogproblem oftare är en översättare än en programmerare — så där en
+platshållare ser ut att finnas men inte gör det förklarar meddelandet varför i
+stället för att upprepa att den saknas. Klamrar i helbredd, ett dubblerat
+`{{name}}`, ett osynligt hårt mellanslag, en kyrillisk bokstav bland latinska:
+var och en har sin egen formulering, listade med exempel på
+[För översättare](translators.md#reading-a-failure-message). Den sidan är
+skriven för att räckas över till den som redigerar `.po`-filen.
 
 ## Rendera ett mönster utan katalog { #rendering-a-pattern-without-a-catalog }
 
@@ -302,3 +327,5 @@ ansvar, precis som med stdlib-gettext — att **escapa** renderad utdata för
 dess mål (HTML, skal, terminal), och **katalogintegritet**, eftersom en
 fientlig katalog kan upprepa en platshållare för att förstärka
 utdatastorleken, vilket är inneboende i all platshållarbaserad i18n.
+
+  [babel-numbers]: https://babel.pocoo.org/en/latest/api/numbers.html

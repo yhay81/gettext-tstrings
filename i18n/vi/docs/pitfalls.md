@@ -147,10 +147,25 @@ khoảng trống đó.
 
 Bước CI mà tài liệu này khuyến nghị để bắt các catalog lỗi thời, `pybabel
 update --check`, không làm nổi việc đó với bất kỳ dự án nào dùng `pgettext`
-hay `npgettext` — nó báo mọi catalog có `msgctxt` là đã lỗi thời, ở mọi lần
-chạy, vì một lỗi trong cách phép so sánh tra cứu thông điệp. Lỗi này được phát
-hiện ngay tại đây khi thử dùng nó, đã được báo lên thượng nguồn, và được
-[trình bày đầy đủ kèm cách đi vòng](workflow.md#what-ci-gates).
+hay `npgettext`. Trên Babel 2.18.0 nó báo mọi catalog có `msgctxt` là đã lỗi
+thời, ở mọi lần chạy. Phép so sánh chạy qua `Catalog.is_identical`, hàm này
+tra cứu từng thông điệp bằng chính khóa mà thông điệp được lưu — và với một
+thông điệp có ngữ cảnh thì khóa ấy là cặp `(id, context)`, thứ mà `Catalog.get`
+không chấp nhận. Phép tra cứu không trả về gì, và hai catalog không bao giờ so
+sánh bằng nhau:
+
+```pycon
+>>> from babel.messages.catalog import Catalog
+>>> c = Catalog(locale="ja")
+>>> c.add("Guide", "ガイド", context="navigation")
+<Message 'Guide' (flags: [])>
+>>> c.is_identical(c)
+False
+```
+
+Lỗi này được phát hiện ngay tại đây khi thử dùng nó, đã được báo lên thượng
+nguồn, và bước kiểm tra thay thế nằm ở [trang vận hành
+thực tế](workflow.md#what-ci-gates).
 
 Bài học chung là bài học khó chịu: một cổng chặn lúc nào cũng đỏ còn tệ hơn là
 không có cổng nào, vì rồi cả đội sẽ tắt nó đi. Hãy kiểm chứng rằng phép kiểm

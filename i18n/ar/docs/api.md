@@ -47,9 +47,12 @@ Translator(translations, strict=False)
 
 | الاسم | الدور |
 | --- | --- |
-| `lazy_gettext(template, /, *, strict=False)` | يؤجل الترجمة حتى الاستخدام. |
+| `lazy_gettext(template, /, *, strict=False)` | يؤجل الترجمة إلى كل عملية عرض. |
 | `lazy_pgettext(context, template, /, *, strict=False)` | صيغة مع سياق. |
-| `LazyString` | تُعرض عبر `str()` و`format()` وf-strings، وتُقارن بالنص، وهي غير قابلة للتجزئة عمداً. |
+| `LazyString` | ما تعيده كلتاهما. تُعرض عبر `str()` و`format()` باللغة المربوطة في تلك اللحظة، وتُقارن بنصها المعروض، وهي غير قابلة للتجزئة عمداً. |
+
+وتجد الأمثلة العملية، ومنها سبب انتماء `strict` إلى موضع التعريف، في
+[الترجمة المؤجلة](guide.md#deferred-translation).
 
 ## المستوى المنخفض { #lower-level }
 

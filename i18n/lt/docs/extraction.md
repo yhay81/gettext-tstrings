@@ -43,10 +43,14 @@ ir ką jo `fuzzy` įrašai reiškia leidimui — pereitas puslapyje
 atpažįsta `_()`, keturis standartinius gettext vardus, `tr()` / `ntr()`
 sinonimus ir atidėtuosius `lazy_gettext()` / `lazy_pgettext()`.
 
-!!! warning "`-c` nėra neprivalomas"
+!!! warning "Vertėjų komentarus įjunkite su `-c`"
 
     `pybabel extract` surenka vertėjų komentarus tik tada, kai perduodate
-    `-c "Translators:"` — lygiai kaip ir įprastiems gettext iškvietimams.
+    `-c "Translators:"` — lygiai kaip ir įprastiems gettext iškvietimams. Jo
+    nepridėjus, ištraukimas vis tiek veikia — tiesiog komentarai niekada
+    nepasiekia katalogo, kuriame jie yra [pigiausia kokybės
+    svirtis](workflow.md#working-with-translators-and-platforms) visoje darbo
+    eigoje.
 
 ## Savų funkcijų vardų registravimas { #registering-your-own-function-names }
 
@@ -86,9 +90,9 @@ Galimos parinktys: `tr_functions`, `ntr_functions`, `gettext_functions`,
     atveju kontekstas ir tada pranešimas, `npgettext` atveju kontekstas, tada
     vienaskaita, tada daugiskaita.
 
-## Atspari pagal nutylėjimą { #robust-by-default }
+## Pakanti vietoje, griežta CI aplinkoje { #lenient-locally-strict-in-ci }
 
-Vienas blogas failas nenutraukia viso paleidimo:
+Pagal nutylėjimą vienas blogas failas nenutraukia viso paleidimo:
 
 - T-eilutė, kurią ištraukiklis atmeta — prieiga prie atributo, reiškinys,
   netinkamas argumentas — pranešama kaip įspėjimas ir praleidžiama.
@@ -96,8 +100,30 @@ Vienas blogas failas nenutraukia viso paleidimo:
 - Taip pat ir failas, kurio atsisako tik `tokenize`, o `ast` jį priima — nuo
   tokio paties Babel praėjimas šiaip nutrūktų.
 
-Nustatykite `strict = true` atvaizdžio parinktyse, kad kiekvienas iš tų atvejų
-taptų kieta klaida — būtent to norite CI aplinkoje.
+Redaguojant tai patogu, o neredaguojant — pavojinga: praleistas pranešimas
+paprasčiausiai **nepatenka į POT**, tad jis niekada neišverčiamas ir niekas apie
+tai nepraneša. Nustatykite `strict = true` atvaizdžio parinktyse visur, kur
+ištraukimo nestebi žmogus:
+
+=== "babel.cfg"
+
+    ```ini
+    [gettext_tstrings: **.py]
+    encoding = utf-8
+    strict = true
+    ```
+
+=== "babel.toml"
+
+    ```toml
+    [[mappings]]
+    method = "gettext_tstrings"
+    pattern = "**.py"
+    strict = true
+    ```
+
+Tada kiekvienas aukščiau minėtas įspėjimas tampa kieta klaida. Laikykite tai
+produkcine nuostata, o numatytąją — vietine.
 
 ## Jūsų turimi įrankiai patikrina šiuos katalogus { #your-existing-toolchain-validates-these-catalogs }
 
@@ -124,8 +150,8 @@ msgfmt: found 1 fatal error
 
 Weblate tą pačią patikrą dokumentuoja kaip [Python brace format][weblate-checks],
 o komercinės platformos turi savo vietaženklių kokybės kontrolę, paremtą ta
-pačia žyma. Jų elgsena yra jų reikalas; du žemiau aprašyti įrankiai yra tie,
-kurie čia patikrinti.
+pačia žyma. Kiekvienos platformos elgsena yra jos pačios reikalas; du žemiau
+aprašyti įrankiai yra tie, kurie čia patikrinti.
 
   [weblate-checks]: https://docs.weblate.org/en/latest/user/checks.html
 
@@ -156,8 +182,8 @@ match the source placeholders: {n} is missing
     [Ką tikrina CI](workflow.md#what-ci-gates) parodo tai leidžiantį kūrimo
     žingsnį.
 
-Šios dvi patikros nėra perteklinės. Pridedamas tikrintuvas yra griežtesnioji
-pusė mažiausiai dviejose vietose:
+Šios dvi patikros nėra perteklinės. Paketo tikrintuvas yra griežtesnis
+mažiausiai dviem atvejais:
 
 - Msgid, kurio vieninteliai riestiniai skliaustai yra ekranuoti
   (`Config {{raw}} only`), niekada negauna `python-brace-format` žymos, todėl

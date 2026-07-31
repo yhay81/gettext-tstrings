@@ -156,11 +156,25 @@ sendiri ada untuk menambal celah itu.
 
 Langkah CI yang direkomendasikan dokumentasi ini untuk menangkap katalog basi,
 `pybabel update --check`, tidak dapat melakukan tugas itu untuk proyek mana pun
-yang memakai `pgettext` atau `npgettext` — ia melaporkan setiap katalog yang
-memiliki `msgctxt` sebagai kedaluwarsa, pada setiap jalannya, karena sebuah bug
-pada cara pembandingannya mencari pesan. Itu ditemukan di sini dengan mencoba
-memakainya, dilaporkan ke hulu, dan
-[dijelaskan lengkap beserta cara mengakalinya](workflow.md#what-ci-gates).
+yang memakai `pgettext` atau `npgettext`. Pada Babel 2.18.0 ia melaporkan setiap
+katalog yang memiliki `msgctxt` sebagai kedaluwarsa, pada setiap jalannya.
+Pembandingannya berjalan lewat `Catalog.is_identical`, yang mencari setiap pesan
+dengan kunci tempat pesan itu disimpan — dan untuk pesan kontekstual kunci itu
+adalah pasangan `(id, context)`, yang tidak diterima oleh `Catalog.get`.
+Pencariannya tidak mengembalikan apa pun, dan katalognya tidak pernah
+dibandingkan sama:
+
+```pycon
+>>> from babel.messages.catalog import Catalog
+>>> c = Catalog(locale="ja")
+>>> c.add("Guide", "ガイド", context="navigation")
+<Message 'Guide' (flags: [])>
+>>> c.is_identical(c)
+False
+```
+
+Itu ditemukan di sini dengan mencoba memakainya, dilaporkan ke hulu, dan
+pemeriksaan penggantinya ada [di halaman produksi](workflow.md#what-ci-gates).
 
 Pelajaran umumnya adalah yang tidak nyaman: gerbang yang selalu merah lebih
 buruk daripada tidak ada gerbang sama sekali, karena sebuah tim akan

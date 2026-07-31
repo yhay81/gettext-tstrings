@@ -202,8 +202,9 @@ Kwa msingi uleule, kishika nafasi "kilichokosekana" ambacho *huonekana* kipo
 hupewa maelezo ya kutokuwepo kwake — mabano ya upana kamili kutoka mbinu ya
 kuingiza maandishi ya Asia ya Mashariki, kurudufishwa kwa `{{name}}` kutoka
 safari ya kukwepesha, jina lililo nje ya mabano yoyote.
-[Jedwali la kusoma kushindwa la mwongozo](guide.md#reading-a-failure-message)
-huonyesha kila mojawapo ya jumbe hizi neno kwa neno.
+[Jedwali la kusoma kushindwa](translators.md#reading-a-failure-message)
+lililoandikwa kwa ajili ya watafsiri huonyesha kila mojawapo ya jumbe hizi neno
+kwa neno.
 
 ## Njia yenye joto { #the-hot-path }
 

@@ -11,8 +11,8 @@ cam a ydych ar y trywydd iawn.
 
 Mae angen Python 3.14 neu fwy newydd arnoch, am fod llinynnau-t yn gystrawen
 newydd yn 3.14. Japaneg yw targed enghreifftiol y dudalen hon, ond nid oes dim
-yn dibynnu ar y dewis hwnnw — rhowch unrhyw iaith yn ei lle yng ngham 4, lle
-mai'r cod locale `ja` yw'r unig beth sy'n ei henwi.
+yn dibynnu ar y dewis hwnnw. I ddefnyddio iaith arall, rhowch rywbeth yn lle
+`ja` yng ngham 4 — y cod locale hwnnw yw'r unig beth sy'n ei henwi.
 
 ## 1. Gosod { #1-install }
 
@@ -54,9 +54,9 @@ yw'r cwymp-yn-ôl adeiledig.
 
 ## 3. Echdynnu'r negeseuon { #3-extract-the-messages }
 
-Nid yw cyfieithwyr yn darllen eich cod ffynhonnell; mae ffeil fach o'r enw
-**catalog** yn teithio rhyngoch chi a nhw. Y cam cyntaf tuag at un yw casglu
-pob neges wedi'i nodi allan o'r cod.
+Fel arfer mae cyfieithwyr yn gweithio o gatalogau yn hytrach nag o god
+ffynhonnell, felly mae ffeil fach o'r enw **catalog** yn teithio rhyngoch chi a
+nhw. Y cam cyntaf tuag at un yw casglu pob neges wedi'i nodi allan o'r cod.
 
 Dywedwch wrth Babel sut i ddod o hyd i'ch negeseuon drwy greu `babel.cfg`:
 
@@ -129,7 +129,17 @@ source placeholders: {name} is missing; {nome} is not in the source message
 1 errors encountered.
 ```
 
+Un cafeat sy'n werth ei wybod nawr: mae'n adrodd y gwall ac yn ymadael yn
+ddi-sero, ond mae'n ysgrifennu'r `.mo` beth bynnag. Ar brosiect go iawn, CI sy'n
+gorfod stopio ar y statws ymadael hwnnw — mae
+[Mewn cynhyrchu](workflow.md#what-ci-gates) yn gosod hynny.
+
 ## 5. Ei redeg { #5-run-it }
+
+Defnyddiodd camau 2–4 `tr()`, sy'n chwilio am gatalog ac yn canfod dim. Nawr
+bod un yn bodoli, llwythwch ef a'i rwymo unwaith: mae `Translator` yn dal
+catalog fel nad oes rhaid i'r safleoedd galw ei enwi, a `_` yw'r enw gettext
+confensiynol am y canlyniad.
 
 Cyfeiriwch `app.py` at y catalog wedi'i grynhoi. Cliciwch y marcwyr i weld beth
 mae pob llinell yn ei wneud:
@@ -148,7 +158,7 @@ print(_(t"Hello {name}"))  # (2)!
 1. Mae'r llyfrgell safonol yn llwytho'r `.mo` wedi'i grynhoi, ac mae
    `Translator` yn ei rwymo i alwadwy. `_` yw'r enw gettext confensiynol am
    "cyfieitha hyn" — byr am ei fod yn ymddangos ar bob llinyn sy'n wynebu'r
-   defnyddiwr. Yr un ffwythiant ydyw â `tr`, wedi'i rwymo i un catalog.
+   defnyddiwr. Mae'n cyflawni'r un cyfieithu â `tr`, wedi'i rwymo i un catalog.
 2. Wrth yr alwad: daw testun y llinyn-t yn allwedd chwilio `Hello {name}`, mae'r
    catalog yn ateb `こんにちは {name}`, gwirir yr ateb yn erbyn dalwyr lle'r
    ffynhonnell, a dim ond wedyn y rhoddir y gwerth i mewn.
@@ -182,5 +192,9 @@ hynny yw popeth arall ar y wefan hon.
   wythnos ar ôl wythnos: diweddaru catalogau, gatiau CI, a llwyfannau cyfieithu.
 - [Echdynnu](extraction.md) — y cyfeirlyfr `pybabel` llawn: enwau ffwythiannau
   pwrpasol, modd CI llym, a'r gwiriadau sy'n gwarchod eich catalogau.
+- [Mudo](migration.md) — os oes gan y prosiect yr ydych mewn gwirionedd am
+  wneud hyn ynddo gatalogau gettext yn barod.
+- [I gyfieithwyr](translators.md) — yr un dudalen i'w rhoi i bwy bynnag sy'n
+  llenwi'r llinellau `msgstr` hynny.
 
   [Babel]: https://babel.pocoo.org/

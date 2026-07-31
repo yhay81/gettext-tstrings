@@ -11,6 +11,19 @@ sendiri, dan katalog terkompilasi dikirim bersama setiap rilis. Halaman ini
 adalah praktik itu — apa yang tinggal di repositori, apa yang bepergian, apa
 yang harus dijaga CI, dan di mana runtime mengikat sebuah bahasa.
 
+Semuanya berjumlah enam pemeriksaan, jadi inilah semuanya lebih dulu; setiap
+bagian di bawah menyiapkan salah satunya.
+
+- `pybabel update --check` lolos — tidak ada pesan yang berubah tanpa
+  katalognya mendengar.
+- `pybabel compile` menggerbangkan build pada status keluarnya.
+- Entri `fuzzy` yang tersisa memang disengaja — masing-masing merender sebagai
+  teks sumber sampai seorang penerjemah menegaskannya.
+- Suite pengujian merender setiap bahasa yang dikirim sekali dengan
+  `strict=True`.
+- Artefak produksi berisi berkas `.mo` dan tanpa Babel.
+- Logger `gettext_tstrings` diarahkan ke pemantauan.
+
 ## Bentuk sebuah proyek { #the-shape-of-a-project }
 
 ```text
@@ -32,8 +45,8 @@ atau saat pengemasan alih-alih meng-commit-nya, sehingga sebuah `.po` dan
 `.mo`-nya tidak pernah bisa berselisih tentang apa yang dikirim.
 
 Satu berkas berperan di setiap arah: `.pot` membawa pesan-pesan Anda *keluar*
-ke penerjemah, berkas-berkas `.po` membawa terjemahan *kembali*. Semua di
-bawah ini adalah lalu lintas antara keduanya.
+ke penerjemah, berkas-berkas `.po` membawa terjemahan *kembali*. Sisa halaman
+ini adalah apa yang berpindah di antara keduanya.
 
 ```mermaid
 flowchart LR
@@ -47,10 +60,11 @@ flowchart LR
 
 ## Siklus setelah terjemahan pertama { #the-cycle-after-the-first-translation }
 
-`pybabel init` milik tutorial berjalan sekali per bahasa, selamanya. Sejak
-itu, siklus kerjanya adalah **ekstrak → update → terjemahkan → kompilasi**,
-dan pusatnya adalah `pybabel update`, yang melipat sebuah templat segar ke
-dalam katalog yang ada tanpa membuang terjemahan yang sudah ada di dalamnya.
+`pybabel init` milik tutorial biasanya berjalan sekali, ketika sebuah bahasa
+ditambahkan. Sejak itu, siklus kerjanya adalah
+**ekstrak → update → terjemahkan → kompilasi**, dan pusatnya adalah
+`pybabel update`, yang melipat sebuah templat segar ke dalam katalog yang ada
+tanpa membuang terjemahan yang sudah ada di dalamnya.
 
 Misalkan sapaan `Hello {name}` — yang sudah diterjemahkan sebagai
 `こんにちは {name}` — ditulis ulang di kode menjadi `Welcome back, {name}`.
@@ -76,8 +90,9 @@ msgstr "こんにちは {name}"
 
 Babel menyadari msgid baru itu menyerupai yang dihapus dan memasangkannya
 dengan terjemahan lama — tetapi menandai pasangan itu **fuzzy**: tebakan mesin
-yang menunggu manusia. Flag itu bergigi. `pybabel compile` **mengecualikan
-entri fuzzy dari `.mo`**, sehingga sampai seorang penerjemah menegaskan
+yang menunggu manusia. Flag itu mengubah apa yang dikompilasi.
+`pybabel compile` **mengecualikan entri fuzzy dari `.mo`**, sehingga sampai
+seorang penerjemah menegaskan
 pasangan itu, aplikasi merender teks Inggris yang baru alih-alih teks Jepang
 yang basi:
 
@@ -128,34 +143,19 @@ dan
 [checker terdaftar](extraction.md#your-existing-toolchain-validates-these-catalogs)
 paket ini.
 
-!!! bug "`--check` tidak dapat menjaga katalog yang memakai konteks"
+!!! bug "Babel 2.18.0: `--check` tidak dapat menjaga katalog yang memakai konteks"
 
     Pada Babel 2.18.0, `pybabel update --check` melaporkan **setiap** katalog
     yang memuat `msgctxt` sebagai ketinggalan zaman, pada setiap kali
-    dijalankan, sebaru apa pun katalog itu. Perbandingannya berjalan melalui
-    `Catalog.is_identical`, yang mencari setiap pesan berdasarkan kunci tempat
-    pesan itu disimpan — dan untuk pesan kontekstual kunci itu adalah pasangan
-    `(id, context)`, yang tidak diterima oleh `Catalog.get`. Pencariannya tidak
-    mengembalikan apa pun, dan katalog-katalognya tidak pernah dinilai sama:
-
-    ```pycon
-    >>> from babel.messages.catalog import Catalog
-    >>> c = Catalog(locale="ja")
-    >>> c.add("Guide", "ガイド", context="navigation")
-    <Message 'Guide' (flags: [])>
-    >>> c.is_identical(c)
-    False
-    ```
-
-    Jadi jika Anda memakai `pgettext` atau `npgettext` sama sekali — dan
-    membedakan homonim adalah alasan keduanya ada — langkah ini gagal terbuka
-    dengan cara yang paling buruk: selalu merah, sehingga sebuah tim
-    mematikannya, sehingga tidak ada lagi yang menjaga keusangan. Sampai hal
-    itu diperbaiki di hulu, bandingkan sendiri himpunan pesannya. Membaca
-    templat dan setiap katalog dengan `babel.messages.pofile.read_po` lalu
-    membandingkan `{(m.context, m.id) for m in catalog if m.id}` adalah
-    keseluruhan pemeriksaannya, dan itulah yang dilakukan
-    [build situs ini sendiri](index.md).
+    dijalankan, sebaru apa pun katalog itu. Gerbang yang gagal permanen lebih
+    buruk daripada tidak ada gerbang, karena sebuah tim akan mematikannya —
+    jadi jika Anda memakai `pgettext` atau `npgettext` sama sekali, ganti
+    langkah ini alih-alih hidup dengannya. Membaca templat dan setiap katalog
+    dengan `babel.messages.pofile.read_po` lalu membandingkan
+    `{(m.context, m.id) for m in catalog if m.id}` adalah keseluruhan
+    pemeriksaannya, dan itulah yang dilakukan
+    [build situs ini sendiri](index.md). Penyebabnya
+    [dituliskan di Jebakan umum](pitfalls.md#your-tools-have-bugs-too).
 
 !!! danger "Periksa status keluarnya, bukan log-nya"
 

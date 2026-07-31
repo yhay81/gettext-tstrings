@@ -88,3 +88,27 @@ msgid_plural "Rendered {n} pages in {seconds}s"
 msgstr[0] "Відрендерено {n} сторінку за {seconds}с"
 msgstr[1] "Відрендерено {n} сторінки за {seconds}с"
 msgstr[2] "Відрендерено {n} сторінок за {seconds}с"
+
+#. gettext-tstrings
+msgid "Start here"
+msgstr "Почніть звідси"
+
+#. gettext-tstrings
+msgid "Use it"
+msgstr "Використання"
+
+#. gettext-tstrings
+msgid "Migration"
+msgstr "Міграція"
+
+#. gettext-tstrings
+msgid "For translators"
+msgstr "Для перекладачів"
+
+#. gettext-tstrings
+msgid "Understand it"
+msgstr "Як це влаштовано"
+
+#. gettext-tstrings
+msgid "Reference"
+msgstr "Довідник"

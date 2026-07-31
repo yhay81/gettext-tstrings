@@ -1,5 +1,5 @@
 ---
-description: "Tłumacz kompletne komunikaty t-string przez gettext i Babel, trzymając formatowanie poza katalogiem."
+description: "Tłumacz kompletne komunikaty t-string przez gettext i Babel, trzymając wartości i formatowanie poza katalogiem."
 title: "gettext-tstrings"
 hide:
   - navigation
@@ -8,10 +8,12 @@ hide:
 
 <div class="home-hero" markdown>
 
-# Napisz zdanie raz.<br>Przetłumacz je w całości.
+# Tłumacz całe komunikaty,<br>nie fragmenty łańcuchów.
 
-Bezpieczna integracja gettext i Babel dla t-stringów Pythona 3.14+ — wartość
-zostaje na swoim miejscu, a katalog widzi cały komunikat:
+`gettext-tstrings` łączy t-stringi Pythona 3.14+ ze standardowymi katalogami
+gettext i narzędziami Babel. Wartości i formatowanie zostają w kodzie
+aplikacji; katalog trzyma kompletny komunikat z prostymi symbolami zastępczymi
+`{name}`:
 
 ```python
 import gettext
@@ -24,7 +26,10 @@ print(_(t"Hello {name}"))  # with a Japanese catalog: こんにちは Ada
 ```
 
 [Rozpocznij samouczek :material-arrow-right:](tutorial.md){ .md-button .md-button--primary }
-[Dlaczego t-stringi](comparison.md){ .md-button }
+[Porównaj alternatywy](comparison.md){ .md-button }
+
+Alfa · Python 3.14+ · zwykłe katalogi PO/MO · brak zależności w czasie działania
+{ .home-facts }
 
 Ta strona praktykuje to, co dokumentuje: każda wersja językowa —
 nawigacja, etykiety i raport z budowania świadomy form liczby mnogiej — jest
@@ -34,10 +39,34 @@ renderowana z katalogów PO przez
 
 </div>
 
-Katalog otrzymuje kompletne zdanie `Hello {name}`. Tłumaczenie może zmieniać
-kolejność `{name}` albo je powtarzać; nie może go pominąć, wymyślić nowego ani
-dołączyć własnego formatowania — ta biblioteka to sprawdza, a uszkodzony katalog
-wraca do tekstu źródłowego zamiast powodować awarię.
+## Czy to jest dla Ciebie? { #is-this-for-you }
+
+**Pasuje już dziś, gdy** Twoja aplikacja działa na Pythonie 3.14 lub nowszym;
+używasz już gettext i Babel albo chcesz przyjąć ich przepływ pracy z plikami
+PO/MO; i chcesz składni t-stringów z nazwanymi symbolami zastępczymi, które są
+sprawdzane, zanim się wyrenderują.
+
+**Jeszcze nie pasuje, gdy** potrzebujesz Pythona 3.13 lub starszego; wymagasz
+stabilnego API Pythona — to jest wersja alfa, a [specyfikacja](spec.md) jest tą
+jej częścią, która się ustaliła; albo prawie cały Twój tekst do przetłumaczenia
+mieszka w języku szablonów, a nie w źródłach Pythona.
+
+Masz już katalogi? Działają dalej. `_("Hello {name}").format(name=name)` i
+`tr(t"Hello {name}")` dają ten sam msgid, więc istniejące tłumaczenia przetrwają
+zmianę — [Migracja](migration.md) prowadzi przez całe przejście.
+
+## Co wolno powiedzieć katalogowi { #what-the-catalog-may-say }
+
+Katalog otrzymuje kompletny komunikat `Hello {name}`. Tłumaczenie może zmieniać
+kolejność `{name}` albo je powtarzać i może przepisać każde inne słowo wokół
+niego. Nie może pominąć symbolu zastępczego, wymyślić nowego, sięgnąć przez
+niego do Twoich obiektów ani dołączyć własnego formatowania.
+
+Na tym polega cała obietnica: **tłumaczenie nie może zmienić struktury
+komunikatu, który tłumaczy.** Biblioteka sprawdza to na wejściu — przy
+kompilacji katalogów — i ponownie w czasie renderowania; uszkodzony wpis, który
+mimo to trafi na produkcję, loguje ostrzeżenie i renderuje tekst źródłowy
+zamiast powodować awarię.
 
 !!! note "gettext to dla Ciebie nowość? Cały przepływ pracy w czterech zdaniach"
 
@@ -67,14 +96,20 @@ komunikatem. Ta biblioteka dokonuje tego wyboru, spisuje go jako
 [wersjonowaną specyfikację](spec.md) i dostarcza
 [zestaw testów zgodności](spec.md#conformance), który go sprawdza.
 
-## Wybór, którego dokonuje { #the-choice-it-makes }
+## Zasady projektowe { #the-design-rules }
 
 - Tłumacz kompletne komunikaty, nigdy fragmenty zdań.
 - Akceptuj wyłącznie proste nazwy zmiennych, takie jak `{name}`.
 - Trzymaj `!r` i `:.2f` pod kontrolą aplikacji, poza katalogiem.
-- Pozwól tłumaczom zmieniać kolejność i powtarzać znane symbole zastępcze —
-  ale nie wywoływać atrybutów ani nie dodawać zachowań formatujących.
+- Pozwól tłumaczeniom zmieniać kolejność i powtarzać znane symbole zastępcze,
+  nie pozwalając im sięgać do atrybutów ani dodawać formatowania.
 - Używaj zwykłych plików POT, PO i MO oraz narzędzi, które już je czytają.
+
+A do tego pasująca lista tego, czego biblioteka celowo nie dotyka: nie
+lokalizuje liczb, walut ani dat — [sformatuj je wcześniej](guide.md#locale-aware-values),
+Bablem; nie escape'uje wyrenderowanego wyjścia dla HTML-a, powłoki ani
+terminala; i nie potrafi ocenić, czy tłumaczenie jest *poprawne* — tylko czy
+jego symbole zastępcze są nienaruszone.
 
 ## Instalacja { #install }
 
@@ -95,50 +130,59 @@ python -m pip install "gettext-tstrings[babel]"
 
 ## Dokąd dalej { #where-to-go-next }
 
-Trafiają tu trzy rodzaje czytelników: ktoś, kto tłumaczy swój pierwszy
-program, ktoś, kto wpina tłumaczenia w prawdziwy projekt, i ktoś, kto chce
-dokładnie wiedzieć, dlaczego ta maszyneria ma taki kształt. Każdy ma swoją
-ścieżkę.
-
-**Nauka** — bez zakładania doświadczenia z gettext:
+**Zacznij tutaj** — bez zakładania doświadczenia z gettext:
 
 <div class="grid cards" markdown>
 
-- **[Samouczek](tutorial.md)** — zacznij tutaj: od pustego katalogu do
-  działającego japońskiego tłumaczenia w pięciu krokach, każde polecenie
-  pokazane z jego wynikiem.
+- **[Samouczek](tutorial.md)** — od pustego katalogu do działającego
+  japońskiego tłumaczenia w pięciu krokach, każde polecenie pokazane z jego
+  wynikiem.
 - **[Dlaczego t-stringi](comparison.md)** — ten sam komunikat zapisany na
   cztery sposoby i to, co `%(name)s`, `.format()` oraz `$`-stringi oddają
   katalogowi.
-- **[Geneza](background.md)** — dlaczego ta biblioteka istnieje: trzydzieści
-  lat gettext, dwa PEP-y i dyskusja o bibliotece standardowej zamknięta bez
-  odpowiedzi.
 
 </div>
 
-**Poważne użycie** — robocze materiały odniesienia:
+**Używanie** — robocze materiały odniesienia:
 
 <div class="grid cards" markdown>
 
-- **[Przewodnik](guide.md)** — API czasu działania: liczba mnoga, języki na
-  żądanie, odroczone łańcuchy i to, co się dzieje, gdy katalog jest błędny.
+- **[Przewodnik](guide.md)** — API czasu działania: którego punktu wejścia
+  użyć, liczba mnoga, języki na żądanie, odroczone łańcuchy i to, co się
+  dzieje, gdy katalog jest błędny.
 - **[Ekstrakcja](extraction.md)** — dokumentacja `pybabel`: konfiguracja,
   własne nazwy funkcji i to, jak istniejące narzędzia walidują te katalogi za
   darmo.
 - **[W produkcji](workflow.md)** — pętla tak, jak prowadzi ją zespół: cykl
-  aktualizacji, wpisy fuzzy, bramki CI, platformy tłumaczeniowe i języki na
-  żądanie w aplikacji webowej.
-- **[API](api.md)** — wszystko, co eksportuje pakiet, na jednej stronie.
+  aktualizacji, wpisy fuzzy, bramki CI, platformy tłumaczeniowe i wysyłka.
+- **[Migracja](migration.md)** — przyjęcie tego w projekcie, który ma już
+  katalogi, jedno miejsce wywołania naraz.
+- **[Dla tłumaczy](translators.md)** — jedna strona do przekazania temu, kto
+  edytuje pliki `.po`.
 
 </div>
 
-**Zrozumienie** — od zasad do implementacji:
+**Zrozumienie** — od historii do implementacji:
 
 <div class="grid cards" markdown>
 
+- **[Geneza](background.md)** — dlaczego ta biblioteka istnieje: trzydzieści
+  lat gettext, dwa PEP-y i dyskusja o bibliotece standardowej zamknięta bez
+  odpowiedzi.
+- **[Pułapki](pitfalls.md)** — co naprawdę zepsuło się przy tłumaczeniu tej
+  strony na trzydzieści pięć języków i którą połowę potrafi wychwycić
+  narzędzie.
 - **[Jak to działa](internals.md)** — od obiektu szablonu z PEP 750 do
   wyrenderowanego łańcucha oraz pamięci podręczne, które czynią sprawdzanie
   tanim.
+
+</div>
+
+**Referencja** — kontrakty:
+
+<div class="grid cards" markdown>
+
+- **[API](api.md)** — wszystko, co eksportuje pakiet, na jednej stronie.
 - **[Specyfikacja](spec.md)** — konwencja t-string ↔ msgid jako stabilny,
   wersjonowany kontrakt z maszynowo czytelnym zestawem testów zgodności.
 

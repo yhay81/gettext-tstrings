@@ -118,9 +118,23 @@ fuzzy 的，訊息集合也完全吻合。本站有一個語言版本就這樣�
 ## 你的工具也有 bug { #your-tools-have-bugs-too }
 
 這份文件推薦用來抓出過期目錄的 CI 步驟 `pybabel update --check`，對任何使用
-`pgettext` 或 `npgettext` 的專案都做不到那件事——它會把每一份含有 `msgctxt` 的
-目錄都報成過期，每次執行都如此，原因是它比對訊息時的查找方式有 bug。這是在這裡
-試著使用它時發現的，已經回報上游，並且[連同繞道做法完整記載](workflow.md#what-ci-gates)。
+`pgettext` 或 `npgettext` 的專案都做不到那件事。在 Babel 2.18.0 上，它會把每一份
+含有 `msgctxt` 的目錄都報成過期，每次執行都如此。這項比對是走 `Catalog.is_identical`
+完成的，而它是用每則訊息被存放時所用的 key 去查找——對帶上下文的訊息來說，那個
+key 是 `(id, context)` 這一組，而 `Catalog.get` 並不接受這種形式。查找什麼也沒
+找到，於是兩份目錄永遠比不出相等：
+
+```pycon
+>>> from babel.messages.catalog import Catalog
+>>> c = Catalog(locale="ja")
+>>> c.add("Guide", "ガイド", context="navigation")
+<Message 'Guide' (flags: [])>
+>>> c.is_identical(c)
+False
+```
+
+這是在這裡試著使用它時發現的，已經回報上游，而替代的檢查則
+[在正式環境那一頁](workflow.md#what-ci-gates)。
 
 一般性的教訓則很不舒服：一道永遠亮紅燈的關卡比沒有關卡更糟，因為團隊會把它關掉。
 在你信任一道 CI 檢查會正確失敗之前，先確認它真的有辦法通過。

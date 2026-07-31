@@ -149,11 +149,24 @@ istnieją po to, by wypełnić tę lukę.
 
 Krok CI, który ta dokumentacja poleca do wychwytywania nieaktualnych
 katalogów, `pybabel update --check`, nie jest w stanie wykonać tego zadania w
-żadnym projekcie używającym `pgettext` lub `npgettext` — zgłasza każdy katalog
-z `msgctxt` jako nieaktualny, przy każdym uruchomieniu, z powodu błędu w tym,
-jak porównanie wyszukuje komunikaty. Został tu znaleziony przy próbie użycia,
-zgłoszony do upstreamu i jest [opisany w całości wraz z
-obejściem](workflow.md#what-ci-gates).
+żadnym projekcie używającym `pgettext` lub `npgettext`. W Babelu 2.18.0 zgłasza
+każdy katalog z `msgctxt` jako nieaktualny, przy każdym uruchomieniu.
+Porównanie przechodzi przez `Catalog.is_identical`, które wyszukuje każdy
+komunikat po kluczu, pod którym jest przechowywany — a dla komunikatu z
+kontekstem tym kluczem jest para `(id, context)`, której `Catalog.get` nie
+przyjmuje. Wyszukiwanie nie zwraca nic i katalogi nigdy nie okazują się równe:
+
+```pycon
+>>> from babel.messages.catalog import Catalog
+>>> c = Catalog(locale="ja")
+>>> c.add("Guide", "ガイド", context="navigation")
+<Message 'Guide' (flags: [])>
+>>> c.is_identical(c)
+False
+```
+
+Został tu znaleziony przy próbie użycia, zgłoszony do upstreamu, a zastępczy
+test znajdziesz [na stronie o produkcji](workflow.md#what-ci-gates).
 
 Ogólna lekcja jest ta niewygodna: bramka, która zawsze świeci na czerwono,
 jest gorsza niż jej brak, bo zespół ją wyłącza. Sprawdź, czy twój test CI

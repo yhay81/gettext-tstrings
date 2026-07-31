@@ -42,10 +42,13 @@ pybabel compile -d locales
 الشيفرة المختلطة، بما فيها `tr()` و`ntr()` و`lazy_gettext()` و
 `lazy_pgettext()`.
 
-!!! warning "`-c` ليس اختيارياً"
+!!! warning "فعّل تعليقات المترجمين بـ`-c`"
 
     مرر `-c "Translators:"` لجمع التعليقات الموجهة للمترجمين، كما في gettext
-    العادي.
+    العادي. وإن أغفلته فالاستخراج يعمل رغم ذلك — لكن التعليقات لا تصل إلى
+    الكتالوج أبداً، وهي هناك
+    [أرخص وسيلة لرفع الجودة](workflow.md#working-with-translators-and-platforms)
+    في سير العمل كله.
 
 ## أسماء دوال مخصصة { #registering-your-own-function-names }
 
@@ -78,13 +81,37 @@ pybabel compile -d locales
 
     لا يُدعم إلا ترتيب الوسائط القياسي.
 
-## متين افتراضياً { #robust-by-default }
+## متساهل محلياً، صارم في CI { #lenient-locally-strict-in-ci }
+
+افتراضياً، لا يُنهي ملف واحد معطوب التشغيلَ كله:
 
 - يُحذر من t-string المرفوضة ثم تُتجاوز.
 - يُعزل الملف الذي لا يمكن تحليله بالطريقة نفسها.
 - يُعزل أيضاً الملف الذي يرفضه `tokenize` وحده.
 
-استخدم `strict = true` لتحويل هذه التحذيرات إلى أخطاء في CI.
+وهذا مريح وأنت تحرر، وخطر حين لا تكون كذلك: فالرسالة المتجاوَزة **غائبة عن
+ملف POT** ببساطة، فلا تُترجم أبداً ولا شيء يقول ذلك. اضبط `strict = true` في
+خيارات التعيين حيثما لا يراقب إنسانٌ عمليةَ الاستخراج:
+
+=== "babel.cfg"
+
+    ```ini
+    [gettext_tstrings: **.py]
+    encoding = utf-8
+    strict = true
+    ```
+
+=== "babel.toml"
+
+    ```toml
+    [[mappings]]
+    method = "gettext_tstrings"
+    pattern = "**.py"
+    strict = true
+    ```
+
+عندئذ يصير كل تحذير أعلاه فشلاً صريحاً. اعتبر هذا الضبط ضبط الإنتاج،
+والافتراضي ضبط العمل المحلي.
 
 ## التحقق بسلسلة الأدوات الحالية { #your-existing-toolchain-validates-these-catalogs }
 
@@ -108,8 +135,8 @@ msgfmt: found 1 fatal error
 ```
 
 يوثق Weblate هذا الفحص باسم
-[Python brace format][weblate-checks]. الأداتان المختبرتان هنا هما msgfmt
-ومدقق Babel الذي توفره الحزمة.
+[Python brace format][weblate-checks]. ولكل منصة سلوكها الخاص بها؛ والأداتان
+المختبرتان هنا هما msgfmt ومدقق Babel الذي توفره الحزمة.
 
   [weblate-checks]: https://docs.weblate.org/en/latest/user/checks.html
 
@@ -136,8 +163,8 @@ match the source placeholders: {n} is missing
     وتعرض [ما تحرسه CI](workflow.md#what-ci-gates) خطوة البناء التي تتيح
     ذلك.
 
-الفحوص ليست مكررة: يتحقق المدقق المرفق من الأقواس المهربة ومن كل صيغة جمع
-منفصلة حيث قد يقبل msgfmt الملف. تسمح أسماء ASCII لكل الأدوات بالمشاركة،
+الفحصان ليسا مكررين: مدقق الحزمة أصرم في حالتين على الأقل، إذ يتحقق من
+الأقواس المهربة ومن كل صيغة جمع على حدة حيث قد يقبل msgfmt الملف. تسمح أسماء ASCII لكل الأدوات بالمشاركة،
 بينما تقبل المكتبة نفسها كل اسم يحقق `str.isidentifier()`.
 
 ## القوالب والأدوات الأخرى { #templates-and-other-tools }

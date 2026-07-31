@@ -50,9 +50,12 @@ Translator(translations, strict=False)
 
 | নাম | উদ্দেশ্য |
 | --- | --- |
-| `lazy_gettext(template, /, *, strict=False)` | একটি অনুবাদকে প্রথম ব্যবহার পর্যন্ত পিছিয়ে দেয়। |
+| `lazy_gettext(template, /, *, strict=False)` | প্রতিটি রেন্ডার পর্যন্ত অনুবাদ পিছিয়ে দেয়। |
 | `lazy_pgettext(context, template, /, *, strict=False)` | তার context-যুক্ত রূপ। |
-| `LazyString` | দুটিই যা ফেরায়। `str()` ও `format()`-এর মধ্য দিয়ে রেন্ডার হয়, নিজের টেক্সটের সমান হিসেবে তুলনায় ধরা পড়ে, আর ইচ্ছাকৃতভাবেই unhashable। |
+| `LazyString` | দুটিই যা ফেরায়। ঠিক সেই মুহূর্তে যে ভাষা বাঁধা আছে তাতেই `str()` ও `format()`-এর মধ্য দিয়ে রেন্ডার হয়, নিজের রেন্ডার হওয়া টেক্সটের সমান হিসেবে তুলনায় ধরা পড়ে, আর ইচ্ছাকৃতভাবেই unhashable। |
+
+কাজ করে দেখানো উদাহরণ, এবং `strict` কেন সংজ্ঞার জায়গাতেই থাকা উচিত, রয়েছে
+[Deferred অনুবাদ](guide.md#deferred-translation)-এ।
 
 ## নিচের স্তর { #lower-level }
 

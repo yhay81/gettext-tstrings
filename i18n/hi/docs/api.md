@@ -51,9 +51,12 @@ binding एक `ContextVar` है, इसलिए यह प्रति-conte
 
 | नाम | उद्देश्य |
 | --- | --- |
-| `lazy_gettext(template, /, *, strict=False)` | अनुवाद को पहले उपयोग तक टाले। |
+| `lazy_gettext(template, /, *, strict=False)` | अनुवाद को हर रेंडर तक टाले। |
 | `lazy_pgettext(context, template, /, *, strict=False)` | contextual रूप। |
-| `LazyString` | दोनों जो लौटाते हैं। `str()` और `format()` से रेंडर होता है, अपने टेक्स्ट के बराबर तुलना करता है, और जान-बूझकर unhashable है। |
+| `LazyString` | दोनों जो लौटाते हैं। उस क्षण जो भी भाषा बँधी हो, उसी में `str()` और `format()` से रेंडर होता है, अपने रेंडर किए गए टेक्स्ट के बराबर तुलना करता है, और जान-बूझकर unhashable है। |
+
+काम करते हुए दिखाए गए उदाहरण, यह भी कि `strict` परिभाषा के साथ ही क्यों आता है,
+[स्थगित अनुवाद](guide.md#deferred-translation) में हैं।
 
 ## निचला स्तर { #lower-level }
 

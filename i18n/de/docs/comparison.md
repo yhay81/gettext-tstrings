@@ -1,24 +1,17 @@
 ---
-description: "Dieselbe übersetzbare Nachricht mit %-Format, .format(), flufl.i18n-$-Strings und einem t-String, einschließlich der Art, wie sie Werte binden und einen beschädigten Katalog behandeln."
+description: "Dieselbe übersetzbare Nachricht mit %-Format, .format(), flufl.i18n-$-Strings und einem t-String, verglichen an Übersetzungsfehlern, der Autorität des Katalogs und den Integrationskosten."
 ---
 
 # Warum t-strings?
 
-Vier Methoden, einen Wert in eine übersetzbare Nachricht einzusetzen, am
-selben Satz verglichen. Die Kurzfassung:
+Vier Methoden, einen Wert in eine übersetzbare Nachricht einzusetzen, an
+derselben Nachricht verglichen. Alle vier benennen ihre Platzhalter und lassen
+Übersetzende sie umstellen; sie unterscheiden sich darin, was geschieht, wenn
+eine Übersetzung falsch ist, wie weit der Katalog in dein Programm
+hineinreicht und was ihre Einführung kostet.
 
-- Bei **%-Format** wird ein einziger in der Übersetzung gelöschter Buchstabe
-  zu einem Absturz in Produktion.
-- Bei **str.format** kann eine Übersetzung Attribute der Objekte lesen, die
-  dein Code übergibt — einschließlich Geheimnissen.
-- Bei **$-Strings** (flufl.i18n) werden Werte implizit aus den Variablen der
-  aufrufenden Funktion gezogen, und punktierte Platzhalter erreichen ebenfalls
-  Attribute.
-- Bei **t-strings** bleibt die Formatierung in deinem Code, Übersetzungen
-  werden zur Laufzeit geprüft, und ein fehlerhafter Katalog fällt auf den
-  Quelltext zurück, statt abzustürzen.
-
-Der Rest dieser Seite ist der Beleg dafür, eine Methode nach der anderen.
+Die Tabellen kommen zuerst, damit du die Zeile findest, auf die es dir
+ankommt, und nur den Abschnitt dahinter liest.
 
 !!! note "Drei Parteien berühren jede übersetzte Nachricht"
 
@@ -32,6 +25,76 @@ Der Rest dieser Seite ist der Beleg dafür, eine Methode nach der anderen.
     dieselbe Frage anders: *Wie viel der Formatsprache darf der Katalog
     kontrollieren?* In den Beispielen ist `_` der konventionelle Name der
     Übersetzungsfunktion und `tr` der Name dieser Bibliothek.
+
+## Direktvergleich { #side-by-side }
+
+**Wenn einer übersetzenden Person ein Fehler unterläuft.** Ein Katalog geht
+durch viele Hände, und das meiste, was darin schiefgeht, passiert versehentlich:
+
+| | `%(name)s` | `.format()` | `flufl.i18n` `$name` | `t"…"` |
+| --- | --- | --- | --- | --- |
+| Eine Übersetzung *entfernt* einen Platzhalter — was wird gerendert? | der Wert verschwindet stillschweigend | der Wert verschwindet stillschweigend | der Wert verschwindet stillschweigend | die Quellnachricht, mit einer Warnung ([standardmäßig](guide.md#what-happens-when-a-catalog-is-wrong)) |
+| Eine Übersetzung *fügt* einen unbekannten Platzhalter hinzu — was wird gerendert? | eine Ausnahme | eine Ausnahme | der Platzhalter bleibt als Text sichtbar | die Quellnachricht, mit einer Warnung ([standardmäßig](guide.md#what-happens-when-a-catalog-is-wrong)) |
+| Eine Übersetzung *formatiert* einen Platzhalter *um* — was wird gerendert? | das, was der Katalog verlangt hat, oder eine Ausnahme, wenn der Typbuchstabe nicht mehr zum Wert passt | das, was der Katalog verlangt hat | in `$`-Strings nicht ausdrückbar | die Quellnachricht, mit einer Warnung |
+| Werden Platzhalter beim Rendern geprüft? | nein | nein | nein | ja (siehe unten) |
+
+**Welche Autorität der Katalog hat.** Eine Übersetzung sind Daten von
+außerhalb deines Repositorys, und jeder Stil gibt ihr unterschiedlich viel
+Macht in die Hand:
+
+| | `%(name)s` | `.format()` | `flufl.i18n` `$name` | `t"…"` |
+| --- | --- | --- | --- | --- |
+| Woher stammen die Werte? | aus einem expliziten Mapping | aus expliziten Argumenten | aus den lokalen und globalen Variablen des Aufrufers, plus optionalem `extras` | aus den im t-String erfassten Werten |
+| Kann der Katalog ändern, wie ein Wert formatiert wird? | ja | ja | nein | nein |
+| Kann der Katalog in Objekte hineingreifen (Attributzugriff)? | nein | ja | ja, mit punktierten Namen | nein |
+| Wo lebt „die aktuelle Sprache“? | wo die Anwendung sie ablegt | wo die Anwendung sie ablegt | ein Stapel von Sprachcodes auf dem geteilten Anwendungsobjekt | eine `ContextVar`, pro Task oder Anfrage |
+
+**Was die Integration kostet.** Alles Obige ist gratis, wenn das Tooling
+passt; hier könnte es das nicht tun:
+
+| | `%(name)s` | `.format()` | `flufl.i18n` `$name` | `t"…"` |
+| --- | --- | --- | --- | --- |
+| Mindestens erforderliches Python | beliebig | beliebig | 3.10 | **3.14** |
+| Reifegrad | Standardbibliothek | Standardbibliothek | stabiles Release | **Alpha** |
+| Verwendet gewöhnliche PO/MO-Kataloge? | ja | ja | ja | ja |
+| Benötigt einen eigenen Quelltextextraktor? | nein | nein | nein | derzeit ja |
+| Welches PO-Flag leitet Babel ab, damit vorhandene Werkzeuge validieren können? | `python-format` | `python-brace-format` | keines | `python-brace-format` |
+
+Zur Prüfung beim Rendern: Singularnachrichten werden auf eine exakte
+Übereinstimmung der Platzhalter geprüft. Pluralnachrichten werden ebenfalls
+geprüft, gegen die [Vereinigungs-/Schnittmengenregel](spec.md), die den
+Pluralformen der Zielsprache erlaubt, von denen der Quellsprache abzuweichen;
+die strengere Prüfung pro Form läuft beim Kompilieren der Kataloge
+([Extraktion](extraction.md)).
+
+Die Zeile zum Format-Flag betrifft die platzhalterbezogene Validierung, nicht
+die Katalogkompatibilität. `keines` bedeutet, dass Standard-gettext-Werkzeuge
+die Nachricht weiterhin lesen und kompilieren, `msgfmt --check-format` aber
+keine Grammatik für `$`-Platzhalter anwenden kann.
+
+## Kompatibilität und Reifegrad { #compatibility-and-maturity }
+
+Die ersten beiden Zeilen der letzten Tabelle sind die, die über eine Einführung
+entscheiden — sie verdienen es also, ausformuliert und nicht bloß als Zellen
+dazustehen.
+
+`%`-Format und `.format()` sind in Python eingebaut und brauchen überhaupt
+keine Abhängigkeit. [`flufl.i18n`][flufl-i18n] ist ein ausgereiftes Paket,
+veröffentlicht und im Produktiveinsatz, das auf Python 3.10 und neuer läuft.
+`gettext-tstrings` ist eine **Alpha** und setzt **Python 3.14 oder neuer**
+voraus, denn t-strings sind neue Syntax in 3.14 — es gibt keinen Backport, und
+es kann keinen geben. Die [Spezifikation](spec.md) ist der stabile Teil davon;
+die Python-API kann sich vor 1.0 noch bewegen.
+
+Was keine der vier Methoden kostet, ist die Katalogkompatibilität. Alle vier
+erzeugen gewöhnliche POT/PO/MO-Dateien, die jeder PO-Editor, jede
+Übersetzungsplattform und jedes GNU-gettext-Werkzeug ohnehin liest — die
+Entscheidung unten ist also auf eine Weise umkehrbar, wie es ein Wechsel des
+Katalog*formats* nie wäre. [Migration](migration.md) behandelt die Umstellung
+eines bestehenden Projekts.
+
+Die folgenden Abschnitte zeigen jeden Kompromiss im Detail, eine Methode nach
+der anderen.
 
 ## %-Formatierung { #-format }
 
@@ -53,10 +116,11 @@ Traceback (most recent call last):
 ValueError: incomplete format
 ```
 
-Eine Änderung an einem einzigen Zeichen in einem PO-Editor wird zu einem
-Traceback in Produktion. GNU `msgfmt --check-format` erkennt das zwar, aber
-nur bei Nachrichten mit dem Flag `python-format` und nur, wenn der Katalog auf
-dem Weg in deine Anwendung tatsächlich msgfmt durchläuft.
+Eine Änderung an einem einzigen Zeichen in einem PO-Editor wird zu einer
+Laufzeitausnahme, sofern die Katalogvalidierung sie nicht vorher abfängt. GNU
+`msgfmt --check-format` erkennt genau diesen Fall, aber nur bei Nachrichten mit
+dem Flag `python-format` und nur, wenn der Katalog auf dem Weg in deine
+Anwendung tatsächlich msgfmt durchläuft.
 
 ## str.format { #strformat }
 
@@ -124,7 +188,7 @@ des Aufrufers auf. Ein übersetzter Platzhalter kann jede verfügbare lokale ode
 globale Variable des Aufrufers benennen und mit Punktsyntax ihre Attribute
 durchlaufen. Das ist praktisch, wenn eine Nachricht ein Attribut benötigt,
 macht aber zugleich den Frame des Aufrufers zum Teil des
-Ersetzungsnamensraums des Katalogs. Der folgende Vergleich beschreibt
+Ersetzungsnamensraums des Katalogs. Der Vergleich hier beschreibt
 `flufl.i18n` 6.0.0, nicht jede mögliche Verwendung von `string.Template`.
 
 Es beantwortet außerdem eine Frage, die die beiden anderen Formatierungsstile
@@ -191,7 +255,7 @@ Gegen `t"Hello {name}"`:
 | `{nombre}` | translation does not match the source placeholders: `{name}` is missing; `{nombre}` is not in the source message |
 
 Abgelehnt heißt nicht abgestürzt: Standardmäßig protokolliert die Bibliothek
-eine Warnung und rendert den Quelltext, sodass ein schlechter Katalog die
+eine Warnung und rendert die Quellnachricht, sodass ein schlechter Katalog die
 Anwendung nie zu Fall bringt —
 [derselbe Vertrag, den gettext selbst einhält](guide.md#what-happens-when-a-catalog-is-wrong).
 
@@ -203,56 +267,19 @@ tr(t"Total: {amount:,.2f}")  # msgid is "Total: {amount}"
 ```
 
 `:,.2f` erreicht den Katalog nie, keine Übersetzung kann es also ändern, und
-niemand muss es beim Übersetzen ansehen.
+niemand muss es beim Übersetzen ansehen. Es ist allerdings ein *festes* Format
+und kein lokalisiertes — Ziffern und Trennzeichen pro Sprache zu wählen ist
+[Babels Aufgabe, vor dem Aufruf](guide.md#locale-aware-values).
 
 Ein weiterer Unterschied ist das Tooling: t-strings sind neue Syntax, ihre
 Extraktion in eine `.pot` benötigt daher derzeit einen t-string-fähigen
 Extraktor, etwa den, den dieses Paket
 [für Babel bereitstellt](extraction.md).
 
-## Direktvergleich { #side-by-side }
+## Der Preis der Einschränkung { #the-cost-of-the-restriction }
 
-| | `%(name)s` | `.format()` | `flufl.i18n` `$name` | `t"…"` |
-| --- | --- | --- | --- | --- |
-| Ist der Platzhalter benannt? | ja | ja | ja | ja |
-| Können Übersetzende Platzhalter umstellen? | ja | ja | ja | ja |
-| Woher stammen die Werte? | aus einem expliziten Mapping | aus expliziten Argumenten | aus den lokalen und globalen Variablen des Aufrufers, plus optionalem `extras` | aus den im t-String erfassten Werten |
-| Kann der Katalog ändern, wie ein Wert formatiert wird? | ja | ja | nein | nein |
-| Kann der Katalog in Objekte hineingreifen (Attributzugriff)? | nein | ja | ja, mit punktierten Namen | nein |
-| Eine Übersetzung *entfernt* einen Platzhalter — was wird gerendert? | der Wert verschwindet stillschweigend | der Wert verschwindet stillschweigend | der Wert verschwindet stillschweigend | der Quelltext, mit einer Warnung ([standardmäßig](guide.md#what-happens-when-a-catalog-is-wrong)) |
-| Eine Übersetzung *fügt* einen unbekannten Platzhalter hinzu — was wird gerendert? | eine Ausnahme | eine Ausnahme | der Platzhalter bleibt als Text sichtbar | der Quelltext, mit einer Warnung ([standardmäßig](guide.md#what-happens-when-a-catalog-is-wrong)) |
-| Werden Platzhalter beim Rendern geprüft? | nein | nein | nein | ja (siehe unten) |
-| Welches PO-Flag leitet Babel ab, damit vorhandene Werkzeuge validieren können? | `python-format` | `python-brace-format` | keines | `python-brace-format` |
-| Verwendet gewöhnliche PO/MO-Kataloge? | ja | ja | ja | ja |
-| Benötigt einen eigenen Quelltextextraktor? | nein | nein | nein | derzeit ja |
-| Wo lebt „die aktuelle Sprache“? | wo die Anwendung sie ablegt | wo die Anwendung sie ablegt | ein Stapel von Sprachcodes auf dem geteilten Anwendungsobjekt | eine `ContextVar`, pro Task oder Anfrage |
-
-Zur Prüfung beim Rendern: Singularnachrichten werden auf eine exakte
-Übereinstimmung der Platzhalter geprüft. Pluralnachrichten werden ebenfalls
-geprüft, gegen die [Vereinigungs-/Schnittmengenregel](spec.md), die den
-Pluralformen der Zielsprache erlaubt, von denen der Quellsprache abzuweichen;
-die strengere Prüfung pro Form läuft beim Kompilieren der Kataloge
-([Extraktion](extraction.md)).
-
-Die Zeile zum Format-Flag betrifft die platzhalterbezogene Validierung, nicht
-die Katalogkompatibilität. `keines` bedeutet, dass Standard-gettext-Werkzeuge
-die Nachricht weiterhin lesen und kompilieren, `msgfmt --check-format` aber
-keine Grammatik für `$`-Platzhalter anwenden kann.
-
-## Der Preis { #what-it-costs }
-
-Ein f-String kann auf diese Weise gar nicht verwendet werden: Sobald eine
-Bibliothek ihn sieht, ist er bereits eine fertige Zeichenkette, sodass eine
-Übersetzung nur ein Fragment übersetzen würde. t-Strings ([PEP 750]) halten
-statischen Text und Werte getrennt, bei f-String-ähnlicher Syntax und
-expliziter Wertebindung. `$`-Strings bieten bereits eine knappe Alternative mit
-einem anderen Bindungs- und Fehlermodell. `flufl.i18n` ist ein ausgereiftes
-Paket, das auf Python 3.10 und neuer läuft; `gettext-tstrings` befindet sich
-derzeit im Alpha-Stadium und setzt, weil t-strings neue Syntax sind,
-Python 3.14 oder neuer voraus.
-
-Der andere Preis ist die Einschränkung selbst: Jede Interpolation muss ein
-einfacher Name sein.
+Jenseits der Python-Anforderung besteht der Preis für all das aus einer einzigen
+Regel: Eine Interpolation muss ein einfacher Name sein.
 
 ```python
 tr(t"Hello {user.name}")  # raises InvalidTemplateError at the call site
@@ -263,9 +290,17 @@ name = user.name  # compute it first
 tr(t"Hello {name}")
 ```
 
-Das ist eine echte Einschränkung. Zusammen mit der quellseitigen Wertebindung
-und der Laufzeitprüfung der Platzhalter verhindert sie, dass Katalogstrings
-Ausdrücke auswerten, und hält die Platzhalternamen aussagekräftig.
+Das ist eine echte Einschränkung — und es ist dieselbe Einschränkung, die die
+Garantien oben hervorbringt. Zusammen mit der quellseitigen Wertebindung und
+der Laufzeitprüfung der Platzhalter verhindert sie, dass Katalogstrings
+Ausdrücke auswerten, und hält die Platzhalternamen aussagekräftig für die
+Person, die sie übersetzt.
+
+Ein f-String kann auf diese Weise gar nicht verwendet werden: Sobald eine
+Bibliothek ihn sieht, ist er bereits eine fertige Zeichenkette, sodass eine
+Übersetzung nur ein Fragment übersetzen würde. t-Strings ([PEP 750]) halten
+statischen Text und Werte getrennt, bei f-String-ähnlicher Syntax und
+expliziter Wertebindung.
 
 Wie Python an diese Weggabelung gelangt ist — zwei PEPs im Abstand von zehn
 Jahren und die stdlib-Diskussion, die ohne Antwort geschlossen wurde —

@@ -1,23 +1,17 @@
 ---
-description: "Aynı çevrilebilir mesajın %-format, .format(), flufl.i18n $-dizgileri ve bir t-string ile yazılışı; her birinin değerleri nasıl bağladığı ve hasarlı bir katalogla nasıl başa çıktığı dahil."
+description: "Aynı çevrilebilir mesajın %-format, .format(), flufl.i18n $-dizgileri ve bir t-string ile yazılışı; çevirmen hataları, katalog yetkisi ve entegrasyon bedeli üzerinden karşılaştırıldı."
 ---
 
 # Neden t-string?
 
-Çevrilebilir bir mesaja değer yerleştirmenin dört yolu, aynı cümle üzerinde
-karşılaştırıldı. Kısa özet:
+Çevrilebilir bir mesaja değer yerleştirmenin dört yolu, aynı mesaj üzerinde
+karşılaştırıldı. Dördü de yer tutucularını adlandırır ve bir çevirmenin onları
+yeniden sıralamasına izin verir; ayrıldıkları yerler şunlardır: bir çeviri
+yanlış olduğunda ne olur, programınızın ne kadarına katalog uzanabilir ve
+benimsemenin bedeli nedir.
 
-- **%-format** ile, bir çevirmenin tek bir harfi silmesi üretimde çökmeye
-  dönüşür.
-- **str.format** ile, bir çeviri kodunuzun aktardığı nesnelerin
-  özniteliklerini — sırlar dahil — okuyabilir.
-- **$-dizgileri** (flufl.i18n) ile, değerler çağıran işlevin değişkenlerinden
-  örtük olarak çekilir ve noktalı yer tutucular da özniteliklere uzanır.
-- **t-string'ler** ile, biçimlendirme kodunuzda kalır, çeviriler çalışma
-  zamanında denetlenir ve bozuk bir katalog çökmek yerine kaynak metne geri
-  düşer.
-
-Sayfanın geri kalanı, her yöntemi tek tek ele alan kanıtlardır.
+Önce tablolar geliyor; böylece önemsediğiniz satırı bulup yalnızca onun
+arkasındaki bölümü okuyabilirsiniz.
 
 !!! note "Çevrilen her mesaja üç taraf dokunur"
 
@@ -31,6 +25,71 @@ Sayfanın geri kalanı, her yöntemi tek tek ele alan kanıtlardır.
     *biçim dilinin ne kadarını kataloğun denetlemesine izin verilir?*
     Örneklerde `_` çeviri işlevinin geleneksel adıdır; `tr` ise bu
     kütüphaneninki.
+
+## Yan yana { #side-by-side }
+
+**Bir çevirmen hata yaptığında.** Bir katalog birçok elden geçer ve içinde
+ters giden şeylerin çoğu kazadır:
+
+| | `%(name)s` | `.format()` | `flufl.i18n` `$name` | `t"…"` |
+| --- | --- | --- | --- | --- |
+| Bir çeviri bir yer tutucuyu *düşürürse* — ne render edilir? | değer sessizce kaybolur | değer sessizce kaybolur | değer sessizce kaybolur | kaynak mesaj, bir uyarıyla ([varsayılan olarak](guide.md#what-happens-when-a-catalog-is-wrong)) |
+| Bir çeviri bilinmeyen bir yer tutucu *eklerse* — ne render edilir? | bir istisna | bir istisna | yer tutucu metin olarak görünür kalır | kaynak mesaj, bir uyarıyla ([varsayılan olarak](guide.md#what-happens-when-a-catalog-is-wrong)) |
+| Bir çeviri bir yer tutucuyu *yeniden biçimlendirirse* — ne render edilir? | kataloğun istediği şey; ya da tür harfi artık değere uymuyorsa bir istisna | kataloğun istediği şey | `$`-dizgilerinde ifade edilemez | kaynak mesaj, bir uyarıyla |
+| Yer tutucular render anında denetlenir mi? | hayır | hayır | hayır | evet (aşağıya bakın) |
+
+**Kataloğun ne yetkisi var.** Bir çeviri, deponuzun dışından gelen veridir ve
+her tarz ona farklı miktarda güç verir:
+
+| | `%(name)s` | `.format()` | `flufl.i18n` `$name` | `t"…"` |
+| --- | --- | --- | --- | --- |
+| Değerler nereden gelir? | açık bir eşlemeden | açık argümanlardan | çağıranın yerel ve global değişkenlerinden, artı isteğe bağlı `extras` | t-string içinde yakalanan değerlerden |
+| Katalog bir değerin nasıl biçimlendirileceğini değiştirebilir mi? | evet | evet | hayır | hayır |
+| Katalog nesnelerin içine uzanabilir mi (öznitelik erişimi)? | hayır | evet | evet, noktalı adlarla | hayır |
+| "Geçerli dil" nerede durur? | uygulama nereye koyarsa orada | uygulama nereye koyarsa orada | paylaşılan uygulama nesnesi üzerindeki bir dil kodu yığınında | bir `ContextVar` içinde, görev ya da istek başına |
+
+**Entegrasyonun bedeli.** Yukarıdaki her şey, araçlar uyuyorsa bedavadır;
+uymayabileceği yer burasıdır:
+
+| | `%(name)s` | `.format()` | `flufl.i18n` `$name` | `t"…"` |
+| --- | --- | --- | --- | --- |
+| En düşük Python | herhangi biri | herhangi biri | 3.10 | **3.14** |
+| Olgunluk | standart kütüphane | standart kütüphane | kararlı sürüm | **alfa** |
+| Sıradan PO/MO katalogları kullanır mı? | evet | evet | evet | evet |
+| Özel bir kaynak çıkarıcı gerekir mi? | hayır | hayır | hayır | evet, şimdilik |
+| Babel hangi PO bayrağını çıkarsar, mevcut araçlar doğrulasın diye? | `python-format` | `python-brace-format` | hiçbiri | `python-brace-format` |
+
+Render anındaki denetim üzerine: tekil mesajlar yer tutucuların birebir
+eşleşmesi bakımından denetlenir. Çoğul mesajlar da denetlenir; hedef dilin
+çoğul biçimlerinin kaynağınkinden farklı olmasına izin veren
+[birleşim/kesişim kuralına](spec.md) karşı. Biçim başına daha katı denetim ise
+kataloglar derlenirken çalışır ([Çıkarma](extraction.md)).
+
+Biçim bayrağı satırı, katalog uyumluluğunu değil, yer tutuculardan haberdar
+doğrulamayı anlatır. `hiçbiri`, standart gettext araçlarının mesajı yine de
+okuyup derlediği, ama `msgfmt --check-format`ın uygulayacak bir
+`$`-yer-tutucu dil bilgisi olmadığı anlamına gelir.
+
+## Uyumluluk ve olgunluk { #compatibility-and-maturity }
+
+Son tablonun ilk iki satırı, benimsemeye karar veren satırlardır; bu yüzden
+hücreler olarak değil, açıkça söylemeye değerler.
+
+`%`-format ve `.format()` Python'un içine gömülüdür ve hiçbir bağımlılık
+gerektirmez. [`flufl.i18n`][flufl-i18n], yayımlanmış ve üretimde kullanılan,
+Python 3.10 ve sonrasında çalışan olgun bir pakettir. `gettext-tstrings` bir
+**alfa**dır ve **Python 3.14 veya daha yenisini** gerektirir; çünkü
+t-string'ler 3.14'te gelen yeni bir sözdizimidir — bir geri uyarlaması yoktur
+ve olamaz. [Belirtimi](spec.md) onun kararlı parçasıdır; Python API'si 1.0
+öncesinde hâlâ değişebilir.
+
+Hiçbirinin bedeli olmayan şey, katalog uyumluluğudur. Dördü de her PO
+editörünün, çeviri platformunun ve GNU gettext aracının hâlihazırda okuduğu
+sıradan POT/PO/MO dosyaları üretir; dolayısıyla aşağıdaki seçim, katalog
+*biçimlerini* değiştirmenin olamayacağı bir şekilde geri alınabilirdir.
+[Geçiş](migration.md), var olan bir projeyi taşımayı anlatır.
+
+Aşağıdaki bölümler her ödünleşmeyi, yöntem yöntem, ayrıntısıyla gösterir.
 
 ## %-format { #-format }
 
@@ -50,8 +109,9 @@ Traceback (most recent call last):
 ValueError: incomplete format
 ```
 
-Bir PO editöründe yapılan tek karakterlik düzenleme, üretimde bir traceback'e
-dönüşür. GNU `msgfmt --check-format` bunu yakalar, ama yalnızca
+Bir PO editöründe yapılan tek karakterlik düzenleme, katalog doğrulaması onu
+önce yakalamazsa çalışma zamanında bir istisnaya dönüşür. GNU
+`msgfmt --check-format` bunu yakalar, ama yalnızca
 `python-format` işaretli mesajlar için ve yalnızca katalog uygulamanıza giden
 yolda gerçekten msgfmt'ten geçiyorsa.
 
@@ -121,7 +181,7 @@ daha yeteneklidir. [Özel Template][custom Template] sınıfı
 global değişkenini adlandırabilir ve noktalı sözdizimiyle onun
 özniteliklerinde gezinebilir. Bu, bir mesajın bir özniteliğe ihtiyaç duyduğu
 durumda kullanışlıdır; ama aynı zamanda çağıranın çerçevesini kataloğun
-yerine koyma ad alanının parçası yapar. Aşağıdaki karşılaştırma
+yerine koyma ad alanının parçası yapar. Buradaki karşılaştırma
 `flufl.i18n` 6.0.0'ı anlatır, `string.Template`'in olası her kullanımını
 değil.
 
@@ -185,7 +245,7 @@ karşı doğrular ve yalın adlar dışında hiçbir şeyi kabul etmez.
 | `{nombre}` | translation does not match the source placeholders: `{name}` is missing; `{nombre}` is not in the source message |
 
 Reddedilmek çökmek demek değildir: kütüphane varsayılan olarak bir uyarı
-günlükler ve kaynak metni render eder; böylece kötü bir katalog uygulamayı
+günlükler ve kaynak mesajı render eder; böylece kötü bir katalog uygulamayı
 asla düşürmez —
 [gettext'in kendi tuttuğu sözleşmenin aynısı](guide.md#what-happens-when-a-catalog-is-wrong).
 
@@ -197,53 +257,18 @@ tr(t"Total: {amount:,.2f}")  # msgid is "Total: {amount}"
 ```
 
 `:,.2f` kataloğa asla ulaşmaz; dolayısıyla hiçbir çeviri onu değiştiremez ve
-hiçbir çevirmen ona bakmak zorunda kalmaz.
+hiçbir çevirmen ona bakmak zorunda kalmaz. Yine de bu *sabit* bir biçimdir,
+yerelleştirilmiş bir biçim değil — basamakları ve ayırıcıları dile göre
+seçmek [çağrıdan önce Babel'in işidir](guide.md#locale-aware-values).
 
 Bir fark daha araç desteğindedir: t-string'ler yeni bir sözdizimi olduğundan,
 onları bir `.pot` dosyasına çıkarmak şimdilik t-string'lerden anlayan bir
 çıkarıcı gerektirir; bu paketin [Babel için sağladığı](extraction.md) gibi.
 
-## Yan yana { #side-by-side }
+## Kısıtlamanın bedeli { #the-cost-of-the-restriction }
 
-| | `%(name)s` | `.format()` | `flufl.i18n` `$name` | `t"…"` |
-| --- | --- | --- | --- | --- |
-| Yer tutucu adlandırılmış mı? | evet | evet | evet | evet |
-| Çevirmen yer tutucuları yeniden sıralayabilir mi? | evet | evet | evet | evet |
-| Değerler nereden gelir? | açık bir eşlemeden | açık argümanlardan | çağıranın yerel ve global değişkenlerinden, artı isteğe bağlı `extras` | t-string içinde yakalanan değerlerden |
-| Katalog bir değerin nasıl biçimlendirileceğini değiştirebilir mi? | evet | evet | hayır | hayır |
-| Katalog nesnelerin içine uzanabilir mi (öznitelik erişimi)? | hayır | evet | evet, noktalı adlarla | hayır |
-| Bir çeviri bir yer tutucuyu *düşürürse* — ne render edilir? | değer sessizce kaybolur | değer sessizce kaybolur | değer sessizce kaybolur | kaynak metin, bir uyarıyla ([varsayılan olarak](guide.md#what-happens-when-a-catalog-is-wrong)) |
-| Bir çeviri bilinmeyen bir yer tutucu *eklerse* — ne render edilir? | bir istisna | bir istisna | yer tutucu metin olarak görünür kalır | kaynak metin, bir uyarıyla ([varsayılan olarak](guide.md#what-happens-when-a-catalog-is-wrong)) |
-| Yer tutucular render anında denetlenir mi? | hayır | hayır | hayır | evet (aşağıya bakın) |
-| Babel hangi PO bayrağını çıkarsar, mevcut araçlar doğrulasın diye? | `python-format` | `python-brace-format` | hiçbiri | `python-brace-format` |
-| Sıradan PO/MO katalogları kullanır mı? | evet | evet | evet | evet |
-| Özel bir kaynak çıkarıcı gerekir mi? | hayır | hayır | hayır | evet, şimdilik |
-| "Geçerli dil" nerede durur? | uygulama nereye koyarsa orada | uygulama nereye koyarsa orada | paylaşılan uygulama nesnesi üzerindeki bir dil kodu yığınında | bir `ContextVar` içinde, görev ya da istek başına |
-
-Render anındaki denetim üzerine: tekil mesajlar yer tutucuların birebir
-eşleşmesi bakımından denetlenir. Çoğul mesajlar da denetlenir; hedef dilin
-çoğul biçimlerinin kaynağınkinden farklı olmasına izin veren
-[birleşim/kesişim kuralına](spec.md) karşı. Biçim başına daha katı denetim ise
-kataloglar derlenirken çalışır ([Çıkarma](extraction.md)).
-
-Biçim bayrağı satırı, katalog uyumluluğunu değil, yer tutuculardan haberdar
-doğrulamayı anlatır. `hiçbiri`, standart gettext araçlarının mesajı yine de
-okuyup derlediği, ama `msgfmt --check-format`ın uygulayacak bir
-`$`-yer-tutucu dil bilgisi olmadığı anlamına gelir.
-
-## Bedeli { #what-it-costs }
-
-Bir f-string bu şekilde hiç kullanılamaz — herhangi bir kütüphane onu
-gördüğünde çoktan bitmiş bir dizgidir; dolayısıyla onu çevirmek bir parçayı
-çevirmek demektir. t-string'ler ([PEP 750]) f-string benzeri sözdizimini ve
-açık değer bağlamayı korurken statik metinle değerleri ayrı tutar.
-`$`-dizgileri, farklı bir bağlama ve hata modeliyle zaten kısa ve öz bir
-alternatif sunar. `flufl.i18n`, Python 3.10 ve sonrasında çalışan olgun bir
-pakettir; `gettext-tstrings` şu anda bir alfadır ve t-string'ler yeni bir
-sözdizimi olduğundan Python 3.14 veya daha yenisini gerektirir.
-
-Diğer bedel, kısıtlamanın kendisidir: bir interpolasyon yalın bir ad olmak
-zorundadır.
+Python gereksiniminin ötesinde, tüm bunların bedeli tek bir kuraldır: bir
+interpolasyon yalın bir ad olmak zorundadır.
 
 ```python
 tr(t"Hello {user.name}")  # raises InvalidTemplateError at the call site
@@ -254,9 +279,15 @@ name = user.name  # compute it first
 tr(t"Hello {name}")
 ```
 
-Bu gerçek bir kısıttır. Kaynak tarafında değer bağlama ve çalışma zamanında
-yer tutucu denetimiyle birlikte, katalog dizgilerinin ifade değerlendirmesini
-engeller ve yer tutucu adlarını anlamlı tutar.
+Bu gerçek bir kısıttır ve yukarıdaki güvenceleri üreten kısıtla aynıdır.
+Kaynak tarafında değer bağlama ve çalışma zamanında yer tutucu denetimiyle
+birlikte, katalog dizgilerinin ifade değerlendirmesini engeller ve yer tutucu
+adlarını onları çeviren kişi için anlamlı tutar.
+
+Bir f-string bu şekilde hiç kullanılamaz — herhangi bir kütüphane onu
+gördüğünde çoktan bitmiş bir dizgidir; dolayısıyla onu çevirmek bir parçayı
+çevirmek demektir. t-string'ler ([PEP 750]) f-string benzeri sözdizimini ve
+açık değer bağlamayı korurken statik metinle değerleri ayrı tutar.
 
 Python'un bu yol ayrımına nasıl geldiği — on yıl arayla iki PEP ve yanıtsız
 kapanan stdlib tartışması — kaynaklarıyla birlikte

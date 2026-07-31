@@ -1,5 +1,5 @@
 ---
-description: "De runtime-API: een catalogus binden, talen per request, uitgestelde strings, en hoe een kapotte vertaling wordt gerapporteerd."
+description: "De runtime-API: welk instappunt je gebruikt, een catalogus binden, talen per request, uitgestelde strings, locale-bewuste waarden, en hoe een kapotte vertaling wordt gerapporteerd."
 ---
 
 # Handleiding
@@ -11,6 +11,22 @@ doorloopt de [tutorial](tutorial.md) hem eenmaal in vijf minuten; het
 aanmaken en valideren van catalogi wordt behandeld in
 [Extractie](extraction.md), en hoe een team de lus draaiende houdt —
 updatecycli, CI, vertaalplatforms — staat op [In productie](workflow.md).
+
+## Welk instappunt moet ik gebruiken? { #which-entry-point-should-i-use }
+
+Het pakket exporteert meerdere manieren om een bericht te vertalen, omdat
+applicaties op meerdere manieren een taal binden. Kies op grond van hoe jouw
+programma bepaalt in welke taal het staat:
+
+| Jouw situatie | Gebruik |
+| --- | --- |
+| Eén taal voor het hele proces — een CLI, een desktopapplicatie, een script | `Translator`, aangeroepen als `_` |
+| Eén taal per request of per async taak — een webapplicatie | `use_translations()` om het werk heen, daarna `tr()` |
+| Een bericht dat bij importtijd gedefinieerd wordt — een formulierlabel, een enum, een constante | `lazy_gettext()` of `lazy_pgettext()` |
+| Een telling bepaalt de formulering | `ngettext()` / `npgettext()`, in welke vorm hierboven ook |
+| Een patroon renderen zonder dat er een catalogus bij komt kijken | `compile_template()` |
+
+Alles hieronder is die vijf, in die volgorde.
 
 ## Een catalogus binden { #binding-a-catalog }
 
@@ -60,6 +76,7 @@ from gettext_tstrings import tr, use_translations
 
 
 def handle(request):
+    name = request.user.display_name
     translations = load_translations(request.locale)
     with use_translations(translations):
         return render(tr(t"Hello {name}"))
@@ -165,12 +182,52 @@ catalogus per taal laden is goedkoop: `gettext.translation()` parset elke `.mo`
 
     `asyncio.to_thread` doet dit al voor je.
 
+## Locale-bewuste waarden { #locale-aware-values }
+
+Deze bibliotheek beslist *waar* een waarde in een vertaald bericht verschijnt.
+Ze lokaliseert de waarde zelf niet. `{amount:,.2f}` is een Python-format-spec
+met vast gedrag — een komma per drie cijfers en een punt vóór de decimalen — en
+het levert dezelfde tekens op, in welke taal het bericht ook staat:
+
+```pycon
+>>> f"{1234.5:,.2f}"  # the same in every locale
+'1,234.50'
+```
+
+Het Duits schrijft dat getal als `1.234,50`, het Frans als `1 234,50`, en het
+Hindi groepeert `1234567` als `12,34,567` in plaats van `1,234,567`. Getallen,
+valuta's, datums, tijden en eenheden horen bij [Babel][babel-numbers].
+Formatteer de waarde eerst, plaats daarna de afgeronde string:
+
+```python
+from babel.numbers import format_currency
+
+total = format_currency(amount, "EUR", locale=locale)
+tr(t"Your order comes to {total}")
+```
+
+Bij een getelde zin doet het getal twee dingen — het kiest de meervoudsvorm en
+het verschijnt in de tekst — en alleen het tweede wordt gelokaliseerd. Houd de
+ruwe telling voor de keuze en geef de geformatteerde string door voor de
+weergave:
+
+```python
+from babel.numbers import format_decimal
+
+shown = format_decimal(n, locale=locale)
+_.ngettext(t"One file", t"{shown} files", n)
+```
+
+Formatteren vóór de aanroep is ook wat een format-spec buiten de catalogus
+houdt: wat een vertaler ziet, is een afgerond stuk tekst, geen getal plus
+instructies om het te renderen.
+
 ## Wat er gebeurt als een catalogus fout is { #what-happens-when-a-catalog-is-wrong }
 
 Als de placeholders van een vertaling niet overeenkomen met de bron — een
 ontbrekend, onbekend of hervormd veld dat langs de validatie glipte, uit een
 handbewerkte MO, een leverancierscatalogus of een pipeline die de checker
-overslaat — is de standaard om de brontekst te reproduceren in plaats van te
+overslaat — is de standaard om het bronbericht te renderen in plaats van te
 raisen. Dit spiegelt gettexts eigen contract dat een slechte catalogus nooit
 de applicatie breekt.
 
@@ -209,45 +266,14 @@ gettext_tstrings.errors.InvalidTranslationError: translation does not match the
 source placeholders: {name} is missing; {nombre} is not in the source message
 ```
 
-## Een foutmelding lezen { #reading-a-failure-message }
-
 Deze meldingen zijn geschreven voor wie erop kan handelen, en dat is bij een
-catalogusprobleem vaker een vertaler dan een programmeur. Alleen melden dat
-`{name}` ontbreekt is een doodlopende weg wanneer de lezer die tekens vóór
-zich kan zien, dus waar een placeholder aanwezig lijkt maar het niet is, zegt
-de melding waarom. Tegen de bron `Hello {name}` wordt elk van deze
-gerapporteerd onder
-`translation does not match the source placeholders:`
-
-| De vertaling zegt | De reden die ze geeft |
-| --- | --- |
-| `こんにちは ｛name｝` | `{name}` is missing (the braces around it are not the ASCII `{` and `}`) |
-| `こんにちは {{name}}` | `{name}` is missing (it is written `{{name}}`, which is how a literal brace is escaped) |
-| `こんにちは name` | `{name}` is missing (the name appears, but not inside braces) |
-| `こんにちは {名前}` | `{name}` is missing; `{名前}` is not in the source message |
-
-Tekens die niet te zien zijn krijgen hun eigen behandeling. Een harde spatie
-binnen de accolades is iets wat een invoermethode produceert en geen editor
-toont, dus de melding drukt haar af als codepunt in plaats van een teken te
-noemen dat de lezer niet kan vinden:
-
-```text
-placeholder {<U+00A0>name} has a space inside the braces; write {name}
-```
-
-Een naam waarvan de letters schriftsystemen mengen — het homoglief-geval,
-waar een Cyrillische `а` niet te onderscheiden is van een Latijnse — wordt
-twee keer getoond, één keer leesbaar en één keer geëscaped, wat de enige vorm
-is die de twee uit elkaar houdt:
-
-```text
-translation does not match the source placeholders: {name} is missing;
-{nаme} (n\u0430me) is not in the source message
-```
-
-Dezelfde disambiguatie geldt wanneer een Griekse of Cyrillische naam die
-volledig in één schrift geschreven is, botst met een ASCII-bronnaam,
-inclusief het geval van één letter — Latijnse `a` / Cyrillische `а`.
+catalogusprobleem vaker een vertaler dan een programmeur — dus waar een
+placeholder aanwezig lijkt maar het niet is, legt de melding uit waaróm, in
+plaats van te herhalen dat hij ontbreekt. Accolades op volle breedte, een
+verdubbelde `{{name}}`, een onzichtbare harde spatie, een Cyrillische letter
+tussen Latijnse: elk heeft zijn eigen formulering, met voorbeelden opgesomd op
+[Voor vertalers](translators.md#reading-a-failure-message). Die pagina is
+geschreven om te overhandigen aan wie de `.po` bewerkt.
 
 ## Een patroon renderen zonder catalogus { #rendering-a-pattern-without-a-catalog }
 
@@ -304,3 +330,5 @@ uitvoer voor zijn bestemming (HTML, shell, terminal), en
 **catalogusintegriteit**, aangezien een vijandige catalogus een placeholder
 kan herhalen om de uitvoergrootte op te blazen, wat inherent is aan elke
 placeholder-gebaseerde i18n.
+
+  [babel-numbers]: https://babel.pocoo.org/en/latest/api/numbers.html

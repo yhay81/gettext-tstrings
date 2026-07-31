@@ -1,5 +1,5 @@
 ---
-description: "API de execução: vínculo de catálogo, idioma por requisição, strings preguiçosas e tratamento de traduções inválidas."
+description: "API de execução: qual ponto de entrada usar, vínculo de catálogo, idioma por requisição, strings preguiçosas, valores sensíveis à localidade e como uma tradução danificada é relatada."
 ---
 
 # Guia
@@ -11,6 +11,22 @@ ciclo completo — marcar, extrair, traduzir, compilar, executar — o
 validação de catálogos são tratadas em [Extração](extraction.md), e como uma
 equipe mantém o ciclo girando — ciclos de atualização, CI, plataformas de
 tradução — está em [Em produção](workflow.md).
+
+## Qual ponto de entrada devo usar? { #which-entry-point-should-i-use }
+
+O pacote exporta várias maneiras de traduzir uma mensagem porque as aplicações
+vinculam um idioma de várias maneiras diferentes. Escolha pela forma como o seu
+programa decide em que idioma ele está:
+
+| Sua situação | Use |
+| --- | --- |
+| Um idioma para o processo inteiro — uma CLI, um app de desktop, um script | `Translator`, chamado como `_` |
+| Um idioma por requisição ou por tarefa assíncrona — uma aplicação web | `use_translations()` em volta do trabalho, e depois `tr()` |
+| Uma mensagem definida no import — um rótulo de formulário, um enum, uma constante | `lazy_gettext()` ou `lazy_pgettext()` |
+| Uma contagem decide as palavras | `ngettext()` / `npgettext()`, em qualquer das formas acima |
+| Renderizar um padrão sem catálogo nenhum envolvido | `compile_template()` |
+
+Tudo o que vem abaixo são esses cinco, nessa ordem.
 
 ## Vincular um catálogo { #binding-a-catalog }
 
@@ -60,6 +76,7 @@ from gettext_tstrings import tr, use_translations
 
 
 def handle(request):
+    name = request.user.display_name
     translations = load_translations(request.locale)
     with use_translations(translations):
         return render(tr(t"Hello {name}"))
@@ -159,11 +176,54 @@ e entrega cópias que compartilham o catálogo já analisado.
 
     `asyncio.to_thread` já faz isso por você.
 
+## Valores sensíveis à localidade { #locale-aware-values }
+
+Esta biblioteca decide *onde* um valor aparece em uma mensagem traduzida. Ela
+não localiza o valor em si. `{amount:,.2f}` é uma especificação de formato do
+Python com comportamento fixo — uma vírgula a cada três dígitos e um ponto
+antes dos decimais — e produz os mesmos caracteres qualquer que seja o idioma
+da mensagem:
+
+```pycon
+>>> f"{1234.5:,.2f}"  # the same in every locale
+'1,234.50'
+```
+
+O alemão escreve esse número como `1.234,50`, o francês como `1 234,50`, e o
+híndi agrupa `1234567` como `12,34,567` em vez de `1,234,567`. Números, moedas,
+datas, horas e unidades são assunto do [Babel][babel-numbers]. Formate o valor
+primeiro e depois posicione a string já pronta:
+
+```python
+from babel.numbers import format_currency
+
+total = format_currency(amount, "EUR", locale=locale)
+tr(t"Your order comes to {total}")
+```
+
+Em uma mensagem com contagem o número faz dois trabalhos — ele seleciona a
+forma de plural e aparece no texto — e só o segundo é localizado. Guarde a
+contagem bruta para a seleção e passe a string formatada para exibição:
+
+```python
+from babel.numbers import format_decimal
+
+shown = format_decimal(n, locale=locale)
+_.ngettext(t"One file", t"{shown} files", n)
+```
+
+Formatar antes da chamada também é o que mantém uma especificação de formato
+fora do catálogo: o que quem traduz vê é um trecho de texto pronto, e não um
+número acompanhado de instruções de renderização.
+
 ## Quando o catálogo está errado { #what-happens-when-a-catalog-is-wrong }
 
-Se os marcadores da tradução não correspondem à origem, o comportamento padrão
-renderiza o texto de origem em vez de lançar. Isso preserva o contrato do
-gettext: um catálogo ruim não deve derrubar a aplicação.
+Se os marcadores de uma tradução não correspondem aos da origem — um campo
+faltando, desconhecido ou reformatado que escapou da validação, vindo de um MO
+editado à mão, de um catálogo de terceiros ou de um pipeline que pula o
+verificador — o comportamento padrão é renderizar a mensagem de origem em vez
+de lançar. Isso espelha o próprio contrato do gettext: um catálogo ruim nunca
+derruba a aplicação.
 
 Se `Hello {name}` for traduzido como `こんにちは {nombre}`, a renderização
 continua e um aviso é enviado ao logger `gettext_tstrings`:
@@ -198,33 +258,14 @@ gettext_tstrings.errors.InvalidTranslationError: translation does not match the
 source placeholders: {name} is missing; {nombre} is not in the source message
 ```
 
-## Como ler as mensagens de erro { #reading-a-failure-message }
-
-As mensagens também explicam por que um marcador aparentemente correto é
-inválido:
-
-| A tradução contém | Motivo |
-| --- | --- |
-| `こんにちは ｛name｝` | `{name}` is missing (the braces around it are not the ASCII `{` and `}`) |
-| `こんにちは {{name}}` | `{name}` is missing (it is written `{{name}}`, which is how a literal brace is escaped) |
-| `こんにちは name` | `{name}` is missing (the name appears, but not inside braces) |
-| `こんにちは {名前}` | `{name}` is missing; `{名前}` is not in the source message |
-
-Um espaço inseparável invisível aparece por seu code point:
-
-```text
-placeholder {<U+00A0>name} has a space inside the braces; write {name}
-```
-
-Um homoglyph de outro alfabeto aparece legível e escapado:
-
-```text
-translation does not match the source placeholders: {name} is missing;
-{nаme} (n\u0430me) is not in the source message
-```
-
-Isso também cobre conflitos entre nomes inteiramente gregos ou cirílicos e seus
-equivalentes ASCII.
+Essas mensagens são escritas para quem pode agir sobre elas, o que, num
+problema de catálogo, é quem traduz com mais frequência do que quem programa —
+então, onde um marcador parece presente mas não está, a mensagem explica por
+quê, em vez de repetir que ele está faltando. Chaves de largura total, um
+`{{name}}` duplicado, um espaço inseparável invisível, uma letra cirílica no
+meio das latinas: cada caso tem sua própria redação, listada com exemplos em
+[Para quem traduz](translators.md#reading-a-failure-message). Aquela página foi
+escrita para ser entregue a quem edita o `.po`.
 
 ## Renderizar um padrão sem catálogo { #rendering-a-pattern-without-a-catalog }
 
@@ -270,3 +311,5 @@ tr(t"Hello {name}")
 Uma tradução nunca é avaliada e não pode acrescentar acesso a atributos,
 chamadas, conversões nem formatos. Como no gettext padrão, a aplicação é
 responsável pelo **escape no destino** e pela **integridade do catálogo**.
+
+  [babel-numbers]: https://babel.pocoo.org/en/latest/api/numbers.html

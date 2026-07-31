@@ -197,7 +197,8 @@ placeholder की त्रुटि प्रायः प्रोग्र�
 इसी सिद्धांत पर, जो "ग़ायब" placeholder मौजूद *दिखता* है, उसकी अनुपस्थिति की
 व्याख्या मिलती है — पूर्वी एशियाई input method के full-width braces, escaping
 के चक्कर से आया `{{name}}` दोहरीकरण, या braces के बाहर पड़ा नाम।
-[गाइड की विफलता-पठन तालिका](guide.md#reading-a-failure-message) इनमें से हर
+अनुवादकों के लिए लिखी गई
+[विफलता-पठन तालिका](translators.md#reading-a-failure-message) इनमें से हर
 संदेश को हूबहू दिखाती है।
 
 ## हॉट पाथ { #the-hot-path }

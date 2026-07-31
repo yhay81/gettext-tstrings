@@ -11,6 +11,18 @@ kompiliran katalog pa gre z vsako izdajo v svet. Ta stran je ta praksa — kaj
 ostane v repozitoriju, kaj potuje, kaj mora zapirati CI in kje se med izvajanjem
 veže jezik.
 
+Vse skupaj se sešteje v šest preverjanj, zato so tu najprej; vsak spodnji
+razdelek eno od njih nastavi.
+
+- `pybabel update --check` uspe — nobeno sporočilo se ni spremenilo, ne da bi
+  za to izvedeli katalogi.
+- `pybabel compile` gradnjo zapira po svojem izhodnem stanju.
+- Preostali vnosi `fuzzy` so namerni — vsak se izriše kot izvorno besedilo,
+  dokler ga prevajalec ne potrdi.
+- Testna zbirka vsak odpremljeni jezik enkrat izriše s `strict=True`.
+- Produkcijski izdelek vsebuje datoteke `.mo` in nobenega Babela.
+- Dnevnik `gettext_tstrings` je usmerjen v nadzorni sistem.
+
 ## Oblika projekta { #the-shape-of-a-project }
 
 ```text
@@ -32,8 +44,8 @@ ali ob pakiranju, namesto da bi jih dodajali v repozitorij, tako da si `.po` in
 njegov `.mo` nikoli ne moreta biti neenotna o tem, kaj se odpremi.
 
 Ena datoteka ima vlogo v vsako smer: `.pot` nosi vaša sporočila *ven* k
-prevajalcem, datoteke `.po` pa prevode *nazaj*. Vse spodnje je promet med tema
-dvema.
+prevajalcem, datoteke `.po` pa prevode *nazaj*. Preostanek te strani je to,
+kar se giblje med njima.
 
 ```mermaid
 flowchart LR
@@ -47,8 +59,8 @@ flowchart LR
 
 ## Cikel po prvem prevodu { #the-cycle-after-the-first-translation }
 
-`pybabel init` iz vadnice se na jezik požene enkrat za vselej. Od tam naprej je
-delovni cikel **izvleci → posodobi → prevedi → kompiliraj**, njegovo središče
+`pybabel init` iz vadnice se navadno požene enkrat, ko se doda jezik. Od tam
+naprej je delovni cikel **izvleci → posodobi → prevedi → kompiliraj**, njegovo središče
 pa je `pybabel update`, ki svežo predlogo zloži v obstoječe kataloge, ne da bi
 zavrgel prevode, ki so že v njih.
 
@@ -75,9 +87,9 @@ msgstr "こんにちは {name}"
 
 Babel je opazil, da je novi msgid podoben odstranjenemu, in ga je združil s
 starim prevodom — a je par označil kot **fuzzy**: strojna domneva, ki čaka na
-človeka. Zastavica ima zobe. `pybabel compile` **ohlapne vnose iz `.mo`
-izpusti**, zato aplikacija, dokler prevajalec para ne potrdi, izriše novo
-angleško besedilo namesto zastarelega japonskega:
+človeka. Zastavica spremeni to, kaj se kompilira. `pybabel compile` **ohlapne
+vnose iz `.mo` izpusti**, zato aplikacija, dokler prevajalec para ne potrdi,
+izriše novo angleško besedilo namesto zastarelega japonskega:
 
 ```console
 $ pybabel compile -d locales
@@ -125,31 +137,17 @@ compile` požene preverjanja ograd tako Babela kot
 [registriranega preverjevalnika](extraction.md#your-existing-toolchain-validates-these-catalogs)
 tega paketa.
 
-!!! bug "`--check` ne more zapreti kataloga, ki uporablja kontekste"
+!!! bug "Babel 2.18.0: `--check` ne more zapreti kataloga, ki uporablja kontekste"
 
     Na Babelu 2.18.0 `pybabel update --check` **vsak** katalog, ki vsebuje
-    `msgctxt`, javi kot zastarel, ob vsakem teku, ne glede na to, kako svež je.
-    Primerjava teče skozi `Catalog.is_identical`, ki vsako sporočilo poišče po
-    ključu, pod katerim je shranjeno — pri kontekstnem sporočilu pa je ta ključ
-    par `(id, context)`, ki ga `Catalog.get` ne sprejema. Iskanje ne vrne
-    ničesar in katalogi nikoli ne izpadejo enaki:
-
-    ```pycon
-    >>> from babel.messages.catalog import Catalog
-    >>> c = Catalog(locale="ja")
-    >>> c.add("Guide", "ガイド", context="navigation")
-    <Message 'Guide' (flags: [])>
-    >>> c.is_identical(c)
-    False
-    ```
-
-    Če torej `pgettext` ali `npgettext` sploh uporabljate — in razdvoumljanje
-    homonima je razlog, zakaj obstajata —, ta korak odpove na najslabši možni
-    način: vedno rdeč, zato ga ekipa izklopi, zato zastarelosti ne zapira nič.
-    Dokler ni popravljeno pri viru, primerjajte množice sporočil sami. Branje
-    predloge in vsakega kataloga s `babel.messages.pofile.read_po` ter
-    primerjava `{(m.context, m.id) for m in catalog if m.id}` je celotno
-    preverjanje — in prav to počne [gradnja tega spletišča](index.md).
+    `msgctxt`, javi kot zastarel, ob vsakem teku, naj bo še tako svež.
+    Trajno padajoča zaščita je slabša od nobene, ker jo ekipa izklopi — če
+    torej `pgettext` ali `npgettext` sploh uporabljate, ta korak raje
+    nadomestite, kot da živite z njim. Branje predloge in vsakega kataloga s
+    `babel.messages.pofile.read_po` ter primerjava
+    `{(m.context, m.id) for m in catalog if m.id}` je celotno preverjanje — in
+    prav to počne [gradnja tega spletišča](index.md). Vzrok je
+    [popisan med Pastmi](pitfalls.md#your-tools-have-bugs-too).
 
 !!! danger "Preverjajte izhodno stanje, ne dnevnika"
 

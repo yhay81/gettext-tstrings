@@ -1,22 +1,16 @@
 ---
-description: "Sömu þýðanlegu skilaboðin rituð með %-sniði, .format(), $-strengjum flufl.i18n og t-streng, ásamt því hvernig hvert bindur gildi og bregst við skemmdri þýðingaskrá."
+description: "Sömu þýðanlegu skilaboðin rituð með %-sniði, .format(), $-strengjum flufl.i18n og t-streng, borin saman á mistökum þýðenda, valdi þýðingaskrárinnar og kostnaði við samþættingu."
 ---
 
 # Hvers vegna t-strings
 
 Fjórar leiðir til að koma gildi inn í þýðanleg skilaboð, bornar saman á sömu
-setningunni. Stutta útgáfan:
+skilaboðunum. Allar fjórar nefna staðgengla sína og leyfa þýðanda að endurraða
+þeim; þær greinast í því hvað gerist þegar þýðing er röng, í því hversu mikið
+af forritinu þínu þýðingaskráin nær til, og í því hvað upptaka þeirra kostar.
 
-- Með **%-sniði** verður einn stafur sem þýðandi eyðir að hruni í rekstri.
-- Með **str.format** getur þýðing lesið eigindi af hlutunum sem kóðinn þinn
-  réttir inn — leyndarmál þar með talin.
-- Með **$-strengjum** (flufl.i18n) eru gildin sótt óbeint í breytur
-  kallandi falls, og punktaðir staðgenglar ná líka í eigindi.
-- Með **t-strengjum** helst sniðið í kóðanum þínum, þýðingar eru athugaðar á
-  keyrslutíma, og biluð þýðingaskrá fellur aftur í frumtextann í stað þess
-  að hrynja.
-
-Afgangur þessarar síðu er sönnunargagnið, ein aðferð í einu.
+Töflurnar koma fyrst, svo að þú getir fundið línuna sem skiptir þig máli og
+lesið aðeins kaflann á bak við hana.
 
 !!! note "Þrír aðilar koma við hver þýdd skilaboð"
 
@@ -29,6 +23,70 @@ Afgangur þessarar síðu er sönnunargagnið, ein aðferð í einu.
     neðan svarar sömu spurningunni á sinn hátt: *hversu miklu af sniðmálinu
     fær þýðingaskráin að stjórna?* Í dæmunum er `_` venjubundna nafnið á
     þýðingarfallinu og `tr` er nafnið í þessu safni.
+
+## Hlið við hlið { #side-by-side }
+
+**Þegar þýðanda verða á mistök.** Þýðingaskrá fer um margar hendur og flest
+sem aflaga fer í henni er óviljandi:
+
+| | `%(name)s` | `.format()` | `flufl.i18n` `$name` | `t"…"` |
+| --- | --- | --- | --- | --- |
+| Þýðing *sleppir* staðgengli — hvað birtist? | gildið hverfur hljóðlaust | gildið hverfur hljóðlaust | gildið hverfur hljóðlaust | frumtextaskilaboðin, með viðvörun ([sjálfgefið](guide.md#what-happens-when-a-catalog-is-wrong)) |
+| Þýðing *bætir við* óþekktum staðgengli — hvað birtist? | frávik | frávik | staðgengillinn stendur sýnilegur sem texti | frumtextaskilaboðin, með viðvörun ([sjálfgefið](guide.md#what-happens-when-a-catalog-is-wrong)) |
+| Þýðing *endursníður* staðgengil — hvað birtist? | það sem þýðingaskráin bað um, eða frávik ef tegundarstafurinn passar ekki lengur við gildið | það sem þýðingaskráin bað um | ekki tjáanlegt í `$`-strengjum | frumtextaskilaboðin, með viðvörun |
+| Eru staðgenglar athugaðir við birtingu? | nei | nei | nei | já (sjá að neðan) |
+
+**Hvaða vald þýðingaskráin hefur.** Þýðing eru gögn utan úr geymslunni þinni og
+hver stíll réttir henni ólíkt mikið vald:
+
+| | `%(name)s` | `.format()` | `flufl.i18n` `$name` | `t"…"` |
+| --- | --- | --- | --- | --- |
+| Hvaðan koma gildin? | úr skýrri vörpun | úr skýrum viðföngum | úr staðværum og víðværum breytum kallandans, auk valfrjálsra `extras` | úr gildunum sem gripin eru inni í t-strengnum |
+| Getur þýðingaskráin breytt því hvernig gildi er sniðið? | já | já | nei | nei |
+| Getur þýðingaskráin seilst inn í hluti (aðgangur að eigindum)? | nei | já | já, með punktuðum nöfnum | nei |
+| Hvar býr „núverandi tungumál“? | þar sem forritið setur það | þar sem forritið setur það | stafli tungumálakóða á sameiginlega forritshlutnum | `ContextVar`, eftir verki eða beiðni |
+
+**Hvað samþætting kostar.** Allt hér að ofan er ókeypis ef tólakeðjan passar;
+hér er staðurinn þar sem hún gæti ekki gert það:
+
+| | `%(name)s` | `.format()` | `flufl.i18n` `$name` | `t"…"` |
+| --- | --- | --- | --- | --- |
+| Lágmarks-Python | hvað sem er | hvað sem er | 3.10 | **3.14** |
+| Þroski | staðalsafn | staðalsafn | stöðug útgáfa | **alfa** |
+| Notar venjulegar PO/MO-þýðingaskrár? | já | já | já | já |
+| Þarfnast sérsniðins útdráttarforrits fyrir frumkóða? | nei | nei | nei | já, eins og er |
+| Hvaða PO-flagg leiðir Babel út, svo að tól sem fyrir eru geti staðfest? | `python-format` | `python-brace-format` | ekkert | `python-brace-format` |
+
+Um athugunina við birtingu: skilaboð í eintölu eru athuguð með kröfu um
+nákvæma samsvörun staðgengla. Fleirtöluskilaboð eru einnig athuguð, gagnvart
+[sammengis-/sniðmengisreglunni](spec.md) sem leyfir fleirtölumyndum markmálsins
+að vera frábrugðnar myndum frumtextans; strangari athugunin fyrir hverja mynd
+keyrir þegar þýðingaskrár eru vistþýddar ([Útdráttur](extraction.md)).
+
+Línan um sniðflaggið snýst um staðgengilsmeðvitaða staðfestingu, ekki um
+samhæfni þýðingaskráa. `ekkert` merkir að stöðluð gettext-tól lesa og vistþýða
+skilaboðin eftir sem áður, en `msgfmt --check-format` hefur enga
+`$`-staðgengilsmálfræði til að beita.
+
+## Samhæfni og þroski { #compatibility-and-maturity }
+
+Fyrstu tvær línur síðustu töflunnar eru þær sem ráða upptöku, svo það er þess
+virði að segja þær berum orðum fremur en sem reiti.
+
+`%`-snið og `.format()` eru innbyggð í Python og þarfnast engrar viðbótar.
+[`flufl.i18n`][flufl-i18n] er þroskaður pakki, gefinn út og í rekstrarnotkun,
+sem keyrir á Python 3.10 og nýrri. `gettext-tstrings` er **alfa** og krefst
+**Python 3.14 eða nýrri**, því t-strengir eru ný málskipan í 3.14 — það er
+engin bakfærsla til og getur ekki verið. [Forskriftin](spec.md) er stöðugi
+hluti safnsins; Python-viðmótið gæti enn hreyfst fyrir 1.0.
+
+Það sem ekkert þeirra kostar er samhæfni þýðingaskráa. Allar fjórar framleiða
+venjulegar POT/PO/MO-skrár sem hver PO-ritill, þýðingavettvangur og
+GNU-gettext-tól les nú þegar, svo valið hér að neðan er afturkræft á hátt sem
+það væri ekki ef *sniði* þýðingaskránna væri breytt. [Yfirfærsla](migration.md)
+fjallar um að færa verkefni sem er þegar til.
+
+Kaflarnir hér að neðan sýna hverja málamiðlun í smáatriðum, eina aðferð í einu.
 
 ## %-snið { #-format }
 
@@ -50,10 +108,11 @@ Traceback (most recent call last):
 ValueError: incomplete format
 ```
 
-Breyting á einum staf í PO-ritli verður að rakningu í rekstri. GNU
-`msgfmt --check-format` grípur það vissulega, en aðeins fyrir skilaboð sem
-eru merkt `python-format`, og aðeins ef þýðingaskráin fer raunverulega gegnum
-msgfmt á leið sinni í forritið þitt.
+Breyting á einum staf í PO-ritli verður að fráviki á keyrslutíma nema
+staðfesting þýðingaskrárinnar grípi það fyrst. GNU `msgfmt --check-format`
+grípur þetta vissulega, en aðeins fyrir skilaboð sem eru merkt
+`python-format`, og aðeins ef þýðingaskráin fer raunverulega gegnum msgfmt á
+leið sinni í forritið þitt.
 
 ## str.format { #strformat }
 
@@ -119,8 +178,8 @@ staðgenglum á borð við `$settings.api_key`, og [þýðandinn][translator] le
 staðværu eða altæku breytu kallandans sem er og, með punktaðri ritmynd,
 ferðast um eigindi hennar. Það er þægilegt þegar skilaboð þurfa á eigindi að
 halda, en gerir um leið ramma kallandans að hluta af nafnrými útskiptinganna
-í þýðingaskránni. Samanburðurinn hér að neðan lýsir `flufl.i18n` 6.0.0, ekki
-hverri mögulegri notkun á `string.Template`.
+í þýðingaskránni. Samanburðurinn hér lýsir `flufl.i18n` 6.0.0, ekki hverri
+mögulegri notkun á `string.Template`.
 
 Það svarar líka spurningu sem hinir tveir sniðstílarnir skilja alfarið eftir
 hjá forritinu: *hvaða* tungumál er virkt, og hvernig því er skipt.
@@ -182,7 +241,7 @@ en það birtir hana, og það tekur við berum nöfnum og engu öðru. Gagnvart
 | `{nombre}` | translation does not match the source placeholders: `{name}` is missing; `{nombre}` is not in the source message |
 
 Hafnað þýðir ekki hrunið: sjálfgefið skráir safnið viðvörun og birtir
-frumtextann, svo að léleg þýðingaskrá fellir aldrei forritið —
+frumtextaskilaboðin, svo að léleg þýðingaskrá fellir aldrei forritið —
 [sami samningur og gettext sjálft heldur](guide.md#what-happens-when-a-catalog-is-wrong).
 
 Sniðið helst þar sem það var skrifað, í kóðanum:
@@ -193,53 +252,18 @@ tr(t"Total: {amount:,.2f}")  # msgid is "Total: {amount}"
 ```
 
 `:,.2f` kemst aldrei í þýðingaskrána, svo engin þýðing getur breytt því og
-enginn þýðandi þarf að líta á það.
+enginn þýðandi þarf að líta á það. Það er þó *fast* snið, ekki staðfært — að
+velja tölustafi og skiltákn eftir tungumáli er
+[verk Babel, á undan kallinu](guide.md#locale-aware-values).
 
 Enn einn munurinn er tólastuðningur: t-strengir eru ný málskipan, svo að
 draga þá út í `.pot` krefst sem stendur útdráttartóls sem kann á t-strengi,
 eins og þess sem þessi pakki [leggur til fyrir Babel](extraction.md).
 
-## Hlið við hlið { #side-by-side }
+## Kostnaður takmörkunarinnar { #the-cost-of-the-restriction }
 
-| | `%(name)s` | `.format()` | `flufl.i18n` `$name` | `t"…"` |
-| --- | --- | --- | --- | --- |
-| Hefur staðgengillinn nafn? | já | já | já | já |
-| Má þýðandi víxla staðgenglum til? | já | já | já | já |
-| Hvaðan koma gildin? | úr skýrri vörpun | úr skýrum viðföngum | úr staðværum og altækum breytum kallandans, auk valfrjálsra `extras` | úr gildunum sem gripin voru inni í t-strengnum |
-| Getur þýðingaskráin breytt því hvernig gildi er sniðið? | já | já | nei | nei |
-| Getur þýðingaskráin teygt sig inn í hluti (aðgangur að eigindum)? | nei | já | já, með punktuðum nöfnum | nei |
-| Þýðing *sleppir* staðgengli — hvað birtist? | gildið hverfur hljóðlaust | gildið hverfur hljóðlaust | gildið hverfur hljóðlaust | frumtextinn, með viðvörun ([sjálfgefið](guide.md#what-happens-when-a-catalog-is-wrong)) |
-| Þýðing *bætir við* óþekktum staðgengli — hvað birtist? | frávarp | frávarp | staðgengillinn stendur eftir sýnilegur sem texti | frumtextinn, með viðvörun ([sjálfgefið](guide.md#what-happens-when-a-catalog-is-wrong)) |
-| Eru staðgenglar athugaðir við birtingu? | nei | nei | nei | já (sjá hér að neðan) |
-| Hvaða PO-flagg leiðir Babel út, svo að tól sem fyrir eru geti staðfest? | `python-format` | `python-brace-format` | ekkert | `python-brace-format` |
-| Notar venjulegar PO/MO-þýðingaskrár? | já | já | já | já |
-| Þarf sérstakt útdráttartól fyrir frumkóðann? | nei | nei | nei | já, sem stendur |
-| Hvar býr „núverandi tungumál“? | þar sem forritið kýs að setja það | þar sem forritið kýs að setja það | stafli af tungumálakóðum á sameiginlega forritshlutnum | `ContextVar`, eitt fyrir hvert verk eða hverja beiðni |
-
-Um athugunina við birtingu: eintöluskilaboð eru athuguð með nákvæmri
-samsvörun staðgengla. Fleirtöluskilaboð eru líka athuguð, gagnvart
-[sammengis-/sniðmengisreglunni](spec.md) sem leyfir fleirtölumyndum
-markmálsins að vera aðrar en frummálsins; strangari athugunin á hverja mynd
-keyrir þegar þýðingaskrár eru vistþýddar ([Útdráttur](extraction.md)).
-
-Línan um sniðflaggið snýst um athugun sem kann á staðgengla, ekki um
-samhæfni þýðingaskráa. `ekkert` þýðir að stöðluð gettext-tól lesa og
-vistþýða skilaboðin eftir sem áður, en `msgfmt --check-format` hefur enga
-málfræði fyrir `$`-staðgengla til að beita.
-
-## Hvað það kostar { #what-it-costs }
-
-f-streng er alls ekki hægt að nota svona — um leið og nokkurt safn sér hann
-er hann þegar fullgerður strengur, svo að þýða hann þýðir að þýða brot.
-t-strengir ([PEP 750]) halda föstum textanum og gildunum aðskildum en halda
-um leið málskipan sem líkist f-strengjum og skýrri bindingu gilda.
-`$`-strengir bjóða þegar upp á hnitmiðaðan valkost með annars konar
-bindingu og annars konar líkani af bilunum. `flufl.i18n` er þroskaður pakki
-sem keyrir á Python 3.10 og síðar; `gettext-tstrings` er sem stendur
-alfa-útgáfa, og af því að t-strengir eru ný málskipan krefst hann Python
-3.14 eða nýrri.
-
-Hinn kostnaðurinn er takmörkunin sjálf: innskeyting verður að vera bert nafn.
+Fyrir utan Python-kröfuna er verðið fyrir allt þetta ein regla: innskeyting
+verður að vera bert nafn.
 
 ```python
 tr(t"Hello {user.name}")  # raises InvalidTemplateError at the call site
@@ -250,9 +274,16 @@ name = user.name  # compute it first
 tr(t"Hello {name}")
 ```
 
-Það er raunveruleg hömlun. Ásamt bindingu gilda á hlið frumtextans og
-athugun staðgengla á keyrslutíma kemur hún í veg fyrir að strengir í
-þýðingaskrá reikni út segðir, og heldur nöfnum staðgengla merkingarbærum.
+Það er raunveruleg hömlun, og hún er sama hömlunin og framkallar
+ábyrgðirnar hér að ofan. Ásamt bindingu gilda á hlið frumtextans og athugun
+staðgengla á keyrslutíma kemur hún í veg fyrir að strengir í þýðingaskrá
+reikni út segðir, og heldur nöfnum staðgengla merkingarbærum fyrir þann sem
+þýðir þau.
+
+F-streng er alls ekki hægt að nota svona — um leið og nokkurt safn sér hann er
+hann þegar fullgerður strengur, svo að þýða hann þýðir að þýða brot.
+T-strengir ([PEP 750]) halda föstum textanum og gildunum aðskildum en halda um
+leið málskipan sem líkist f-strengjum og skýrri bindingu gilda.
 
 Hvernig Python rataði á þessi vegamót — tveir PEP-ar með tíu ára millibili,
 og umræðan í staðalsafninu sem lokaðist án svars — er sagt með heimildum á

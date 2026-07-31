@@ -1,5 +1,5 @@
 ---
-description: "A futásidejű API: katalógus kötése, kérésenkénti nyelvek, késleltetett szövegek, és hogyan jelenti a könyvtár a hibás fordítást."
+description: "A futásidejű API: melyik belépési pontot használd, katalógus kötése, kérésenkénti nyelvek, késleltetett szövegek, honosított értékek, és hogyan jelenti a könyvtár a hibás fordítást."
 ---
 
 # Kézikönyv
@@ -11,6 +11,22 @@ ciklust — megjelölés, kinyerés, fordítás, bináris fordítás, futtatás 
 létrehozását és ellenőrzését a [Kinyerés](extraction.md) tárgyalja, azt pedig,
 hogyan tartja egy csapat mozgásban a ciklust — frissítési körök, CI, fordítási
 platformok —, az [Éles üzemben](workflow.md).
+
+## Melyik belépési pontot használjam? { #which-entry-point-should-i-use }
+
+A csomag több módot is exportál egy üzenet lefordítására, mert az alkalmazások
+többféleképpen kötnek nyelvet. Aszerint válassz, ahogy a programod eldönti,
+milyen nyelven van éppen:
+
+| A helyzeted | Ezt használd |
+| --- | --- |
+| Egy nyelv az egész folyamatra — CLI, asztali alkalmazás, szkript | `Translator`, `_` néven hívva |
+| Kérésenként vagy aszinkron feladatonként egy nyelv — webalkalmazás | `use_translations()` a munka köré, majd `tr()` |
+| Importáláskor definiált üzenet — űrlapfelirat, enum, konstans | `lazy_gettext()` vagy `lazy_pgettext()` |
+| A megfogalmazást egy darabszám dönti el | `ngettext()` / `npgettext()`, a fenti alakok bármelyikében |
+| Minta renderelése katalógus közreműködése nélkül | `compile_template()` |
+
+Minden, ami alább jön, ez az öt, ebben a sorrendben.
 
 ## Katalógus kötése { #binding-a-catalog }
 
@@ -61,6 +77,7 @@ from gettext_tstrings import tr, use_translations
 
 
 def handle(request):
+    name = request.user.display_name
     translations = load_translations(request.locale)
     with use_translations(translations):
         return render(tr(t"Hello {name}"))
@@ -167,12 +184,54 @@ másolatokat ad ki, amelyek osztoznak a beolvasott katalóguson.
 
     Az `asyncio.to_thread` ezt már megteszi helyetted.
 
+## Honosított értékek { #locale-aware-values }
+
+Ez a könyvtár azt dönti el, *hová* kerül egy érték a lefordított üzenetben.
+Magát az értéket nem honosítja. A `{amount:,.2f}` rögzített viselkedésű
+Python-formátumleíró — vessző minden harmadik számjegynél, pont a tizedesek
+előtt —, és ugyanazokat a karaktereket állítja elő, bármilyen nyelvű is az
+üzenet:
+
+```pycon
+>>> f"{1234.5:,.2f}"  # the same in every locale
+'1,234.50'
+```
+
+A német ezt a számot `1.234,50`, a francia `1 234,50` alakban írja, a hindi
+pedig az `1234567` értéket `12,34,567` alakban csoportosítja, nem
+`1,234,567` alakban. A számok, pénznemek, dátumok, időpontok és mértékegységek
+a [Babelhez][babel-numbers] tartoznak. Előbb formázd meg az értéket, aztán
+helyezd el a kész szöveget:
+
+```python
+from babel.numbers import format_currency
+
+total = format_currency(amount, "EUR", locale=locale)
+tr(t"Your order comes to {total}")
+```
+
+Számlált üzenetnél a szám két feladatot lát el — kiválasztja a
+többesszám-alakot, és meg is jelenik a szövegben —, és csak a második
+honosítandó. A kiválasztáshoz tartsd meg a nyers darabszámot, a
+megjelenítéshez pedig a megformázott szöveget add át:
+
+```python
+from babel.numbers import format_decimal
+
+shown = format_decimal(n, locale=locale)
+_.ngettext(t"One file", t"{shown} files", n)
+```
+
+A hívás előtti formázás egyben az is, ami a formátumleírót kívül tartja a
+katalóguson: amit a fordító lát, az kész szövegdarab, nem pedig egy szám plusz
+utasítások arra, hogyan kell renderelni.
+
 ## Mi történik, ha egy katalógus hibás { #what-happens-when-a-catalog-is-wrong }
 
 Ha egy fordítás helyőrzői nem egyeznek a forráséival — hiányzó, ismeretlen
 vagy átformázott mező, amely átcsúszott az ellenőrzésen kézzel szerkesztett
 MO-ból, vendorolt katalógusból vagy az ellenőrzőt kihagyó folyamatból —, az
-alapértelmezés a forrásszöveg reprodukálása kivétel helyett. Ez a gettext
+alapértelmezés a forrásüzenet renderelése kivétel helyett. Ez a gettext
 saját szerződését tükrözi: rossz katalógus soha nem töri el az alkalmazást.
 
 Ha a `Hello {name}` fordítása `こんにちは {nombre}`, a renderelés sikerül, és
@@ -211,45 +270,14 @@ gettext_tstrings.errors.InvalidTranslationError: translation does not match the
 source placeholders: {name} is missing; {nombre} is not in the source message
 ```
 
-## Hibaüzenet olvasása { #reading-a-failure-message }
-
 Ezek az üzenetek annak szólnak, aki tehet ellenük, ami katalógusprobléma
-esetén gyakrabban fordító, mint programozó. Zsákutca csupán annyit jelenteni,
-hogy a `{name}` hiányzik, amikor az olvasó pontosan ezeket a karaktereket
-látja maga előtt, ezért ott, ahol egy helyőrző jelen lévőnek *látszik*, de
-mégsem az, az üzenet megmondja, miért. A `Hello {name}` forrás ellenében az
-alábbiak mindegyike a `translation does not match the source placeholders:`
-alatt jelenik meg:
-
-| Ezt mondja a fordítás | Ezt az okot adja |
-| --- | --- |
-| `こんにちは ｛name｝` | `{name}` is missing (a körülötte lévő kapcsos zárójelek nem az ASCII `{` és `}`) |
-| `こんにちは {{name}}` | `{name}` is missing (`{{name}}` alakban van írva, így kell escape-elni egy literális kapcsos zárójelet) |
-| `こんにちは name` | `{name}` is missing (a név megjelenik, de nem kapcsos zárójelek között) |
-| `こんにちは {名前}` | `{name}` is missing; `{名前}` is not in the source message |
-
-A nem látható karakterek külön bánásmódot kapnak. A kapcsos zárójeleken belüli
-nem törhető szóköz olyasmi, amit egy beviteli módszer állít elő, és amit
-egyetlen szerkesztő sem mutat meg, ezért az üzenet kódponttal írja ki ahelyett,
-hogy olyan karaktert nevezne meg, amelyet az olvasó nem talál:
-
-```text
-placeholder {<U+00A0>name} has a space inside the braces; write {name}
-```
-
-Az olyan nevet, amelynek betűi írásrendszereket kevernek — a homoglifa-eset,
-amikor a cirill `а` megkülönböztethetetlen a latintól —, kétszer mutatjuk meg:
-egyszer olvashatóan, egyszer escape-elve, mert csak ez az alak árulja el a
-kettő közti különbséget:
-
-```text
-translation does not match the source placeholders: {name} is missing;
-{nаme} (n\u0430me) is not in the source message
-```
-
-Ugyanez az egyértelműsítés érvényes akkor is, amikor egy teljes egészében
-egyetlen írásrendszerrel írt görög vagy cirill név ütközik egy ASCII
-forrásnévvel, beleértve az egybetűs latin `a` és cirill `а` esetét.
+esetén gyakrabban fordító, mint programozó — ezért ott, ahol egy helyőrző
+jelen lévőnek *látszik*, de mégsem az, az üzenet megmagyarázza, miért, ahelyett
+hogy megismételné, hogy hiányzik. Teljes szélességű kapcsos zárójelek,
+megkettőzött `{{name}}`, láthatatlan nem törhető szóköz, cirill betű a latinok
+között: mindegyiknek saját megfogalmazása van, példákkal együtt felsorolva a
+[Fordítóknak](translators.md#reading-a-failure-message) oldalon. Azt az oldalt
+úgy írtuk, hogy oda lehessen adni annak, aki a `.po` fájlt szerkeszti.
 
 ## Minta renderelése katalógus nélkül { #rendering-a-pattern-without-a-catalog }
 
@@ -307,3 +335,5 @@ a célja szerint (HTML, shell, terminál), valamint a **katalógus
 sértetlensége**, hiszen egy ellenséges katalógus megismételhet egy helyőrzőt a
 kimenet méretének felnagyítására, ami minden helyőrző-alapú i18n
 sajátossága.
+
+  [babel-numbers]: https://babel.pocoo.org/en/latest/api/numbers.html

@@ -212,9 +212,10 @@ deshalb drei Regeln:
 Nach demselben Prinzip bekommt ein „fehlender“ Platzhalter, der vorhanden
 *aussieht*, sein Fehlen erklärt — vollbreite Klammern aus einer
 ostasiatischen Eingabemethode, ein durch eine Maskierungs-Rundreise
-verdoppeltes `{{name}}`, der Name außerhalb jeder Klammer. Die
-[Fehlertabelle der Anleitung](guide.md#reading-a-failure-message) zeigt jede
-dieser Meldungen im Wortlaut.
+verdoppeltes `{{name}}`, der Name außerhalb jeder Klammer. Die für
+Übersetzende geschriebene
+[Fehlertabelle](translators.md#reading-a-failure-message) zeigt jede dieser
+Meldungen im Wortlaut.
 
 ## Der Hot Path { #the-hot-path }
 

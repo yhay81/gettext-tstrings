@@ -1,5 +1,5 @@
 ---
-description: "カタログの束縛、リクエストごとの言語、遅延文字列、不正な翻訳の報告方法を含むランタイムAPIのガイドです。"
+description: "ランタイムAPIのガイドです。どの入り口を使うか、カタログの束縛、リクエストごとの言語、遅延文字列、ロケールに応じた値、不正な翻訳の報告方法を説明します。"
 ---
 
 # ガイド
@@ -10,6 +10,22 @@ description: "カタログの束縛、リクエストごとの言語、遅延文
 [チュートリアル](tutorial.md)が5分で一巡します。カタログの作成と検証は
 [抽出](extraction.md)で、チームがこのループを回し続ける方法 — 更新サイクル、
 CI、翻訳プラットフォーム — は[実運用](workflow.md)で説明します。
+
+## どの入り口を使うか { #which-entry-point-should-i-use }
+
+メッセージを翻訳する手段をこのパッケージがいくつも公開しているのは、
+アプリケーションが言語を束縛する方法がいくつもあるからです。プログラムが
+「いまどの言語なのか」をどう決めているかで選んでください。
+
+| あなたの状況 | 使うもの |
+| --- | --- |
+| プロセス全体で1つの言語 — CLI、デスクトップアプリ、スクリプト | `Translator`を`_`として呼び出す |
+| リクエストごと、または非同期タスクごとに1つの言語 — Webアプリケーション | 処理を`use_translations()`で囲み、`tr()`を呼ぶ |
+| import時に定義されるメッセージ — フォームラベル、enum、定数 | `lazy_gettext()`または`lazy_pgettext()` |
+| 個数が文言を決める | 上記のいずれの形でも`ngettext()` / `npgettext()` |
+| カタログを介さずpatternをレンダリングする | `compile_template()` |
+
+以下では、この5つをこの順で説明します。
 
 ## カタログを束縛する { #binding-a-catalog }
 
@@ -59,6 +75,7 @@ from gettext_tstrings import tr, use_translations
 
 
 def handle(request):
+    name = request.user.display_name
     translations = load_translations(request.locale)
     with use_translations(translations):
         return render(tr(t"Hello {name}"))
@@ -159,13 +176,52 @@ for user in users:
 
     `asyncio.to_thread`はこれをすでに行っています。
 
+## ロケールに応じた値 { #locale-aware-values }
+
+このライブラリが決めるのは、翻訳済みメッセージの*どこに*値が現れるかです。
+値そのものをローカライズはしません。`{amount:,.2f}`は挙動が固定された
+Pythonのフォーマット指定 — 3桁ごとにカンマ、小数部の前にピリオド — であり、
+メッセージが何語であっても同じ文字を生成します。
+
+```pycon
+>>> f"{1234.5:,.2f}"  # the same in every locale
+'1,234.50'
+```
+
+ドイツ語ではこの数を`1.234,50`と書き、フランス語では`1 234,50`と書きます。
+ヒンディー語は`1234567`を`1,234,567`ではなく`12,34,567`と区切ります。数値、
+通貨、日付、時刻、単位は[Babel][babel-numbers]の担当です。先に値を整形し、
+出来上がった文字列を配置してください。
+
+```python
+from babel.numbers import format_currency
+
+total = format_currency(amount, "EUR", locale=locale)
+tr(t"Your order comes to {total}")
+```
+
+個数付きメッセージでは、数が2つの仕事をします。複数形を選ぶことと、テキストに
+現れることです。ローカライズされるのは後者だけです。選択には生の個数を残し、
+表示には整形済みの文字列を渡してください。
+
+```python
+from babel.numbers import format_decimal
+
+shown = format_decimal(n, locale=locale)
+_.ngettext(t"One file", t"{shown} files", n)
+```
+
+呼び出しの前に整形することは、フォーマット指定をカタログの外に保つことでも
+あります。翻訳者が目にするのは、数値とその描画方法の指示ではなく、完成した
+1つのテキストです。
+
 ## カタログが不正な場合 { #what-happens-when-a-catalog-is-wrong }
 
 翻訳のプレースホルダーがソースと一致しない場合を考えます。欠落したfield、未知の
 field、書式を変えたfieldが検証をすり抜け、手編集のMO、vendorのカタログ、
-checkerを省略したpipelineから届くかもしれません。既定動作は例外ではなくソース
-テキストの再現です。不正なカタログでアプリケーションを停止させないというgettext
-自身の契約に合わせています。
+checkerを省略したpipelineから届くかもしれません。既定動作は、例外の送出ではなく
+ソースメッセージのレンダリングです。不正なカタログでアプリケーションを停止させ
+ないというgettext自身の契約に合わせています。
 
 `Hello {name}` が `こんにちは {nombre}` と翻訳されていてもレンダリングは成功し、
 `gettext_tstrings` loggerへ警告が1件送られます。
@@ -202,41 +258,13 @@ gettext_tstrings.errors.InvalidTranslationError: translation does not match the
 source placeholders: {name} is missing; {nombre} is not in the source message
 ```
 
-## エラーメッセージを読む { #reading-a-failure-message }
-
 これらのメッセージは、問題を修正できる人のために書かれています。カタログの問題を
-直すのはprogrammerより翻訳者である場合が多いためです。画面上では文字が見えている
-のに`{name}`がないとだけ報告しても手掛かりになりません。そのため、
-プレースホルダーが存在するように見えて実際には存在しない場合、理由まで示します。
-ソース`Hello {name}`に対して、次の各翻訳は
-`translation does not match the source placeholders:`に続けて報告されます。
-
-| 翻訳の内容 | 報告される理由 |
-| --- | --- |
-| `こんにちは ｛name｝` | `{name}` is missing (the braces around it are not the ASCII `{` and `}`) |
-| `こんにちは {{name}}` | `{name}` is missing (it is written `{{name}}`, which is how a literal brace is escaped) |
-| `こんにちは name` | `{name}` is missing (the name appears, but not inside braces) |
-| `こんにちは {名前}` | `{name}` is missing; `{名前}` is not in the source message |
-
-目に見えない文字は別に扱います。波括弧内のno-break spaceは入力メソッドが生成する
-ことがあり、editorでは見えません。そのため、見つけられない文字の名前ではなく
-code pointで表示します。
-
-```text
-placeholder {<U+00A0>name} has a space inside the braces; write {name}
-```
-
-文字体系が混在した名前、たとえばLatin文字と見分けがつかないCyrillicの`а`を含む
-homoglyphの場合、読みやすい形とescapeした形の両方を示します。両者を区別できるのは
-後者だけです。
-
-```text
-translation does not match the source placeholders: {name} is missing;
-{nаme} (n\u0430me) is not in the source message
-```
-
-同じ区別は、GreekまたはCyrillicだけで書かれた名前がASCIIのソース名と衝突する
-場合にも適用されます。Latinの`a`とCyrillicの`а`という1文字の場合も同様です。
+直すのはprogrammerより翻訳者である場合が多いためです。そこで、プレースホルダーが
+存在するように見えて実際には存在しない場合は、欠落していると繰り返す代わりに、
+その理由を説明します。全角の波括弧、二重になった`{{name}}`、目に見えない
+no-break space、Latin文字に紛れたCyrillic文字 — それぞれに固有の文面があり、
+[翻訳者向け](translators.md#reading-a-failure-message)に例とともに一覧して
+あります。あのページは`.po`を編集する人へそのまま渡せるように書かれています。
 
 ## カタログなしでpatternをレンダリングする { #rendering-a-pattern-without-a-catalog }
 
@@ -289,3 +317,5 @@ tr(t"Hello {name}")
 レンダリング結果の**escape**と、**カタログの完全性**です。悪意あるカタログは
 プレースホルダーを繰り返して出力サイズを増幅できます。これはプレースホルダーを使う
 すべてのi18nに共通する性質です。
+
+  [babel-numbers]: https://babel.pocoo.org/en/latest/api/numbers.html

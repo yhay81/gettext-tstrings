@@ -95,3 +95,27 @@ msgstr[2] "تم عرض صفحتين ({n}) في {seconds}ث"
 msgstr[3] "تم عرض {n} صفحات في {seconds}ث"
 msgstr[4] "تم عرض {n} صفحة في {seconds}ث"
 msgstr[5] "تم عرض {n} صفحة في {seconds}ث"
+
+#. gettext-tstrings
+msgid "Start here"
+msgstr "ابدأ من هنا"
+
+#. gettext-tstrings
+msgid "Use it"
+msgstr "استخدمها"
+
+#. gettext-tstrings
+msgid "Migration"
+msgstr "الترحيل"
+
+#. gettext-tstrings
+msgid "For translators"
+msgstr "للمترجمين"
+
+#. gettext-tstrings
+msgid "Understand it"
+msgstr "افهمها"
+
+#. gettext-tstrings
+msgid "Reference"
+msgstr "المرجع"

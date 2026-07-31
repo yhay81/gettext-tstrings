@@ -1,5 +1,5 @@
 ---
-description: "रनटाइम API: कैटलॉग को बाँधना, प्रति-request भाषाएँ, deferred strings, और टूटे हुए अनुवाद की रिपोर्ट कैसे होती है।"
+description: "रनटाइम API: कौन-सा प्रवेश बिंदु चुनें, कैटलॉग को बाँधना, प्रति-request भाषाएँ, deferred strings, locale-सचेत values, और टूटे हुए अनुवाद की रिपोर्ट कैसे होती है।"
 ---
 
 # गाइड
@@ -10,6 +10,22 @@ description: "रनटाइम API: कैटलॉग को बाँधन�
 मिनट में एक बार तय कराता है; कैटलॉग बनाना और सत्यापित करना
 [एक्सट्रैक्शन](extraction.md) में है, और टीम उस लूप को कैसे चलाती रहती है —
 अपडेट चक्र, CI, अनुवाद प्लेटफ़ॉर्म — यह [प्रोडक्शन में](workflow.md) है।
+
+## मुझे कौन-सा प्रवेश बिंदु चुनना चाहिए? { #which-entry-point-should-i-use }
+
+पैकेज किसी संदेश का अनुवाद करने के कई रास्ते एक्सपोर्ट करता है, क्योंकि
+एप्लिकेशन भाषा को कई अलग-अलग तरीक़ों से बाँधते हैं। चुनाव इस आधार पर करें कि
+आपका प्रोग्राम यह कैसे तय करता है कि वह किस भाषा में है:
+
+| आपकी स्थिति | उपयोग करें |
+| --- | --- |
+| पूरी प्रक्रिया के लिए एक ही भाषा — कोई CLI, डेस्कटॉप ऐप, या स्क्रिप्ट | `Translator`, जिसे `_` कहकर बुलाया जाए |
+| प्रति request या प्रति async task एक भाषा — कोई वेब एप्लिकेशन | काम के चारों ओर `use_translations()`, फिर `tr()` |
+| import के समय परिभाषित संदेश — कोई फ़ॉर्म लेबल, enum, या स्थिरांक | `lazy_gettext()` या `lazy_pgettext()` |
+| कोई गिनती शब्द-रूप तय करती है | `ngettext()` / `npgettext()`, ऊपर के जिस भी रूप में |
+| बिना किसी कैटलॉग के कोई pattern रेंडर करना | `compile_template()` |
+
+नीचे का सब कुछ यही पाँच हैं, इसी क्रम में।
 
 ## कैटलॉग को बाँधना { #binding-a-catalog }
 
@@ -60,6 +76,7 @@ from gettext_tstrings import tr, use_translations
 
 
 def handle(request):
+    name = request.user.display_name
     translations = load_translations(request.locale)
     with use_translations(translations):
         return render(tr(t"Hello {name}"))
@@ -165,14 +182,53 @@ binding एक `ContextVar` है, किसी साझा ऑब्जेक
 
     `asyncio.to_thread` यह आपके लिए पहले से कर देता है।
 
+## locale-सचेत values { #locale-aware-values }
+
+यह लाइब्रेरी यह तय करती है कि कोई value अनूदित संदेश में *कहाँ* आएगी। वह
+value को स्वयं स्थानीयकृत नहीं करती। `{amount:,.2f}` एक Python फ़ॉर्मैट स्पेक
+है जिसका व्यवहार निश्चित है — हर तीन अंकों पर एक अल्पविराम और दशमलव से पहले
+एक बिंदु — और वह वही अक्षर बनाता है, संदेश चाहे किसी भी भाषा में हो:
+
+```pycon
+>>> f"{1234.5:,.2f}"  # the same in every locale
+'1,234.50'
+```
+
+जर्मन उसी संख्या को `1.234,50` लिखता है, फ़्रेंच `1 234,50`, और हिंदी
+`1234567` को `1,234,567` की बजाय `12,34,567` के रूप में समूहित करती है।
+संख्याएँ, मुद्राएँ, तिथियाँ, समय और इकाइयाँ [Babel][babel-numbers] का विषय
+हैं। value को पहले फ़ॉर्मैट करें, फिर तैयार स्ट्रिंग को जगह पर रखें:
+
+```python
+from babel.numbers import format_currency
+
+total = format_currency(amount, "EUR", locale=locale)
+tr(t"Your order comes to {total}")
+```
+
+गिनती वाले संदेश में संख्या दो काम करती है — वह बहुवचन रूप चुनती है और वह
+टेक्स्ट में दिखती भी है — और इनमें से केवल दूसरा ही स्थानीयकृत होता है। चुनाव
+के लिए कच्ची गिनती रखें और दिखाने के लिए फ़ॉर्मैट की हुई स्ट्रिंग भेजें:
+
+```python
+from babel.numbers import format_decimal
+
+shown = format_decimal(n, locale=locale)
+_.ngettext(t"One file", t"{shown} files", n)
+```
+
+कॉल से पहले फ़ॉर्मैट करना ही वह चीज़ है जो फ़ॉर्मैट स्पेक को कैटलॉग से बाहर
+रखती है: अनुवादक को एक तैयार टेक्स्ट दिखता है, कोई संख्या और उसे रेंडर करने के
+निर्देश नहीं।
+
 ## कैटलॉग ग़लत होने पर क्या होता है { #what-happens-when-a-catalog-is-wrong }
 
 यदि अनुवाद के placeholders स्रोत से मेल नहीं खाते — कोई ग़ायब, अज्ञात, या
 पुन:-फ़ॉर्मैट किया हुआ फ़ील्ड जो सत्यापन से बच निकला, हाथ से संपादित MO से,
 किसी vendor कैटलॉग से, या checker छोड़ देने वाली किसी pipeline से — तो
-डिफ़ॉल्ट व्यवहार exception उठाने की बजाय स्रोत टेक्स्ट को पुन: प्रस्तुत करना
-है। यह gettext के अपने अनुबंध का प्रतिबिंब है कि ख़राब कैटलॉग एप्लिकेशन को
-कभी नहीं तोड़ता।
+डिफ़ॉल्ट व्यवहार exception उठाने की बजाय स्रोत संदेश रेंडर करना है। यह
+gettext के अपने अनुबंध का प्रतिबिंब है कि ख़राब कैटलॉग एप्लिकेशन को कभी नहीं
+तोड़ता।
 
 `Hello {name}` का अनुवाद `こんにちは {nombre}` होने पर रेंडर सफल होता है और
 एक चेतावनी `gettext_tstrings` logger में जाती है:
@@ -209,44 +265,13 @@ gettext_tstrings.errors.InvalidTranslationError: translation does not match the
 source placeholders: {name} is missing; {nombre} is not in the source message
 ```
 
-## विफलता का संदेश पढ़ना { #reading-a-failure-message }
-
 ये संदेश उसके लिए लिखे गए हैं जो उन पर कार्रवाई कर सके — और कैटलॉग की समस्या
-के लिए वह प्रोग्रामर से अधिक बार अनुवादक होता है। केवल यह बताना कि `{name}`
-ग़ायब है, तब बंद गली है जब पढ़ने वाला वे अक्षर अपनी आँखों के सामने देख सकता
-है; इसलिए जहाँ placeholder मौजूद दिखता है पर है नहीं, वहाँ संदेश कारण बताता
-है। स्रोत `Hello {name}` के विरुद्ध, इनमें से हर एक
-`translation does not match the source placeholders:` के अंतर्गत रिपोर्ट
-होता है
-
-| अनुवाद कहता है | दिया गया कारण |
-| --- | --- |
-| `こんにちは ｛name｝` | `{name}` is missing (the braces around it are not the ASCII `{` and `}`) |
-| `こんにちは {{name}}` | `{name}` is missing (it is written `{{name}}`, which is how a literal brace is escaped) |
-| `こんにちは name` | `{name}` is missing (the name appears, but not inside braces) |
-| `こんにちは {名前}` | `{name}` is missing; `{名前}` is not in the source message |
-
-जो अक्षर दिखते ही नहीं, उन्हें अलग बर्ताव मिलता है। braces के भीतर no-break
-space कुछ ऐसा है जो input method पैदा करता है और कोई एडिटर नहीं दिखाता,
-इसलिए संदेश ऐसे अक्षर का नाम लेने की बजाय — जिसे पाठक ढूँढ ही नहीं सकता —
-उसे code point से छाप देता है:
-
-```text
-placeholder {<U+00A0>name} has a space inside the braces; write {name}
-```
-
-वह नाम जिसके अक्षर लिपियाँ मिलाते हैं — homoglyph का मामला, जहाँ सिरिलिक
-`а` लातिन से अभेद्य है — दो बार दिखाया जाता है, एक बार पठनीय रूप में और एक
-बार escaped, जो दोनों को अलग बताने वाला इकलौता रूप है:
-
-```text
-translation does not match the source placeholders: {name} is missing;
-{nаme} (n\u0430me) is not in the source message
-```
-
-यही असंदिग्धीकरण तब भी लागू होता है जब पूरी तरह एक ही लिपि में लिखा कोई
-ग्रीक या सिरिलिक नाम किसी ASCII स्रोत नाम से टकराता है, जिसमें एक-अक्षर
-वाला लातिन `a` / सिरिलिक `а` मामला भी शामिल है।
+के लिए वह प्रोग्रामर से अधिक बार अनुवादक होता है; इसलिए जहाँ placeholder मौजूद
+दिखता है पर है नहीं, वहाँ संदेश "ग़ायब है" दोहराने की बजाय कारण समझाता है।
+पूरी-चौड़ाई वाले braces, दोहरा `{{name}}`, कोई अदृश्य no-break space, लातिन
+अक्षरों के बीच कोई सिरिलिक अक्षर: हर एक की अपनी शब्दावली है, और उदाहरणों सहित
+सूची [अनुवादकों के लिए](translators.md#reading-a-failure-message) पर है। वह
+पेज इसी तरह लिखा गया है कि `.po` संपादित करने वाले व्यक्ति को थमाया जा सके।
 
 ## बिना कैटलॉग के pattern रेंडर करना { #rendering-a-pattern-without-a-catalog }
 
@@ -302,3 +327,5 @@ tr(t"Hello {name}")
 **escaping**, और **कैटलॉग की अखंडता**, क्योंकि एक शत्रुतापूर्ण कैटलॉग
 placeholder दोहराकर आउटपुट का आकार बढ़ा सकता है, जो किसी भी placeholder-आधारित
 i18n में अंतर्निहित है।
+
+  [babel-numbers]: https://babel.pocoo.org/en/latest/api/numbers.html

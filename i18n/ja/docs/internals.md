@@ -194,7 +194,8 @@ conversion), format_spec)`。その際、2つの保証が守られます。
 同じ原理で、存在する*ように見える*「欠落した」プレースホルダーは、その不在の
 理由まで説明されます。East Asianの入力メソッドによる全角の波括弧、エスケープ
 の往復で生じた`{{name}}`の二重化、波括弧の外にある名前。
-[ガイドの失敗一覧表](guide.md#reading-a-failure-message)が、これらの
+翻訳者向けに書かれた
+[失敗メッセージの一覧表](translators.md#reading-a-failure-message)が、これらの
 メッセージをそのまま示しています。
 
 ## ホットパス { #the-hot-path }

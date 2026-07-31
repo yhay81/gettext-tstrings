@@ -12,6 +12,19 @@ hành cùng mỗi bản release. Trang này chính là phần thực hành đó 
 lại trong kho mã, thứ gì di chuyển, CI phải chặn những gì, và runtime gắn
 ngôn ngữ ở đâu.
 
+Cộng lại thì tất cả quy về sáu phép kiểm tra, nên xin nêu chúng ngay từ đầu;
+mỗi mục bên dưới dựng nên một phép trong số đó.
+
+- `pybabel update --check` chạy qua — không thông điệp nào đổi mà các catalog
+  không hay biết.
+- `pybabel compile` chặn bản build dựa trên mã thoát của nó.
+- Những mục `fuzzy` còn sót lại là có chủ đích — mỗi mục như vậy kết xuất ra
+  văn bản nguồn cho tới khi một người dịch xác nhận.
+- Bộ kiểm thử kết xuất mỗi ngôn ngữ được phát hành đúng một lần với
+  `strict=True`.
+- Sản phẩm dành cho production chứa các tệp `.mo` và không chứa Babel.
+- Logger `gettext_tstrings` được dẫn tới hệ thống giám sát.
+
 ## Hình hài của một dự án { #the-shape-of-a-project }
 
 ```text
@@ -33,8 +46,8 @@ trong CI hoặc lúc đóng gói thay vì commit, để một tệp `.po` và t�
 nó không bao giờ có thể bất đồng về thứ được xuất xưởng.
 
 Có một tệp giữ vai trò theo mỗi chiều: `.pot` đưa thông điệp của bạn *ra*
-tới người dịch, các tệp `.po` mang bản dịch *về*. Mọi thứ bên dưới là luồng
-giao thông giữa hai đầu đó.
+tới người dịch, các tệp `.po` mang bản dịch *về*. Phần còn lại của trang này
+là những gì di chuyển giữa hai đầu đó.
 
 ```mermaid
 flowchart LR
@@ -48,11 +61,11 @@ flowchart LR
 
 ## Chu trình sau bản dịch đầu tiên { #the-cycle-after-the-first-translation }
 
-Lệnh `pybabel init` trong Hướng dẫn nhập môn chỉ chạy một lần duy nhất cho
-mỗi ngôn ngữ. Từ đó trở đi, chu trình làm việc là **trích xuất → cập nhật →
-dịch → biên dịch**, và tâm điểm của nó là `pybabel update`, lệnh gộp template
-mới vào các catalog hiện có mà không vứt bỏ những bản dịch đã nằm sẵn trong
-đó.
+Lệnh `pybabel init` trong Hướng dẫn nhập môn thường chỉ chạy một lần, khi một
+ngôn ngữ được thêm vào. Từ đó trở đi, chu trình làm việc là **trích xuất →
+cập nhật → dịch → biên dịch**, và tâm điểm của nó là `pybabel update`, lệnh gộp
+template mới vào các catalog hiện có mà không vứt bỏ những bản dịch đã nằm sẵn
+trong đó.
 
 Giả sử lời chào `Hello {name}` — đã được dịch thành `こんにちは {name}` —
 được viết lại trong mã thành `Welcome back, {name}`. Trích xuất và cập nhật:
@@ -77,9 +90,10 @@ msgstr "こんにちは {name}"
 
 Babel nhận thấy msgid mới giống một msgid vừa bị gỡ bỏ và ghép nó với bản
 dịch cũ — nhưng đánh dấu cặp đó là **fuzzy**: một phỏng đoán của máy đang
-chờ con người xác nhận. Cờ này có răng thật. `pybabel compile` **loại các
-mục fuzzy khỏi tệp `.mo`**, nên cho đến khi người dịch xác nhận cặp đó, ứng
-dụng kết xuất văn bản tiếng Anh mới thay vì một câu tiếng Nhật đã lỗi thời:
+chờ con người xác nhận. Cờ này thay đổi thứ được biên dịch ra. `pybabel
+compile` **loại các mục fuzzy khỏi tệp `.mo`**, nên cho đến khi người dịch xác
+nhận cặp đó, ứng dụng kết xuất văn bản tiếng Anh mới thay vì một câu tiếng Nhật
+đã lỗi thời:
 
 ```console
 $ pybabel compile -d locales
@@ -127,32 +141,17 @@ compile` chạy các phép kiểm placeholder của cả Babel lẫn
 [checker đã đăng ký](extraction.md#your-existing-toolchain-validates-these-catalogs)
 của gói này.
 
-!!! bug "`--check` không thể chặn một catalog có dùng context"
+!!! bug "Babel 2.18.0: `--check` không thể chặn một catalog có dùng context"
 
     Trên Babel 2.18.0, `pybabel update --check` báo **mọi** catalog có chứa
-    `msgctxt` là đã lỗi thời, ở mọi lần chạy, dù nó có mới đến đâu. Phép so
-    sánh chạy qua `Catalog.is_identical`, vốn tra từng thông điệp theo đúng
-    khóa mà thông điệp đó được lưu — và với một thông điệp có context, khóa
-    ấy là cặp `(id, context)`, thứ mà `Catalog.get` không chấp nhận. Phép
-    tra trả về rỗng, và các catalog không bao giờ so ra bằng nhau:
-
-    ```pycon
-    >>> from babel.messages.catalog import Catalog
-    >>> c = Catalog(locale="ja")
-    >>> c.add("Guide", "ガイド", context="navigation")
-    <Message 'Guide' (flags: [])>
-    >>> c.is_identical(c)
-    False
-    ```
-
-    Vậy nên nếu bạn có dùng `pgettext` hay `npgettext` — mà khử nhập nhằng
-    cho một từ đồng âm chính là lý do chúng tồn tại — thì bước này để lọt
-    theo cách tệ nhất: lúc nào cũng đỏ, nên cả nhóm tắt nó đi, nên chẳng còn
-    gì chặn sự lỗi thời nữa. Cho tới khi nó được sửa ở thượng nguồn, hãy tự
-    mình so sánh các tập thông điệp. Đọc template và từng catalog bằng
+    `msgctxt` là đã lỗi thời, ở mọi lần chạy, dù nó có mới đến đâu. Một cổng
+    chặn lúc nào cũng đỏ còn tệ hơn là không có cổng nào, bởi cả nhóm sẽ tắt
+    nó đi — nên nếu bạn có dùng `pgettext` hay `npgettext`, hãy thay bước này
+    bằng thứ khác thay vì sống chung với nó. Đọc template và từng catalog bằng
     `babel.messages.pofile.read_po` rồi so sánh
     `{(m.context, m.id) for m in catalog if m.id}` là toàn bộ phép kiểm ấy,
-    và đó chính là điều [build của chính trang này](index.md) làm.
+    và đó chính là điều [build của chính trang này](index.md) làm. Nguyên nhân
+    được [viết lại ở trang Cạm bẫy](pitfalls.md#your-tools-have-bugs-too).
 
 !!! danger "Hãy kiểm tra mã thoát, đừng chỉ nhìn log"
 

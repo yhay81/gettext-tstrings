@@ -68,6 +68,10 @@ Interpolacije so opisane strukturno, nikoli kot Pythonova izvorna koda:
 }
 ```
 
+Polje `"spec"` **ni** verzija specifikacije — vsak primer v `v1.json` sodi k
+specifikaciji v1. Poimenuje razdelek datoteke `SPEC.md`, ki ga primer preverja,
+zato se `"2.2"` bere kot §2.2, pravilo za izpeljavo žetona ograde.
+
 Referenčna izvedba poganja to zbirko kot del svoje testne zbirke, tako da se
 besedilo in koda ne moreta tiho razhajati.
 

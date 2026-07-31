@@ -43,10 +43,14 @@ L'estrattore `gettext_tstrings` gestisce anche le normali chiamate `_()`,
 mista. Riconosce `_()`, i quattro nomi gettext standard, gli alias `tr()` /
 `ntr()` e le funzioni differite `lazy_gettext()` / `lazy_pgettext()`.
 
-!!! warning "`-c` non è facoltativo"
+!!! warning "Abilita i commenti per i traduttori con `-c`"
 
     `pybabel extract` raccoglie i commenti per i traduttori solo quando passi
     `-c "Translators:"`, esattamente come per le normali chiamate gettext.
+    Ometterlo non impedisce l'estrazione — semplicemente i commenti non
+    arrivano mai nel catalogo, dove sono
+    [la leva di qualità più economica](workflow.md#working-with-translators-and-platforms)
+    di tutto il flusso di lavoro.
 
 ## Registrare i tuoi nomi di funzione { #registering-your-own-function-names }
 
@@ -88,9 +92,9 @@ Le opzioni sono `tr_functions`, `ntr_functions`, `gettext_functions`,
     contesto poi messaggio per `pgettext`, contesto poi singolare poi plurale
     per `npgettext`.
 
-## Robusto per impostazione predefinita { #robust-by-default }
+## Permissivo in locale, severo in CI { #lenient-locally-strict-in-ci }
 
-Un file danneggiato non interrompe l'esecuzione:
+Per impostazione predefinita un file danneggiato non interrompe l'esecuzione:
 
 - Una t-string che l'estrattore rifiuta — accesso a un attributo,
   un'espressione, un argomento sbagliato — viene segnalata come avviso e
@@ -99,8 +103,31 @@ Un file danneggiato non interrompe l'esecuzione:
 - Lo stesso vale per un file che solo `tokenize` rifiuta mentre `ast` lo
   accetta, sul quale il passaggio di Babel stesso altrimenti abortirebbe.
 
-Imposta `strict = true` nelle opzioni della mappatura per trasformare ognuno
-di quei casi in un fallimento duro, che è ciò che vuoi in CI.
+Il che è comodo mentre stai lavorando al codice e pericoloso quando non lo
+stai facendo: un messaggio saltato è semplicemente **assente dal POT**, quindi
+non viene mai tradotto e nessuno lo dice. Imposta `strict = true` nelle opzioni
+della mappatura ovunque l'estrazione non sia sorvegliata da una persona:
+
+=== "babel.cfg"
+
+    ```ini
+    [gettext_tstrings: **.py]
+    encoding = utf-8
+    strict = true
+    ```
+
+=== "babel.toml"
+
+    ```toml
+    [[mappings]]
+    method = "gettext_tstrings"
+    pattern = "**.py"
+    strict = true
+    ```
+
+Ognuno degli avvisi qui sopra diventa allora un fallimento duro. Considera
+questa l'impostazione di produzione e quella predefinita come l'impostazione
+locale.
 
 ## La tua toolchain esistente valida questi cataloghi { #your-existing-toolchain-validates-these-catalogs }
 
@@ -128,8 +155,9 @@ msgfmt: found 1 fatal error
 
 Weblate documenta lo stesso controllo come
 [Python brace format][weblate-checks], e le piattaforme commerciali hanno la
-loro QA sui segnaposto agganciata allo stesso flag. Il loro comportamento è
-affar loro; i due strumenti qui sotto sono quelli verificati in questa sede.
+loro QA sui segnaposto agganciata allo stesso flag. Il comportamento di
+ciascuna piattaforma è cosa sua; i due strumenti qui sotto sono quelli
+verificati in questa sede.
 
   [weblate-checks]: https://docs.weblate.org/en/latest/user/checks.html
 
@@ -161,8 +189,8 @@ match the source placeholders: {n} is missing
     [Che cosa controlla la CI](workflow.md#what-ci-gates) mostra il passo di
     build che glielo permette.
 
-I due controlli non sono ridondanti. Il checker incluso è la parte più severa
-in almeno due punti:
+I due controlli non sono ridondanti. Il checker del pacchetto è più severo in
+almeno due casi:
 
 - Un msgid le cui uniche graffe sono escapate (`Config {{raw}} only`) non
   riceve mai il flag `python-brace-format`, quindi nessuno strumento esterno

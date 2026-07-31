@@ -70,6 +70,11 @@ Interpoliacijos aprašomos struktūriškai, niekada kaip Python pirminis kodas:
 }
 ```
 
+Laukas `"spec"` **nėra** specifikacijos versija — kiekvienas `v1.json` atvejis
+priklauso spec v1. Jis įvardija `SPEC.md` skyrių, kurį atvejis tikrina, tad
+`"2.2"` skaitoma kaip §2.2 — taisyklė, pagal kurią išvedamas vietaženklio
+leksemas.
+
 Etaloninė realizacija paleidžia šį rinkinį kaip savo pačios testų rinkinio
 dalį, todėl tekstas ir kodas negali tyliai išsiskirti.
 

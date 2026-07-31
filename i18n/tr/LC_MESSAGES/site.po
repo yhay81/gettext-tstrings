@@ -86,3 +86,27 @@ msgid "Rendered {n} page in {seconds}s"
 msgid_plural "Rendered {n} pages in {seconds}s"
 msgstr[0] "{n} sayfa {seconds}s içinde render edildi"
 msgstr[1] "{n} sayfa {seconds}s içinde render edildi"
+
+#. gettext-tstrings
+msgid "Start here"
+msgstr "Buradan başlayın"
+
+#. gettext-tstrings
+msgid "Use it"
+msgstr "Kullanın"
+
+#. gettext-tstrings
+msgid "Migration"
+msgstr "Geçiş"
+
+#. gettext-tstrings
+msgid "For translators"
+msgstr "Çevirmenler için"
+
+#. gettext-tstrings
+msgid "Understand it"
+msgstr "Anlayın"
+
+#. gettext-tstrings
+msgid "Reference"
+msgstr "Başvuru"

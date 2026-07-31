@@ -51,9 +51,13 @@ współbieżności.
 
 | Nazwa | Cel |
 | --- | --- |
-| `lazy_gettext(template, /, *, strict=False)` | Odrocz tłumaczenie do pierwszego użycia. |
+| `lazy_gettext(template, /, *, strict=False)` | Odrocz tłumaczenie do każdego renderowania. |
 | `lazy_pgettext(context, template, /, *, strict=False)` | Forma z kontekstem. |
-| `LazyString` | To, co obie zwracają. Renderuje się przez `str()` i `format()`, jest równy swojemu tekstowi i celowo niehashowalny. |
+| `LazyString` | To, co obie zwracają. Renderuje się przez `str()` i `format()` w języku związanym w danym momencie, jest równy swojemu wyrenderowanemu tekstowi i celowo niehashowalny. |
+
+Przykłady z omówieniem — w tym wyjaśnienie, dlaczego `strict` należy do miejsca
+definicji — znajdziesz w rozdziale
+[Tłumaczenie odroczone](guide.md#deferred-translation).
 
 ## Niższy poziom { #lower-level }
 

@@ -11,8 +11,8 @@ weet of je op koers ligt.
 
 Je hebt Python 3.14 of nieuwer nodig, omdat t-strings nieuwe syntaxis zijn in
 3.14. Japans is het voorbeelddoel van deze pagina, maar niets hangt van die
-keuze af — vervang het door elke taal in stap 4, waar de locale-code `ja` het
-enige is dat haar benoemt.
+keuze af. Wil je een andere taal gebruiken, vervang dan `ja` in stap 4 — die
+locale-code is het enige dat haar benoemt.
 
 ## 1. Installeren { #1-install }
 
@@ -54,9 +54,9 @@ fallback.
 
 ## 3. Extraheer de berichten { #3-extract-the-messages }
 
-Vertalers lezen je broncode niet; een klein bestand dat een **catalogus**
-heet, reist tussen jou en hen. De eerste stap ernaartoe is elk gemarkeerd
-bericht uit de code verzamelen.
+Vertalers werken meestal vanuit catalogi in plaats van vanuit broncode, dus
+een klein bestand dat een **catalogus** heet, reist tussen jou en hen. De
+eerste stap ernaartoe is elk gemarkeerd bericht uit de code verzamelen.
 
 Vertel Babel hoe het je berichten vindt door `babel.cfg` aan te maken:
 
@@ -129,7 +129,17 @@ source placeholders: {name} is missing; {nome} is not in the source message
 1 errors encountered.
 ```
 
+Eén kanttekening die je nu al moet kennen: hij meldt de fout en eindigt met
+een niet-nul exitstatus, maar schrijft de `.mo` toch. Op een echt project is
+het CI die op die exitstatus moet stoppen —
+[In productie](workflow.md#what-ci-gates) zet dat op.
+
 ## 5. Voer het uit { #5-run-it }
+
+Stap 2–4 gebruikten `tr()`, die naar een catalogus zoekt en er geen vindt. Nu
+er een bestaat, laad je hem en bind je hem één keer: `Translator` houdt een
+catalogus vast zodat de aanroeplocaties hem niet hoeven te benoemen, en `_`
+is de conventionele gettext-naam voor het resultaat.
 
 Richt `app.py` op de gecompileerde catalogus. Klik op de markeringen om te
 zien wat elke regel doet:
@@ -148,7 +158,8 @@ print(_(t"Hello {name}"))  # (2)!
 1. De standaardbibliotheek laadt de gecompileerde `.mo`, en `Translator`
    bindt hem aan een aanroepbaar object. `_` is de conventionele gettext-naam
    voor "vertaal dit" — kort omdat hij bij elke gebruikersgerichte string
-   voorkomt. Het is dezelfde functie als `tr`, gebonden aan één catalogus.
+   voorkomt. Hij voert dezelfde vertaling uit als `tr`, gebonden aan één
+   catalogus.
 2. Bij de aanroep: de tekst van de t-string wordt de opzoeksleutel
    `Hello {name}`, de catalogus antwoordt `こんにちは {name}`, het antwoord
    wordt gecontroleerd tegen de bron-placeholders, en pas dan wordt de waarde
@@ -182,5 +193,9 @@ op deze site is een verfijning van een van die vijf stappen.
   na week: catalogi bijwerken, CI-poorten en vertaalplatforms.
 - [Extractie](extraction.md) — de volledige `pybabel`-referentie: eigen
   functienamen, strikte CI-modus, en de controles die je catalogi bewaken.
+- [Migratie](migration.md) — als het project waarin je dit echt wilt doen al
+  gettext-catalogi heeft.
+- [Voor vertalers](translators.md) — de ene pagina die je overhandigt aan wie
+  die `msgstr`-regels invult.
 
   [Babel]: https://babel.pocoo.org/

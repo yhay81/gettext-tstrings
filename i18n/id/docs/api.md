@@ -51,9 +51,12 @@ konkurensi.
 
 | Nama | Kegunaan |
 | --- | --- |
-| `lazy_gettext(template, /, *, strict=False)` | Menunda terjemahan hingga penggunaan pertama. |
+| `lazy_gettext(template, /, *, strict=False)` | Menunda terjemahan hingga setiap perenderan. |
 | `lazy_pgettext(context, template, /, *, strict=False)` | Bentuk kontekstualnya. |
-| `LazyString` | Yang dikembalikan keduanya. Merender melalui `str()` dan `format()`, membandingkan sama dengan teksnya, dan sengaja tidak dapat di-hash. |
+| `LazyString` | Yang dikembalikan keduanya. Merender melalui `str()` dan `format()` dalam bahasa apa pun yang terikat pada saat itu, membandingkan sama dengan teks hasil rendernya, dan sengaja tidak dapat di-hash. |
+
+Contoh terkerjakan, termasuk mengapa `strict` termasuk di titik definisi, ada di
+[Terjemahan tertunda](guide.md#deferred-translation).
 
 ## Tingkat lebih rendah { #lower-level }
 

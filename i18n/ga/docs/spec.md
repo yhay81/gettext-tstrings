@@ -76,6 +76,11 @@ Déantar cur síos struchtúrtha ar idirshuímh, riamh mar fhoinse Python:
 }
 ```
 
+**Ní** leagan sonraíochta é an réimse `"spec"` — baineann gach cás in
+`v1.json` le sonraíocht v1. Ainmníonn sé an rannán de `SPEC.md` a chuireann an
+cás faoi thástáil, mar sin léitear `"2.2"` mar §2.2, an riail chun comhartha
+sealbhóra ionaid a dhíorthú.
+
 Ritheann an cur i bhfeidhm tagartha an tsraith mar chuid dá shraith tástála
 féin, mar sin ní féidir leis an bprós agus leis an gcód imeacht óna chéile ina
 dtost.

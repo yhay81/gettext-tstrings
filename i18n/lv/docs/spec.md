@@ -68,6 +68,10 @@ Interpolācijas ir aprakstītas strukturāli, nekad kā Python pirmkods:
 }
 ```
 
+Lauks `"spec"` **nav** specifikācijas versija — katrs `v1.json` gadījums
+pieder spec. v1. Tas nosauc `SPEC.md` sadaļu, ko gadījums pārbauda, tāpēc
+`"2.2"` lasāms kā §2.2 — noteikums viettura marķiera atvasināšanai.
+
 Atsauces implementācija palaiž komplektu kā daļu no savas testu kopas, tāpēc
 proza un kods nevar klusējot aizvirzīties viens no otra.
 

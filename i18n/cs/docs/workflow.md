@@ -11,6 +11,18 @@ zkompilovaný katalog vychází s každým vydáním. Tato stránka je právě t
 praxí — co zůstává v repozitáři, co cestuje, co musí hlídat CI a kde běhové
 prostředí váže jazyk.
 
+Dohromady to dává šest kontrol, takže tady jsou hned na začátek; každá sekce
+níže jednu z nich nastavuje.
+
+- `pybabel update --check` prochází — žádná zpráva se nezměnila, aniž by
+  se to katalogy dozvěděly.
+- `pybabel compile` hlídá build svým návratovým kódem.
+- Zbývající záznamy `fuzzy` jsou záměrné — každý se vykresluje jako
+  zdrojový text, dokud jej překladatel nepotvrdí.
+- Testovací sada vykreslí každý dodávaný jazyk jednou se `strict=True`.
+- Produkční artefakt obsahuje soubory `.mo` a žádný Babel.
+- Logger `gettext_tstrings` je napojen na monitoring.
+
 ## Tvar projektu { #the-shape-of-a-project }
 
 ```text
@@ -32,8 +44,8 @@ v CI nebo při balení, místo abyste je commitovali, aby se `.po` a jeho `.mo`
 nikdy nemohly rozcházet v tom, co se dodává.
 
 Jeden soubor má roli v každém směru: `.pot` nese vaše zprávy *ven*
-k překladatelům, soubory `.po` nesou překlady *zpět*. Vše níže je provoz
-mezi těmito dvěma.
+k překladatelům, soubory `.po` nesou překlady *zpět*. Zbytek této stránky je
+o tom, co se mezi nimi pohybuje.
 
 ```mermaid
 flowchart LR
@@ -47,10 +59,10 @@ flowchart LR
 
 ## Cyklus po prvním překladu { #the-cycle-after-the-first-translation }
 
-Tutoriálový `pybabel init` se spouští jednou na jazyk — navždy. Od té chvíle
-je pracovní cyklus **extrakce → aktualizace → překlad → kompilace** a jeho
-středem je `pybabel update`, který vpraví čerstvou šablonu do existujících
-katalogů, aniž by zahodil překlady, které v nich už jsou.
+Tutoriálový `pybabel init` se běžně spouští jednou, když se jazyk přidává.
+Od té chvíle je pracovní cyklus **extrakce → aktualizace → překlad →
+kompilace** a jeho středem je `pybabel update`, který vpraví čerstvou šablonu
+do existujících katalogů, aniž by zahodil překlady, které v nich už jsou.
 
 Předpokládejme, že pozdrav `Hello {name}` — už přeložený jako
 `こんにちは {name}` — je v kódu přeformulován na `Welcome back, {name}`.
@@ -76,9 +88,10 @@ msgstr "こんにちは {name}"
 
 Babel si všiml, že nový msgid připomíná odstraněný, a spároval jej se
 starým překladem — ale označil dvojici jako **fuzzy**: strojový odhad
-čekající na člověka. Tento příznak má zuby. `pybabel compile` **vylučuje
-fuzzy záznamy z `.mo`**, takže dokud překladatel dvojici nepotvrdí,
-aplikace vykresluje nový anglický text, a ne zastaralý japonský:
+čekající na člověka. Tento příznak mění to, co se zkompiluje.
+`pybabel compile` **vylučuje fuzzy záznamy z `.mo`**, takže dokud
+překladatel dvojici nepotvrdí, aplikace vykresluje nový anglický text, a ne
+zastaralý japonský:
 
 ```console
 $ pybabel compile -d locales
@@ -124,32 +137,17 @@ proti sloučení kódu, jehož zprávy nikdo znovu neextrahoval.
 [registrovaného checkeru](extraction.md#your-existing-toolchain-validates-these-catalogs)
 tohoto balíčku.
 
-!!! bug "`--check` neumí hlídat katalog, který používá kontexty"
+!!! bug "Babel 2.18.0: `--check` neumí hlídat katalog, který používá kontexty"
 
     Na Babelu 2.18.0 hlásí `pybabel update --check` **každý** katalog
-    obsahující `msgctxt` jako zastaralý, při každém spuštění, bez ohledu na
-    to, jak je aktuální. Porovnání probíhá přes `Catalog.is_identical`, které
-    každou zprávu vyhledá podle klíče, pod nímž je uložena — a u kontextové
-    zprávy je tímto klíčem dvojice `(id, context)`, kterou `Catalog.get`
-    nepřijímá. Vyhledání nevrátí nic a katalogy nikdy nevyjdou jako shodné:
-
-    ```pycon
-    >>> from babel.messages.catalog import Catalog
-    >>> c = Catalog(locale="ja")
-    >>> c.add("Guide", "ガイド", context="navigation")
-    <Message 'Guide' (flags: [])>
-    >>> c.is_identical(c)
-    False
-    ```
-
-    Takže pokud `pgettext` nebo `npgettext` vůbec používáte — a rozlišení
-    homonyma je důvod, proč existují — tento krok propouští vše tím
-    nejhorším možným způsobem: je vždy červený, takže ho tým vypne, takže
-    zastaralost nehlídá nic. Dokud to nebude opraveno upstream, porovnávejte
-    množiny zpráv sami. Přečíst šablonu a každý katalog pomocí
-    `babel.messages.pofile.read_po` a porovnat
+    obsahující `msgctxt` jako zastaralý, při každém spuštění, jakkoli je
+    aktuální. Trvale selhávající brána je horší než žádná, protože ji tým
+    vypne — takže pokud `pgettext` nebo `npgettext` vůbec používáte, tento
+    krok raději nahraďte, než abyste s ním žili. Přečíst šablonu a každý
+    katalog pomocí `babel.messages.pofile.read_po` a porovnat
     `{(m.context, m.id) for m in catalog if m.id}` je celá ta kontrola —
-    a přesně to dělá [build tohoto webu](index.md).
+    a přesně to dělá [build tohoto webu](index.md). Příčina je
+    [rozepsaná na stránce Úskalí](pitfalls.md#your-tools-have-bugs-too).
 
 !!! danger "Kontrolujte návratový kód, ne log"
 

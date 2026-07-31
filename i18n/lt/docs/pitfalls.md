@@ -145,10 +145,24 @@ saugyklos failai.
 
 CI žingsnis, kurį ši dokumentacija rekomenduoja pasenusiems katalogams gaudyti,
 `pybabel update --check`, to darbo negali atlikti jokiam projektui,
-naudojančiam `pgettext` ar `npgettext` — kiekvieną katalogą su `msgctxt` jis
-kiekvieną kartą praneša kaip pasenusį dėl klaidos tame, kaip palyginimas ieško
-pranešimų. Ji rasta būtent čia, bandant tuo pasinaudoti, pranešta autoriams ir
-[aprašyta išsamiai kartu su apėjimu](workflow.md#what-ci-gates).
+naudojančiam `pgettext` ar `npgettext`. Su Babel 2.18.0 jis kiekvieną katalogą
+su `msgctxt` kiekvieną kartą praneša kaip pasenusį. Palyginimas eina per
+`Catalog.is_identical`, kuris kiekvieno pranešimo ieško pagal tą raktą, su
+kuriuo jis saugomas — o kontekstinio pranešimo tas raktas yra pora
+`(id, context)`, kurios `Catalog.get` nepriima. Paieška negrąžina nieko, ir
+katalogai niekada nesulygsta:
+
+```pycon
+>>> from babel.messages.catalog import Catalog
+>>> c = Catalog(locale="ja")
+>>> c.add("Guide", "ガイド", context="navigation")
+<Message 'Guide' (flags: [])>
+>>> c.is_identical(c)
+False
+```
+
+Ji rasta būtent čia, bandant tuo pasinaudoti, pranešta autoriams, o pakaitinė
+patikra yra [produkcijos puslapyje](workflow.md#what-ci-gates).
 
 Bendra pamoka nemaloni: visada raudoni vartai yra blogiau nei jokių vartų, nes
 komanda juos išjungia. Įsitikinkite, kad jūsų CI patikra iš tikrųjų gali būti

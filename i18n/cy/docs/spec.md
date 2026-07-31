@@ -72,6 +72,11 @@ Disgrifir rhyngosodiadau'n strwythurol, byth fel cod ffynhonnell Python:
 }
 ```
 
+**Nid** fersiwn manyleb yw'r maes `"spec"` — mae pob achos yn `v1.json` yn
+perthyn i fanyleb v1. Mae'n enwi'r adran o `SPEC.md` y mae'r achos yn ei
+harfer, felly darllenir `"2.2"` fel §2.2, y rheol ar gyfer deillio tocyn daliwr
+lle.
+
 Mae'r gweithrediad cyfeirio yn rhedeg y gyfres fel rhan o'i gyfres brofi ei
 hun, fel na all y rhyddiaith a'r cod ymwahanu'n dawel.
 

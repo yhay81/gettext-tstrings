@@ -1,23 +1,16 @@
 ---
-description: "Samma översättbara meddelande skrivet med %-format, .format(), flufl.i18n $-strängar och en t-string, inklusive hur var och en binder värden och hanterar en skadad katalog."
+description: "Samma översättbara meddelande skrivet med %-format, .format(), flufl.i18n $-strängar och en t-string, jämförda på översättarmisstag, katalogens befogenheter och integrationskostnad."
 ---
 
 # Varför t-strings
 
 Fyra sätt att sätta in ett värde i ett översättbart meddelande, jämförda på
-samma mening. Den korta versionen:
+samma meddelande. Alla fyra namnger sina platshållare och låter en översättare
+flytta om dem; de skiljer sig i vad som händer när en översättning är fel, i
+hur mycket av ditt program katalogen når, och i vad det kostar att införa dem.
 
-- Med **%-format** blir en översättare som raderar en bokstav en krasch i
-  produktion.
-- Med **str.format** kan en översättning läsa attribut från objekten din kod
-  skickar in — inklusive hemligheter.
-- Med **$-strängar** (flufl.i18n) hämtas värden implicit från den anropande
-  funktionens variabler, och punktade platshållare når attribut de också.
-- Med **t-strings** stannar formateringen i din kod, översättningar
-  kontrolleras vid körning, och en trasig katalog faller tillbaka till
-  källtexten i stället för att krascha.
-
-Resten av den här sidan är bevisen, en metod i taget.
+Tabellerna kommer först, så att du kan hitta raden du bryr dig om och bara
+läsa avsnittet bakom den.
 
 !!! note "Tre parter rör vid varje översatt meddelande"
 
@@ -31,6 +24,71 @@ Resten av den här sidan är bevisen, en metod i taget.
     mycket av formatspråket får katalogen kontrollera?* I exemplen är `_` det
     konventionella namnet på översättningsfunktionen, och `tr` är det här
     bibliotekets.
+
+## Sida vid sida { #side-by-side }
+
+**När en översättare gör ett misstag.** En katalog passerar genom många händer,
+och det mesta som går fel i den sker av misstag:
+
+| | `%(name)s` | `.format()` | `flufl.i18n` `$name` | `t"…"` |
+| --- | --- | --- | --- | --- |
+| En översättning *tappar* en platshållare — vad renderas? | värdet försvinner tyst | värdet försvinner tyst | värdet försvinner tyst | källmeddelandet, med en varning ([som standard](guide.md#what-happens-when-a-catalog-is-wrong)) |
+| En översättning *lägger till* en okänd platshållare — vad renderas? | ett undantag | ett undantag | platshållaren förblir synlig som text | källmeddelandet, med en varning ([som standard](guide.md#what-happens-when-a-catalog-is-wrong)) |
+| En översättning *formaterar om* en platshållare — vad renderas? | det katalogen bad om, eller ett undantag om typbokstaven inte längre passar värdet | det katalogen bad om | går inte att uttrycka i `$`-strängar | källmeddelandet, med en varning |
+| Kontrolleras platshållare vid renderingstillfället? | nej | nej | nej | ja (se nedan) |
+
+**Vilka befogenheter katalogen har.** En översättning är data utifrån ditt
+kodförråd, och varje stil ger den olika mycket makt:
+
+| | `%(name)s` | `.format()` | `flufl.i18n` `$name` | `t"…"` |
+| --- | --- | --- | --- | --- |
+| Varifrån kommer värdena? | en explicit mappning | explicita argument | anroparens lokala och globala variabler, plus valfria `extras` | värdena som fångats inuti t-strängen |
+| Kan katalogen ändra hur ett värde formateras? | ja | ja | nej | nej |
+| Kan katalogen nå in i objekt (attributåtkomst)? | nej | ja | ja, med punktade namn | nej |
+| Var bor "det aktuella språket"? | där applikationen lägger det | där applikationen lägger det | en stack av språkkoder på det delade applikationsobjektet | en `ContextVar`, per uppgift eller förfrågan |
+
+**Vad det kostar att integrera.** Allt ovanstående är gratis om verktygen
+passar; här är det de kanske inte gör:
+
+| | `%(name)s` | `.format()` | `flufl.i18n` `$name` | `t"…"` |
+| --- | --- | --- | --- | --- |
+| Lägsta Python-version | vilken som helst | vilken som helst | 3.10 | **3.14** |
+| Mognad | standardbiblioteket | standardbiblioteket | stabil utgåva | **alfa** |
+| Använder vanliga PO/MO-kataloger? | ja | ja | ja | ja |
+| Behöver en egen källextraktor? | nej | nej | nej | ja, för närvarande |
+| Vilken PO-flagga härleder Babel, för befintliga verktyg att validera? | `python-format` | `python-brace-format` | ingen | `python-brace-format` |
+
+Om kontrollen vid rendering: singularmeddelanden kontrolleras mot en exakt
+platshållarmatchning. Pluralmeddelanden kontrolleras också, mot
+[unions-/snittregeln](spec.md) som låter ett målspråks pluralformer skilja
+sig från källans; den striktare kontrollen per form körs när kataloger
+kompileras ([Extrahering](extraction.md)).
+
+Raden om formatflaggan handlar om platshållarmedveten validering, inte om
+katalogkompatibilitet. `ingen` betyder att standardverktygen för gettext
+fortfarande läser och kompilerar meddelandet, men `msgfmt --check-format` har
+ingen `$`-platshållargrammatik att tillämpa.
+
+## Kompatibilitet och mognad { #compatibility-and-maturity }
+
+Den sista tabellens två första rader är de som avgör införandet, så de är värda
+att säga rakt ut i stället för som celler.
+
+`%`-format och `.format()` är inbyggda i Python och behöver inget beroende
+alls. [`flufl.i18n`][flufl-i18n] är ett moget paket, utgivet och i
+produktionsbruk, som kör på Python 3.10 och senare. `gettext-tstrings` är en
+**alfa** och kräver **Python 3.14 eller nyare**, eftersom t-strings är ny
+syntax i 3.14 — det finns ingen bakåtport och det kan inte finnas någon. Dess
+[specifikation](spec.md) är den stabila delen av det; Python-API:et kan
+fortfarande röra sig före 1.0.
+
+Vad ingen av dem kostar är katalogkompatibilitet. Alla fyra producerar vanliga
+POT/PO/MO-filer som varje PO-redigerare, översättningsplattform och
+GNU gettext-verktyg redan läser, så valet nedan är omvändbart på ett sätt som
+ett byte av katalog*format* inte skulle vara. [Migrering](migration.md) tar upp
+hur ett befintligt projekt flyttas.
+
+Avsnitten nedan visar varje avvägning i detalj, en metod i taget.
 
 ## %-format { #-format }
 
@@ -50,10 +108,10 @@ Traceback (most recent call last):
 ValueError: incomplete format
 ```
 
-En enteckensredigering i en PO-redigerare blir en traceback i produktion. GNU
-`msgfmt --check-format` fångar den visserligen, men bara för meddelanden
-flaggade `python-format`, och bara om katalogen faktiskt passerar genom msgfmt
-på väg till din applikation.
+En enteckensredigering i en PO-redigerare blir ett undantag vid körning om inte
+katalogvalideringen fångar det först. GNU `msgfmt --check-format` fångar
+visserligen just detta, men bara för meddelanden flaggade `python-format`, och
+bara om katalogen faktiskt passerar genom msgfmt på väg till din applikation.
 
 ## str.format { #strformat }
 
@@ -120,7 +178,7 @@ sökvägarna mot anroparens värden. En översatt platshållare kan namnge vilke
 tillgänglig lokal eller global variabel som helst hos anroparen och, med
 punktad syntax, traversera dess attribut. Det är bekvämt när ett meddelande
 behöver ett attribut, samtidigt som det gör anroparens stackram till en del
-av katalogens substitutionsnamnrymd. Jämförelsen nedan beskriver
+av katalogens substitutionsnamnrymd. Jämförelsen här beskriver
 `flufl.i18n` 6.0.0, inte varje möjlig användning av `string.Template`.
 
 Det besvarar också en fråga som de två andra formateringsstilarna lämnar helt
@@ -183,7 +241,7 @@ annat. Mot `t"Hello {name}"`:
 | `{nombre}` | translation does not match the source placeholders: `{name}` is missing; `{nombre}` is not in the source message |
 
 Avvisad betyder inte kraschad: som standard loggar biblioteket en varning och
-renderar källtexten, så en dålig katalog fäller aldrig applikationen —
+renderar källmeddelandet, så en dålig katalog fäller aldrig applikationen —
 [samma kontrakt som gettext självt håller](guide.md#what-happens-when-a-catalog-is-wrong).
 
 Formateringen stannar där den skrevs, i koden:
@@ -194,54 +252,19 @@ tr(t"Total: {amount:,.2f}")  # msgid is "Total: {amount}"
 ```
 
 `:,.2f` når aldrig katalogen, så ingen översättning kan ändra det, och ingen
-översättare behöver titta på det.
+översättare behöver titta på det. Det är dock ett *fast* format, inte ett
+lokaliserat — att välja siffror och avskiljare per språk är
+[Babels uppgift, före anropet](guide.md#locale-aware-values).
 
 Ytterligare en skillnad är verktygsstödet: t-strings är ny syntax, så att
 extrahera dem till en `.pot` kräver för närvarande en t-string-medveten
 extraktor, som den detta paket
 [tillhandahåller för Babel](extraction.md).
 
-## Sida vid sida { #side-by-side }
+## Vad begränsningen kostar { #the-cost-of-the-restriction }
 
-| | `%(name)s` | `.format()` | `flufl.i18n` `$name` | `t"…"` |
-| --- | --- | --- | --- | --- |
-| Är platshållaren namngiven? | ja | ja | ja | ja |
-| Kan en översättare flytta om platshållare? | ja | ja | ja | ja |
-| Varifrån kommer värdena? | en explicit mappning | explicita argument | anroparens lokala och globala variabler, plus valfria `extras` | värdena som fångats inuti t-strängen |
-| Kan katalogen ändra hur ett värde formateras? | ja | ja | nej | nej |
-| Kan katalogen nå in i objekt (attributåtkomst)? | nej | ja | ja, med punktade namn | nej |
-| En översättning *tappar* en platshållare — vad renderas? | värdet försvinner tyst | värdet försvinner tyst | värdet försvinner tyst | källtexten, med en varning ([som standard](guide.md#what-happens-when-a-catalog-is-wrong)) |
-| En översättning *lägger till* en okänd platshållare — vad renderas? | ett undantag | ett undantag | platshållaren förblir synlig som text | källtexten, med en varning ([som standard](guide.md#what-happens-when-a-catalog-is-wrong)) |
-| Kontrolleras platshållare vid renderingstillfället? | nej | nej | nej | ja (se nedan) |
-| Vilken PO-flagga härleder Babel, för befintliga verktyg att validera? | `python-format` | `python-brace-format` | ingen | `python-brace-format` |
-| Använder vanliga PO/MO-kataloger? | ja | ja | ja | ja |
-| Behöver en egen källextraktor? | nej | nej | nej | ja, för närvarande |
-| Var bor "det aktuella språket"? | där applikationen lägger det | där applikationen lägger det | en stack av språkkoder på det delade applikationsobjektet | en `ContextVar`, per uppgift eller förfrågan |
-
-Om kontrollen vid rendering: singularmeddelanden kontrolleras mot en exakt
-platshållarmatchning. Pluralmeddelanden kontrolleras också, mot
-[unions-/snittregeln](spec.md) som låter ett målspråks pluralformer skilja
-sig från källans; den striktare kontrollen per form körs när kataloger
-kompileras ([Extrahering](extraction.md)).
-
-Raden om formatflaggan handlar om platshållarmedveten validering, inte om
-katalogkompatibilitet. `ingen` betyder att standardverktygen för gettext
-fortfarande läser och kompilerar meddelandet, men `msgfmt --check-format` har
-ingen `$`-platshållargrammatik att tillämpa.
-
-## Vad det kostar { #what-it-costs }
-
-En f-string kan inte alls användas så här — när något bibliotek ser en är den
-redan en färdig sträng, så att översätta den innebär att översätta ett
-fragment. t-strings ([PEP 750]) håller den statiska texten och värdena
-åtskilda med bibehållen f-string-lik syntax och explicit värdebindning.
-`$`-strängar erbjuder redan ett koncist alternativ med en annan bindnings-
-och felmodell. `flufl.i18n` är ett moget paket som kör på Python 3.10 och
-senare; `gettext-tstrings` är för närvarande en alfa, och eftersom t-strings
-är ny syntax kräver det Python 3.14 eller nyare.
-
-Den andra kostnaden är själva begränsningen: en interpolation måste vara ett
-rent namn.
+Utöver Python-kravet är priset för allt detta en enda regel: en interpolation
+måste vara ett rent namn.
 
 ```python
 tr(t"Hello {user.name}")  # raises InvalidTemplateError at the call site
@@ -252,9 +275,15 @@ name = user.name  # compute it first
 tr(t"Hello {name}")
 ```
 
-Det är en verklig begränsning. Tillsammans med värdebindning på källsidan och
-platshållarkontroll vid körning hindrar den katalogsträngar från att utvärdera
-uttryck och håller platshållarnamnen meningsfulla.
+Det är en verklig begränsning, och det är samma begränsning som ger garantierna
+ovan. Tillsammans med värdebindning på källsidan och platshållarkontroll vid
+körning hindrar den katalogsträngar från att utvärdera uttryck och håller
+platshållarnamnen meningsfulla för den som översätter dem.
+
+En f-string kan inte alls användas så här — när något bibliotek ser en är den
+redan en färdig sträng, så att översätta den innebär att översätta ett
+fragment. t-strings ([PEP 750]) håller den statiska texten och värdena
+åtskilda med bibehållen f-string-lik syntax och explicit värdebindning.
 
 Hur Python hamnade vid detta vägskäl — två PEP:ar med tio års mellanrum, och
 stdlib-diskussionen som stängdes utan svar — berättas med källor på

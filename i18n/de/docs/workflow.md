@@ -12,6 +12,18 @@ Release wird ein kompilierter Katalog ausgeliefert. Diese Seite ist diese
 Praxis — was im Repository bleibt, was auf Reisen geht, was CI absichern muss
 und wo die Laufzeit eine Sprache bindet.
 
+Unterm Strich sind es sechs Prüfungen, deshalb stehen sie hier zuerst; jeder
+Abschnitt weiter unten richtet eine davon ein.
+
+- `pybabel update --check` läuft durch — keine Nachricht hat sich geändert,
+  ohne dass die Kataloge davon erfahren haben.
+- `pybabel compile` macht den Build von seinem Exit-Status abhängig.
+- Verbliebene `fuzzy`-Einträge sind gewollt — jeder rendert als Quelltext, bis
+  eine übersetzende Person ihn bestätigt.
+- Die Testsuite rendert jede ausgelieferte Sprache einmal mit `strict=True`.
+- Das Produktionsartefakt enthält `.mo`-Dateien und kein Babel.
+- Der Logger `gettext_tstrings` ist an das Monitoring angeschlossen.
+
 ## Die Gestalt eines Projekts { #the-shape-of-a-project }
 
 ```text
@@ -34,7 +46,7 @@ in CI oder beim Paketieren, statt sie zu committen, damit eine `.po` und ihre
 
 Eine Datei hat in jede Richtung eine Rolle: Die `.pot` trägt deine Nachrichten
 *hinaus* zu den Übersetzenden, die `.po`-Dateien tragen Übersetzungen
-*zurück*. Alles Folgende ist der Verkehr zwischen diesen beiden.
+*zurück*. Der Rest dieser Seite ist das, was sich zwischen ihnen bewegt.
 
 ```mermaid
 flowchart LR
@@ -48,11 +60,11 @@ flowchart LR
 
 ## Der Zyklus nach der ersten Übersetzung { #the-cycle-after-the-first-translation }
 
-Das `pybabel init` des Tutorials läuft einmal pro Sprache — und nie wieder.
-Von da an lautet der Arbeitszyklus **extrahieren → aktualisieren → übersetzen
-→ kompilieren**, und sein Zentrum ist `pybabel update`, das eine frische
-Vorlage in die vorhandenen Kataloge einarbeitet, ohne die bereits enthaltenen
-Übersetzungen zu verwerfen.
+Das `pybabel init` des Tutorials läuft normalerweise einmal, wenn eine Sprache
+hinzukommt. Von da an lautet der Arbeitszyklus **extrahieren → aktualisieren →
+übersetzen → kompilieren**, und sein Zentrum ist `pybabel update`, das eine
+frische Vorlage in die vorhandenen Kataloge einarbeitet, ohne die bereits
+enthaltenen Übersetzungen zu verwerfen.
 
 Angenommen, die Begrüßung `Hello {name}` — bereits als `こんにちは {name}`
 übersetzt — wird im Code zu `Welcome back, {name}` umformuliert. Extrahieren
@@ -78,10 +90,10 @@ msgstr "こんにちは {name}"
 
 Babel hat bemerkt, dass die neue msgid einer entfernten ähnelt, und sie mit
 der alten Übersetzung gepaart — das Paar aber als **fuzzy** markiert: die
-Vermutung einer Maschine, die auf einen Menschen wartet. Das Flag hat Zähne.
-`pybabel compile` **schließt fuzzy-Einträge aus der `.mo` aus** — bis eine
-übersetzende Person das Paar bestätigt, rendert die Anwendung also den neuen
-englischen Text statt eines veralteten japanischen:
+Vermutung einer Maschine, die auf einen Menschen wartet. Das Flag ändert, was
+kompiliert wird: `pybabel compile` **schließt fuzzy-Einträge aus der `.mo`
+aus** — bis eine übersetzende Person das Paar bestätigt, rendert die Anwendung
+also den neuen englischen Text statt eines veralteten japanischen:
 
 ```console
 $ pybabel compile -d locales
@@ -133,34 +145,18 @@ von Babel und dem
 [registrierten Checker](extraction.md#your-existing-toolchain-validates-these-catalogs)
 dieses Pakets aus.
 
-!!! bug "`--check` kann keinen Katalog absichern, der Kontexte verwendet"
+!!! bug "Babel 2.18.0: `--check` kann keinen Katalog absichern, der Kontexte verwendet"
 
     Unter Babel 2.18.0 meldet `pybabel update --check` **jeden** Katalog, der
-    ein `msgctxt` enthält, bei jedem Lauf als veraltet, ganz gleich wie aktuell
-    er ist. Der Vergleich läuft über `Catalog.is_identical`, das jede Nachricht
-    unter dem Schlüssel nachschlägt, unter dem sie abgelegt ist — und bei einer
-    kontextbehafteten Nachricht ist dieser Schlüssel das Paar `(id, context)`,
-    das `Catalog.get` nicht annimmt. Die Suche liefert nichts zurück, und die
-    Kataloge sind nie gleich:
-
-    ```pycon
-    >>> from babel.messages.catalog import Catalog
-    >>> c = Catalog(locale="ja")
-    >>> c.add("Guide", "ガイド", context="navigation")
-    <Message 'Guide' (flags: [])>
-    >>> c.is_identical(c)
-    False
-    ```
-
-    Wenn du also `pgettext` oder `npgettext` überhaupt verwendest — und genau
-    dafür gibt es sie, zur Unterscheidung eines Homonyms —, schlägt dieser
-    Schritt auf die denkbar schlechteste Weise fehl: immer rot, also schaltet
-    ein Team ihn ab, also sichert nichts mehr gegen Veralten ab. Bis das
-    upstream behoben ist, vergleiche die Nachrichtenmengen selbst. Die Vorlage
-    und jeden Katalog mit `babel.messages.pofile.read_po` einzulesen und
+    ein `msgctxt` enthält, bei jedem Lauf als veraltet, wie aktuell er auch sein
+    mag. Eine dauerhaft fehlschlagende Schranke ist schlimmer als gar keine,
+    weil ein Team sie abschaltet — wenn du also `pgettext` oder `npgettext`
+    überhaupt verwendest, ersetze diesen Schritt, statt mit ihm zu leben. Die
+    Vorlage und jeden Katalog mit `babel.messages.pofile.read_po` einzulesen und
     `{(m.context, m.id) for m in catalog if m.id}` zu vergleichen ist die ganze
     Prüfung — und genau das tut
-    [der eigene Build dieser Website](index.md).
+    [der eigene Build dieser Website](index.md). Die Ursache ist
+    [bei den Fallstricken beschrieben](pitfalls.md#your-tools-have-bugs-too).
 
 !!! danger "Prüfe den Exitstatus, nicht das Log"
 

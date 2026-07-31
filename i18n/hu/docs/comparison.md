@@ -1,24 +1,17 @@
 ---
-description: "Ugyanaz a fordítható üzenet %-formázással, .format() hívással, flufl.i18n $-stringgel és t-stringgel megírva, azzal együtt, hogy melyik hogyan köti az értékeket és hogyan viselkedik hibás katalógus esetén."
+description: "Ugyanaz a fordítható üzenet %-formázással, .format() hívással, flufl.i18n $-stringgel és t-stringgel megírva, a fordítói hibák, a katalógus hatalma és az integráció költsége szerint összehasonlítva."
 ---
 
 # Miért t-string?
 
 Négyféle módszer arra, hogy értéket tegyünk egy fordítható üzenetbe, ugyanazon
-a mondaton összehasonlítva. Röviden:
+az üzeneten összehasonlítva. Mind a négy nevesíti a helyőrzőit, és mind a négy
+engedi, hogy a fordító átrendezze őket; abban különböznek, hogy mi történik, ha
+egy fordítás hibás, hogy a programodból mennyit érhet el a katalógus, és hogy
+mibe kerül a bevezetésük.
 
-- A **%-formázással** egyetlen betű törlése a fordító részéről éles üzemi
-  összeomlássá válik.
-- A **str.format** esetén a fordítás attribútumokat olvashat le azokról az
-  objektumokról, amelyeket a kódod átad — köztük titkokat is.
-- A **$-stringeknél** (flufl.i18n) az értékek implicit módon a hívó függvény
-  változóiból származnak, a pontozott helyőrzők pedig szintén elérik az
-  attribútumokat.
-- A **t-stringeknél** a formázás a kódodban marad, a fordításokat futásidőben
-  ellenőrizzük, a hibás katalógus pedig összeomlás helyett a forrásszövegre
-  esik vissza.
-
-Az oldal többi része a bizonyíték, egyszerre egy módszer.
+A táblázatok jönnek elsőként, hogy megtaláld a téged érdeklő sort, és csak a
+mögötte álló szakaszt kelljen elolvasnod.
 
 !!! note "Minden lefordított üzenethez három fél nyúl hozzá"
 
@@ -32,6 +25,72 @@ Az oldal többi része a bizonyíték, egyszerre egy módszer.
     formátumnyelvből mennyi fölött rendelkezhet a katalógus?* A példákban a
     `_` a fordítófüggvény szokásos neve, a `tr` pedig ennek a könyvtárnak a
     neve rá.
+
+## Egymás mellett { #side-by-side }
+
+**Amikor a fordító hibázik.** Egy katalógus sok kézen megy át, és a benne
+elromló dolgok többsége véletlen:
+
+| | `%(name)s` | `.format()` | `flufl.i18n` `$name` | `t"…"` |
+| --- | --- | --- | --- | --- |
+| A fordítás *elhagy* egy helyőrzőt — mi jelenik meg? | az érték némán eltűnik | az érték némán eltűnik | az érték némán eltűnik | a forrásüzenet, figyelmeztetéssel ([alapértelmezésben](guide.md#what-happens-when-a-catalog-is-wrong)) |
+| A fordítás *hozzáad* egy ismeretlen helyőrzőt — mi jelenik meg? | kivétel | kivétel | a helyőrző szövegként látható marad | a forrásüzenet, figyelmeztetéssel ([alapértelmezésben](guide.md#what-happens-when-a-catalog-is-wrong)) |
+| A fordítás *átformázza* a helyőrzőt — mi jelenik meg? | amit a katalógus kért, vagy kivétel, ha a típusbetű már nem illik az értékhez | amit a katalógus kért | `$`-stringben nem is kifejezhető | a forrásüzenet, figyelmeztetéssel |
+| Ellenőrzöttek-e a helyőrzők rendereléskor? | nem | nem | nem | igen (lásd alább) |
+
+**Mekkora hatalma van a katalógusnak.** A fordítás a tárolódon kívülről
+érkező adat, és mindegyik stílus más mennyiségű hatalmat ad a kezébe:
+
+| | `%(name)s` | `.format()` | `flufl.i18n` `$name` | `t"…"` |
+| --- | --- | --- | --- | --- |
+| Honnan jönnek az értékek? | explicit leképezésből | explicit argumentumokból | a hívó lokális és globális változóiból, plusz opcionális `extras` | a t-stringen belül elkapott értékekből |
+| Megváltoztathatja a katalógus egy érték formázását? | igen | igen | nem | nem |
+| Belenyúlhat a katalógus az objektumokba (attribútum-hozzáférés)? | nem | igen | igen, pontozott nevekkel | nem |
+| Hol él „az aktuális nyelv”? | ott, ahová az alkalmazás teszi | ott, ahová az alkalmazás teszi | nyelvkódok vermében a közös alkalmazásobjektumon | egy `ContextVar`-ban, feladatonként vagy kérésenként |
+
+**Mibe kerül az integráció.** A fenti minden ingyen van, ha az eszközkészlet
+illeszkedik; itt derül ki, ha mégsem:
+
+| | `%(name)s` | `.format()` | `flufl.i18n` `$name` | `t"…"` |
+| --- | --- | --- | --- | --- |
+| Minimális Python | bármelyik | bármelyik | 3.10 | **3.14** |
+| Érettség | standard könyvtár | standard könyvtár | stabil kiadás | **alfa** |
+| Szokványos PO-/MO-katalógusokat használ? | igen | igen | igen | igen |
+| Kell hozzá egyedi forráskinyerő? | nem | nem | nem | igen, jelenleg |
+| Melyik PO-jelzőt vezeti le a Babel, hogy a meglévő eszközök validálhassanak? | `python-format` | `python-brace-format` | egyiket sem | `python-brace-format` |
+
+A renderelésidejű ellenőrzésről: az egyes számú üzeneteknél pontos
+helyőrző-egyezést várunk el. A többes számú üzeneteket is ellenőrizzük, az
+[unió/metszet szabály](spec.md) szerint, amely megengedi, hogy a célnyelv
+többesszám-alakjai eltérjenek a forrásnyelvéitől; a szigorúbb, alakonkénti
+ellenőrzés a katalógusok bináris fordításakor fut le
+([Kinyerés](extraction.md)).
+
+A formátumjelzőről szóló sor a helyőrzőket ismerő validálásra vonatkozik, nem
+a katalógus kompatibilitására. Az `egyiket sem` azt jelenti, hogy a szokásos
+gettext-eszközök továbbra is olvassák és lefordítják az üzenetet, de a
+`msgfmt --check-format` nem talál `$`-helyőrzőnyelvtant, amelyet alkalmazhatna.
+
+## Kompatibilitás és érettség { #compatibility-and-maturity }
+
+Az utolsó táblázat első két sora az, amelyik a bevezetésről dönt, ezért érdemes
+kimondva is leírni, nem csak cellákban.
+
+A `%`-formázás és a `.format()` be van építve a Pythonba, és semmilyen függőség
+nem kell hozzájuk. A [`flufl.i18n`][flufl-i18n] érett csomag, kiadott és éles
+használatban van, és Python 3.10-en és újabbon fut. A `gettext-tstrings`
+**alfa**, és **Python 3.14-et vagy újabbat** igényel, mert a t-string a 3.14 új
+szintaxisa — visszaportolás nincs, és nem is lehet. A
+[specifikációja](spec.md) a stabil része; a Python API még mozoghat 1.0 előtt.
+
+Amibe egyikük sem kerül, az a katalóguskompatibilitás. Mind a négy szokványos
+POT-/PO-/MO-fájlokat állít elő, amelyeket minden PO-szerkesztő, fordítási
+platform és GNU gettext-eszköz már most is olvas, így az alábbi választás
+olyan értelemben visszafordítható, ahogy egy katalógus*formátum* váltása nem
+lenne az. A [Migráció](migration.md) tárgyalja egy meglévő projekt átállítását.
+
+Az alábbi szakaszok mindegyik kompromisszumot részletesen mutatják be,
+egyszerre egy módszert.
 
 ## %-formázás { #-format }
 
@@ -53,10 +112,11 @@ Traceback (most recent call last):
 ValueError: incomplete format
 ```
 
-Egy egykarakteres szerkesztés a PO-szerkesztőben éles üzemi hibanyomkövetéssé
-válik. A GNU `msgfmt --check-format` elkapja ugyan, de csak a
-`python-format` jelzővel ellátott üzeneteknél, és csak akkor, ha a katalógus
-ténylegesen átmegy a msgfmten az alkalmazásod felé vezető úton.
+Egy egykarakteres szerkesztés a PO-szerkesztőben futásidejű kivétellé válik,
+hacsak a katalógusvalidálás előbb el nem kapja. A GNU `msgfmt --check-format`
+ezt elkapja ugyan, de csak a `python-format` jelzővel ellátott üzeneteknél, és
+csak akkor, ha a katalógus ténylegesen átmegy a msgfmten az alkalmazásod felé
+vezető úton.
 
 ## str.format { #strformat }
 
@@ -122,7 +182,7 @@ például `$settings.api_key` alakban, a [fordítómodulja] pedig ezeket az
 elérhető lokális vagy globális változóra hivatkozhat a hívónál, a pontozott
 szintaxissal pedig bejárhatja annak attribútumait is. Ez kényelmes, amikor egy
 üzenetnek attribútumra van szüksége, egyúttal azonban a hívó veremkeretét is a
-katalógus helyettesítési névterének részévé teszi. Az alábbi összehasonlítás a
+katalógus helyettesítési névterének részévé teszi. Az itteni összehasonlítás a
 `flufl.i18n` 6.0.0 verziójára vonatkozik, nem a `string.Template` minden
 lehetséges használatára.
 
@@ -187,7 +247,7 @@ helyőrzőivel, és csak puszta neveket fogad el, semmi mást. A
 | `{nombre}` | translation does not match the source placeholders: `{name}` is missing; `{nombre}` is not in the source message |
 
 Az elutasítás nem összeomlás: alapértelmezésben a könyvtár figyelmeztetést
-naplóz, és a forrásszöveget rendereli, így egy rossz katalógus soha nem viszi
+naplóz, és a forrásüzenetet rendereli, így egy rossz katalógus soha nem viszi
 le az alkalmazást —
 [ugyanaz a szerződés, amelyet maga a gettext is tart](guide.md#what-happens-when-a-catalog-is-wrong).
 
@@ -199,53 +259,19 @@ tr(t"Total: {amount:,.2f}")  # msgid is "Total: {amount}"
 ```
 
 A `:,.2f` sosem jut el a katalógusig, így semmilyen fordítás nem
-változtathatja meg, és egyetlen fordítónak sem kell ránéznie.
+változtathatja meg, és egyetlen fordítónak sem kell ránéznie. Ez azonban
+*rögzített* formátum, nem honosított: a számjegyek és az elválasztók
+nyelvenkénti megválasztása [a Babel dolga, még a hívás
+előtt](guide.md#locale-aware-values).
 
 Egy további különbség az eszközkészlet: a t-string új szintaxis, ezért
 `.pot`-ba kinyerésükhöz jelenleg t-stringet ismerő kinyerő kell, amilyet ez a
 csomag is [ad a Babelhez](extraction.md).
 
-## Egymás mellett { #side-by-side }
+## Mibe kerül a megszorítás { #the-cost-of-the-restriction }
 
-| | `%(name)s` | `.format()` | `flufl.i18n` `$name` | `t"…"` |
-| --- | --- | --- | --- | --- |
-| Nevesített a helyőrző? | igen | igen | igen | igen |
-| Átrendezheti a fordító a helyőrzőket? | igen | igen | igen | igen |
-| Honnan jönnek az értékek? | explicit leképezésből | explicit argumentumokból | a hívó lokális és globális változóiból, plusz opcionális `extras` | a t-stringen belül elkapott értékekből |
-| Megváltoztathatja a katalógus egy érték formázását? | igen | igen | nem | nem |
-| Belenyúlhat a katalógus az objektumokba (attribútum-hozzáférés)? | nem | igen | igen, pontozott nevekkel | nem |
-| A fordítás *elhagy* egy helyőrzőt — mi jelenik meg? | az érték némán eltűnik | az érték némán eltűnik | az érték némán eltűnik | a forrásszöveg, figyelmeztetéssel ([alapértelmezésben](guide.md#what-happens-when-a-catalog-is-wrong)) |
-| A fordítás *hozzáad* egy ismeretlen helyőrzőt — mi jelenik meg? | kivétel | kivétel | a helyőrző szövegként látható marad | a forrásszöveg, figyelmeztetéssel ([alapértelmezésben](guide.md#what-happens-when-a-catalog-is-wrong)) |
-| Ellenőrzöttek-e a helyőrzők rendereléskor? | nem | nem | nem | igen (lásd alább) |
-| Melyik PO-jelzőt vezeti le a Babel, hogy a meglévő eszközök validálhassanak? | `python-format` | `python-brace-format` | egyiket sem | `python-brace-format` |
-| Szokványos PO-/MO-katalógusokat használ? | igen | igen | igen | igen |
-| Kell hozzá egyedi forráskinyerő? | nem | nem | nem | igen, jelenleg |
-| Hol él „az aktuális nyelv”? | ott, ahová az alkalmazás teszi | ott, ahová az alkalmazás teszi | nyelvkódok vermében a közös alkalmazásobjektumon | egy `ContextVar`-ban, feladatonként vagy kérésenként |
-
-A renderelésidejű ellenőrzésről: az egyes számú üzeneteknél pontos
-helyőrző-egyezést várunk el. A többes számú üzeneteket is ellenőrizzük, az
-[unió/metszet szabály](spec.md) szerint, amely megengedi, hogy a célnyelv
-többesszám-alakjai eltérjenek a forrásnyelvéitől; a szigorúbb, alakonkénti
-ellenőrzés a katalógusok bináris fordításakor fut le
-([Kinyerés](extraction.md)).
-
-A formátumjelzőről szóló sor a helyőrzőket ismerő validálásra vonatkozik, nem
-a katalógus kompatibilitására. Az `egyiket sem` azt jelenti, hogy a szokásos
-gettext-eszközök továbbra is olvassák és lefordítják az üzenetet, de a
-`msgfmt --check-format` nem talál `$`-helyőrzőnyelvtant, amelyet alkalmazhatna.
-
-## Mibe kerül { #what-it-costs }
-
-Az f-string egyáltalán nem használható így — mire bármelyik könyvtár meglátja,
-már kész szöveg, tehát a fordítása töredék fordítását jelenti. A t-string
-([PEP 750]) különtartja a statikus szöveget és az értékeket, miközben megőrzi
-az f-stringszerű szintaxist és az explicit értékkötést. A `$`-stringek is
-kínálnak tömör alternatívát, más kötési és hibamodellel. A `flufl.i18n` érett
-csomag, amely Python 3.10-en és újabbon fut; a `gettext-tstrings` jelenleg
-alfa, és mivel a t-string új szintaxis, Python 3.14-et vagy újabbat igényel.
-
-A másik költség maga a megszorítás: egy interpolációnak puszta névnek kell
-lennie.
+A Python-követelményen túl mindennek egyetlen szabály az ára: egy
+interpolációnak puszta névnek kell lennie.
 
 ```python
 tr(t"Hello {user.name}")  # raises InvalidTemplateError at the call site
@@ -256,10 +282,15 @@ name = user.name  # compute it first
 tr(t"Hello {name}")
 ```
 
-Ez valódi korlát. A forrásoldali értékkötéssel és a futásidejű
-helyőrző-ellenőrzéssel együtt viszont megakadályozza, hogy a katalógus
-szövegei kifejezéseket értékeljenek ki, és értelmesen tartja a helyőrzők
-neveit.
+Ez valódi korlát, és pontosan ugyanaz a korlát, amely a fenti garanciákat
+megtermi. A forrásoldali értékkötéssel és a futásidejű helyőrző-ellenőrzéssel
+együtt megakadályozza, hogy a katalógus szövegei kifejezéseket értékeljenek
+ki, és értelmesen tartja a helyőrzők neveit annak számára, aki fordítja őket.
+
+Az f-string egyáltalán nem használható így — mire bármelyik könyvtár meglátja,
+már kész szöveg, tehát a fordítása töredék fordítását jelenti. A t-string
+([PEP 750]) különtartja a statikus szöveget és az értékeket, miközben megőrzi
+az f-stringszerű szintaxist és az explicit értékkötést.
 
 Hogy a Python miként jutott el erre a válaszútra — két PEP tíz év
 különbséggel, és a stdlib-vita, amely válasz nélkül zárult —, azt forrásokkal

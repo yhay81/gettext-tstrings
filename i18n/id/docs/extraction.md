@@ -43,11 +43,14 @@ dan `ngettext()` biasa, sehingga satu pemetaan mencakup basis kode campuran.
 Ia mengenali `_()`, empat nama gettext standar, alias `tr()` / `ntr()`, dan
 `lazy_gettext()` / `lazy_pgettext()` yang tertunda.
 
-!!! warning "`-c` bukan pilihan"
+!!! warning "Aktifkan komentar penerjemah dengan `-c`"
 
     `pybabel extract` hanya mengumpulkan komentar penerjemah ketika Anda
     melewatkan `-c "Translators:"`, persis seperti pada pemanggilan gettext
-    biasa.
+    biasa. Tanpa opsi itu ekstraksinya tetap bekerja — komentarnya saja yang
+    tidak pernah sampai ke katalog, tempat komentar itu menjadi
+    [tuas kualitas termurah](workflow.md#working-with-translators-and-platforms)
+    di seluruh alur kerja.
 
 ## Mendaftarkan nama fungsi Anda sendiri { #registering-your-own-function-names }
 
@@ -87,9 +90,9 @@ Opsinya adalah `tr_functions`, `ntr_functions`, `gettext_functions`,
     Hanya urutan argumen standar yang didukung: pesan lebih dulu, konteks lalu
     pesan untuk `pgettext`, konteks lalu tunggal lalu jamak untuk `npgettext`.
 
-## Tangguh secara bawaan { #robust-by-default }
+## Longgar secara lokal, ketat di CI { #lenient-locally-strict-in-ci }
 
-Satu berkas buruk tidak mengakhiri jalannya proses:
+Secara bawaan satu berkas buruk tidak mengakhiri jalannya proses:
 
 - Sebuah t-string yang ditolak ekstraktor — akses atribut, sebuah ekspresi,
   argumen yang keliru — dilaporkan sebagai peringatan dan dilewati.
@@ -97,8 +100,30 @@ Satu berkas buruk tidak mengakhiri jalannya proses:
 - Begitu pula berkas yang hanya ditolak `tokenize` sementara `ast`
   menerimanya, yang akan membuat lintasan Babel sendiri berhenti.
 
-Setel `strict = true` di opsi pemetaan untuk mengubah setiap kasus itu menjadi
-kegagalan keras, yang adalah yang Anda inginkan di CI.
+Itu nyaman selama Anda sedang menyunting dan berbahaya ketika tidak: sebuah
+pesan yang dilewati begitu saja **tidak ada di POT**, sehingga ia tidak pernah
+diterjemahkan dan tidak ada yang memberitahukannya. Setel `strict = true` di
+opsi pemetaan di mana pun ekstraksinya tidak sedang diawasi manusia:
+
+=== "babel.cfg"
+
+    ```ini
+    [gettext_tstrings: **.py]
+    encoding = utf-8
+    strict = true
+    ```
+
+=== "babel.toml"
+
+    ```toml
+    [[mappings]]
+    method = "gettext_tstrings"
+    pattern = "**.py"
+    strict = true
+    ```
+
+Setiap peringatan di atas lalu menjadi kegagalan keras. Perlakukan ini sebagai
+setelan produksi dan setelan bawaannya sebagai setelan lokal.
 
 ## Toolchain Anda yang sudah ada memvalidasi katalog ini { #your-existing-toolchain-validates-these-catalogs }
 
@@ -126,8 +151,9 @@ msgfmt: found 1 fatal error
 
 Weblate mendokumentasikan pemeriksaan yang sama sebagai
 [Python brace format][weblate-checks], dan platform komersial punya QA
-placeholder mereka sendiri yang bertumpu pada flag yang sama. Perilaku mereka
-adalah milik mereka; dua perkakas di bawah adalah yang diverifikasi di sini.
+placeholder mereka sendiri yang bertumpu pada flag yang sama. Perilaku setiap
+platform adalah miliknya sendiri; dua perkakas di bawah adalah yang
+diverifikasi di sini.
 
   [weblate-checks]: https://docs.weblate.org/en/latest/user/checks.html
 
@@ -159,8 +185,8 @@ match the source placeholders: {n} is missing
     [Apa yang dijaga CI](workflow.md#what-ci-gates) menunjukkan langkah build
     yang membiarkannya bekerja.
 
-Kedua pemeriksaan itu tidak berlebihan. Checker yang disertakan adalah pihak
-yang lebih ketat setidaknya di dua tempat:
+Kedua pemeriksaan itu tidak berlebihan. Checker milik paket ini lebih ketat
+setidaknya di dua kasus:
 
 - Sebuah msgid yang satu-satunya kurung kurawalnya di-escape
   (`Config {{raw}} only`) tidak pernah mendapat flag `python-brace-format`,

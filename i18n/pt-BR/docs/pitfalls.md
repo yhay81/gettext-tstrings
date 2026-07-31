@@ -149,11 +149,24 @@ essa lacuna.
 
 O passo de CI que esta documentação recomenda para pegar catálogos
 desatualizados, `pybabel update --check`, não consegue fazer esse trabalho em
-nenhum projeto que use `pgettext` ou `npgettext` — ele relata como desatualizado
-todo catálogo que tenha um `msgctxt`, em toda execução, por causa de um bug na
-forma como a comparação busca as mensagens. Ele foi descoberto aqui ao tentar
-usá-lo, foi reportado upstream e está [descrito por inteiro, com a solução de
-contorno](workflow.md#what-ci-gates).
+nenhum projeto que use `pgettext` ou `npgettext`. No Babel 2.18.0, ele relata
+como desatualizado todo catálogo que tenha um `msgctxt`, em toda execução. A
+comparação passa por `Catalog.is_identical`, que procura cada mensagem pela
+chave sob a qual ela está armazenada — e, para uma mensagem com contexto, essa
+chave é o par `(id, context)`, que `Catalog.get` não aceita. A busca não
+retorna nada, e os catálogos nunca são considerados iguais:
+
+```pycon
+>>> from babel.messages.catalog import Catalog
+>>> c = Catalog(locale="ja")
+>>> c.add("Guide", "ガイド", context="navigation")
+<Message 'Guide' (flags: [])>
+>>> c.is_identical(c)
+False
+```
+
+Ele foi descoberto aqui ao tentar usá-lo, foi reportado upstream, e a
+verificação substituta está [na página de produção](workflow.md#what-ci-gates).
 
 A lição geral é a desconfortável: um portão sempre vermelho é pior que portão
 nenhum, porque a equipe o desliga. Verifique que a sua checagem de CI é capaz

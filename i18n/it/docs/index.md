@@ -1,5 +1,5 @@
 ---
-description: "Traduci messaggi t-string completi tramite gettext e Babel, tenendo la formattazione fuori dal catalogo."
+description: "Traduci messaggi t-string completi tramite gettext e Babel, tenendo i valori e la formattazione fuori dal catalogo."
 title: "gettext-tstrings"
 hide:
   - navigation
@@ -8,10 +8,12 @@ hide:
 
 <div class="home-hero" markdown>
 
-# Scrivi la frase una volta sola.<br>Traducila per intero.
+# Traduci messaggi interi,<br>non frammenti di stringa.
 
-Integrazione sicura di gettext e Babel per le t-string di Python 3.14+ — il
-valore resta al suo posto e il catalogo vede il messaggio per intero:
+`gettext-tstrings` collega le t-string di Python 3.14+ ai normali cataloghi
+gettext e agli strumenti di Babel. Valori e formattazione restano nel codice
+applicativo; il catalogo contiene un messaggio completo con semplici
+segnaposto `{name}`:
 
 ```python
 import gettext
@@ -24,7 +26,10 @@ print(_(t"Hello {name}"))  # with a Japanese catalog: こんにちは Ada
 ```
 
 [Inizia il tutorial :material-arrow-right:](tutorial.md){ .md-button .md-button--primary }
-[Perché le t-string](comparison.md){ .md-button }
+[Confronta le alternative](comparison.md){ .md-button }
+
+Alpha · Python 3.14+ · normali cataloghi PO/MO · nessuna dipendenza a runtime
+{ .home-facts }
 
 Questo sito mette in pratica ciò che documenta: ogni edizione linguistica —
 navigazione, etichette e il report di build con le forme plurali — è generata
@@ -34,20 +39,45 @@ dai cataloghi PO da
 
 </div>
 
-Il catalogo riceve la frase completa `Hello {name}`. Una traduzione può
-riordinare o ripetere `{name}`; non può eliminarlo, inventarne uno nuovo o
-aggiungere formattazione propria — questa libreria lo verifica, e un catalogo
-danneggiato ripiega sul testo sorgente invece di andare in crash.
+## Fa per te? { #is-this-for-you }
+
+**Va bene già oggi se** la tua applicazione gira su Python 3.14 o più recente;
+usi già gettext e Babel, oppure vuoi adottare il loro flusso di lavoro PO/MO;
+e vuoi la sintassi delle t-string con segnaposto nominati che vengono
+verificati prima di essere resi.
+
+**Non fa ancora per te se** ti serve Python 3.13 o precedente; ti serve
+un'API Python stabile — questa è una alpha, e la [specifica](spec.md) ne è la
+parte che si è assestata; oppure quasi tutto il tuo testo traducibile vive in
+un linguaggio di template anziché nel sorgente Python.
+
+Hai già dei cataloghi? Continuano a funzionare.
+`_("Hello {name}").format(name=name)` e `tr(t"Hello {name}")` producono lo
+stesso msgid, quindi le traduzioni esistenti sopravvivono al cambio —
+[Migrazione](migration.md) percorre l'intero passaggio.
+
+## Che cosa può dire il catalogo { #what-the-catalog-may-say }
+
+Il catalogo riceve il messaggio completo `Hello {name}`. Una traduzione può
+riordinare o ripetere `{name}`, e può riscrivere ogni altra parola attorno a
+esso. Non può eliminare il segnaposto, inventarne uno nuovo, passarci
+attraverso per arrivare ai tuoi oggetti o aggiungere formattazione propria.
+
+Questa è tutta la promessa: **una traduzione non può cambiare la struttura del
+messaggio che traduce.** La libreria lo verifica all'ingresso — quando i
+cataloghi vengono compilati — e di nuovo al momento del rendering; una voce
+danneggiata che arriva comunque in produzione registra un avviso e rende il
+messaggio sorgente invece di andare in crash.
 
 !!! note "Nuovo a gettext? L'intero flusso di lavoro in quattro frasi"
 
     **gettext** è il modo standard in cui il software viene tradotto, in
-    Python e ben oltre. Il tuo codice marca le stringhe traducibili; un
-    *estrattore* le raccoglie in un file template (`.pot`); un traduttore — di
+    Python e ben oltre. Il tuo codice marca i messaggi traducibili; un
+    *estrattore* li raccoglie in un file template (`.pot`); un traduttore — di
     solito non un programmatore — compila un file di catalogo (`.po`) per
     lingua, che viene compilato in un `.mo` binario caricato dall'applicazione
     a runtime. Il nome convenzionale della funzione di traduzione è `_`, così
-    `_(t"Hello {name}")` si legge come "traduci questa frase". Il
+    `_(t"Hello {name}")` si legge come "traduci questo messaggio". Il
     **[tutorial](tutorial.md)** percorre l'intero cammino — marcare,
     estrarre, tradurre, compilare, eseguire — in circa cinque minuti.
 
@@ -67,16 +97,22 @@ Questa libreria compie quella scelta, la mette per iscritto in una
 [specifica versionata](spec.md) e distribuisce la
 [suite di conformità](spec.md#conformance) per verificarla.
 
-## La scelta che compie { #the-choice-it-makes }
+## Le regole di progetto { #the-design-rules }
 
 - Tradurre messaggi completi, mai frammenti di frase.
 - Accettare soltanto nomi di variabile semplici come `{name}`.
 - Tenere `!r` e `:.2f` sotto il controllo dell'applicazione, fuori dal
   catalogo.
-- Lasciare che i traduttori riordinino e ripetano i segnaposto noti — ma
-  senza accedere ad attributi e senza aggiungere comportamenti di
+- Permettere alle traduzioni di riordinare e ripetere i segnaposto noti,
+  impedendo loro al tempo stesso di arrivare agli attributi o di aggiungere
   formattazione.
 - Riutilizzare i normali file POT, PO e MO, e gli strumenti che già li leggono.
+
+E l'elenco corrispondente di ciò che lascia deliberatamente stare: non
+localizza numeri, valute o date — [formattali prima](guide.md#locale-aware-values),
+con Babel; non fa l'escaping dell'output reso per l'HTML, una shell o un
+terminale; e non sa giudicare se una traduzione sia *corretta*, ma solo se i
+suoi segnaposto sono intatti.
 
 ## Installazione { #install }
 
@@ -97,47 +133,58 @@ python -m pip install "gettext-tstrings[babel]"
 
 ## Dove andare adesso { #where-to-go-next }
 
-Qui arrivano tre tipi di lettori: chi traduce il suo primo programma, chi
-integra la traduzione in un progetto reale e chi vuole sapere esattamente
-perché il meccanismo ha questa forma. Ognuno ha il suo percorso.
-
-**Impararla** — nessuna esperienza con gettext richiesta:
+**Inizia da qui** — nessuna esperienza con gettext richiesta:
 
 <div class="grid cards" markdown>
 
-- **[Tutorial](tutorial.md)** — inizia da qui: da una directory vuota a una
-  traduzione giapponese funzionante in cinque passi, ogni comando mostrato con
-  il suo output.
+- **[Tutorial](tutorial.md)** — da una directory vuota a una traduzione
+  giapponese funzionante in cinque passi, ogni comando mostrato con il suo
+  output.
 - **[Perché le t-string](comparison.md)** — lo stesso messaggio scritto in
   quattro modi, e che cosa `%(name)s`, `.format()` e le `$`-string consegnano
   ciascuno al catalogo.
-- **[Contesto](background.md)** — perché questa libreria esiste: trent'anni di
-  gettext, due PEP e la discussione sulla stdlib chiusa senza una risposta.
 
 </div>
 
-**Usarla sul serio** — i riferimenti di lavoro:
+**Usala** — i riferimenti di lavoro:
 
 <div class="grid cards" markdown>
 
-- **[Guida](guide.md)** — l'API a runtime: plurali, lingue per richiesta,
-  stringhe differite e che cosa succede quando un catalogo è sbagliato.
+- **[Guida](guide.md)** — l'API a runtime: quale entry point usare, plurali,
+  lingue per richiesta, stringhe differite e che cosa succede quando un
+  catalogo è sbagliato.
 - **[Estrazione](extraction.md)** — il riferimento per `pybabel`:
   configurazione, nomi di funzione personalizzati e come gli strumenti
   esistenti validano questi cataloghi gratis.
 - **[In produzione](workflow.md)** — il ciclo come lo conduce un team: il
   ciclo di aggiornamento, le voci fuzzy, i controlli in CI, le piattaforme di
-  traduzione e le lingue per richiesta in un'applicazione web.
-- **[API](api.md)** — tutto ciò che il pacchetto esporta, in una sola pagina.
+  traduzione e la distribuzione.
+- **[Migrazione](migration.md)** — adottarla in un progetto che ha già
+  cataloghi, un punto di chiamata alla volta.
+- **[Per i traduttori](translators.md)** — una pagina sola da consegnare a chi
+  modifica i file `.po`.
 
 </div>
 
-**Capirla** — dai principi all'implementazione:
+**Capiscila** — dalla storia all'implementazione:
 
 <div class="grid cards" markdown>
 
+- **[Contesto](background.md)** — perché questa libreria esiste: trent'anni di
+  gettext, due PEP e la discussione sulla stdlib chiusa senza una risposta.
+- **[Insidie](pitfalls.md)** — che cosa ha rotto davvero la traduzione di
+  questo sito in trentacinque lingue, e quale metà uno strumento può
+  intercettare.
 - **[Come funziona](internals.md)** — dall'oggetto template della PEP 750 alla
   stringa finale, e le cache che rendono economico il controllo.
+
+</div>
+
+**Riferimento** — i contratti:
+
+<div class="grid cards" markdown>
+
+- **[API](api.md)** — tutto ciò che il pacchetto esporta, in una sola pagina.
 - **[Specifica](spec.md)** — la convenzione t-string ↔ msgid come contratto
   stabile e versionato, con una suite di conformità leggibile dalle macchine.
 

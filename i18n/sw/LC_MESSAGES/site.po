@@ -86,3 +86,27 @@ msgid "Rendered {n} page in {seconds}s"
 msgid_plural "Rendered {n} pages in {seconds}s"
 msgstr[0] "Ukurasa {n} umeonyeshwa katika sekunde {seconds}"
 msgstr[1] "Kurasa {n} zimeonyeshwa katika sekunde {seconds}"
+
+#. gettext-tstrings
+msgid "Start here"
+msgstr "Anza hapa"
+
+#. gettext-tstrings
+msgid "Use it"
+msgstr "Itumie"
+
+#. gettext-tstrings
+msgid "Migration"
+msgstr "Uhamiaji"
+
+#. gettext-tstrings
+msgid "For translators"
+msgstr "Kwa watafsiri"
+
+#. gettext-tstrings
+msgid "Understand it"
+msgstr "Ielewe"
+
+#. gettext-tstrings
+msgid "Reference"
+msgstr "Marejeleo"

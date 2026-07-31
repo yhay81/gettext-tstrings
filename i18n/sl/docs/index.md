@@ -1,5 +1,5 @@
 ---
-description: "Prevajajte celotna sporočila iz t-nizov prek gettexta in Babela, z oblikovanjem, ki ostane zunaj kataloga."
+description: "Prevajajte celotna sporočila iz t-nizov prek gettexta in Babela, z vrednostmi in oblikovanjem, ki ostanejo zunaj kataloga."
 title: "gettext-tstrings"
 hide:
   - navigation
@@ -8,10 +8,11 @@ hide:
 
 <div class="home-hero" markdown>
 
-# Poved napišite enkrat.<br>Prevedite jo v celoti.
+# Prevajajte celotna sporočila,<br>ne drobcev nizov.
 
-Varna integracija z gettextom in Babelom za t-nize v Pythonu 3.14+ — vrednost
-ostane na svojem mestu, katalog pa vidi celotno sporočilo:
+`gettext-tstrings` poveže t-nize iz Pythona 3.14+ s standardnimi katalogi
+gettexta in orodji Babela. Vrednosti in oblikovanje ostanejo v kodi
+aplikacije; katalog hrani celotno sporočilo s preprostimi ogradami `{name}`:
 
 ```python
 import gettext
@@ -24,7 +25,10 @@ print(_(t"Hello {name}"))  # with a Japanese catalog: こんにちは Ada
 ```
 
 [Začnite vadnico :material-arrow-right:](tutorial.md){ .md-button .md-button--primary }
-[Zakaj t-nizi](comparison.md){ .md-button }
+[Primerjajte možnosti](comparison.md){ .md-button }
+
+Alfa · Python 3.14+ · običajni katalogi PO/MO · brez odvisnosti med izvajanjem
+{ .home-facts }
 
 Ta stran uresničuje to, kar dokumentira: vsaka jezikovna različica —
 navigacija, oznake in poročilo o gradnji, ki upošteva množinske oblike — se
@@ -34,20 +38,43 @@ izriše iz katalogov PO s
 
 </div>
 
-Katalog prejme celotno poved `Hello {name}`. Prevod sme `{name}` prestaviti ali
-ponoviti; ne sme ga izpustiti, si izmisliti novega ali mu dodati lastnega
-oblikovanja — ta knjižnica to preverja, pokvarjen katalog pa se namesto sesutja
-vrne na izvorno besedilo.
+## Je to za vas? { #is-this-for-you }
+
+**Danes se ujame, kadar** vaša aplikacija teče na Pythonu 3.14 ali novejšem;
+gettext in Babel že uporabljate ali pa želite prevzeti njun delovni proces
+PO/MO; in želite sintakso t-nizov s poimenovanimi ogradami, ki so preverjene,
+še preden se izrišejo.
+
+**Še se ne ujame, kadar** potrebujete Python 3.13 ali starejši; kadar
+potrebujete stabilen pythonski API — to je alfa in [specifikacija](spec.md) je
+tisti njen del, ki se je ustalil; ali kadar skoraj vse vaše prevedljivo
+besedilo živi v predlognem jeziku in ne v pythonski izvorni kodi.
+
+Kataloge že imate? Delovali bodo naprej. `_("Hello {name}").format(name=name)`
+in `tr(t"Hello {name}")` proizvedeta isti msgid, zato obstoječi prevodi
+preklop preživijo — [Migracija](migration.md) prehodi celotno selitev.
+
+## Kaj sme katalog povedati { #what-the-catalog-may-say }
+
+Katalog prejme celotno sporočilo `Hello {name}`. Prevod sme `{name}` prestaviti
+ali ponoviti in sme prepisati vsako drugo besedo okoli njega. Ne sme pa ograde
+izpustiti, si izmisliti nove, skoznjo seči v vaše objekte ali ji dodati
+lastnega oblikovanja.
+
+To je celotna obljuba: **prevod ne more spremeniti zgradbe sporočila, ki ga
+prevaja.** Knjižnica to preveri na poti noter — ob kompilaciji katalogov — in
+znova ob izrisu; pokvarjen vnos, ki kljub temu pride v produkcijo, zabeleži
+opozorilo in izriše izvorno sporočilo, namesto da bi se sesul.
 
 !!! note "Vam je gettext nov? Celoten delovni proces v štirih povedih"
 
     **gettext** je standardni način prevajanja programske opreme, v Pythonu in
-    daleč zunaj njega. Vaša koda označi prevedljive nize; *ekstraktor* jih zbere
+    daleč zunaj njega. Vaša koda označi prevedljiva sporočila; *ekstraktor* jih zbere
     v datoteko predloge (`.pot`); prevajalec — običajno ne programer — izpolni
     po eno katalogno datoteko (`.po`) za vsak jezik, ta pa se prevede v binarno
     datoteko `.mo`, ki jo vaša aplikacija naloži med izvajanjem. Uveljavljeno
     ime prevajalske funkcije je `_`, zato se `_(t"Hello {name}")` bere kot
-    »prevedi to poved«. **[Vadnica](tutorial.md)** prehodi celotno pot —
+    »prevedi to sporočilo«. **[Vadnica](tutorial.md)** prehodi celotno pot —
     označevanje, ekstrakcija, prevajanje, kompilacija, zagon — v približno petih
     minutah.
 
@@ -65,15 +92,21 @@ Toda ne gettext ne Babel ne povesta, kako t-niz postane sporočilo. Ta knjižnic
 to izbiro naredi, jo zapiše kot [verzionirano specifikacijo](spec.md) in
 priloži [zbirko testov skladnosti](spec.md#conformance) za njeno preverjanje.
 
-## Izbira, ki jo naredi { #the-choice-it-makes }
+## Pravila zasnove { #the-design-rules }
 
 - Prevajati celotna sporočila, nikoli drobcev povedi.
 - Sprejemati le preprosta imena spremenljivk, kot je `{name}`.
 - `!r` in `:.2f` ohraniti pod nadzorom aplikacije, zunaj kataloga.
-- Prevajalcem dovoliti prerazporejanje in ponavljanje znanih ograd — ne pa
-  klicanja atributov in ne dodajanja oblikovnega vedenja.
+- Prevodom dopustiti prerazporejanje in ponavljanje znanih ograd, hkrati pa
+  jim preprečiti seganje po atributih ali dodajanje oblikovanja.
 - Ponovno uporabiti običajne datoteke POT, PO in MO ter orodja, ki jih znajo
   brati že danes.
+
+In pripadajoči seznam tega, česar se namenoma ne dotika: ne lokalizira števil,
+valut ali datumov — [ta oblikujte prej](guide.md#locale-aware-values), z
+Babelom; izrisanega izpisa ne ubeži za HTML, lupino ali terminal; in ne more
+presoditi, ali je prevod *pravilen*, ampak le, ali so njegove ograde
+nedotaknjene.
 
 ## Namestitev { #install }
 
@@ -94,45 +127,56 @@ python -m pip install "gettext-tstrings[babel]"
 
 ## Kam naprej { #where-to-go-next }
 
-Sem prihajajo tri vrste bralcev: nekdo, ki prevaja svoj prvi program, nekdo, ki
-prevajanje vgrajuje v resničen projekt, in nekdo, ki hoče natančno vedeti,
-zakaj je ta mehanizem oblikovan prav tako. Vsak ima svojo pot.
-
-**Za učenje** — brez predpostavljenih izkušenj z gettextom:
+**Začnite tukaj** — brez predpostavljenih izkušenj z gettextom:
 
 <div class="grid cards" markdown>
 
-- **[Vadnica](tutorial.md)** — začnite tukaj: od praznega imenika do delujočega
-  japonskega prevoda v petih korakih, vsak ukaz prikazan skupaj z izpisom.
+- **[Vadnica](tutorial.md)** — od praznega imenika do delujočega japonskega
+  prevoda v petih korakih, vsak ukaz prikazan skupaj z izpisom.
 - **[Zakaj t-nizi](comparison.md)** — isto sporočilo, zapisano na štiri načine,
   in kaj katalogu izročijo `%(name)s`, `.format()` in `$`-nizi.
-- **[Ozadje](background.md)** — zakaj ta knjižnica obstaja: trideset let
-  gettexta, dva PEP-a in razprava o standardni knjižnici, ki se je zaključila
-  brez odgovora.
 
 </div>
 
-**Za resno uporabo** — delovne reference:
+**Uporaba** — delovne reference:
 
 <div class="grid cards" markdown>
 
-- **[Vodnik](guide.md)** — API med izvajanjem: množinske oblike, jezik na
-  zahtevo, odloženi nizi in kaj se zgodi, kadar je katalog napačen.
+- **[Vodnik](guide.md)** — API med izvajanjem: katero vstopno točko uporabiti,
+  množinske oblike, jezik na zahtevo, odloženi nizi in kaj se zgodi, kadar je
+  katalog napačen.
 - **[Ekstrakcija](extraction.md)** — referenca za `pybabel`: konfiguracija,
   lastna imena funkcij in kako obstoječa orodja te kataloge preverijo zastonj.
 - **[V produkciji](workflow.md)** — zanka, kakor jo poganja ekipa: cikel
   posodobitev, ohlapni (`fuzzy`) vnosi, zaščite v CI, prevajalske platforme in
-  jezik na zahtevo v spletni aplikaciji.
-- **[API](api.md)** — vse, kar paket izvaža, na eni strani.
+  odprema.
+- **[Migracija](migration.md)** — prevzemanje tega v projektu, ki kataloge že
+  ima, po eno klicno mesto naenkrat.
+- **[Za prevajalce](translators.md)** — ena stran, ki jo izročite tistemu, ki
+  ureja datoteke `.po`.
 
 </div>
 
-**Za razumevanje** — od načel do izvedbe:
+**Razumevanje** — od zgodovine do izvedbe:
 
 <div class="grid cards" markdown>
 
+- **[Ozadje](background.md)** — zakaj ta knjižnica obstaja: trideset let
+  gettexta, dva PEP-a in razprava o standardni knjižnici, ki se je zaključila
+  brez odgovora.
+- **[Pasti](pitfalls.md)** — kaj se je ob prevajanju tega spletišča v
+  petintrideset jezikov v resnici polomilo in katero polovico tega orodje
+  lahko ujame.
 - **[Kako deluje](internals.md)** — od objekta predloge iz PEP 750 do izrisanega
   niza in predpomnilnikov, zaradi katerih je preverjanje poceni.
+
+</div>
+
+**Referenca** — pogodbe:
+
+<div class="grid cards" markdown>
+
+- **[API](api.md)** — vse, kar paket izvaža, na eni strani.
 - **[Specifikacija](spec.md)** — dogovor t-niz ↔ msgid kot stabilna,
   verzionirana pogodba s strojno berljivo zbirko testov skladnosti.
 

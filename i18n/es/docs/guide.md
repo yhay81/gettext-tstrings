@@ -1,5 +1,5 @@
 ---
-description: "La API de ejecución: vincular un catálogo, idiomas por petición, cadenas diferidas y cómo se informa de una traducción incorrecta."
+description: "La API de ejecución: qué punto de entrada usar, vincular un catálogo, idiomas por petición, cadenas diferidas, valores dependientes del locale y cómo se informa de una traducción incorrecta."
 ---
 
 # Guía
@@ -12,6 +12,22 @@ minutos; la creación y validación de catálogos se trata en
 [Extracción](extraction.md), y cómo un equipo mantiene el ciclo en marcha
 —ciclos de actualización, CI, plataformas de traducción— se explica en
 [En producción](workflow.md).
+
+## ¿Qué punto de entrada debo usar? { #which-entry-point-should-i-use }
+
+El paquete exporta varias formas de traducir un mensaje porque las aplicaciones
+vinculan un idioma de maneras muy distintas. Elige según cómo decide tu programa
+en qué idioma está:
+
+| Tu situación | Usa |
+| --- | --- |
+| Un solo idioma para todo el proceso: una CLI, una app de escritorio, un script | `Translator`, invocado como `_` |
+| Un idioma por petición o por tarea asíncrona: una aplicación web | `use_translations()` alrededor del trabajo y después `tr()` |
+| Un mensaje definido durante el import: una etiqueta de formulario, un enum, una constante | `lazy_gettext()` o `lazy_pgettext()` |
+| Una cantidad decide la redacción | `ngettext()` / `npgettext()`, en cualquiera de las formas anteriores |
+| Renderizar un pattern sin catálogo de por medio | `compile_template()` |
+
+Todo lo que sigue son esos cinco casos, en ese orden.
 
 ## Vincular un catálogo { #binding-a-catalog }
 
@@ -61,6 +77,7 @@ from gettext_tstrings import tr, use_translations
 
 
 def handle(request):
+    name = request.user.display_name
     translations = load_translations(request.locale)
     with use_translations(translations):
         return render(tr(t"Hello {name}"))
@@ -163,12 +180,52 @@ sola vez y entrega copias que comparten el catálogo ya analizado.
 
     `asyncio.to_thread` ya lo hace por ti.
 
+## Valores dependientes del locale { #locale-aware-values }
+
+Esta biblioteca decide *dónde* aparece un valor dentro de un mensaje traducido.
+No localiza el valor en sí. `{amount:,.2f}` es una especificación de formato de
+Python con un comportamiento fijo —una coma cada tres dígitos y un punto antes
+de los decimales— y produce los mismos caracteres sea cual sea el idioma del
+mensaje:
+
+```pycon
+>>> f"{1234.5:,.2f}"  # the same in every locale
+'1,234.50'
+```
+
+El alemán escribe ese número `1.234,50`; el francés, `1 234,50`; y el hindi
+agrupa `1234567` como `12,34,567` en lugar de `1,234,567`. Los números, las
+monedas, las fechas, las horas y las unidades son cosa de [Babel][babel-numbers].
+Formatea primero el valor y coloca después la cadena ya terminada:
+
+```python
+from babel.numbers import format_currency
+
+total = format_currency(amount, "EUR", locale=locale)
+tr(t"Your order comes to {total}")
+```
+
+En un mensaje con cantidad, el número hace dos trabajos —selecciona la forma
+plural y aparece en el texto— y solo el segundo se localiza. Conserva la
+cantidad en bruto para la selección y pasa la cadena formateada para mostrarla:
+
+```python
+from babel.numbers import format_decimal
+
+shown = format_decimal(n, locale=locale)
+_.ngettext(t"One file", t"{shown} files", n)
+```
+
+Formatear antes de la llamada es también lo que mantiene una especificación de
+formato fuera del catálogo: lo que ve un traductor es un fragmento de texto ya
+terminado, no un número acompañado de instrucciones para representarlo.
+
 ## Qué ocurre cuando un catálogo es incorrecto { #what-happens-when-a-catalog-is-wrong }
 
 Si los marcadores de una traducción no coinciden con el origen —un campo
 ausente, desconocido o reformateado que eludió la validación, procedente de un MO
 editado a mano, un catálogo de un proveedor o un pipeline que omite el
-checker—, el comportamiento predeterminado es reproducir el texto de origen en
+checker—, el comportamiento predeterminado es renderizar el mensaje de origen en
 vez de lanzar una excepción. Así se respeta el contrato de gettext: un catálogo
 incorrecto nunca debe romper la aplicación.
 
@@ -207,42 +264,14 @@ gettext_tstrings.errors.InvalidTranslationError: translation does not match the
 source placeholders: {name} is missing; {nombre} is not in the source message
 ```
 
-## Leer un mensaje de error { #reading-a-failure-message }
-
 Estos mensajes están escritos para quien pueda resolver el problema, que en un
-catálogo suele ser un traductor más que un programador. Indicar solo que falta
-`{name}` no ayuda si el lector ve esos caracteres delante. Por eso, cuando un
-marcador parece estar presente pero no lo está, el mensaje explica el motivo.
-Frente al origen `Hello {name}`, cada ejemplo se informa bajo
-`translation does not match the source placeholders:`:
-
-| La traducción dice | Motivo indicado |
-| --- | --- |
-| `こんにちは ｛name｝` | `{name}` is missing (the braces around it are not the ASCII `{` and `}`) |
-| `こんにちは {{name}}` | `{name}` is missing (it is written `{{name}}`, which is how a literal brace is escaped) |
-| `こんにちは name` | `{name}` is missing (the name appears, but not inside braces) |
-| `こんにちは {名前}` | `{name}` is missing; `{名前}` is not in the source message |
-
-Los caracteres invisibles reciben un tratamiento específico. Un espacio de no
-separación dentro de las llaves puede proceder de un método de entrada y ningún
-editor lo muestra, así que el mensaje imprime su code point:
-
-```text
-placeholder {<U+00A0>name} has a space inside the braces; write {name}
-```
-
-Un nombre cuyas letras mezclan sistemas de escritura —el caso de homoglyph, en
-el que una `а` cirílica es indistinguible de una latina— se muestra dos veces:
-una de forma legible y otra escapada, que es la única que revela la diferencia.
-
-```text
-translation does not match the source placeholders: {name} is missing;
-{nаme} (n\u0430me) is not in the source message
-```
-
-La misma distinción se aplica cuando un nombre escrito por completo en griego o
-cirílico entra en conflicto con un nombre ASCII, incluido el caso de una sola
-letra `a` latina / `а` cirílica.
+catálogo suele ser un traductor más que un programador; por eso, cuando un
+marcador parece estar presente pero no lo está, el mensaje explica el motivo en
+lugar de repetir que falta. Llaves de ancho completo, un `{{name}}` duplicado,
+un espacio de no separación invisible, una letra cirílica entre latinas: cada
+caso tiene su propia redacción, y todos están enumerados con ejemplos en
+[Para traductores](translators.md#reading-a-failure-message). Esa página está
+escrita para entregársela a quien edita el `.po`.
 
 ## Renderizar un pattern sin catálogo { #rendering-a-pattern-without-a-catalog }
 
@@ -299,3 +328,5 @@ llamador, igual que con gettext de la biblioteca estándar: **escapar** el
 resultado para su destino (HTML, shell o terminal) y mantener la **integridad
 del catálogo**. Un catálogo hostil puede repetir un marcador para amplificar el
 tamaño de la salida, algo inherente a cualquier i18n basado en marcadores.
+
+  [babel-numbers]: https://babel.pocoo.org/en/latest/api/numbers.html

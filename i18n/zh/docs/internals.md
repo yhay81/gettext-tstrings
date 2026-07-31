@@ -162,7 +162,8 @@ conversion), format_spec)`。此过程保持两条保证：
 
 基于同一原则，一个*看起来*存在的“缺失”占位符会得到关于其缺席的解释——东亚
 输入法产生的全角花括号、转义往返造成的 `{{name}}` 加倍、名称位于花括号之外。
-[指南的失败消息表](guide.md#reading-a-failure-message)逐字展示了这些消息。
+为翻译者写的[失败消息表](translators.md#reading-a-failure-message)逐字展示了
+这些消息。
 
 ## 热路径 { #the-hot-path }
 

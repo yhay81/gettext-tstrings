@@ -155,11 +155,24 @@ esistono per colmare quella lacuna.
 
 Il passo di CI che questa documentazione consiglia per intercettare i cataloghi
 obsoleti, `pybabel update --check`, non può svolgere quel compito per nessun
-progetto che usi `pgettext` o `npgettext` — segnala come non aggiornato ogni
-catalogo che contenga un `msgctxt`, a ogni esecuzione, per via di un bug nel
-modo in cui il confronto cerca i messaggi. È stato scoperto qui provando a
-usarlo, segnalato a monte ed è
-[descritto per intero, con la soluzione alternativa](workflow.md#what-ci-gates).
+progetto che usi `pgettext` o `npgettext`. Su Babel 2.18.0 segnala come non
+aggiornato ogni catalogo che contenga un `msgctxt`, a ogni esecuzione. Il
+confronto passa da `Catalog.is_identical`, che cerca ogni messaggio con la
+chiave sotto cui è archiviato — e per un messaggio contestuale quella chiave è
+la coppia `(id, context)`, che `Catalog.get` non accetta. La ricerca non
+restituisce nulla, e i cataloghi non risultano mai uguali:
+
+```pycon
+>>> from babel.messages.catalog import Catalog
+>>> c = Catalog(locale="ja")
+>>> c.add("Guide", "ガイド", context="navigation")
+<Message 'Guide' (flags: [])>
+>>> c.is_identical(c)
+False
+```
+
+È stato scoperto qui provando a usarlo, segnalato a monte, e il controllo
+sostitutivo è [sulla pagina della produzione](workflow.md#what-ci-gates).
 
 La lezione generale è quella scomoda: una barriera sempre rossa è peggio di
 nessuna barriera, perché una squadra la disattiva. Verifica che il tuo

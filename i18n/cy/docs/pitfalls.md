@@ -145,11 +145,24 @@ lenwi'r bwlch hwnnw.
 
 Ni all y cam CI y mae'r ddogfennaeth hon yn ei argymell ar gyfer dal catalogau
 hen, `pybabel update --check`, wneud y gwaith hwnnw i'r un prosiect sy'n
-defnyddio `pgettext` neu `npgettext` — mae'n adrodd bod pob catalog sydd â
-`msgctxt` yn hen, ar bob rhediad, oherwydd byg yn y ffordd y mae'r gymhariaeth
-yn chwilio am negeseuon. Cafodd ei ganfod yma drwy geisio ei ddefnyddio, ei
-adrodd i fyny'r afon, ac mae
-[wedi'i ddisgrifio'n llawn ynghyd â'r ateb dros dro](workflow.md#what-ci-gates).
+defnyddio `pgettext` neu `npgettext`. Ar Babel 2.18.0 mae'n adrodd bod pob
+catalog sydd â `msgctxt` yn hen, ar bob rhediad. Mae'r gymhariaeth yn rhedeg
+drwy `Catalog.is_identical`, sy'n chwilio am bob neges yn ôl yr allwedd y
+cedwir hi oddi tani — ac ar gyfer neges gyd-destunol y pâr `(id, context)` yw'r
+allwedd honno, nad yw `Catalog.get` yn ei derbyn. Nid yw'r chwiliad yn
+dychwelyd dim, ac nid yw'r catalogau byth yn cymharu'n gyfartal:
+
+```pycon
+>>> from babel.messages.catalog import Catalog
+>>> c = Catalog(locale="ja")
+>>> c.add("Guide", "ガイド", context="navigation")
+<Message 'Guide' (flags: [])>
+>>> c.is_identical(c)
+False
+```
+
+Cafodd ei ganfod yma drwy geisio ei ddefnyddio, ei adrodd i fyny'r afon, ac mae'r
+gwiriad amgen [ar y dudalen gynhyrchu](workflow.md#what-ci-gates).
 
 Y wers gyffredinol yw'r un anghyfforddus: mae gât sydd bob amser yn goch yn
 waeth na dim gât o gwbl, oherwydd bod tîm yn ei diffodd. Gwiriwch y gall eich

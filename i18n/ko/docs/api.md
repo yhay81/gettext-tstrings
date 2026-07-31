@@ -48,9 +48,12 @@ Translator(translations, strict=False)
 
 | 이름 | 역할 |
 | --- | --- |
-| `lazy_gettext(template, /, *, strict=False)` | 사용할 때까지 번역을 미룹니다. |
+| `lazy_gettext(template, /, *, strict=False)` | 렌더링할 때마다 번역을 미룹니다. |
 | `lazy_pgettext(context, template, /, *, strict=False)` | 컨텍스트가 있는 변형입니다. |
-| `LazyString` | `str()`, `format()`, f-string으로 렌더링하고 텍스트와 비교하며 의도적으로 해시할 수 없습니다. |
+| `LazyString` | 둘이 반환하는 것. 그 순간 바인딩된 언어로 `str()`과 `format()`을 통해 렌더링하고, 렌더링된 텍스트와 비교하며, 의도적으로 해시할 수 없습니다. |
+
+`strict`를 정의 시점에 두는 이유를 포함한 실제 예시는
+[지연 번역](guide.md#deferred-translation)에 있습니다.
 
 ## 저수준 API { #lower-level }
 

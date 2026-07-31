@@ -12,6 +12,18 @@ release. Questa pagina è quella pratica — che cosa resta nel repository, che
 cosa viaggia, che cosa la CI deve controllare e dove il runtime lega una
 lingua.
 
+Il totale sono sei controlli, quindi eccoli subito; ciascuna sezione più sotto
+ne imposta uno.
+
+- `pybabel update --check` passa — nessun messaggio è cambiato senza che i
+  cataloghi ne siano stati informati.
+- `pybabel compile` fa dipendere la build dal proprio stato di uscita.
+- Le voci `fuzzy` rimaste sono volute — ognuna si rende come testo sorgente
+  finché un traduttore non la conferma.
+- La suite di test rende ogni lingua distribuita una volta con `strict=True`.
+- L'artefatto di produzione contiene i file `.mo` e nessun Babel.
+- Il logger `gettext_tstrings` è instradato al monitoraggio.
+
 ## La forma di un progetto { #the-shape-of-a-project }
 
 ```text
@@ -35,7 +47,7 @@ distribuito.
 
 Un file ha un ruolo in ciascuna direzione: il `.pot` porta i tuoi messaggi
 *fuori* verso i traduttori, i file `.po` riportano le traduzioni *indietro*.
-Tutto ciò che segue è il traffico tra quei due.
+Il resto di questa pagina è ciò che si muove tra i due.
 
 ```mermaid
 flowchart LR
@@ -49,10 +61,11 @@ flowchart LR
 
 ## Il ciclo dopo la prima traduzione { #the-cycle-after-the-first-translation }
 
-Il `pybabel init` del tutorial si esegue una sola volta per lingua, per
-sempre. Da lì in poi il ciclo di lavoro è **estrai → aggiorna → traduci →
-compila**, e il suo centro è `pybabel update`, che fonde un template fresco
-nei cataloghi esistenti senza scartare le traduzioni che già contengono.
+Il `pybabel init` del tutorial normalmente si esegue una volta sola, quando si
+aggiunge una lingua. Da lì in poi il ciclo di lavoro è **estrai → aggiorna →
+traduci → compila**, e il suo centro è `pybabel update`, che fonde un template
+fresco nei cataloghi esistenti senza scartare le traduzioni che già
+contengono.
 
 Supponi che il saluto `Hello {name}` — già tradotto come
 `こんにちは {name}` — venga riformulato nel codice in `Welcome back, {name}`.
@@ -78,7 +91,8 @@ msgstr "こんにちは {name}"
 
 Babel ha notato che il nuovo msgid somiglia a uno rimosso e lo ha accoppiato
 con la vecchia traduzione — ma ha marcato la coppia **fuzzy**: l'ipotesi di
-una macchina in attesa di un umano. Il flag ha i denti. `pybabel compile`
+una macchina in attesa di un umano. Il flag cambia ciò che si compila.
+`pybabel compile`
 **esclude le voci fuzzy dal `.mo`**, quindi finché un traduttore non conferma
 la coppia, l'applicazione rende il nuovo testo inglese anziché un giapponese
 ormai stantio:
@@ -129,34 +143,18 @@ riestratto. `pybabel compile` esegue i controlli sui segnaposto sia di Babel
 sia del [checker registrato](extraction.md#your-existing-toolchain-validates-these-catalogs)
 di questo pacchetto.
 
-!!! bug "`--check` non può controllare un catalogo che usa i contesti"
+!!! bug "Babel 2.18.0: `--check` non può controllare un catalogo che usa i contesti"
 
     Su Babel 2.18.0, `pybabel update --check` segnala come non aggiornato
     **ogni** catalogo che contiene un `msgctxt`, a ogni esecuzione, per quanto
-    aggiornato sia. Il confronto passa per `Catalog.is_identical`, che cerca
-    ogni messaggio con la chiave sotto cui è memorizzato — e per un messaggio
-    contestuale quella chiave è la coppia `(id, context)`, che `Catalog.get`
-    non accetta. La ricerca non restituisce nulla, e i cataloghi non risultano
-    mai uguali:
-
-    ```pycon
-    >>> from babel.messages.catalog import Catalog
-    >>> c = Catalog(locale="ja")
-    >>> c.add("Guide", "ガイド", context="navigation")
-    <Message 'Guide' (flags: [])>
-    >>> c.is_identical(c)
-    False
-    ```
-
-    Quindi, se usi `pgettext` o `npgettext` anche solo una volta — e
-    disambiguare un omonimo è la ragione per cui esistono — questo passo
-    fallisce lasciando passare tutto, nel modo peggiore: sempre rosso, così un
-    team lo disattiva, così niente controlla più l'obsolescenza. Finché non
-    verrà corretto a monte, confronta tu stesso gli insiemi di messaggi.
-    Leggere il template e ogni catalogo con `babel.messages.pofile.read_po`
-    e confrontare
+    aggiornato sia. Una barriera che fallisce sempre è peggio di nessuna
+    barriera, perché una squadra la disattiva — quindi, se usi `pgettext` o
+    `npgettext` anche solo una volta, sostituisci questo passo invece di
+    conviverci. Leggere il template e ogni catalogo con
+    `babel.messages.pofile.read_po` e confrontare
     `{(m.context, m.id) for m in catalog if m.id}` è tutto il controllo, ed è
-    ciò che fa [la build di questo sito stesso](index.md).
+    ciò che fa [la build di questo sito stesso](index.md). La causa è
+    [spiegata in Insidie](pitfalls.md#your-tools-have-bugs-too).
 
 !!! danger "Controlla lo stato di uscita, non il log"
 

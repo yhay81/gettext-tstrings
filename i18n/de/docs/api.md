@@ -47,9 +47,12 @@ Die Bindung nutzt `ContextVar` und ist nebenläufigkeitssicher.
 
 | Name | Aufgabe |
 | --- | --- |
-| `lazy_gettext(template, /, *, strict=False)` | Verschiebt die Übersetzung bis zur Nutzung. |
+| `lazy_gettext(template, /, *, strict=False)` | Verschiebt die Übersetzung bis zum jeweiligen Rendern. |
 | `lazy_pgettext(context, template, /, *, strict=False)` | Variante mit Kontext. |
-| `LazyString` | Wird über `str()`, `format()` und f-strings gerendert, vergleicht sich mit Text und ist absichtlich nicht hashbar. |
+| `LazyString` | Was beide zurückgeben. Wird über `str()` und `format()` in der Sprache gerendert, die in diesem Moment gebunden ist, vergleicht sich gleich mit seinem gerenderten Text und ist absichtlich nicht hashbar. |
+
+Ausgearbeitete Beispiele, darunter warum `strict` an die Definition gehört,
+stehen unter [Verzögerte Übersetzung](guide.md#deferred-translation).
 
 ## Low-Level-API { #lower-level }
 

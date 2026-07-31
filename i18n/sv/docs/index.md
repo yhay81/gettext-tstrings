@@ -1,5 +1,5 @@
 ---
-description: "Översätt kompletta t-string-meddelanden genom gettext och Babel, med formateringen hållen utanför katalogen."
+description: "Översätt kompletta t-string-meddelanden genom gettext och Babel, med värdena och formateringen hållna utanför katalogen."
 title: "gettext-tstrings"
 hide:
   - navigation
@@ -8,10 +8,12 @@ hide:
 
 <div class="home-hero" markdown>
 
-# Skriv meningen en gång.<br>Översätt den som helhet.
+# Översätt hela meddelanden,<br>inte strängfragment.
 
-Säker integration av gettext och Babel för t-strings i Python 3.14+ — värdet
-stannar på sin plats, och katalogen ser hela meddelandet:
+`gettext-tstrings` kopplar samman t-strings i Python 3.14+ med vanliga
+gettext-kataloger och Babel-verktyg. Värden och formatering stannar i
+applikationskoden; katalogen får ett komplett meddelande med enkla
+`{name}`-platshållare:
 
 ```python
 import gettext
@@ -24,7 +26,10 @@ print(_(t"Hello {name}"))  # with a Japanese catalog: こんにちは Ada
 ```
 
 [Starta handledningen :material-arrow-right:](tutorial.md){ .md-button .md-button--primary }
-[Varför t-strings](comparison.md){ .md-button }
+[Jämför alternativen](comparison.md){ .md-button }
+
+Alfa · Python 3.14+ · vanliga PO/MO-kataloger · inga körningsberoenden
+{ .home-facts }
 
 Den här webbplatsen praktiserar vad den dokumenterar: varje språkutgåva —
 navigering, etiketter och den pluralmedvetna byggrapporten — renderas från
@@ -34,20 +39,45 @@ PO-kataloger av
 
 </div>
 
-Katalogen tar emot den kompletta meningen `Hello {name}`. En översättning får
-flytta om eller upprepa `{name}`; den får inte utelämna platshållaren, hitta på
-en ny eller lägga till egen formatering — det här biblioteket kontrollerar det,
-och en trasig katalog faller tillbaka till källtexten i stället för att krascha.
+## Är det här något för dig? { #is-this-for-you }
+
+**Det passar redan i dag när** din applikation kör på Python 3.14 eller nyare;
+du redan använder gettext och Babel, eller vill införa deras PO/MO-arbetsflöde;
+och du vill ha t-string-syntax med namngivna platshållare som kontrolleras
+innan de renderas.
+
+**Det passar inte än när** du behöver Python 3.13 eller äldre; du kräver ett
+stabilt Python-API — det här är en alfa, och [specifikationen](spec.md) är den
+del av det som har satt sig; eller när nästan all din översättbara text bor i
+ett mallspråk snarare än i Python-källkod.
+
+Har du redan kataloger? De fortsätter att fungera.
+`_("Hello {name}").format(name=name)` och `tr(t"Hello {name}")` ger samma
+msgid, så befintliga översättningar överlever bytet — [Migrering](migration.md)
+går igenom hela flytten.
+
+## Vad katalogen får säga { #what-the-catalog-may-say }
+
+Katalogen tar emot det kompletta meddelandet `Hello {name}`. En översättning
+får flytta om eller upprepa `{name}`, och får skriva om varenda annat ord runt
+omkring. Den får inte utelämna platshållaren, hitta på en ny, sträcka sig genom
+den in i dina objekt eller lägga till egen formatering.
+
+Det är hela löftet: **en översättning kan inte ändra strukturen på det
+meddelande den översätter.** Biblioteket kontrollerar det på vägen in — när
+kataloger kompileras — och igen vid rendering; en trasig post som ändå når
+produktion loggar en varning och renderar källmeddelandet i stället för att
+krascha.
 
 !!! note "Ny på gettext? Hela arbetsflödet i fyra meningar"
 
     **gettext** är standardsättet att översätta programvara, i Python och långt
-    därbortom. Din kod markerar översättbara strängar; en *extraktor* samlar
+    därbortom. Din kod markerar översättbara meddelanden; en *extraktor* samlar
     dem i en mallfil (`.pot`); en översättare — oftast inte en programmerare —
     fyller i en katalogfil (`.po`) per språk, som kompileras till en binär
     `.mo` som din applikation läser in vid körning. Det konventionella namnet
     på översättningsfunktionen är `_`, så `_(t"Hello {name}")` läses som
-    "översätt den här meningen". **[Handledningen](tutorial.md)** går igenom
+    "översätt det här meddelandet". **[Handledningen](tutorial.md)** går igenom
     hela vägen — markera, extrahera, översätta, kompilera, köra — på ungefär
     fem minuter.
 
@@ -67,14 +97,20 @@ Det här biblioteket gör det valet, skriver ner det som en
 [versionerad specifikation](spec.md) och levererar
 [konformitetssviten](spec.md#conformance) som kontrollerar det.
 
-## Valet det gör { #the-choice-it-makes }
+## Designreglerna { #the-design-rules }
 
 - Översätt kompletta meddelanden, aldrig meningsfragment.
 - Acceptera endast enkla variabelnamn som `{name}`.
 - Håll `!r` och `:.2f` under applikationens kontroll, utanför katalogen.
-- Låt översättare flytta om och upprepa kända platshållare — men inte anropa
-  attribut, och inte lägga till formateringsbeteende.
+- Låt översättningar flytta om och upprepa kända platshållare, samtidigt som de
+  hindras från att nå attribut eller lägga till formatering.
 - Återanvänd vanliga POT-, PO- och MO-filer, och verktygen som redan läser dem.
+
+Och den motsvarande listan över vad det avsiktligt lämnar i fred: det
+lokaliserar inte tal, valutor eller datum — [formatera dem först](guide.md#locale-aware-values),
+med Babel; det escapar inte renderad utdata för HTML, ett skal eller en
+terminal; och det kan inte bedöma om en översättning är *korrekt*, bara om dess
+platshållare är intakta.
 
 ## Installera { #install }
 
@@ -95,46 +131,57 @@ python -m pip install "gettext-tstrings[babel]"
 
 ## Vart härnäst { #where-to-go-next }
 
-Tre sorters läsare kommer hit: någon som översätter sitt första program, någon
-som kopplar in översättning i ett riktigt projekt, och någon som vill veta
-exakt varför maskineriet är format som det är. Var och en har en väg.
-
-**Lära sig det** — ingen gettext-erfarenhet förutsätts:
+**Börja här** — ingen gettext-erfarenhet förutsätts:
 
 <div class="grid cards" markdown>
 
-- **[Handledning](tutorial.md)** — börja här: från en tom katalog till en
-  körande japansk översättning i fem steg, varje kommando visat med sin utdata.
+- **[Handledning](tutorial.md)** — från en tom katalog till en körande japansk
+  översättning i fem steg, varje kommando visat med sin utdata.
 - **[Varför t-strings](comparison.md)** — samma meddelande skrivet på fyra
   sätt, och vad `%(name)s`, `.format()` och `$`-strängar var för sig lämnar
   över till katalogen.
-- **[Bakgrund](background.md)** — varför det här biblioteket finns: trettio år
-  av gettext, två PEP:ar och stdlib-diskussionen som stängdes utan svar.
 
 </div>
 
-**Använda det på allvar** — arbetsreferenserna:
+**Använd det** — arbetsreferenserna:
 
 <div class="grid cards" markdown>
 
-- **[Guide](guide.md)** — körnings-API:et: pluralformer, språk per anrop,
-  uppskjutna strängar, och vad som händer när en katalog är fel.
+- **[Guide](guide.md)** — körnings-API:et: vilken ingång du ska använda,
+  pluralformer, språk per förfrågan, uppskjutna strängar, och vad som händer
+  när en katalog är fel.
 - **[Extrahering](extraction.md)** — `pybabel`-referensen: konfiguration,
   egna funktionsnamn, och hur befintliga verktyg validerar dessa kataloger
   gratis.
 - **[I produktion](workflow.md)** — kretsloppet så som ett team kör det:
   uppdateringscykeln, fuzzy-poster, CI-grindar, översättningsplattformar och
-  språk per förfrågan i en webbapplikation.
-- **[API](api.md)** — allt paketet exporterar, på en sida.
+  leverans.
+- **[Migrering](migration.md)** — att införa det här i ett projekt som redan
+  har kataloger, ett anropsställe i taget.
+- **[För översättare](translators.md)** — en sida att räcka över till den som
+  redigerar `.po`-filerna.
 
 </div>
 
-**Förstå det** — från principer till implementation:
+**Förstå det** — från historia till implementation:
 
 <div class="grid cards" markdown>
 
+- **[Bakgrund](background.md)** — varför det här biblioteket finns: trettio år
+  av gettext, två PEP:ar och stdlib-diskussionen som stängdes utan svar.
+- **[Fallgropar](pitfalls.md)** — vad översättningen av den här webbplatsen
+  till trettiofem språk faktiskt gick sönder på, och vilken hälft ett verktyg
+  hinner fånga.
 - **[Så fungerar det](internals.md)** — från PEP 750:s template-objekt till den
   renderade strängen, och cacharna som gör kontrollerna billiga.
+
+</div>
+
+**Referens** — kontrakten:
+
+<div class="grid cards" markdown>
+
+- **[API](api.md)** — allt paketet exporterar, på en sida.
 - **[Specifikation](spec.md)** — konventionen t-string ↔ msgid som ett
   stabilt, versionerat kontrakt, med en maskinläsbar konformitetssvit.
 

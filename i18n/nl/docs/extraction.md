@@ -43,10 +43,14 @@ De `gettext_tstrings`-extractor verwerkt ook gewone `_()`-, `gettext()`- en
 herkent `_()`, de vier standaard gettext-namen, de `tr()`- / `ntr()`-aliassen
 en de uitgestelde `lazy_gettext()` / `lazy_pgettext()`.
 
-!!! warning "`-c` is niet optioneel"
+!!! warning "Zet vertalerscommentaren aan met `-c`"
 
     `pybabel extract` verzamelt vertalerscommentaren alleen wanneer je
     `-c "Translators:"` meegeeft, precies zoals bij gewone gettext-aanroepen.
+    Laat je het weg, dan werkt de extractie nog steeds — de commentaren
+    bereiken de catalogus alleen nooit, waar ze
+    [de goedkoopste kwaliteitshefboom](workflow.md#working-with-translators-and-platforms)
+    in de hele workflow zijn.
 
 ## Je eigen functienamen registreren { #registering-your-own-function-names }
 
@@ -87,9 +91,9 @@ De opties zijn `tr_functions`, `ntr_functions`, `gettext_functions`,
     context dan bericht voor `pgettext`, context dan enkelvoud dan meervoud
     voor `npgettext`.
 
-## Robuust als standaard { #robust-by-default }
+## Soepel lokaal, streng in CI { #lenient-locally-strict-in-ci }
 
-Eén slecht bestand beëindigt de run niet:
+Standaard beëindigt één slecht bestand de run niet:
 
 - Een t-string die de extractor afwijst — attribuuttoegang, een expressie,
   een verkeerd argument — wordt als waarschuwing gerapporteerd en
@@ -98,8 +102,30 @@ Eén slecht bestand beëindigt de run niet:
 - Net als een bestand dat alleen `tokenize` weigert terwijl `ast` het
   accepteert, waarop Babels eigen doorloop anders zou afbreken.
 
-Zet `strict = true` in de mapping-opties om elk van die gevallen in een harde
-fout te veranderen, wat je in CI wilt.
+Dat is handig terwijl je aan het bewerken bent en gevaarlijk wanneer je dat
+niet bent: een overgeslagen bericht is simpelweg **afwezig uit de POT**, dus
+het wordt nooit vertaald en niets zegt dat. Zet `strict = true` in de
+mapping-opties overal waar geen mens naar de extractie kijkt:
+
+=== "babel.cfg"
+
+    ```ini
+    [gettext_tstrings: **.py]
+    encoding = utf-8
+    strict = true
+    ```
+
+=== "babel.toml"
+
+    ```toml
+    [[mappings]]
+    method = "gettext_tstrings"
+    pattern = "**.py"
+    strict = true
+    ```
+
+Elke waarschuwing hierboven wordt dan een harde fout. Behandel dit als de
+productie-instelling en de standaard als de lokale.
 
 ## Je bestaande toolchain valideert deze catalogi { #your-existing-toolchain-validates-these-catalogs }
 
@@ -126,8 +152,8 @@ msgfmt: found 1 fatal error
 
 Weblate documenteert dezelfde controle als
 [Python brace format][weblate-checks], en de commerciële platforms hebben hun
-eigen placeholder-QA op dezelfde vlag. Hun gedrag is het hunne; de twee tools
-hieronder zijn degene die hier geverifieerd zijn.
+eigen placeholder-QA op dezelfde vlag. Het gedrag van elk platform is van
+henzelf; de twee tools hieronder zijn degene die hier geverifieerd zijn.
 
   [weblate-checks]: https://docs.weblate.org/en/latest/user/checks.html
 
@@ -159,8 +185,8 @@ match the source placeholders: {n} is missing
     [Wat CI bewaakt](workflow.md#what-ci-gates) toont de buildstap die dat
     laat gebeuren.
 
-De twee controles zijn niet redundant. De meegeleverde checker is op minstens
-twee plekken de striktere partij:
+De twee controles zijn niet redundant. De checker van het pakket is in
+minstens twee gevallen strikter:
 
 - Een msgid waarvan de enige accolades geëscaped zijn (`Config {{raw}} only`)
   krijgt nooit de vlag `python-brace-format`, dus geen enkele externe tool

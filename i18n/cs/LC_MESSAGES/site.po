@@ -88,3 +88,27 @@ msgid_plural "Rendered {n} pages in {seconds}s"
 msgstr[0] "Vykreslena {n} stránka za {seconds} s"
 msgstr[1] "Vykresleny {n} stránky za {seconds} s"
 msgstr[2] "Vykresleno {n} stránek za {seconds} s"
+
+#. gettext-tstrings
+msgid "Start here"
+msgstr "Začněte tady"
+
+#. gettext-tstrings
+msgid "Use it"
+msgstr "Používání"
+
+#. gettext-tstrings
+msgid "Migration"
+msgstr "Migrace"
+
+#. gettext-tstrings
+msgid "For translators"
+msgstr "Pro překladatele"
+
+#. gettext-tstrings
+msgid "Understand it"
+msgstr "Jak to funguje"
+
+#. gettext-tstrings
+msgid "Reference"
+msgstr "Reference"

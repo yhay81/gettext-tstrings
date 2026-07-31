@@ -51,9 +51,12 @@ lygiagretumo sąlygomis.
 
 | Vardas | Paskirtis |
 | --- | --- |
-| `lazy_gettext(template, /, *, strict=False)` | Atidėti vertimą iki pirmojo panaudojimo. |
+| `lazy_gettext(template, /, *, strict=False)` | Atidėti vertimą iki kiekvieno atvaizdavimo. |
 | `lazy_pgettext(context, template, /, *, strict=False)` | Kontekstinė forma. |
-| `LazyString` | Tai, ką grąžina abi. Atvaizduojama per `str()` ir `format()`, lygybėje prilygsta savo tekstui ir tyčia neturi maišos. |
+| `LazyString` | Tai, ką grąžina abi. Atvaizduojama per `str()` ir `format()` ta kalba, kuri tuo metu yra susieta, lygybėje prilygsta savo atvaizduotam tekstui ir tyčia neturi maišos. |
+
+Išsamūs pavyzdžiai, tarp jų ir tai, kodėl `strict` priklauso apibrėžimo vietai,
+yra skyriuje [Atidėtas vertimas](guide.md#deferred-translation).
 
 ## Žemesnis lygmuo { #lower-level }
 

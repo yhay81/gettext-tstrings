@@ -12,6 +12,19 @@ thiomsaithe le gach eisiúint. Is é an leathanach seo an cleachtas sin — cad 
 fhanann sa stórlann, cad a thaistealaíonn, cad a chaithfidh CI a gheatú, agus
 cén áit a gceanglaíonn an t-am rite teanga.
 
+Sé sheiceáil atá ann ar deireadh, mar sin seo iad ar dtús; socraíonn gach
+rannán thíos ceann acu:
+
+- Éiríonn le `pybabel update --check` — níor athraigh teachtaireacht ar bith
+  gan gur chuala na catalóga faoi.
+- Geataíonn `pybabel compile` an tógáil ar a stádas scortha.
+- Tá na hiontrálacha `fuzzy` atá fágtha d'aon ghnó — rindreáiltear gach ceann
+  acu mar théacs foinseach go dtí go ndeimhníonn aistritheoir é.
+- Rindreálann an tsraith tástála gach teanga a sheoltar uair amháin le
+  `strict=True`.
+- Tá comhaid `.mo` sa déantán táirgthe agus níl Babel ann.
+- Tá logálaí `gettext_tstrings` treoraithe chuig an monatóireacht.
+
 ## Cruth tionscadail { #the-shape-of-a-project }
 
 ```text
@@ -35,7 +48,8 @@ sheoltar.
 
 Tá ról ag comhad amháin i ngach treo: iompraíonn an `.pot` do chuid
 teachtaireachtaí *amach* chuig aistritheoirí, iompraíonn na comhaid `.po` na
-haistriúcháin *ar ais*. Is é gach rud thíos an trácht idir an dá cheann sin.
+haistriúcháin *ar ais*. Is é an chuid eile den leathanach seo an rud a
+bhogann eatarthu.
 
 ```mermaid
 flowchart LR
@@ -49,8 +63,8 @@ flowchart LR
 
 ## An timthriall tar éis an chéad aistriúcháin { #the-cycle-after-the-first-translation }
 
-Ritheann `pybabel init` an ranga teagaisc uair amháin in aghaidh na teanga,
-riamh. As sin amach is é **eastósc → nuashonraigh → aistrigh → tiomsaigh** an
+De ghnáth ní ritheann `pybabel init` an ranga teagaisc ach uair amháin, nuair
+a chuirtear teanga leis. As sin amach is é **eastósc → nuashonraigh → aistrigh → tiomsaigh** an
 timthriall oibre, agus is é `pybabel update` a lárionad, a fhilleann teimpléad
 úr isteach sna catalóga atá ann cheana gan na haistriúcháin atá iontu cheana a
 chaitheamh amach.
@@ -79,8 +93,9 @@ msgstr "こんにちは {name}"
 
 Thug Babel faoi deara go bhfuil an msgid nua cosúil le ceann a baineadh amach
 agus chuir sé leis an seanaistriúchán é — ach chuir sé an bhratach **fuzzy**
-ar an bpéire: buille faoi thuairim meaisín ag feitheamh le duine. Tá fiacla ag
-an mbratach. **Fágann `pybabel compile` iontrálacha fuzzy amach as an `.mo`**,
+ar an bpéire: buille faoi thuairim meaisín ag feitheamh le duine. Athraíonn an
+bhratach a dtiomsaítear. **Fágann `pybabel compile` iontrálacha fuzzy amach as
+an `.mo`**,
 mar sin go dtí go ndeimhníonn aistritheoir an péire, rindreáileann an
 feidhmchlár an téacs Béarla nua seachas seantéacs Seapáinise:
 
@@ -132,35 +147,18 @@ seiceálacha sealbhóirí ionaid Babel agus
 [an tseiceálaí atá cláraithe](extraction.md#your-existing-toolchain-validates-these-catalogs)
 ag an bpacáiste seo araon.
 
-!!! bug "Ní féidir le `--check` catalóg a úsáideann comhthéacsanna a gheatú"
+!!! bug "Babel 2.18.0: ní féidir le `--check` catalóg a úsáideann comhthéacsanna a gheatú"
 
     Ar Babel 2.18.0, tuairiscíonn `pybabel update --check` **gach** catalóg
     ina bhfuil `msgctxt` mar chatalóg atá as dáta, ag gach rith, is cuma cé
-    chomh reatha is atá sí. Ritheann an chomparáid trí
-    `Catalog.is_identical`, a lorgaíonn gach teachtaireacht de réir na
-    heochrach faoina stóráiltear í — agus i gcás teachtaireachta comhthéacsúla
-    is é an péire `(id, context)` an eochair sin, rud nach nglacann
-    `Catalog.get` leis. Ní fhilleann an cuardach faic, agus ní bhíonn na
-    catalóga cothrom lena chéile riamh:
-
-    ```pycon
-    >>> from babel.messages.catalog import Catalog
-    >>> c = Catalog(locale="ja")
-    >>> c.add("Guide", "ガイド", context="navigation")
-    <Message 'Guide' (flags: [])>
-    >>> c.is_identical(c)
-    False
-    ```
-
-    Mar sin, má úsáideann tú `pgettext` nó `npgettext` ar chor ar bith — agus
-    is é brí homainm a shoiléiriú an chúis a bhfuil siad ann — teipeann ar
-    an gcéim seo ar an mbealach is measa: dearg i gcónaí, mar sin múchann
-    foireann í, mar sin ní gheataíonn faic an tseanaois. Go dtí go gceartófar
-    in aice na foinse é, déan comparáid idir na tacair teachtaireachtaí tú
-    féin. Is é an tseiceáil iomlán an teimpléad agus gach catalóg a léamh le
-    `babel.messages.pofile.read_po` agus `{(m.context, m.id) for m in catalog if m.id}`
-    a chur i gcomparáid, agus sin an rud a dhéanann
-    [tógáil an tsuímh seo féin](index.md).
+    chomh reatha is atá sí. Is measa geata a theipeann i gcónaí ná gan geata
+    ar bith, mar múchann foireann é — mar sin, má úsáideann tú `pgettext` nó
+    `npgettext` ar chor ar bith, cuir rud éigin in ionad na céime seo seachas
+    maireachtáil léi. Is é an tseiceáil iomlán an teimpléad agus gach catalóg
+    a léamh le `babel.messages.pofile.read_po` agus
+    `{(m.context, m.id) for m in catalog if m.id}` a chur i gcomparáid, agus
+    sin an rud a dhéanann [tógáil an tsuímh seo féin](index.md). Tá an chúis
+    [scríofa suas ar Gaistí](pitfalls.md#your-tools-have-bugs-too).
 
 !!! danger "Seiceáil an stádas scortha, ní an loga"
 

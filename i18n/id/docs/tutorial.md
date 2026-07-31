@@ -11,8 +11,8 @@ di setiap langkah Anda tahu apakah masih berada di jalur yang benar.
 
 Anda memerlukan Python 3.14 atau lebih baru, karena t-string adalah sintaks
 baru di 3.14. Bahasa Jepang adalah sasaran contoh halaman ini, tetapi tidak ada
-yang bergantung pada pilihan itu — gantikan dengan bahasa apa pun di langkah 4,
-tempat kode locale `ja` menjadi satu-satunya hal yang menyebutnya.
+yang bergantung pada pilihan itu. Untuk memakai bahasa lain, ganti `ja` di
+langkah 4 — kode locale itu satu-satunya hal yang menyebutnya.
 
 ## 1. Instalasi { #1-install }
 
@@ -54,9 +54,10 @@ bawaannya.
 
 ## 3. Ekstrak pesan-pesannya { #3-extract-the-messages }
 
-Penerjemah tidak membaca kode sumber Anda; sebuah berkas kecil yang disebut
-**katalog** berpindah-pindah antara Anda dan mereka. Langkah pertama menuju ke
-sana adalah mengumpulkan setiap pesan yang ditandai keluar dari kode.
+Penerjemah umumnya bekerja dari katalog alih-alih dari kode sumber, jadi sebuah
+berkas kecil yang disebut **katalog** berpindah-pindah antara Anda dan mereka.
+Langkah pertama menuju ke sana adalah mengumpulkan setiap pesan yang ditandai
+keluar dari kode.
 
 Beri tahu Babel cara menemukan pesan Anda dengan membuat `babel.cfg`:
 
@@ -129,7 +130,17 @@ source placeholders: {name} is missing; {nome} is not in the source message
 1 errors encountered.
 ```
 
+Satu catatan yang layak diketahui sekarang: ia melaporkan galatnya dan keluar
+dengan status bukan nol, tetapi tetap menulis `.mo`-nya. Pada proyek nyata,
+CI-lah yang harus berhenti pada status keluar itu —
+[Dalam produksi](workflow.md#what-ci-gates) menyiapkannya.
+
 ## 5. Jalankan { #5-run-it }
+
+Langkah 2–4 memakai `tr()`, yang mencari sebuah katalog dan tidak menemukannya.
+Sekarang setelah katalognya ada, muat dan ikat sekali: `Translator` memegang
+sebuah katalog agar titik pemanggilannya tidak perlu menyebutnya, dan `_` adalah
+nama gettext konvensional untuk hasilnya.
 
 Arahkan `app.py` ke katalog yang telah dikompilasi. Klik penandanya untuk
 melihat apa yang dilakukan setiap baris:
@@ -148,7 +159,7 @@ print(_(t"Hello {name}"))  # (2)!
 1. Pustaka standar memuat `.mo` hasil kompilasi, dan `Translator` mengikatnya
    ke sebuah callable. `_` adalah nama gettext konvensional untuk "terjemahkan
    ini" — pendek karena ia muncul di setiap string yang dilihat pengguna. Ia
-   fungsi yang sama dengan `tr`, terikat ke satu katalog.
+   melakukan penerjemahan yang sama dengan `tr`, terikat ke satu katalog.
 2. Pada pemanggilan: teks t-string menjadi kunci pencarian `Hello {name}`,
    katalog menjawab `こんにちは {name}`, jawabannya diperiksa terhadap
    placeholder sumber, dan hanya setelah itu nilainya dimasukkan.
@@ -182,5 +193,9 @@ situs ini adalah penghalusan dari salah satu di antara lima langkah itu.
   platform penerjemahan.
 - [Ekstraksi](extraction.md) — referensi `pybabel` lengkap: nama fungsi
   kustom, mode CI ketat, dan pemeriksaan yang menjaga katalog Anda.
+- [Migrasi](migration.md) — jika proyek yang sebenarnya ingin Anda kerjakan
+  dengan ini sudah punya katalog gettext.
+- [Untuk penerjemah](translators.md) — satu halaman untuk diserahkan kepada
+  siapa pun yang mengisi baris `msgstr` itu.
 
   [Babel]: https://babel.pocoo.org/

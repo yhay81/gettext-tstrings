@@ -151,11 +151,25 @@ existent pour combler ce manque.
 
 L'étape de CI que cette documentation recommande pour repérer les catalogues
 obsolètes, `pybabel update --check`, ne peut pas faire ce travail pour un
-projet qui utilise `pgettext` ou `npgettext` — elle signale comme périmé tout
-catalogue contenant un `msgctxt`, à chaque exécution, à cause d'un bug dans la
-façon dont la comparaison recherche les messages. Il a été trouvé ici en
-essayant de s'en servir, remonté en amont, et il est [décrit en détail avec son
-contournement](workflow.md#what-ci-gates).
+projet qui utilise `pgettext` ou `npgettext`. Sur Babel 2.18.0, elle signale
+comme périmé tout catalogue contenant un `msgctxt`, à chaque exécution. La
+comparaison passe par `Catalog.is_identical`, qui recherche chaque message par
+la clé sous laquelle il est stocké — et pour un message contextuel cette clé
+est le couple `(id, context)`, que `Catalog.get` n'accepte pas. La recherche ne
+renvoie rien, et les catalogues ne sont donc jamais jugés égaux :
+
+```pycon
+>>> from babel.messages.catalog import Catalog
+>>> c = Catalog(locale="ja")
+>>> c.add("Guide", "ガイド", context="navigation")
+<Message 'Guide' (flags: [])>
+>>> c.is_identical(c)
+False
+```
+
+Le bug a été trouvé ici en essayant de s'en servir, remonté en amont, et le
+contrôle de remplacement se trouve
+[sur la page En production](workflow.md#what-ci-gates).
 
 La leçon générale est la plus inconfortable : une barrière toujours au rouge
 est pire que pas de barrière, parce qu'une équipe finit par la désactiver.

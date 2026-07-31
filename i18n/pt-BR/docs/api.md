@@ -48,9 +48,12 @@ O vínculo usa `ContextVar` e é seguro em concorrência.
 
 | Nome | Função |
 | --- | --- |
-| `lazy_gettext(template, /, *, strict=False)` | Adia a tradução até o uso. |
+| `lazy_gettext(template, /, *, strict=False)` | Adia a tradução até cada renderização. |
 | `lazy_pgettext(context, template, /, *, strict=False)` | Variante com contexto. |
-| `LazyString` | Renderiza por `str()`, `format()` e f-strings, compara-se ao texto e não é hashable de propósito. |
+| `LazyString` | O que ambas devolvem. Renderiza por `str()` e `format()` no idioma que estiver vinculado naquele momento, compara-se ao texto renderizado e não é hashable de propósito. |
+
+Exemplos trabalhados, inclusive por que o `strict` pertence à definição, estão
+em [Tradução preguiçosa](guide.md#deferred-translation).
 
 ## Baixo nível { #lower-level }
 

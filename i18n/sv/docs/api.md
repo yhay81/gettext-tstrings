@@ -51,9 +51,12 @@ samtidighet.
 
 | Namn | Syfte |
 | --- | --- |
-| `lazy_gettext(template, /, *, strict=False)` | Skjut upp en översättning till första användning. |
+| `lazy_gettext(template, /, *, strict=False)` | Skjut upp översättningen till varje rendering. |
 | `lazy_pgettext(context, template, /, *, strict=False)` | Den kontextuella formen. |
-| `LazyString` | Vad båda returnerar. Renderar genom `str()` och `format()`, jämförs lika med sin text, och är avsiktligt ohashbar. |
+| `LazyString` | Vad båda returnerar. Renderar genom `str()` och `format()` på det språk som är bundet i det ögonblicket, jämförs lika med sin renderade text, och är avsiktligt ohashbar. |
+
+Utarbetade exempel, inklusive varför `strict` hör hemma vid definitionen, finns
+under [Uppskjuten översättning](guide.md#deferred-translation).
 
 ## Lägre nivå { #lower-level }
 

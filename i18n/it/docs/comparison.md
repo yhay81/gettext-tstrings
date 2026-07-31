@@ -1,24 +1,17 @@
 ---
-description: "Lo stesso messaggio traducibile scritto con %-format, .format(), le $-string di flufl.i18n e una t-string, incluso come ciascuno lega i valori e gestisce un catalogo danneggiato."
+description: "Lo stesso messaggio traducibile scritto con %-format, .format(), le $-string di flufl.i18n e una t-string, confrontati su errori dei traduttori, autorità del catalogo e costo di integrazione."
 ---
 
 # Perché le t-string
 
 Quattro modi di mettere un valore in un messaggio traducibile, confrontati
-sulla stessa frase. La versione breve:
+sullo stesso messaggio. Tutti e quattro danno un nome ai propri segnaposto e
+permettono a un traduttore di riordinarli; differiscono in che cosa succede
+quando una traduzione è sbagliata, in quanta parte del tuo programma il
+catalogo può raggiungere e in quanto costa adottarli.
 
-- Con il **%-format**, un traduttore che cancella una lettera diventa un
-  crash in produzione.
-- Con **str.format**, una traduzione può leggere gli attributi degli oggetti
-  che il tuo codice passa — segreti inclusi.
-- Con le **$-string** (flufl.i18n), i valori vengono presi implicitamente
-  dalle variabili della funzione chiamante, e i segnaposto con il punto
-  raggiungono anche gli attributi.
-- Con le **t-string**, la formattazione resta nel tuo codice, le traduzioni
-  vengono verificate a runtime, e un catalogo danneggiato ripiega sul testo
-  sorgente invece di andare in crash.
-
-Il resto di questa pagina è la prova, un metodo alla volta.
+Le tabelle vengono per prime, così puoi trovare la riga che ti interessa e
+leggere soltanto la sezione che le sta dietro.
 
 !!! note "Tre parti toccano ogni messaggio tradotto"
 
@@ -32,6 +25,75 @@ Il resto di questa pagina è la prova, un metodo alla volta.
     diverso alla stessa domanda: *quanta parte del linguaggio di formato può
     controllare il catalogo?* Negli esempi, `_` è il nome convenzionale della
     funzione di traduzione, e `tr` è quello di questa libreria.
+
+## Fianco a fianco { #side-by-side }
+
+**Quando un traduttore sbaglia.** Un catalogo passa per molte mani, e quasi
+tutto ciò che vi va storto è accidentale:
+
+| | `%(name)s` | `.format()` | `flufl.i18n` `$name` | `t"…"` |
+| --- | --- | --- | --- | --- |
+| Una traduzione *elimina* un segnaposto — che cosa viene reso? | il valore sparisce in silenzio | il valore sparisce in silenzio | il valore sparisce in silenzio | il messaggio sorgente, con un avviso ([per impostazione predefinita](guide.md#what-happens-when-a-catalog-is-wrong)) |
+| Una traduzione *aggiunge* un segnaposto sconosciuto — che cosa viene reso? | un'eccezione | un'eccezione | il segnaposto resta visibile come testo | il messaggio sorgente, con un avviso ([per impostazione predefinita](guide.md#what-happens-when-a-catalog-is-wrong)) |
+| Una traduzione *riformatta* un segnaposto — che cosa viene reso? | ciò che il catalogo ha chiesto, oppure un'eccezione se la lettera di tipo non si adatta più al valore | ciò che il catalogo ha chiesto | non esprimibile nelle `$`-string | il messaggio sorgente, con un avviso |
+| I segnaposto sono verificati al momento del rendering? | no | no | no | sì (vedi sotto) |
+
+**Quanta autorità ha il catalogo.** Una traduzione è un dato che viene da
+fuori del tuo repository, e ogni stile le consegna una quantità diversa di
+potere:
+
+| | `%(name)s` | `.format()` | `flufl.i18n` `$name` | `t"…"` |
+| --- | --- | --- | --- | --- |
+| Da dove vengono i valori? | un mapping esplicito | argomenti espliciti | le variabili locali e globali del chiamante, più l'`extras` opzionale | i valori catturati dentro la t-string |
+| Il catalogo può cambiare come un valore è formattato? | sì | sì | no | no |
+| Il catalogo può entrare negli oggetti (accesso agli attributi)? | no | sì | sì, con i nomi puntati | no |
+| Dove vive "la lingua corrente"? | dove la mette l'applicazione | dove la mette l'applicazione | uno stack di codici di lingua sull'oggetto applicazione condiviso | una `ContextVar`, per task o per richiesta |
+
+**Quanto costa integrarli.** Tutto quanto sopra è gratis se il tooling è
+adatto; è qui che potrebbe non esserlo:
+
+| | `%(name)s` | `.format()` | `flufl.i18n` `$name` | `t"…"` |
+| --- | --- | --- | --- | --- |
+| Python minimo | qualunque | qualunque | 3.10 | **3.14** |
+| Maturità | libreria standard | libreria standard | release stabile | **alpha** |
+| Usa normali cataloghi PO/MO? | sì | sì | sì | sì |
+| Serve un estrattore di sorgenti dedicato? | no | no | no | sì, per ora |
+| Quale flag PO inferisce Babel, perché gli strumenti esistenti validino? | `python-format` | `python-brace-format` | nessuno | `python-brace-format` |
+
+Sul controllo a tempo di rendering: i messaggi singolari sono verificati per
+una corrispondenza esatta dei segnaposto. Anche i messaggi plurali sono
+verificati, contro la [regola unione/intersezione](spec.md) che permette alle
+forme plurali di una lingua di destinazione di differire da quelle della
+sorgente; il controllo più severo, forma per forma, avviene alla compilazione
+dei cataloghi ([Estrazione](extraction.md)).
+
+La riga sul flag di formato riguarda la validazione consapevole dei
+segnaposto, non la compatibilità dei cataloghi. `nessuno` significa che gli
+strumenti gettext standard leggono e compilano comunque il messaggio, ma
+`msgfmt --check-format` non ha una grammatica di segnaposto `$` da applicare.
+
+## Compatibilità e maturità { #compatibility-and-maturity }
+
+Le prime due righe dell'ultima tabella sono quelle che decidono l'adozione,
+quindi vale la pena dirle apertamente invece che dentro delle celle.
+
+Il `%`-format e `.format()` sono incorporati in Python e non richiedono
+nessuna dipendenza. [`flufl.i18n`][flufl-i18n] è un pacchetto maturo,
+rilasciato e in uso in produzione, che gira su Python 3.10 e successivi.
+`gettext-tstrings` è una **alpha** e richiede **Python 3.14 o più recente**,
+perché le t-string sono sintassi nuova della 3.14 — non c'è un back-port e non
+può esserci. La sua [specifica](spec.md) ne è la parte stabile; l'API Python
+può ancora muoversi prima della 1.0.
+
+Ciò che nessuno di loro costa è la compatibilità dei cataloghi. Tutti e
+quattro producono normali file POT/PO/MO che ogni editor PO, ogni piattaforma
+di traduzione e ogni strumento GNU gettext già legge, quindi la scelta qui
+sotto è reversibile in un modo in cui cambiare *formato* di catalogo non lo
+sarebbe. [Migrazione](migration.md) copre lo spostamento di un progetto
+esistente.
+
+Le sezioni seguenti mostrano ogni compromesso in dettaglio, un metodo alla
+volta.
 
 ## %-format { #-format }
 
@@ -53,10 +115,11 @@ Traceback (most recent call last):
 ValueError: incomplete format
 ```
 
-Una modifica di un carattere in un editor PO diventa un traceback in
-produzione. GNU `msgfmt --check-format` la intercetta, sì, ma solo per i
-messaggi marcati `python-format`, e solo se il catalogo passa davvero per
-msgfmt nel suo tragitto verso l'applicazione.
+Una modifica di un carattere in un editor PO diventa un'eccezione a runtime, a
+meno che la validazione del catalogo non la intercetti prima. GNU
+`msgfmt --check-format` questa la intercetta, sì, ma solo per i messaggi
+marcati `python-format`, e solo se il catalogo passa davvero per msgfmt nel
+suo tragitto verso l'applicazione.
 
 ## str.format { #strformat }
 
@@ -125,8 +188,8 @@ chiamante. Un segnaposto tradotto può nominare qualunque locale o globale
 disponibile del chiamante e, con la sintassi puntata, attraversarne gli
 attributi. È comodo quando un messaggio ha bisogno di un attributo, ma rende
 anche il frame del chiamante parte dello spazio dei nomi di sostituzione del
-catalogo. Il confronto qui sotto descrive `flufl.i18n` 6.0.0, non ogni
-possibile uso di `string.Template`.
+catalogo. Il confronto qui descrive `flufl.i18n` 6.0.0, non ogni possibile uso
+di `string.Template`.
 
 Risponde anche a una domanda che gli altri due stili di formattazione lasciano
 interamente all'applicazione: *quale* lingua è quella corrente, e come
@@ -189,7 +252,7 @@ sorgente prima del rendering, e accetta nomi semplici e nient'altro. Contro
 | `{nombre}` | translation does not match the source placeholders: `{name}` is missing; `{nombre}` is not in the source message |
 
 Rifiutata non significa crash: per impostazione predefinita la libreria
-registra un avviso nel log e rende il testo sorgente, così un catalogo
+registra un avviso nel log e rende il messaggio sorgente, così un catalogo
 danneggiato non abbatte mai l'applicazione —
 [lo stesso contratto che gettext stesso mantiene](guide.md#what-happens-when-a-catalog-is-wrong).
 
@@ -201,55 +264,18 @@ tr(t"Total: {amount:,.2f}")  # msgid is "Total: {amount}"
 ```
 
 `:,.2f` non raggiunge mai il catalogo, quindi nessuna traduzione può
-cambiarlo, e nessun traduttore deve guardarlo.
+cambiarlo, e nessun traduttore deve guardarlo. È però un formato *fisso*, non
+un formato localizzato — scegliere cifre e separatori per ogni lingua è
+[compito di Babel, prima della chiamata](guide.md#locale-aware-values).
 
 Un'altra differenza è il tooling: le t-string sono sintassi nuova, quindi
 estrarle in un `.pot` richiede al momento un estrattore che le comprenda,
 come quello che questo pacchetto [fornisce per Babel](extraction.md).
 
-## Fianco a fianco { #side-by-side }
+## Il costo della restrizione { #the-cost-of-the-restriction }
 
-| | `%(name)s` | `.format()` | `flufl.i18n` `$name` | `t"…"` |
-| --- | --- | --- | --- | --- |
-| Il segnaposto ha un nome? | sì | sì | sì | sì |
-| Un traduttore può riordinare i segnaposto? | sì | sì | sì | sì |
-| Da dove vengono i valori? | un mapping esplicito | argomenti espliciti | le variabili locali e globali del chiamante, più l'`extras` opzionale | i valori catturati dentro la t-string |
-| Il catalogo può cambiare come un valore è formattato? | sì | sì | no | no |
-| Il catalogo può entrare negli oggetti (accesso agli attributi)? | no | sì | sì, con i nomi puntati | no |
-| Una traduzione *elimina* un segnaposto — che cosa viene reso? | il valore sparisce in silenzio | il valore sparisce in silenzio | il valore sparisce in silenzio | il testo sorgente, con un avviso ([per impostazione predefinita](guide.md#what-happens-when-a-catalog-is-wrong)) |
-| Una traduzione *aggiunge* un segnaposto sconosciuto — che cosa viene reso? | un'eccezione | un'eccezione | il segnaposto resta visibile come testo | il testo sorgente, con un avviso ([per impostazione predefinita](guide.md#what-happens-when-a-catalog-is-wrong)) |
-| I segnaposto sono verificati al momento del rendering? | no | no | no | sì (vedi sotto) |
-| Quale flag PO inferisce Babel, perché gli strumenti esistenti validino? | `python-format` | `python-brace-format` | nessuno | `python-brace-format` |
-| Usa normali cataloghi PO/MO? | sì | sì | sì | sì |
-| Serve un estrattore di sorgenti dedicato? | no | no | no | sì, per ora |
-| Dove vive "la lingua corrente"? | dove la mette l'applicazione | dove la mette l'applicazione | uno stack di codici di lingua sull'oggetto applicazione condiviso | una `ContextVar`, per task o per richiesta |
-
-Sul controllo a tempo di rendering: i messaggi singolari sono verificati per
-una corrispondenza esatta dei segnaposto. Anche i messaggi plurali sono
-verificati, contro la [regola unione/intersezione](spec.md) che permette alle
-forme plurali di una lingua di destinazione di differire da quelle della
-sorgente; il controllo più severo, forma per forma, avviene alla compilazione
-dei cataloghi ([Estrazione](extraction.md)).
-
-La riga sul flag di formato riguarda la validazione consapevole dei
-segnaposto, non la compatibilità dei cataloghi. `nessuno` significa che gli
-strumenti gettext standard leggono e compilano comunque il messaggio, ma
-`msgfmt --check-format` non ha una grammatica di segnaposto `$` da applicare.
-
-## Che cosa costa { #what-it-costs }
-
-Una f-string non si può usare affatto in questo modo — quando una libreria ne
-vede una è già una stringa finita, quindi tradurla significa tradurre un
-frammento. Le t-string ([PEP 750]) mantengono separati il testo statico e i
-valori conservando una sintassi simile alle f-string e il legame esplicito
-dei valori. Le `$`-string offrono già un'alternativa concisa con un modello
-diverso di legame e di fallimento. `flufl.i18n` è un pacchetto maturo che
-gira su Python 3.10 e successivi; `gettext-tstrings` è attualmente una alpha
-e, poiché le t-string sono sintassi nuova, richiede Python 3.14 o più
-recente.
-
-L'altro costo è la restrizione stessa: un'interpolazione deve essere un nome
-semplice.
+Oltre al requisito su Python, il prezzo di tutto questo è una sola regola:
+un'interpolazione deve essere un nome semplice.
 
 ```python
 tr(t"Hello {user.name}")  # raises InvalidTemplateError at the call site
@@ -260,9 +286,16 @@ name = user.name  # compute it first
 tr(t"Hello {name}")
 ```
 
-È un vincolo reale. Insieme al legame dei valori sul lato sorgente e al
-controllo dei segnaposto a runtime, impedisce alle stringhe di catalogo di
-valutare espressioni e mantiene significativi i nomi dei segnaposto.
+È un vincolo reale, ed è lo stesso vincolo che produce le garanzie qui sopra.
+Insieme al legame dei valori sul lato sorgente e al controllo dei segnaposto a
+runtime, impedisce alle stringhe di catalogo di valutare espressioni e
+mantiene i nomi dei segnaposto significativi per chi li traduce.
+
+Una f-string non si può usare affatto in questo modo — quando una libreria ne
+vede una è già una stringa finita, quindi tradurla significa tradurre un
+frammento. Le t-string ([PEP 750]) mantengono separati il testo statico e i
+valori conservando una sintassi simile alle f-string e il legame esplicito
+dei valori.
 
 Come Python sia arrivato a questo bivio — due PEP a dieci anni di distanza e
 la discussione sulla stdlib chiusa senza una risposta — è raccontato con le
