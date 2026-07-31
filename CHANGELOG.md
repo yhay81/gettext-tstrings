@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.1.0a8 - 2026-07-31
 
 - The Babel checker no longer reports `fuzzy` entries. `pybabel compile`
   leaves them out of the `.mo`, so a broken one cannot reach a render, and
@@ -37,6 +37,11 @@
   the bound language on 3.14t and the process-global catalog on 3.14. *Guide*
   says to pass the context rather than depend on the default. Found by CI on
   the free-threaded job, not by reading the documentation.
+- Carry all of the above into the README, which had drifted: it listed ten
+  documentation editions where there are thirty-six, and said nothing about
+  nested bindings, `strict` on the deferred functions, or fuzzy entries. Its
+  status section is now the table the home page carries, with the interpreters
+  CI actually runs.
 
 ## 0.1.0a7 - 2026-07-31
 

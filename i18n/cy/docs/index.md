@@ -197,7 +197,7 @@ python -m pip install "gettext-tstrings[babel]"
 
 | | |
 | --- | --- |
-| Fersiwn y pecyn | 0.1.0a7 |
+| Fersiwn y pecyn | 0.1.0a8 |
 | Sefydlogrwydd yr API | alffa — efallai y bydd yr API Python yn newid eto |
 | [Manyleb](spec.md) | v1, gyda [chyfres gydymffurfio](spec.md#conformance) |
 | Python | 3.14 a mwy newydd; wedi'i brofi ar 3.14, 3.14t (di-edau) a 3.15 |

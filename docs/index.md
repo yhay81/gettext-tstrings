@@ -189,7 +189,7 @@ python -m pip install "gettext-tstrings[babel]"
 
 | | |
 | --- | --- |
-| Package version | 0.1.0a7 |
+| Package version | 0.1.0a8 |
 | API stability | alpha — the Python API may still change |
 | [Specification](spec.md) | v1, with a [conformance suite](spec.md#conformance) |
 | Python | 3.14 and newer; tested on 3.14, 3.14t (free-threaded), and 3.15 |

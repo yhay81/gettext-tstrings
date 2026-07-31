@@ -40,4 +40,4 @@ __all__ = [
     "use_translations",
 ]
 
-__version__ = "0.1.0a7"
+__version__ = "0.1.0a8"

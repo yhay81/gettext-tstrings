@@ -196,7 +196,7 @@ python -m pip install "gettext-tstrings[babel]"
 
 | | |
 | --- | --- |
-| Paket sürümü | 0.1.0a7 |
+| Paket sürümü | 0.1.0a8 |
 | API kararlılığı | alfa — Python API'si henüz değişebilir |
 | [Belirtim](spec.md) | v1, bir [uyumluluk paketi](spec.md#conformance) ile |
 | Python | 3.14 ve üstü; 3.14, 3.14t (serbest iş parçacıklı) ve 3.15 üzerinde test edildi |

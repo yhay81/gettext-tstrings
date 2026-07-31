@@ -194,7 +194,7 @@ python -m pip install "gettext-tstrings[babel]"
 
 | | |
 | --- | --- |
-| Pakketversie | 0.1.0a7 |
+| Pakketversie | 0.1.0a8 |
 | API-stabiliteit | alfa — de Python-API kan nog veranderen |
 | [Specificatie](spec.md) | v1, met een [conformiteitssuite](spec.md#conformance) |
 | Python | 3.14 en nieuwer; getest op 3.14, 3.14t (free-threaded) en 3.15 |

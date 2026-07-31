@@ -192,7 +192,7 @@ python -m pip install "gettext-tstrings[babel]"
 
 | | |
 | --- | --- |
-| Različica paketa | 0.1.0a7 |
+| Različica paketa | 0.1.0a8 |
 | Stabilnost API-ja | alfa — Pythonov API se še lahko spremeni |
 | [Specifikacija](spec.md) | v1, z [zbirko testov skladnosti](spec.md#conformance) |
 | Python | 3.14 in novejši; testirano na 3.14, 3.14t (prostonitni) in 3.15 |
