@@ -125,6 +125,44 @@ yerine koyma ad alanının parçası yapar. Aşağıdaki karşılaştırma
 `flufl.i18n` 6.0.0'ı anlatır, `string.Template`'in olası her kullanımını
 değil.
 
+Ayrıca diğer iki biçimlendirme tarzının tümüyle uygulamaya bıraktığı bir
+soruyu da yanıtlar: *hangi* dil geçerlidir ve nasıl değiştirilir. Bir
+[uygulama nesnesi][application object] bir diller yığını tutar; `_.push(code)`
+ile `_.pop()` yığını hareket ettirir, `with _.using(code):` iç içe geçmeyi
+sağlar ve bir [strateji][strategy] bir dil koduna karşılık gelen kataloğu
+bulur; böylece uygulama katalog nesneleriyle kendisi hiç uğraşmaz. Tek bir iş
+birimi içinde birden fazla dilde metin üretmek zorunda olan bir sunucu — okur
+için bir sayfa, dili farklı ayarlanmış birinin hesabı için bir bildirim — bu
+düzeneğin var oluş nedenidir.
+
+Yığın, tüm sürecin paylaştığı o uygulama nesnesinin üzerinde durur.
+Dolayısıyla üst üste binen iki istek tek bir yığını paylaşır ve *zaman
+içinde* tam olarak iç içe geçmeyen bloklar birbirine yanlış dili devreder:
+
+```python
+async def greet(code, delay):
+    with _.using(code):
+        await asyncio.sleep(delay)
+        return _("Hello $name")
+
+
+async def main():
+    return await asyncio.gather(greet("fr", 0.01), greet("ja", 0.02))
+```
+
+```pycon
+>>> asyncio.run(main())  # "fr" entered first and left first, so it read "ja" off the top
+['こんにちは Ada', 'Bonjour Ada']
+```
+
+Bu kütüphane aynı yeteneği korur — bağlamalar aynı şekilde iç içe geçer ve
+geri sarılır — ama onu paylaşılan bir yığında değil bir `ContextVar` içinde
+tutar; böylece yukarıdaki geçişme görev başına çözülür. Eşdeğerleri
+[Aynı anda birden fazla dil](guide.md#several-languages-at-once) başlığında.
+Sağlamadığı şey, dil kodundan kataloğa uzanan aramadır: bir çeviri nesnesi
+geçirirsiniz — yaygın durumda bu tek bir `gettext.translation()` çağrısıdır —
+ve ayrıştırılmış kataloğu standart kütüphane önbelleğe alır.
+
 ## t-string'ler { #t-strings }
 
 ```python
@@ -180,6 +218,7 @@ onları bir `.pot` dosyasına çıkarmak şimdilik t-string'lerden anlayan bir
 | Babel hangi PO bayrağını çıkarsar, mevcut araçlar doğrulasın diye? | `python-format` | `python-brace-format` | hiçbiri | `python-brace-format` |
 | Sıradan PO/MO katalogları kullanır mı? | evet | evet | evet | evet |
 | Özel bir kaynak çıkarıcı gerekir mi? | hayır | hayır | hayır | evet, şimdilik |
+| "Geçerli dil" nerede durur? | uygulama nereye koyarsa orada | uygulama nereye koyarsa orada | paylaşılan uygulama nesnesi üzerindeki bir dil kodu yığınında | bir `ContextVar` içinde, görev ya da istek başına |
 
 Render anındaki denetim üzerine: tekil mesajlar yer tutucuların birebir
 eşleşmesi bakımından denetlenir. Çoğul mesajlar da denetlenir; hedef dilin
@@ -229,3 +268,5 @@ kapanan stdlib tartışması — kaynaklarıyla birlikte
   [documented behavior]: https://flufli18n.readthedocs.io/en/stable/using.html#substitutions-and-placeholders
   [custom Template]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_substitute.py
   [translator]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_translator.py
+  [application object]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_application.py
+  [strategy]: https://flufli18n.readthedocs.io/en/stable/strategies.html

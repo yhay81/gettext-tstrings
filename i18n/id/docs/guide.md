@@ -116,6 +116,57 @@ berlaku untuk string yang tidak dirender di tempat pemanggilannya.
 Bentuk jamak bergantung pada hitungan saat runtime, jadi render itu secara
 langsung dengan `ngettext` di tempat hitungannya diketahui.
 
+## Beberapa bahasa sekaligus { #several-languages-at-once }
+
+Satu permintaan kerap membutuhkan lebih dari satu bahasa: sebuah halaman yang
+dirender untuk pembacanya sekaligus mengantrekan notifikasi ke akun yang
+disetel ke bahasa lain, atau sebuah ringkasan yang mengutip tiap peserta dalam
+bahasanya masing-masing. Ikatan bersarang, dan meninggalkan blok dalam
+memulihkan blok luarnya.
+
+```python
+with use_translations(reader):
+    page = tr(t"Hello {name}")
+    with use_translations(recipient):
+        notice = tr(t"Hello {name}")  # the recipient's language
+    footer = tr(t"Hello {name}")  # the reader's again
+```
+
+Untuk sebuah daftar penerima, string tertunda yang mengerjakannya: pesannya
+ditulis sekali, saat impor, dan dirender sekali per bahasa.
+
+```python
+SUBJECT = lazy_gettext(t"Your order shipped")
+
+for user in users:
+    with use_translations(load_translations(user.locale)):
+        send(user.email, str(SUBJECT))
+```
+
+Ikatannya adalah sebuah `ContextVar`, bukan tumpukan yang dipegang sebuah objek
+bersama, sehingga permintaan yang tumpang-tindih tidak bisa mengambil bahasa
+satu sama lain — termasuk kasus ketika mereka *meninggalkan* bloknya dengan
+urutan yang sama seperti saat memasukinya, yaitu jalinan yang disalahpahami
+sebuah tumpukan pushdown. Memuat sebuah katalog per bahasa itu murah:
+`gettext.translation()` mengurai tiap `.mo` sekali dan membagikan salinan yang
+berbagi katalog terurai itu.
+
+!!! warning "Apakah sebuah thread pekerja mewarisi ikatannya bergantung pada build-nya"
+
+    Sebuah `threading.Thread` telanjang, atau `ThreadPoolExecutor.submit`,
+    bermula entah dari salinan konteks pemanggilnya atau dari konteks yang
+    kosong, dan mana di antara keduanya itulah
+    `sys.flags.thread_inherit_context` — benar secara bawaan pada build
+    free-threaded, salah di tempat lain mana pun. Maka kode yang sama merender
+    bahasa yang terikat pada 3.14t dan katalog global proses pada 3.14. Oper
+    konteksnya alih-alih bergantung pada nilai bawaannya:
+
+    ```python
+    pool.submit(contextvars.copy_context().run, render)
+    ```
+
+    `asyncio.to_thread` sudah melakukan ini untuk Anda.
+
 ## Apa yang terjadi ketika sebuah katalog salah { #what-happens-when-a-catalog-is-wrong }
 
 Jika placeholder sebuah terjemahan tidak cocok dengan sumbernya — sebuah field

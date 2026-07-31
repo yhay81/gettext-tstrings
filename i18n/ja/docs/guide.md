@@ -111,6 +111,54 @@ SAVE = lazy_gettext(t"Save changes", strict=True)
 複数形は実行時の個数に依存するため、個数が分かる場所で`ngettext`を使って即時に
 レンダリングします。
 
+## 複数の言語を同時に扱う { #several-languages-at-once }
+
+1つのリクエストが複数の言語を必要とすることはよくあります。読み手向けにページを
+レンダリングしつつ、別の言語に設定されたアカウントへ通知をキューへ入れる場合や、
+各参加者の発言をそれぞれの言語で引用するダイジェストなどです。束縛は入れ子にでき、
+内側のブロックを抜ければ外側の束縛が戻ります。
+
+```python
+with use_translations(reader):
+    page = tr(t"Hello {name}")
+    with use_translations(recipient):
+        notice = tr(t"Hello {name}")  # the recipient's language
+    footer = tr(t"Hello {name}")  # the reader's again
+```
+
+宛先の一覧に対しては遅延文字列が働きます。メッセージはimport時に一度だけ書かれ、
+言語ごとに一度レンダリングされます。
+
+```python
+SUBJECT = lazy_gettext(t"Your order shipped")
+
+for user in users:
+    with use_translations(load_translations(user.locale)):
+        send(user.email, str(SUBJECT))
+```
+
+束縛は共有オブジェクト上のスタックではなく`ContextVar`です。そのため、重なり合う
+リクエストが互いの言語を拾ってしまうことはありません。ブロックに入ったのと同じ順で
+そのまま*抜けていく*場合 — プッシュダウンスタックが取り違えるのはこの交錯です —
+であっても同じです。言語ごとにカタログを読み込む費用は小さく、
+`gettext.translation()`は各`.mo`を一度だけ解析し、解析済みカタログを共有する
+コピーを渡します。
+
+!!! warning "ワーカースレッドが束縛を引き継ぐかはビルド次第"
+
+    素の`threading.Thread`や`ThreadPoolExecutor.submit`は、呼び出し側の
+    コンテキストのコピーから始まることも、空のコンテキストから始まることも
+    あります。どちらになるかを決めるのは`sys.flags.thread_inherit_context`で、
+    free-threadedビルドでは既定でtrue、それ以外では既定でfalseです。つまり
+    同じコードが、3.14tでは束縛した言語を、3.14ではプロセスグローバルな
+    カタログを描画します。既定に頼らず、コンテキストを渡してください。
+
+    ```python
+    pool.submit(contextvars.copy_context().run, render)
+    ```
+
+    `asyncio.to_thread`はこれをすでに行っています。
+
 ## カタログが不正な場合 { #what-happens-when-a-catalog-is-wrong }
 
 翻訳のプレースホルダーがソースと一致しない場合を考えます。欠落したfield、未知の

@@ -115,6 +115,54 @@ să se aplice și unui șir care nu este randat la locul lui de apel.
 Formele de plural depind de un număr cunoscut abia la rulare, așa că randează-le
 nerăbdător cu `ngettext`, acolo unde numărul este cunoscut.
 
+## Mai multe limbi deodată { #several-languages-at-once }
+
+O singură cerere are adesea nevoie de mai multe limbi: o pagină randată pentru
+cititor care pune la coadă și o notificare către un cont setat pe alta, sau un
+rezumat care citează fiecare participant în limba lui. Legările se imbrichează,
+iar ieșirea din blocul interior o restaurează pe cea din exterior.
+
+```python
+with use_translations(reader):
+    page = tr(t"Hello {name}")
+    with use_translations(recipient):
+        notice = tr(t"Hello {name}")  # the recipient's language
+    footer = tr(t"Hello {name}")  # the reader's again
+```
+
+Pe o listă de destinatari, șirurile amânate fac treaba: mesajul este scris o
+singură dată, la import, și se randează o dată pentru fiecare limbă.
+
+```python
+SUBJECT = lazy_gettext(t"Your order shipped")
+
+for user in users:
+    with use_translations(load_translations(user.locale)):
+        send(user.email, str(SUBJECT))
+```
+
+Legarea este o `ContextVar`, nu o stivă ținută pe un obiect partajat, așa că
+cererile care se suprapun nu pot prelua limba una de la alta — inclusiv în
+cazul în care *ies* din blocurile lor în ordinea în care au intrat, adică exact
+întrepătrunderea pe care o stivă o greșește. Încărcarea unui catalog pentru
+fiecare limbă este ieftină: `gettext.translation()` parsează fiecare `.mo` o
+singură dată și dă mai departe copii care împart catalogul parsat.
+
+!!! warning "Dacă un thread de lucru moștenește legarea depinde de build"
+
+    Un `threading.Thread` gol sau `ThreadPoolExecutor.submit` pornește fie de la
+    o copie a contextului apelantului, fie de la unul gol, iar care dintre ele
+    este `sys.flags.thread_inherit_context` — adevărat implicit pe build-urile
+    free-threaded, fals peste tot altundeva. Prin urmare, același cod randează
+    limba legată pe 3.14t și catalogul global al procesului pe 3.14. Transmite
+    contextul, în loc să depinzi de valoarea implicită:
+
+    ```python
+    pool.submit(contextvars.copy_context().run, render)
+    ```
+
+    `asyncio.to_thread` face deja asta pentru tine.
+
 ## Ce se întâmplă când un catalog este greșit { #what-happens-when-a-catalog-is-wrong }
 
 Dacă substituenții unei traduceri nu se potrivesc cu sursa — un câmp lipsă,

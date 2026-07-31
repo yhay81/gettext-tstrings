@@ -113,6 +113,41 @@ print(_("Hello $name"))  # Hello Ada — the value came from the caller's locals
 من نطاق أسماء الاستبدال للكتالوج. تصف المقارنة أدناه `flufl.i18n` 6.0.0،
 لا كل استخدام ممكن لـ`string.Template`.
 
+كما تجيب عن سؤال يتركه أسلوبا التنسيق الآخران للتطبيق بالكامل: *ما* اللغة
+الحالية، وكيف تُغيَّر. يحتفظ [كائن التطبيق][application object] بمكدس من
+اللغات، وتحركه `_.push(code)` و`_.pop()`، وتتداخل معه `with _.using(code):`،
+وتعثر [الاستراتيجية][strategy] على الكتالوج المقابل لرمز لغة ما، فلا يتعامل
+التطبيق مع كائنات الكتالوج بنفسه أبداً. والحالة التي وُجد هذا من أجلها هي خادم
+عليه أن ينتج نصاً بأكثر من لغة خلال وحدة عمل واحدة — صفحة للقارئ، وإشعار لشخص
+ضُبط حسابه على لغة أخرى.
+
+يعيش المكدس على كائن التطبيق ذاك، وتتشاركه العملية كلها. ولذلك يتشارك طلبان
+متداخلان مكدساً واحداً، وتسلّم الكتل التي لا تتداخل تداخلاً صارماً *في الزمن*
+إحداها الأخرى اللغة الخطأ:
+
+```python
+async def greet(code, delay):
+    with _.using(code):
+        await asyncio.sleep(delay)
+        return _("Hello $name")
+
+
+async def main():
+    return await asyncio.gather(greet("fr", 0.01), greet("ja", 0.02))
+```
+
+```pycon
+>>> asyncio.run(main())  # "fr" entered first and left first, so it read "ja" off the top
+['こんにちは Ada', 'Bonjour Ada']
+```
+
+تحتفظ هذه المكتبة بالقدرة نفسها — إذ تتداخل الروابط وتُفك بالترتيب ذاته — لكن
+داخل `ContextVar` بدلاً من مكدس مشترك، فيُحل التشابك أعلاه لكل مهمة على حدة.
+وتجد المكافئات في [عدة لغات في آن واحد](guide.md#several-languages-at-once).
+أما ما لا توفره فهو البحث عن الكتالوج انطلاقاً من رمز اللغة: أنت من يمرر كائن
+الترجمة، وهو في الحالة الشائعة استدعاء واحد لـ`gettext.translation()`، وتحتفظ
+المكتبة القياسية بالكتالوج المحلَّل في ذاكرة مؤقتة.
+
 ## t-strings { #t-strings }
 
 ```python
@@ -165,6 +200,7 @@ tr(t"Total: {amount:,.2f}")  # msgid is "Total: {amount}"
 | ما علامة PO التي يستنتجها Babel كي تتحقق الأدوات الحالية؟ | `python-format` | `python-brace-format` | لا توجد | `python-brace-format` |
 | يستخدم كتالوجات PO/MO عادية؟ | نعم | نعم | نعم | نعم |
 | يحتاج إلى مستخرج مصدر مخصص؟ | لا | لا | لا | نعم، حالياً |
+| أين تعيش "اللغة الحالية"؟ | حيث يضعها التطبيق | حيث يضعها التطبيق | مكدس من رموز اللغات على كائن التطبيق المشترك | `ContextVar`، لكل مهمة أو طلب |
 
 عن الفحص وقت العرض: تُفحص الرسائل المفردة بحثاً عن تطابق تام للعناصر
 النائبة. وتُفحص رسائل الجمع أيضاً، وفق
@@ -210,3 +246,5 @@ tr(t"Hello {name}")
   [السلوك الموثق]: https://flufli18n.readthedocs.io/en/stable/using.html#substitutions-and-placeholders
   [Template المخصص]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_substitute.py
   [المترجم]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_translator.py
+  [application object]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_application.py
+  [strategy]: https://flufli18n.readthedocs.io/en/stable/strategies.html

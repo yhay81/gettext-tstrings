@@ -111,6 +111,54 @@ choice apply to a string that is not rendered at its call site.
 Plural forms depend on a runtime count, so render those eagerly with `ngettext`
 where the count is known.
 
+## Several languages at once
+
+One request often needs more than one language: a page rendered for the reader
+that also queues a notification to an account set to a different one, or a
+digest that quotes each participant in their own. Bindings nest, and leaving
+the inner block restores the outer one.
+
+```python
+with use_translations(reader):
+    page = tr(t"Hello {name}")
+    with use_translations(recipient):
+        notice = tr(t"Hello {name}")  # the recipient's language
+    footer = tr(t"Hello {name}")  # the reader's again
+```
+
+Over a list of recipients, deferred strings do the work: the message is written
+once, at import, and renders once per language.
+
+```python
+SUBJECT = lazy_gettext(t"Your order shipped")
+
+for user in users:
+    with use_translations(load_translations(user.locale)):
+        send(user.email, str(SUBJECT))
+```
+
+The binding is a `ContextVar`, not a stack held on a shared object, so requests
+that overlap cannot pick up each other's language — including the case where
+they *leave* their blocks in the order they entered them, which is the
+interleaving a pushdown stack gets wrong. Loading a catalog per language is
+cheap: `gettext.translation()` parses each `.mo` once and hands out copies that
+share the parsed catalog.
+
+!!! warning "Whether a worker thread inherits the binding depends on the build"
+
+    A bare `threading.Thread`, or `ThreadPoolExecutor.submit`, starts either
+    from a copy of the caller's context or from an empty one, and which of
+    those is `sys.flags.thread_inherit_context` — true by default on
+    free-threaded builds, false everywhere else. The same code therefore
+    renders the bound language on 3.14t and the process-global catalog on
+    3.14. Pass the context rather than depending on the default:
+
+    ```python
+    pool.submit(contextvars.copy_context().run, render)
+    ```
+
+    `asyncio.to_thread` already does this for you.
+
 ## What happens when a catalog is wrong
 
 If a translation's placeholders do not match the source — a missing, unknown, or

@@ -124,6 +124,46 @@ thành một phần trong không gian tên thay thế của catalog. Phần so s
 đây mô tả `flufl.i18n` 6.0.0, không phải mọi cách dùng có thể của
 `string.Template`.
 
+Nó còn trả lời một câu hỏi mà hai kiểu định dạng kia phó mặc hoàn toàn cho
+ứng dụng: ngôn ngữ *nào* đang là ngôn ngữ hiện tại, và đổi nó bằng cách nào.
+Một [đối tượng ứng dụng][application object] giữ một ngăn xếp các ngôn ngữ,
+`_.push(code)` và `_.pop()` dịch chuyển nó, `with _.using(code):` cho phép
+lồng nhau, còn một [chiến lược][strategy] tìm catalog ứng với một mã ngôn
+ngữ để ứng dụng không bao giờ phải tự tay xử lý các đối tượng catalog. Một
+máy chủ phải sinh ra văn bản bằng nhiều hơn một ngôn ngữ trong cùng một đơn
+vị công việc — một trang cho người đọc, một thông báo cho người có tài khoản
+đặt ngôn ngữ khác — chính là trường hợp mà cơ chế này sinh ra để phục vụ.
+
+Ngăn xếp ấy nằm trên chính đối tượng ứng dụng đó, thứ mà cả tiến trình cùng
+dùng chung. Vì vậy hai request chồng lấn nhau sẽ dùng chung một ngăn xếp, và
+những khối lệnh không lồng nhau chặt chẽ *về mặt thời gian* sẽ trao nhầm
+ngôn ngữ cho nhau:
+
+```python
+async def greet(code, delay):
+    with _.using(code):
+        await asyncio.sleep(delay)
+        return _("Hello $name")
+
+
+async def main():
+    return await asyncio.gather(greet("fr", 0.01), greet("ja", 0.02))
+```
+
+```pycon
+>>> asyncio.run(main())  # "fr" entered first and left first, so it read "ja" off the top
+['こんにちは Ada', 'Bonjour Ada']
+```
+
+Thư viện này giữ nguyên khả năng đó — các binding vẫn lồng vào nhau và gỡ ra
+theo đúng cách ấy — nhưng đặt nó trong một `ContextVar` thay vì một ngăn xếp
+dùng chung, nên kiểu đan xen ở trên được phân giải theo từng task. Các cách
+viết tương đương nằm ở
+[Nhiều ngôn ngữ cùng lúc](guide.md#several-languages-at-once). Thứ mà nó
+không cung cấp là phép tra cứu từ mã ngôn ngữ ra catalog: bạn truyền vào một
+đối tượng bản dịch, mà trong trường hợp thông thường chỉ là một lời gọi
+`gettext.translation()`, và thư viện chuẩn lưu đệm catalog đã phân tích.
+
 ## t-string { #t-strings }
 
 ```python
@@ -178,6 +218,7 @@ bộ mà gói này [cung cấp cho Babel](extraction.md).
 | Babel suy ra cờ PO nào, để các công cụ hiện có xác thực? | `python-format` | `python-brace-format` | không có | `python-brace-format` |
 | Dùng catalog PO/MO thông thường? | có | có | có | có |
 | Cần bộ trích xuất nguồn tùy chỉnh? | không | không | không | có, hiện tại |
+| "Ngôn ngữ hiện tại" nằm ở đâu? | ở bất cứ đâu ứng dụng đặt nó | ở bất cứ đâu ứng dụng đặt nó | một ngăn xếp các mã ngôn ngữ trên đối tượng ứng dụng dùng chung | một `ContextVar`, theo từng task hoặc request |
 
 Về bước kiểm tra lúc kết xuất: thông điệp số ít được kiểm tra khớp
 placeholder một cách chính xác. Thông điệp số nhiều cũng được kiểm tra, theo
@@ -228,3 +269,5 @@ kèm nguồn dẫn tại [Bối cảnh](background.md).
   [documented behavior]: https://flufli18n.readthedocs.io/en/stable/using.html#substitutions-and-placeholders
   [custom Template]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_substitute.py
   [translator]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_translator.py
+  [application object]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_application.py
+  [strategy]: https://flufli18n.readthedocs.io/en/stable/strategies.html

@@ -1,5 +1,22 @@
 # Changelog
 
+## Unreleased
+
+- Document translating into several languages within one request, which the
+  binding already supported and nothing said so. `flufl.i18n` has made a
+  feature of this for years; its stack lives on an application object the whole
+  process shares, so two overlapping requests hand each other the wrong
+  language when they leave their blocks in the order they entered them. The
+  binding here is a `ContextVar`, so that interleaving resolves per task —
+  *Guide* now shows the nesting and the per-recipient loop, *Why t-strings*
+  credits the capability and records the difference, and three tests pin it.
+- One of those tests found that whether a bare `threading.Thread` inherits the
+  binding is `sys.flags.thread_inherit_context`, which defaults true on
+  free-threaded builds and false everywhere else — so the same worker renders
+  the bound language on 3.14t and the process-global catalog on 3.14. *Guide*
+  says to pass the context rather than depend on the default. Found by CI on
+  the free-threaded job, not by reading the documentation.
+
 ## 0.1.0a7 - 2026-07-31
 
 - `lazy_gettext` and `lazy_pgettext` accept `strict`, so a deferred string can

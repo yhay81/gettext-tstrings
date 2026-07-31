@@ -114,6 +114,56 @@ gilda líka um streng sem er ekki birtur á kallstað sínum.
 Fleirtölumyndir velta á fjölda sem er þekktur á keyrslutíma, svo birtu þær
 strax með `ngettext` þar sem fjöldinn er kunnur.
 
+## Mörg tungumál í einu { #several-languages-at-once }
+
+Ein beiðni þarf oft fleiri en eitt tungumál: síða sem er birt fyrir lesandann
+og setur um leið tilkynningu í röð til reiknings sem er stilltur á annað, eða
+samantekt sem vitnar í hvern þátttakanda á hans eigin. Bindingar hreiðrast, og
+þegar innri blokkinni sleppir tekur sú ytri aftur við.
+
+```python
+with use_translations(reader):
+    page = tr(t"Hello {name}")
+    with use_translations(recipient):
+        notice = tr(t"Hello {name}")  # the recipient's language
+    footer = tr(t"Hello {name}")  # the reader's again
+```
+
+Þegar listi af viðtakendum á í hlut vinna frestaðir strengir verkið:
+skilaboðin eru skrifuð einu sinni, við innflutning, og birt einu sinni fyrir
+hvert tungumál.
+
+```python
+SUBJECT = lazy_gettext(t"Your order shipped")
+
+for user in users:
+    with use_translations(load_translations(user.locale)):
+        send(user.email, str(SUBJECT))
+```
+
+Bindingin er `ContextVar`, ekki stafli á sameiginlegum hlut, svo að beiðnir
+sem skarast geta ekki gripið tungumál hver annarrar — þar með talið tilvikið
+þar sem þær *yfirgefa* blokkirnar sínar í sömu röð og þær gengu inn í þær, en
+það er einmitt fléttan sem stafli af þessu tagi ræður ekki við. Það er ódýrt
+að hlaða þýðingaskrá fyrir hvert tungumál: `gettext.translation()` þáttar
+hverja `.mo`-skrá einu sinni og réttir út afrit sem deila þáttuðu skránni.
+
+!!! warning "Hvort vinnuþráður erfir bindinguna fer eftir byggingunni"
+
+    Ber `threading.Thread`, eða `ThreadPoolExecutor.submit`, byrjar annaðhvort
+    með afriti af samhengi kallandans eða með tómu samhengi, og hvort þeirra
+    það verður ræðst af `sys.flags.thread_inherit_context` — sem er satt
+    sjálfgefið í free-threaded byggingum en ósatt í öllum öðrum. Sami kóðinn
+    birtir því bundna tungumálið á 3.14t en altæku gettext-þýðingaskrá
+    ferlisins á 3.14. Sendu samhengið með í stað þess að reiða þig á
+    sjálfgefna hegðun:
+
+    ```python
+    pool.submit(contextvars.copy_context().run, render)
+    ```
+
+    `asyncio.to_thread` gerir þetta þegar fyrir þig.
+
 ## Hvað gerist þegar þýðingaskrá er röng { #what-happens-when-a-catalog-is-wrong }
 
 Ef staðgenglar þýðingar stemma ekki við frumtextann — reitur sem vantar, er

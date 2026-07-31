@@ -119,6 +119,44 @@ padara izsaucēja frame par kataloga aizstāšanas vārdtelpas daļu. Zemāk
 esošais salīdzinājums apraksta `flufl.i18n` 6.0.0, nevis katru iespējamo
 `string.Template` lietojumu.
 
+Tā atbild arī uz jautājumu, ko pārējie divi formatēšanas stili pilnībā atstāj
+lietotnes ziņā: *kura* valoda ir tekošā un kā to nomainīt. [Lietotnes
+objekts][application object] uztur valodu steku, `_.push(code)` un `_.pop()` to
+pārvieto, `with _.using(code):` ļauj tos iegult vienu otrā, un
+[stratēģija][strategy] atrod katalogu attiecīgajam valodas kodam, tā ka lietotne
+pati nekad nedarbojas ar kataloga objektiem. Serveris, kuram vienas darba
+vienības laikā jāsagatavo teksts vairāk nekā vienā valodā — lapa lasītājam,
+paziņojums kādam, kura konts ir iestatīts citādi —, ir tieši tas gadījums, kura
+dēļ tas pastāv.
+
+Steks dzīvo uz šī lietotnes objekta, ko dala viss process. Divi pārklājušies
+pieprasījumi tādējādi dala vienu steku, un bloki, kas nav strikti iegulti
+*laikā*, pasniedz cits citam nepareizo valodu:
+
+```python
+async def greet(code, delay):
+    with _.using(code):
+        await asyncio.sleep(delay)
+        return _("Hello $name")
+
+
+async def main():
+    return await asyncio.gather(greet("fr", 0.01), greet("ja", 0.02))
+```
+
+```pycon
+>>> asyncio.run(main())  # "fr" entered first and left first, so it read "ja" off the top
+['こんにちは Ada', 'Bonjour Ada']
+```
+
+Šī bibliotēka saglabā to pašu spēju — piesaistes iegulst un attinas tieši
+tāpat —, bet tur to `ContextVar`, nevis koplietotā stekā, tāpēc augstāk
+redzamā pārklāšanās atrisinās katram uzdevumam atsevišķi. Ekvivalenti ir lapā
+[Vairākas valodas vienlaikus](guide.md#several-languages-at-once). Ko tā
+nepiedāvā, ir meklēšana no valodas koda uz katalogu: jūs padodat tulkojumu
+objektu, kas parastajā gadījumā ir viens `gettext.translation()` izsaukums, un
+standarta bibliotēka kešo parsēto katalogu.
+
 ## t-virknes { #t-strings }
 
 ```python
@@ -173,6 +211,7 @@ piemēram, tāds, kādu šī pakotne [piedāvā Babel](extraction.md).
 | Kādu PO karogu izsecina Babel, lai esošie rīki varētu validēt? | `python-format` | `python-brace-format` | nekādu | `python-brace-format` |
 | Vai izmanto parastus PO/MO katalogus? | jā | jā | jā | jā |
 | Vai vajadzīgs pielāgots pirmkoda ekstraktors? | nē | nē | nē | pašlaik jā |
+| Kur dzīvo “tekošā valoda”? | tur, kur to noliek lietotne | tur, kur to noliek lietotne | valodu kodu steks uz koplietotā lietotnes objekta | `ContextVar`, katram uzdevumam vai pieprasījumam |
 
 Par pārbaudi renderēšanas brīdī: vienskaitļa ziņojumiem tiek pārbaudīta precīza
 vietturu sakritība. Daudzskaitļa ziņojumi arī tiek pārbaudīti — pret
@@ -221,3 +260,5 @@ avotiem [Priekšvēsturē](background.md).
   [documented behavior]: https://flufli18n.readthedocs.io/en/stable/using.html#substitutions-and-placeholders
   [custom Template]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_substitute.py
   [translator]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_translator.py
+  [application object]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_application.py
+  [strategy]: https://flufli18n.readthedocs.io/en/stable/strategies.html

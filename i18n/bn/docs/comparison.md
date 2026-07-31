@@ -119,6 +119,44 @@ local বা global-এর নাম নিতে পারে এবং ডট-
 অংশও করে তোলে। নিচের তুলনাটি `flufl.i18n` 6.0.0 নিয়ে, `string.Template`-এর
 সম্ভাব্য প্রতিটি ব্যবহার নিয়ে নয়।
 
+অন্য দুটি ফরম্যাটিং শৈলী যে প্রশ্নটি পুরোপুরি অ্যাপ্লিকেশনের হাতে ছেড়ে দেয়,
+এটি তারও উত্তর দেয়: *কোন* ভাষা এখন চলছে, আর তা বদলানো যায় কীভাবে। একটি
+[অ্যাপ্লিকেশন অবজেক্ট][application object] ভাষার একটি স্ট্যাক ধরে রাখে,
+`_.push(code)` ও `_.pop()` তাকে নাড়ায়, `with _.using(code):` নেস্ট করে, আর
+একটি [কৌশল][strategy] কোনও ভাষা-কোডের জন্য ক্যাটালগটি খুঁজে আনে, যাতে
+অ্যাপ্লিকেশনকে কখনও নিজে ক্যাটালগ অবজেক্ট নাড়াচাড়া করতে না হয়। যে সার্ভারকে
+একটিমাত্র কাজের এককের ভিতরেই একাধিক ভাষায় টেক্সট তৈরি করতে হয় — পাঠকের জন্য
+একটি পৃষ্ঠা, আর ভিন্ন ভাষায় সেট করা কোনও অ্যাকাউন্টের জন্য একটি বিজ্ঞপ্তি —
+এটি ঠিক তারই জন্য।
+
+স্ট্যাকটি থাকে ওই অ্যাপ্লিকেশন অবজেক্টের উপর, যাকে গোটা প্রসেস ভাগ করে নেয়।
+ফলে পরস্পর-ওভারল্যাপ করা দুটি request একই স্ট্যাক ভাগ করে, আর যে ব্লকগুলি
+*সময়ের হিসেবে* কঠোরভাবে নেস্ট করা নয়, তারা একে অপরের হাতে ভুল ভাষা তুলে দেয়:
+
+```python
+async def greet(code, delay):
+    with _.using(code):
+        await asyncio.sleep(delay)
+        return _("Hello $name")
+
+
+async def main():
+    return await asyncio.gather(greet("fr", 0.01), greet("ja", 0.02))
+```
+
+```pycon
+>>> asyncio.run(main())  # "fr" entered first and left first, so it read "ja" off the top
+['こんにちは Ada', 'Bonjour Ada']
+```
+
+এই লাইব্রেরি একই সক্ষমতা ধরে রাখে — বাঁধাই একই ভাবেই নেস্ট করে আর খোলে —
+তবে কোনও ভাগ-করা স্ট্যাকে নয়, একটি `ContextVar`-এ, তাই উপরের ওই ইন্টারলিভিং
+প্রতিটি টাস্কে আলাদা করেই মীমাংসিত হয়। সমতুল্য লেখাগুলি আছে
+[একসঙ্গে একাধিক ভাষা](guide.md#several-languages-at-once) অংশে। যা সে দেয় না
+তা হল ভাষা-কোড থেকে ক্যাটালগে পৌঁছনোর লুকআপটি: আপনি একটি translations অবজেক্ট
+পাঠান, যা প্রচলিত ক্ষেত্রে একটিমাত্র `gettext.translation()` কল, আর পার্স করা
+ক্যাটালগটি স্ট্যান্ডার্ড লাইব্রেরিই ক্যাশ করে রাখে।
+
 ## t-strings { #t-strings }
 
 ```python
@@ -172,6 +210,7 @@ tr(t"Total: {amount:,.2f}")  # msgid is "Total: {amount}"
 | প্রচলিত টুলের যাচাইয়ের জন্য Babel কোন PO ফ্ল্যাগ অনুমান করে? | `python-format` | `python-brace-format` | কোনওটিই নয় | `python-brace-format` |
 | সাধারণ PO/MO ক্যাটালগ ব্যবহার করে? | হ্যাঁ | হ্যাঁ | হ্যাঁ | হ্যাঁ |
 | আলাদা সোর্স এক্সট্র্যাক্টর লাগে? | না | না | না | হ্যাঁ, আপাতত |
+| "বর্তমান ভাষা" থাকে কোথায়? | অ্যাপ্লিকেশন যেখানে রাখে সেখানে | অ্যাপ্লিকেশন যেখানে রাখে সেখানে | ভাগ-করা অ্যাপ্লিকেশন অবজেক্টের উপর ভাষা-কোডের একটি স্ট্যাক | একটি `ContextVar`, প্রতি টাস্ক বা request-পিছু |
 
 রেন্ডার-সময়ের যাচাই প্রসঙ্গে: একবচন বার্তায় placeholder-এর হুবহু মিল দেখা
 হয়। বহুবচন বার্তাও যাচাই হয়, সেই
@@ -219,3 +258,5 @@ Python কীভাবে এই মোড়ে এসে পৌঁছল — �
   [documented behavior]: https://flufli18n.readthedocs.io/en/stable/using.html#substitutions-and-placeholders
   [custom Template]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_substitute.py
   [translator]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_translator.py
+  [application object]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_application.py
+  [strategy]: https://flufli18n.readthedocs.io/en/stable/strategies.html

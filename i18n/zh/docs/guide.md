@@ -102,6 +102,50 @@ SAVE = lazy_gettext(t"Save changes", strict=True)
 
 复数形式依赖运行时数量，因此应在已知数量的位置用 `ngettext` 立即渲染。
 
+## 同时使用多种语言 { #several-languages-at-once }
+
+一个请求常常需要不止一种语言：为读者渲染页面的同时，还要给语言设置不同的账户
+排入一条通知；或者一份摘要要用每位参与者各自的语言引用他们。绑定可以嵌套，
+离开内层块后会恢复外层的绑定。
+
+```python
+with use_translations(reader):
+    page = tr(t"Hello {name}")
+    with use_translations(recipient):
+        notice = tr(t"Hello {name}")  # the recipient's language
+    footer = tr(t"Hello {name}")  # the reader's again
+```
+
+面对一组收件人时，延迟字符串正好派上用场：消息只在 import 时编写一次，然后按
+每种语言各渲染一次。
+
+```python
+SUBJECT = lazy_gettext(t"Your order shipped")
+
+for user in users:
+    with use_translations(load_translations(user.locale)):
+        send(user.email, str(SUBJECT))
+```
+
+绑定保存在 `ContextVar` 中，而不是共享对象上的栈里，因此相互重叠的请求不会拿到
+彼此的语言——包括它们按*进入*的顺序*离开*各自代码块的情况，而这正是下推栈会
+弄错的交错。按语言加载目录的开销很小：`gettext.translation()` 对每个 `.mo` 只
+解析一次，然后分发共享同一份解析结果的副本。
+
+!!! warning "工作线程是否继承绑定取决于所用的构建"
+
+    裸的 `threading.Thread` 或 `ThreadPoolExecutor.submit`，要么从调用方上下文的
+    副本开始，要么从空上下文开始，而决定这一点的是
+    `sys.flags.thread_inherit_context`——在自由线程构建上默认为真，在其他任何地方
+    都为假。因此同一份代码在 3.14t 上渲染绑定的语言，在 3.14 上渲染进程全局的
+    目录。请传递上下文，而不要依赖默认值：
+
+    ```python
+    pool.submit(contextvars.copy_context().run, render)
+    ```
+
+    `asyncio.to_thread` 已经替你做好了这件事。
+
 ## 目录出错时会发生什么 { #what-happens-when-a-catalog-is-wrong }
 
 如果翻译的占位符与源消息不一致——缺失、未知或被重新格式化的字段绕过了验证，来自

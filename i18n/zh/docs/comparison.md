@@ -101,6 +101,38 @@ print(_("Hello $name"))  # Hello Ada — the value came from the caller's locals
 调用方的栈帧也成为目录替换命名空间的一部分。下面比较的是 `flufl.i18n` 6.0.0，
 而不是 `string.Template` 的所有可能用法。
 
+它还回答了另外两种格式化风格完全丢给应用程序的一个问题：*当前*是哪种语言，
+以及如何切换。[应用程序对象][application object]维护一个语言栈，`_.push(code)`
+与 `_.pop()` 负责移动它，`with _.using(code):` 可以嵌套，而[策略][strategy]会
+根据语言代码找到对应目录，于是应用程序自己从不直接处理目录对象。需要在同一个
+工作单元中产出多种语言文本的服务器——给读者的页面，以及给某个语言设置不同的
+账户的通知——正是它存在的理由。
+
+这个栈存放在那个应用程序对象上，而整个进程共享它。因此两个相互重叠的请求会共用
+同一个栈，*在时间上*并非严格嵌套的代码块就会把错误的语言交给彼此：
+
+```python
+async def greet(code, delay):
+    with _.using(code):
+        await asyncio.sleep(delay)
+        return _("Hello $name")
+
+
+async def main():
+    return await asyncio.gather(greet("fr", 0.01), greet("ja", 0.02))
+```
+
+```pycon
+>>> asyncio.run(main())  # "fr" entered first and left first, so it read "ja" off the top
+['こんにちは Ada', 'Bonjour Ada']
+```
+
+本库保留了同样的能力——绑定同样会嵌套，并以相同的方式解除——但把它放在
+`ContextVar` 中，而不是共享的栈里，因此上面那种交错会按任务各自解析。对应写法见
+[同时使用多种语言](guide.md#several-languages-at-once)。本库不提供的是从语言代码
+到目录的查找：你传入一个翻译对象，常见情况下就是一次 `gettext.translation()`
+调用，而标准库会缓存解析后的目录。
+
 ## t-string { #t-strings }
 
 ```python
@@ -150,6 +182,7 @@ tr(t"Total: {amount:,.2f}")  # msgid is "Total: {amount}"
 | Babel 推断哪个 PO 标志，供现有工具验证？ | `python-format` | `python-brace-format` | 无 | `python-brace-format` |
 | 使用普通 PO/MO 目录吗？ | 是 | 是 | 是 | 是 |
 | 需要自定义源代码提取器吗？ | 否 | 否 | 否 | 是，目前需要 |
+| “当前语言”存放在哪里？ | 应用程序放到哪里就在哪里 | 应用程序放到哪里就在哪里 | 共享应用程序对象上的语言代码栈 | 一个 `ContextVar`，按任务或请求隔离 |
 
 关于渲染时检查：单数消息要求占位符完全匹配。复数消息同样会检查，依据的是允许
 目标语言复数形式与源语言不同的[并集/交集规则](spec.md)；更严格的逐形式检查在
@@ -191,3 +224,5 @@ Python 如何走到这个十字路口——相隔十年的两个 PEP，以及无
   [已有文档说明的行为]: https://flufli18n.readthedocs.io/en/stable/using.html#substitutions-and-placeholders
   [自定义 Template]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_substitute.py
   [translator]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_translator.py
+  [application object]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_application.py
+  [strategy]: https://flufli18n.readthedocs.io/en/stable/strategies.html

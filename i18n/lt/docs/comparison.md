@@ -119,6 +119,45 @@ kviečiančiojo rėmelis tampa katalogo pakeitimų vardų erdvės dalimi. Toliau
 esantis palyginimas apibūdina `flufl.i18n` 6.0.0, o ne visus įmanomus
 `string.Template` naudojimo būdus.
 
+Jis atsako ir į klausimą, kurį kiti du formatavimo stiliai visiškai palieka
+programai: *kuri* kalba yra dabartinė ir kaip ją pakeisti. [Programos
+objektas][application object] laiko kalbų dėklą, `_.push(code)` ir `_.pop()`
+jį stumdo, `with _.using(code):` gali būti dedamas vienas į kitą, o
+[strategija][strategy] pagal kalbos kodą suranda katalogą, tad pati programa
+katalogo objektų niekada netvarko. Serveris, kuriam per vieną darbo vienetą
+reikia parengti tekstą daugiau nei viena kalba — puslapį skaitytojui ir
+pranešimą tam, kurio paskyroje nustatyta kitaip — ir yra tas atvejis, dėl
+kurio visa tai egzistuoja.
+
+Tas dėklas gyvena programos objekte, kuriuo dalijasi visas procesas. Todėl dvi
+persidengiančios užklausos naudoja tą patį dėklą, o blokai, kurie *laike* nėra
+griežtai vienas kitame, perduoda vienas kitam ne tą kalbą:
+
+```python
+async def greet(code, delay):
+    with _.using(code):
+        await asyncio.sleep(delay)
+        return _("Hello $name")
+
+
+async def main():
+    return await asyncio.gather(greet("fr", 0.01), greet("ja", 0.02))
+```
+
+```pycon
+>>> asyncio.run(main())  # "fr" entered first and left first, so it read "ja" off the top
+['こんにちは Ada', 'Bonjour Ada']
+```
+
+Ši biblioteka tą pačią galimybę — susiejimai dedami vienas į kitą ir
+atvyniojami lygiai taip pat — laiko `ContextVar` kintamajame, o ne bendrame
+dėkle, todėl aukščiau parodytas persipynimas išsprendžiamas kiekvienai
+užduočiai atskirai. Atitikmenys yra puslapyje
+[Kelios kalbos vienu metu](guide.md#several-languages-at-once). Ko ji
+nepateikia, tai paieškos nuo kalbos kodo iki katalogo: jūs perduodate vertimų
+objektą, o įprastu atveju tai vienas `gettext.translation()` iškvietimas, ir
+perskaitytą katalogą kešuoja pati standartinė biblioteka.
+
 ## t-eilutės { #t-strings }
 
 ```python
@@ -173,6 +212,7 @@ tokio kaip tas, kurį šis paketas [pateikia Babel'iui](extraction.md).
 | Kokią PO žymą Babel nustato, kad jau turimi įrankiai galėtų tikrinti? | `python-format` | `python-brace-format` | jokios | `python-brace-format` |
 | Ar naudoja įprastus PO/MO katalogus? | taip | taip | taip | taip |
 | Ar reikia savo pirminio kodo ištraukiklio? | ne | ne | ne | taip, šiuo metu |
+| Kur gyvena „dabartinė kalba“? | ten, kur ją padeda programa | ten, kur ją padeda programa | kalbų kodų dėkle, esančiame bendrame programos objekte | `ContextVar` kintamajame, kiekvienai užduočiai ar užklausai atskirai |
 
 Dėl atvaizdavimo meto patikros: vienaskaitos pranešimai tikrinami dėl tikslaus
 vietaženklių sutapimo. Daugiskaitos pranešimai taip pat tikrinami — pagal
@@ -221,3 +261,5 @@ papasakota su šaltiniais puslapyje [Ištakos](background.md).
   [documented behavior]: https://flufli18n.readthedocs.io/en/stable/using.html#substitutions-and-placeholders
   [custom Template]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_substitute.py
   [translator]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_translator.py
+  [application object]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_application.py
+  [strategy]: https://flufli18n.readthedocs.io/en/stable/strategies.html

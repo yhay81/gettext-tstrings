@@ -121,6 +121,44 @@ placeholder दिखता रहता है। यह [प्रलेखि
 के प्रतिस्थापन namespace का हिस्सा बन जाता है। नीचे की तुलना `flufl.i18n`
 6.0.0 का वर्णन करती है, `string.Template` के हर संभव उपयोग का नहीं।
 
+यह उस सवाल का जवाब भी देता है जिसे बाक़ी दोनों फ़ॉर्मैटिंग शैलियाँ पूरी तरह
+एप्लिकेशन पर छोड़ देती हैं: इस समय *कौन-सी* भाषा सक्रिय है, और उसे बदला कैसे
+जाए। कोई [application object] भाषाओं का एक स्टैक रखता है, `_.push(code)` और
+`_.pop()` उसे हिलाते हैं, `with _.using(code):` उसे नेस्ट करता है, और कोई
+[strategy] किसी भाषा-कोड के लिए कैटलॉग ढूँढ़ लेती है ताकि एप्लिकेशन को कैटलॉग
+ऑब्जेक्ट कभी ख़ुद न सँभालने पड़ें। जिस सर्वर को काम की एक ही इकाई के दौरान एक
+से अधिक भाषाओं में टेक्स्ट बनाना पड़ता है — पाठक के लिए एक पेज, और किसी ऐसे
+व्यक्ति के लिए सूचना जिसका खाता किसी दूसरी भाषा पर सेट है — यही वह स्थिति है
+जिसके लिए यह मौजूद है।
+
+वह स्टैक उसी application object पर रहता है, जिसे पूरी प्रक्रिया साझा करती है।
+इसलिए दो अतिव्यापी requests एक ही स्टैक साझा करते हैं, और जो ब्लॉक *समय में*
+सख़्ती से नेस्टेड नहीं हैं वे एक-दूसरे को ग़लत भाषा थमा देते हैं:
+
+```python
+async def greet(code, delay):
+    with _.using(code):
+        await asyncio.sleep(delay)
+        return _("Hello $name")
+
+
+async def main():
+    return await asyncio.gather(greet("fr", 0.01), greet("ja", 0.02))
+```
+
+```pycon
+>>> asyncio.run(main())  # "fr" entered first and left first, so it read "ja" off the top
+['こんにちは Ada', 'Bonjour Ada']
+```
+
+यह लाइब्रेरी वही क्षमता — bindings उसी तरह नेस्ट होती और उसी तरह खुलती हैं —
+किसी साझा स्टैक की बजाय एक `ContextVar` में रखती है, इसलिए ऊपर वाला
+अंतर्ग्रथन प्रति task सुलझता है। इसके समतुल्य
+[एक साथ कई भाषाएँ](guide.md#several-languages-at-once) पर हैं। जो यह नहीं
+देती वह है भाषा-कोड-से-कैटलॉग खोज: आप एक translations ऑब्जेक्ट देते हैं, जो
+आम स्थिति में `gettext.translation()` की एक ही कॉल है, और पार्स किए हुए
+कैटलॉग को मानक लाइब्रेरी कैश कर लेती है।
+
 ## t-strings { #t-strings }
 
 ```python
@@ -176,6 +214,7 @@ tr(t"Total: {amount:,.2f}")  # msgid is "Total: {amount}"
 | Babel कौन-सा PO फ़्लैग अनुमानित करता है, जिससे मौजूदा टूल सत्यापन करें? | `python-format` | `python-brace-format` | कोई नहीं | `python-brace-format` |
 | क्या साधारण PO/MO कैटलॉग उपयोग होते हैं? | हाँ | हाँ | हाँ | हाँ |
 | क्या custom सोर्स एक्सट्रैक्टर चाहिए? | नहीं | नहीं | नहीं | हाँ, फ़िलहाल |
+| "वर्तमान भाषा" कहाँ रहती है? | जहाँ एप्लिकेशन उसे रखे | जहाँ एप्लिकेशन उसे रखे | साझा application object पर भाषा-कोड का एक स्टैक | एक `ContextVar`, प्रति task या request |
 
 रेंडर-समय जाँच के बारे में: एकवचन संदेशों की placeholder की सटीक बराबरी की
 जाँच होती है। बहुवचन संदेशों की भी होती है, उस
@@ -224,3 +263,5 @@ Python इस चौराहे तक कैसे पहुँचा — द�
   [documented behavior]: https://flufli18n.readthedocs.io/en/stable/using.html#substitutions-and-placeholders
   [custom Template]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_substitute.py
   [translator]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_translator.py
+  [application object]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_application.py
+  [strategy]: https://flufli18n.readthedocs.io/en/stable/strategies.html

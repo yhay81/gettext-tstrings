@@ -127,6 +127,48 @@ macht aber zugleich den Frame des Aufrufers zum Teil des
 Ersetzungsnamensraums des Katalogs. Der folgende Vergleich beschreibt
 `flufl.i18n` 6.0.0, nicht jede mögliche Verwendung von `string.Template`.
 
+Es beantwortet außerdem eine Frage, die die beiden anderen Formatierungsstile
+vollständig der Anwendung überlassen: *welche* Sprache gerade gilt und wie man
+sie wechselt. Ein [Anwendungsobjekt][application object] hält einen Stapel von
+Sprachen, `_.push(code)` und `_.pop()` bewegen ihn, `with _.using(code):`
+verschachtelt ihn, und eine [Strategie][strategy] findet den Katalog zu einem
+Sprachcode, sodass die Anwendung nie selbst mit Katalogobjekten umgeht. Ein
+Server, der innerhalb einer einzigen Arbeitseinheit Text in mehr als einer
+Sprache erzeugen muss — eine Seite für die lesende Person, eine
+Benachrichtigung für jemanden, dessen Konto anders eingestellt ist —, ist genau
+der Fall, für den es das gibt.
+
+Der Stapel liegt auf diesem Anwendungsobjekt, das der gesamte Prozess teilt.
+Zwei sich überlappende Anfragen teilen sich damit einen Stapel, und Blöcke, die
+*zeitlich* nicht streng verschachtelt sind, reichen einander die falsche
+Sprache:
+
+```python
+async def greet(code, delay):
+    with _.using(code):
+        await asyncio.sleep(delay)
+        return _("Hello $name")
+
+
+async def main():
+    return await asyncio.gather(greet("fr", 0.01), greet("ja", 0.02))
+```
+
+```pycon
+>>> asyncio.run(main())  # "fr" entered first and left first, so it read "ja" off the top
+['こんにちは Ada', 'Bonjour Ada']
+```
+
+Diese Bibliothek behält dieselbe Fähigkeit — Bindungen verschachteln sich und
+lösen sich genauso wieder auf —, hält sie aber in einer `ContextVar` statt in
+einem geteilten Stapel, sodass sich die obige Verschränkung pro Task auflöst.
+Die Entsprechungen stehen unter
+[Mehrere Sprachen gleichzeitig](guide.md#several-languages-at-once). Was sie
+nicht mitliefert, ist das Nachschlagen vom Sprachcode zum Katalog: Du übergibst
+ein Translations-Objekt, im Regelfall ein einziger
+`gettext.translation()`-Aufruf, und die Standardbibliothek hält den geparsten
+Katalog im Cache.
+
 ## t-strings { #t-strings }
 
 ```python
@@ -183,6 +225,7 @@ Extraktor, etwa den, den dieses Paket
 | Welches PO-Flag leitet Babel ab, damit vorhandene Werkzeuge validieren können? | `python-format` | `python-brace-format` | keines | `python-brace-format` |
 | Verwendet gewöhnliche PO/MO-Kataloge? | ja | ja | ja | ja |
 | Benötigt einen eigenen Quelltextextraktor? | nein | nein | nein | derzeit ja |
+| Wo lebt „die aktuelle Sprache“? | wo die Anwendung sie ablegt | wo die Anwendung sie ablegt | ein Stapel von Sprachcodes auf dem geteilten Anwendungsobjekt | eine `ContextVar`, pro Task oder Anfrage |
 
 Zur Prüfung beim Rendern: Singularnachrichten werden auf eine exakte
 Übereinstimmung der Platzhalter geprüft. Pluralnachrichten werden ebenfalls
@@ -234,3 +277,5 @@ erzählt, mit Quellen, die Seite [Hintergrund](background.md).
   [dokumentierte Verhalten]: https://flufli18n.readthedocs.io/en/stable/using.html#substitutions-and-placeholders
   [angepasstes Template]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_substitute.py
   [Übersetzer]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_translator.py
+  [application object]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_application.py
+  [strategy]: https://flufli18n.readthedocs.io/en/stable/strategies.html

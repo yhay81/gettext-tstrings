@@ -119,6 +119,58 @@ i bhfeidhm ar theaghrán nach rindreáiltear ag a láithreán glaonna é.
 Braitheann foirmeacha iolra ar chomhaireamh ag am rite, mar sin rindreáil iad
 sin go fonnmhar le `ngettext` san áit a bhfuil an comhaireamh ar eolas.
 
+## Roinnt teangacha ag an am céanna { #several-languages-at-once }
+
+Is minic a bhíonn níos mó ná teanga amháin ag teastáil ó iarratas amháin:
+leathanach a rindreáiltear don léitheoir agus a chuireann fógra i scuaine ag
+an am céanna chuig cuntas atá socraithe ar theanga eile, nó achoimre a luann
+gach rannpháirtí ina theanga féin. Neadaíonn ceangail, agus nuair a fhágtar an
+bloc istigh cuirtear an ceann amuigh ar ais.
+
+```python
+with use_translations(reader):
+    page = tr(t"Hello {name}")
+    with use_translations(recipient):
+        notice = tr(t"Hello {name}")  # the recipient's language
+    footer = tr(t"Hello {name}")  # the reader's again
+```
+
+Thar liosta faighteoirí is iad na teaghráin iarchurtha a dhéanann an obair:
+scríobhtar an teachtaireacht uair amháin, ag am iompórtála, agus rindreáiltear
+í uair amháin in aghaidh na teanga.
+
+```python
+SUBJECT = lazy_gettext(t"Your order shipped")
+
+for user in users:
+    with use_translations(load_translations(user.locale)):
+        send(user.email, str(SUBJECT))
+```
+
+Is `ContextVar` é an ceangal, agus ní cruach atá á coinneáil ar oibiacht
+roinnte, mar sin ní féidir le hiarratais fhorluiteacha teanga a chéile a
+phiocadh suas — an cás ina *bhfágann* siad a mbloic san ord inar tháinig siad
+isteach iontu san áireamh, agus sin é an fite fuaite nach n-éiríonn le cruach a
+láimhseáil i gceart. Níl sé costasach catalóg a lódáil in aghaidh na teanga:
+parsálann `gettext.translation()` gach `.mo` uair amháin agus tugann sé amach
+cóipeanna a roinneann an chatalóg pharsáilte.
+
+!!! warning "Braitheann oidhreacht an cheangail i snáithe oibre ar an tógáil"
+
+    Tosaíonn `threading.Thread` lom, nó `ThreadPoolExecutor.submit`, ó chóip
+    de chomhthéacs an ghlaoiteora nó ó chomhthéacs folamh, agus is é
+    `sys.flags.thread_inherit_context` a shocraíonn cé acu — fíor de réir
+    réamhshocraithe ar thógálacha saorshnáithithe, bréagach i ngach áit eile.
+    Rindreálann an cód céanna, dá bhrí sin, an teanga cheangailte ar 3.14t
+    agus an chatalóg atá domhanda don phróiseas ar 3.14. Seachaid an
+    comhthéacs seachas a bheith ag brath ar an réamhshocrú:
+
+    ```python
+    pool.submit(contextvars.copy_context().run, render)
+    ```
+
+    Déanann `asyncio.to_thread` é seo duit cheana féin.
+
 ## A tharlaíonn nuair a bhíonn catalóg mícheart { #what-happens-when-a-catalog-is-wrong }
 
 Mura meaitseálann sealbhóirí ionaid aistriúcháin leis an bhfoinse — réimse atá

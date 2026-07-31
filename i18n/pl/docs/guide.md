@@ -116,6 +116,56 @@ renderuje się w miejscu swojego wywołania.
 Formy liczby mnogiej zależą od licznika znanego w czasie działania, więc
 renderuj je zachłannie przez `ngettext` tam, gdzie licznik jest znany.
 
+## Kilka języków naraz { #several-languages-at-once }
+
+Jedno żądanie często potrzebuje więcej niż jednego języka: strona renderowana
+dla czytelnika, która przy okazji kolejkuje powiadomienie na konto ustawione
+na inny, albo zestawienie cytujące każdego uczestnika w jego własnym.
+Wiązania zagnieżdżają się, a wyjście z wewnętrznego bloku przywraca
+zewnętrzne.
+
+```python
+with use_translations(reader):
+    page = tr(t"Hello {name}")
+    with use_translations(recipient):
+        notice = tr(t"Hello {name}")  # the recipient's language
+    footer = tr(t"Hello {name}")  # the reader's again
+```
+
+Przy liście odbiorców robotę wykonują łańcuchy odroczone: komunikat jest
+zapisany raz, w czasie importu, i renderuje się raz na język.
+
+```python
+SUBJECT = lazy_gettext(t"Your order shipped")
+
+for user in users:
+    with use_translations(load_translations(user.locale)):
+        send(user.email, str(SUBJECT))
+```
+
+Wiązanie jest `ContextVar`, a nie stosem trzymanym na współdzielonym
+obiekcie, więc nakładające się żądania nie mogą przejąć swoich języków
+nawzajem — łącznie z przypadkiem, w którym *opuszczają* swoje bloki w tej
+samej kolejności, w jakiej do nich weszły, czyli tym przeplotem, który stos
+rozstrzyga błędnie. Wczytywanie katalogu na każdy język jest tanie:
+`gettext.translation()` parsuje każde `.mo` raz i wydaje kopie współdzielące
+sparsowany katalog.
+
+!!! warning "To, czy wątek roboczy dziedziczy wiązanie, zależy od builda"
+
+    Goły `threading.Thread` albo `ThreadPoolExecutor.submit` startuje albo od
+    kopii kontekstu wywołującego, albo od pustego, a o tym, który z nich to
+    będzie, decyduje `sys.flags.thread_inherit_context` — domyślnie prawda w
+    buildach free-threaded, fałsz wszędzie indziej. Ten sam kod renderuje więc
+    związany język na 3.14t, a globalny dla procesu katalog na 3.14. Przekaż
+    kontekst, zamiast polegać na wartości domyślnej:
+
+    ```python
+    pool.submit(contextvars.copy_context().run, render)
+    ```
+
+    `asyncio.to_thread` już robi to za Ciebie.
+
 ## Co się dzieje, gdy katalog jest błędny { #what-happens-when-a-catalog-is-wrong }
 
 Jeśli symbole zastępcze tłumaczenia nie pasują do źródła — brakujące,

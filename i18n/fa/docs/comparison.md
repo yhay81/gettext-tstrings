@@ -123,6 +123,45 @@ print(_("Hello $name"))  # Hello Ada — the value came from the caller's locals
 کاتالوگ می‌کند. مقایسهٔ زیر `flufl.i18n` نسخهٔ 6.0.0 را توصیف می‌کند،
 نه هر کاربرد ممکنی از `string.Template` را.
 
+به پرسشی هم پاسخ می‌دهد که آن دو سبک قالب‌بندی دیگر یکسره به عهدهٔ
+برنامه می‌گذارند: *کدام* زبان جاری است و چگونه باید عوضش کرد. یک
+[شیءِ برنامه][application object] پشته‌ای از زبان‌ها را نگه می‌دارد،
+`_.push(code)` و `_.pop()` آن را جابه‌جا می‌کنند، `with _.using(code):`
+تودرتو می‌شود، و یک [راهبرد][strategy] کاتالوگِ متناظر با یک کد زبان را
+می‌یابد تا برنامه هرگز خودش با شیءهای کاتالوگ سروکار نداشته باشد.
+کارسازی که باید در یک واحدِ کاریِ واحد متن را به بیش از یک زبان تولید
+کند — صفحه‌ای برای خواننده، اعلانی برای کسی که حسابش زبان دیگری دارد —
+همان موردی است که این امکان برایش ساخته شده.
+
+پشته روی همان شیءِ برنامه زندگی می‌کند که کل فرایند در آن شریک است. پس
+دو درخواستِ هم‌پوشان یک پشتهٔ واحد دارند، و بلوک‌هایی که *در زمان*
+به‌طور دقیق تودرتو نیستند، زبان اشتباه را دست هم می‌دهند:
+
+```python
+async def greet(code, delay):
+    with _.using(code):
+        await asyncio.sleep(delay)
+        return _("Hello $name")
+
+
+async def main():
+    return await asyncio.gather(greet("fr", 0.01), greet("ja", 0.02))
+```
+
+```pycon
+>>> asyncio.run(main())  # "fr" entered first and left first, so it read "ja" off the top
+['こんにちは Ada', 'Bonjour Ada']
+```
+
+این کتابخانه همان توانایی را نگه می‌دارد — بسته‌ها به همان شکل تودرتو
+می‌شوند و باز می‌شوند — اما در یک `ContextVar` به‌جای یک پشتهٔ مشترک؛ پس
+درهم‌بافتگیِ بالا به‌ازای هر تسک حل می‌شود. معادل‌ها در
+[چند زبان به‌طور هم‌زمان](guide.md#several-languages-at-once) آمده‌اند.
+آنچه فراهم نمی‌کند، جست‌وجوی کاتالوگ از روی کد زبان است: شما یک شیء
+translations می‌دهید که در حالت متعارف یک فراخوانی
+`gettext.translation()` است، و کتابخانهٔ استاندارد کاتالوگِ تجزیه‌شده را
+کش می‌کند.
+
 ## ‏t-string { #t-strings }
 
 ```python
@@ -178,6 +217,7 @@ tr(t"Total: {amount:,.2f}")  # msgid is "Total: {amount}"
 | Babel کدام پرچم PO را برداشت می‌کند تا ابزارهای موجود اعتبارسنجی کنند؟ | `python-format` | `python-brace-format` | هیچ‌کدام | `python-brace-format` |
 | از کاتالوگ‌های معمولی PO/MO استفاده می‌کند؟ | بله | بله | بله | بله |
 | به استخراج‌کنندهٔ مبدأ سفارشی نیاز دارد؟ | نه | نه | نه | بله، فعلاً |
+| «زبان جاری» کجا زندگی می‌کند؟ | هرجا که برنامه بگذاردش | هرجا که برنامه بگذاردش | پشته‌ای از کدهای زبان روی شیءِ برنامهٔ مشترک | یک `ContextVar`، به‌ازای هر تسک یا درخواست |
 
 دربارهٔ بررسیِ زمانِ رندر: پیام‌های مفرد برای تطابق دقیق جای‌نگهدارها
 بررسی می‌شوند. پیام‌های جمع هم بررسی می‌شوند، در برابر
@@ -226,3 +266,5 @@ tr(t"Hello {name}")
   [documented behavior]: https://flufli18n.readthedocs.io/en/stable/using.html#substitutions-and-placeholders
   [custom Template]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_substitute.py
   [translator]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_translator.py
+  [application object]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_application.py
+  [strategy]: https://flufli18n.readthedocs.io/en/stable/strategies.html

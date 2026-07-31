@@ -113,6 +113,56 @@ qui n'est pas rendue sur son site d'appel.
 Les pluriels dépendent du nombre à l'exécution : rendez-les immédiatement avec
 `ngettext`.
 
+## Plusieurs langues à la fois { #several-languages-at-once }
+
+Une même requête a souvent besoin de plusieurs langues : une page rendue pour
+le lecteur qui met aussi en file une notification vers un compte réglé sur une
+autre, ou un récapitulatif qui cite chaque participant dans la sienne. Les
+liaisons s'imbriquent, et quitter le bloc intérieur restaure celui du dessus.
+
+```python
+with use_translations(reader):
+    page = tr(t"Hello {name}")
+    with use_translations(recipient):
+        notice = tr(t"Hello {name}")  # the recipient's language
+    footer = tr(t"Hello {name}")  # the reader's again
+```
+
+Sur une liste de destinataires, ce sont les chaînes différées qui font le
+travail : le message est écrit une seule fois, à l'import, et se rend une fois
+par langue.
+
+```python
+SUBJECT = lazy_gettext(t"Your order shipped")
+
+for user in users:
+    with use_translations(load_translations(user.locale)):
+        send(user.email, str(SUBJECT))
+```
+
+La liaison est une `ContextVar`, pas une pile portée par un objet partagé : des
+requêtes qui se chevauchent ne peuvent donc pas récupérer la langue les unes
+des autres — y compris dans le cas où elles *quittent* leurs blocs dans l'ordre
+où elles y sont entrées, l'entrelacement qu'une pile à empilement prend à
+revers. Charger un catalogue par langue coûte peu : `gettext.translation()`
+analyse chaque `.mo` une seule fois et distribue des copies qui partagent le
+catalogue analysé.
+
+!!! warning "Qu'un thread de travail hérite de la liaison dépend du build"
+
+    Un `threading.Thread` nu, ou `ThreadPoolExecutor.submit`, démarre soit depuis
+    une copie du contexte de l'appelant, soit depuis un contexte vide, et ce qui
+    en décide est `sys.flags.thread_inherit_context` — vrai par défaut sur les
+    builds free-threaded, faux partout ailleurs. Le même code rend donc la langue
+    liée sur 3.14t et le catalogue global au processus sur 3.14. Transmettez le
+    contexte plutôt que de dépendre de la valeur par défaut :
+
+    ```python
+    pool.submit(contextvars.copy_context().run, render)
+    ```
+
+    `asyncio.to_thread` le fait déjà pour vous.
+
 ## Si un catalogue est incorrect { #what-happens-when-a-catalog-is-wrong }
 
 Si les marqueurs d'une traduction ne correspondent pas à la source, le

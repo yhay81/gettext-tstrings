@@ -122,6 +122,44 @@ atributy. To je pohodlné, když zpráva potřebuje atribut, zároveň to však
 níže popisuje `flufl.i18n` 6.0.0, nikoli každé možné použití
 `string.Template`.
 
+Odpovídá také na otázku, kterou zbylé dva formátovací styly nechávají zcela
+na aplikaci: *který* jazyk právě platí a jak jej změnit. [Objekt
+aplikace][application object] drží zásobník jazyků, `_.push(code)` a `_.pop()`
+s ním pohybují, `with _.using(code):` je vnořuje a [strategie][strategy]
+najde katalog pro daný kód jazyka, takže aplikace sama nikdy nezachází
+s objekty katalogu. Server, který musí během jediné jednotky práce vytvořit
+text ve více než jednom jazyce — stránku pro čtenáře, oznámení pro někoho,
+kdo má účet nastavený jinak —, je právě ten případ, kvůli němuž to existuje.
+
+Zásobník žije na onom objektu aplikace, který sdílí celý proces. Dva
+překrývající se požadavky tedy sdílejí jeden zásobník a bloky, které nejsou
+striktně vnořené *v čase*, si navzájem podávají špatný jazyk:
+
+```python
+async def greet(code, delay):
+    with _.using(code):
+        await asyncio.sleep(delay)
+        return _("Hello $name")
+
+
+async def main():
+    return await asyncio.gather(greet("fr", 0.01), greet("ja", 0.02))
+```
+
+```pycon
+>>> asyncio.run(main())  # "fr" entered first and left first, so it read "ja" off the top
+['こんにちは Ada', 'Bonjour Ada']
+```
+
+Tato knihovna zachovává tutéž schopnost — vazby se vnořují a rozvinují
+stejným způsobem —, ale drží ji v `ContextVar` místo ve sdíleném zásobníku,
+takže se výše uvedené prokládání vyřeší pro každou úlohu zvlášť. Ekvivalenty
+najdete na stránce
+[Několik jazyků naráz](guide.md#several-languages-at-once). Co nedodává, je
+vyhledání katalogu podle kódu jazyka: předáte objekt s překlady, což je
+v běžném případě jediné volání `gettext.translation()`, a standardní knihovna
+si rozparsovaný katalog uloží do cache.
+
 ## t-stringy { #t-strings }
 
 ```python
@@ -177,6 +215,7 @@ t-stringům rozumí, například ten, který tento balíček
 | Jaký PO příznak odvodí Babel, aby existující nástroje validovaly? | `python-format` | `python-brace-format` | žádný | `python-brace-format` |
 | Používá obyčejné katalogy PO/MO? | ano | ano | ano | ano |
 | Potřebuje vlastní extraktor zdrojů? | ne | ne | ne | ano, zatím |
+| Kde žije „aktuální jazyk“? | tam, kam si jej aplikace uloží | tam, kam si jej aplikace uloží | zásobník kódů jazyků na sdíleném objektu aplikace | `ContextVar`, pro každou úlohu či požadavek |
 
 Ke kontrole při vykreslování: zprávy v jednotném čísle se kontrolují na
 přesnou shodu zástupných symbolů. Zprávy v množném čísle také — vůči
@@ -226,3 +265,5 @@ stránka [Pozadí](background.md).
   [documented behavior]: https://flufli18n.readthedocs.io/en/stable/using.html#substitutions-and-placeholders
   [custom Template]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_substitute.py
   [translator]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_translator.py
+  [application object]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_application.py
+  [strategy]: https://flufli18n.readthedocs.io/en/stable/strategies.html

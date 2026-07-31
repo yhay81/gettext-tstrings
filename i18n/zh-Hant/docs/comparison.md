@@ -102,6 +102,38 @@ print(_("Hello $name"))  # Hello Ada — the value came from the caller's locals
 屬性時，這很方便，同時也把呼叫端的 frame 納入了目錄的替換命名空間。以下的比較描述
 的是 `flufl.i18n` 6.0.0，而不是 `string.Template` 的所有可能用法。
 
+它同時也回答了另外兩種格式化風格完全丟給應用程式的一個問題：目前是*哪一個*語言，
+以及要怎麼換掉它。一個[應用程式物件][application object]持有一疊語言，`_.push(code)`
+與 `_.pop()` 推動它，`with _.using(code):` 可以巢狀，而一套[策略][strategy]負責依語言
+代碼找出目錄，於是應用程式自己從不必碰目錄物件。那種在單一個工作單位之內就得產出
+一種以上語言文字的伺服器——給讀者的一個頁面，加上給某個帳號設定成別種語言的人的一則
+通知——正是這套機制存在的理由。
+
+那疊語言就掛在那個應用程式物件上，而整個行程共用它。因此兩個彼此重疊的請求會共用
+同一疊，於是那些在*時間上*並非嚴格巢狀的區塊，就會把錯的語言交到對方手上：
+
+```python
+async def greet(code, delay):
+    with _.using(code):
+        await asyncio.sleep(delay)
+        return _("Hello $name")
+
+
+async def main():
+    return await asyncio.gather(greet("fr", 0.01), greet("ja", 0.02))
+```
+
+```pycon
+>>> asyncio.run(main())  # "fr" entered first and left first, so it read "ja" off the top
+['こんにちは Ada', 'Bonjour Ada']
+```
+
+本函式庫保留了同樣的能力——繫結一樣會巢狀、一樣會層層退回——只是放在 `ContextVar`
+裡，而不是一個共用的堆疊，所以上面那種交錯會逐任務各自解出正確答案。對應的寫法在
+[同時處理多種語言](guide.md#several-languages-at-once)。它沒有提供的是「語言代碼到
+目錄」的查詢：你要傳入一個 translations 物件，常見情況下就是一次
+`gettext.translation()` 呼叫，而解析後的目錄由標準函式庫快取起來。
+
 ## t-string { #t-strings }
 
 ```python
@@ -151,6 +183,7 @@ tr(t"Total: {amount:,.2f}")  # msgid is "Total: {amount}"
 | Babel 會推斷出哪個 PO 旗標，好讓既有工具驗證？ | `python-format` | `python-brace-format` | 無 | `python-brace-format` |
 | 使用一般的 PO／MO 目錄嗎？ | 是 | 是 | 是 | 是 |
 | 需要自訂的原始碼擷取器嗎？ | 不用 | 不用 | 不用 | 目前需要 |
+| 「目前的語言」放在哪裡？ | 應用程式放到哪就在哪 | 應用程式放到哪就在哪 | 共用應用程式物件上的一疊語言代碼 | 一個 `ContextVar`，逐任務或逐請求 |
 
 關於渲染時的檢查：單數訊息會被檢查佔位符是否完全相符。複數訊息同樣會被檢查，依據
 的是那條讓目標語言的複數形式得以不同於來源語言的[聯集／交集規則](spec.md)；更嚴格
@@ -192,3 +225,5 @@ tr(t"Hello {name}")
   [documented behavior]: https://flufli18n.readthedocs.io/en/stable/using.html#substitutions-and-placeholders
   [custom Template]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_substitute.py
   [translator]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_translator.py
+  [application object]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_application.py
+  [strategy]: https://flufli18n.readthedocs.io/en/stable/strategies.html

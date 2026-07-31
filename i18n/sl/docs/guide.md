@@ -112,6 +112,54 @@ velja tudi za niz, ki se ne izriše na svojem klicnem mestu.
 Množinske oblike so odvisne od števila med izvajanjem, zato jih tam, kjer je
 število znano, izrišite takoj z `ngettext`.
 
+## Več jezikov hkrati { #several-languages-at-once }
+
+Ena sama zahteva pogosto potrebuje več kot en jezik: stran, izrisana za bralca,
+ki hkrati uvrsti v vrsto obvestilo za račun, nastavljen na drug jezik, ali
+povzetek, ki vsakega udeleženca navede v njegovem lastnem. Vezave se gnezdijo,
+izhod iz notranjega bloka pa obnovi zunanjega.
+
+```python
+with use_translations(reader):
+    page = tr(t"Hello {name}")
+    with use_translations(recipient):
+        notice = tr(t"Hello {name}")  # the recipient's language
+    footer = tr(t"Hello {name}")  # the reader's again
+```
+
+Pri seznamu prejemnikov delo opravijo odloženi nizi: sporočilo je zapisano
+enkrat, ob uvozu, izriše pa se enkrat za vsak jezik.
+
+```python
+SUBJECT = lazy_gettext(t"Your order shipped")
+
+for user in users:
+    with use_translations(load_translations(user.locale)):
+        send(user.email, str(SUBJECT))
+```
+
+Vezava je `ContextVar` in ne sklad na deljenem objektu, zato prekrivajoče se
+zahteve ne morejo pobrati jezika druga drugi — tudi tedaj ne, kadar svoje bloke
+*zapustijo* v istem vrstnem redu, kot so vanje vstopile, kar je prav
+prepletanje, ki ga sklad zgreši. Nalaganje kataloga za vsak jezik je poceni:
+`gettext.translation()` vsak `.mo` razčleni enkrat in razdaja kopije, ki si
+razčlenjeni katalog delijo.
+
+!!! warning "Ali delovna nit podeduje vezavo, je odvisno od gradnje"
+
+    Gola `threading.Thread` ali `ThreadPoolExecutor.submit` se začne bodisi s
+    kopijo klicateljevega konteksta bodisi s praznim; katero od tega, določa
+    `sys.flags.thread_inherit_context` — privzeto resničen na prostonitnih
+    gradnjah in neresničen povsod drugod. Ista koda zato na 3.14t izriše vezani
+    jezik, na 3.14 pa globalni gettextov katalog procesa. Kontekst podajte,
+    namesto da bi se zanašali na privzeto vrednost:
+
+    ```python
+    pool.submit(contextvars.copy_context().run, render)
+    ```
+
+    `asyncio.to_thread` to za vas stori že sam.
+
 ## Kaj se zgodi, kadar je katalog napačen { #what-happens-when-a-catalog-is-wrong }
 
 Če se ograde prevoda ne ujemajo z izvornimi — manjkajoče, neznano ali

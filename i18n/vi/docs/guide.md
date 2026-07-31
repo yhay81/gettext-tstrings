@@ -118,6 +118,56 @@ cho một chuỗi không được kết xuất tại nơi gọi nó.
 Các dạng số nhiều phụ thuộc vào một số đếm lúc chạy, nên hãy kết xuất chúng
 ngay bằng `ngettext` tại nơi đã biết số đếm.
 
+## Nhiều ngôn ngữ cùng lúc { #several-languages-at-once }
+
+Một request thường cần nhiều hơn một ngôn ngữ: một trang được kết xuất cho
+người đọc đồng thời xếp hàng một thông báo gửi tới tài khoản đang đặt ngôn ngữ
+khác, hoặc một bản tổng hợp trích lời mỗi người tham gia bằng đúng ngôn ngữ của
+họ. Các binding lồng vào nhau, và khi rời khối bên trong thì binding bên ngoài
+được khôi phục.
+
+```python
+with use_translations(reader):
+    page = tr(t"Hello {name}")
+    with use_translations(recipient):
+        notice = tr(t"Hello {name}")  # the recipient's language
+    footer = tr(t"Hello {name}")  # the reader's again
+```
+
+Trên cả một danh sách người nhận, các chuỗi trì hoãn gánh phần việc này: thông
+điệp được viết một lần, lúc import, rồi kết xuất một lần cho mỗi ngôn ngữ.
+
+```python
+SUBJECT = lazy_gettext(t"Your order shipped")
+
+for user in users:
+    with use_translations(load_translations(user.locale)):
+        send(user.email, str(SUBJECT))
+```
+
+Binding là một `ContextVar`, chứ không phải một ngăn xếp giữ trên một đối tượng
+dùng chung, nên các request chồng lấn nhau không thể nhặt phải ngôn ngữ của
+nhau — kể cả trường hợp chúng *rời* khối lệnh của mình theo đúng thứ tự đã bước
+vào, vốn là kiểu đan xen mà một ngăn xếp đẩy-xuống làm sai. Nạp một catalog cho
+mỗi ngôn ngữ là việc rẻ: `gettext.translation()` phân tích mỗi tệp `.mo` đúng
+một lần rồi trao ra những bản sao dùng chung catalog đã phân tích.
+
+!!! warning "Một luồng worker có kế thừa binding hay không là tuỳ bản dựng"
+
+    Một `threading.Thread` trần, hay `ThreadPoolExecutor.submit`, khởi đầu
+    hoặc từ một bản sao ngữ cảnh của phía gọi, hoặc từ một ngữ cảnh rỗng, và
+    bên nào trong hai bên đó chính là `sys.flags.thread_inherit_context` —
+    mặc định là đúng trên các bản dựng free-threaded, và sai ở mọi nơi khác.
+    Vì thế cùng một đoạn mã sẽ kết xuất ngôn ngữ đã gắn trên 3.14t và catalog
+    toàn cục của tiến trình trên 3.14. Hãy truyền ngữ cảnh sang thay vì phụ
+    thuộc vào giá trị mặc định:
+
+    ```python
+    pool.submit(contextvars.copy_context().run, render)
+    ```
+
+    `asyncio.to_thread` đã làm sẵn điều này cho bạn.
+
 ## Điều gì xảy ra khi một catalog bị sai { #what-happens-when-a-catalog-is-wrong }
 
 Nếu các placeholder của một bản dịch không khớp với nguồn — một trường bị

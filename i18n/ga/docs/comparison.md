@@ -132,6 +132,47 @@ agus fágann sé ag an am céanna gur cuid d'ainmspás ionadaíochta na catalói
 fráma an ghlaoiteora. Cuireann an chomparáid thíos síos ar `flufl.i18n` 6.0.0,
 ní ar gach úsáid a d'fhéadfaí a bhaint as `string.Template`.
 
+Freagraíonn sé ceist freisin a fhágann an dá stíl formáidithe eile faoin
+bhfeidhmchlár ar fad: *cén* teanga atá reatha, agus conas í a athrú.
+Coinníonn [oibiacht fheidhmchláir][application object] cruach teangacha,
+bogann `_.push(code)` agus `_.pop()` í, neadaíonn `with _.using(code):`, agus
+aimsíonn [straitéis][strategy] an chatalóg do chód teanga ionas nach
+láimhseálann an feidhmchlár oibiachtaí catalóige riamh é féin. Freastalaí a
+chaithfidh téacs a chur ar fáil i níos mó ná teanga amháin le linn aonad oibre
+amháin — leathanach don léitheoir, fógra do dhuine a bhfuil teanga eile
+socraithe ar a chuntas — sin an cás a bhfuil sé seo ann dó.
+
+Tá an chruach ina cónaí ar an oibiacht fheidhmchláir sin, agus roinneann an
+próiseas ar fad í. Roinneann dhá iarratas fhorluiteacha aon chruach amháin
+dá bharr, agus tugann bloic nach bhfuil neadaithe go docht *in am* an teanga
+mhícheart dá chéile:
+
+```python
+async def greet(code, delay):
+    with _.using(code):
+        await asyncio.sleep(delay)
+        return _("Hello $name")
+
+
+async def main():
+    return await asyncio.gather(greet("fr", 0.01), greet("ja", 0.02))
+```
+
+```pycon
+>>> asyncio.run(main())  # "fr" entered first and left first, so it read "ja" off the top
+['こんにちは Ada', 'Bonjour Ada']
+```
+
+Coinníonn an leabharlann seo an cumas céanna — neadaíonn ceangail agus
+scaoiltear iad ar an mbealach céanna — i `ContextVar` in ionad cruaiche
+roinnte, mar sin réitítear an fite fuaite thuas do gach tasc ar leith. Tá na
+coibhéisí ar
+[Roinnt teangacha ag an am céanna](guide.md#several-languages-at-once). Is é an
+rud nach soláthraíonn sé ná an cuardach ó chód teanga go catalóg: cuireann tú
+oibiacht aistriúchán isteach, rud nach bhfuil ann sa ghnáthchás ach glao amháin
+`gettext.translation()`, agus taisceann an leabharlann chaighdeánach an chatalóg
+pharsáilte.
+
 ## t-strings { #t-strings }
 
 ```python
@@ -188,6 +229,7 @@ eastóscadh go `.pot`, ar nós an chinn a
 | Cén bhratach PO a thuigeann Babel, le go mbailíochtódh uirlisí atá ann cheana? | `python-format` | `python-brace-format` | ceann ar bith | `python-brace-format` |
 | An úsáideann sé gnáthchatalóga PO/MO? | úsáideann | úsáideann | úsáideann | úsáideann |
 | An dteastaíonn eastóscóir foinse saincheaptha uaidh? | ní theastaíonn | ní theastaíonn | ní theastaíonn | teastaíonn, faoi láthair |
+| Cá bhfuil "an teanga reatha" ina cónaí? | cibé áit a gcuireann an feidhmchlár í | cibé áit a gcuireann an feidhmchlár í | cruach cód teanga ar an oibiacht fheidhmchláir roinnte | `ContextVar`, in aghaidh an taisc nó an iarratais |
 
 Maidir leis an seiceáil ag am rindreála: seiceáiltear teachtaireachtaí uatha
 le haghaidh meaitseála beachta ar na sealbhóirí ionaid. Seiceáiltear
@@ -242,3 +284,5 @@ chaighdeánach a dúnadh gan freagra.
   [documented behavior]: https://flufli18n.readthedocs.io/en/stable/using.html#substitutions-and-placeholders
   [custom Template]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_substitute.py
   [translator]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_translator.py
+  [application object]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_application.py
+  [strategy]: https://flufli18n.readthedocs.io/en/stable/strategies.html

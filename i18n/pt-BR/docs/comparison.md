@@ -124,6 +124,46 @@ atributo, mas também torna o frame de quem chama parte do namespace de
 substituição do catálogo. A comparação abaixo descreve o `flufl.i18n` 6.0.0,
 e não todos os usos possíveis de `string.Template`.
 
+Ele também responde a uma pergunta que os outros dois estilos de formatação
+deixam inteiramente para a aplicação: *qual* idioma está ativo e como trocá-lo.
+Um [objeto de aplicação][application object] mantém uma pilha de idiomas,
+`_.push(code)` e `_.pop()` a movimentam, `with _.using(code):` aninha, e uma
+[estratégia][strategy] encontra o catálogo de um código de idioma, de modo que a
+aplicação nunca manipula objetos de catálogo. Um servidor que precisa produzir
+texto em mais de um idioma dentro de uma mesma unidade de trabalho — uma página
+para quem lê, uma notificação para alguém cuja conta está configurada de outro
+jeito — é o caso para o qual isso existe.
+
+A pilha vive nesse objeto de aplicação, compartilhado por todo o processo. Duas
+requisições sobrepostas, portanto, compartilham uma única pilha, e blocos que
+não estão estritamente aninhados *no tempo* entregam uns aos outros o idioma
+errado:
+
+```python
+async def greet(code, delay):
+    with _.using(code):
+        await asyncio.sleep(delay)
+        return _("Hello $name")
+
+
+async def main():
+    return await asyncio.gather(greet("fr", 0.01), greet("ja", 0.02))
+```
+
+```pycon
+>>> asyncio.run(main())  # "fr" entered first and left first, so it read "ja" off the top
+['こんにちは Ada', 'Bonjour Ada']
+```
+
+Esta biblioteca mantém a mesma capacidade — os vínculos se aninham e se desfazem
+do mesmo jeito — em um `ContextVar`, e não em uma pilha compartilhada, de modo
+que o intercalamento acima se resolve por tarefa. Os equivalentes estão em
+[Vários idiomas ao mesmo tempo](guide.md#several-languages-at-once). O que ela
+não fornece é a busca do catálogo a partir do código de idioma: você passa um
+objeto de traduções, que no caso comum é uma única chamada a
+`gettext.translation()`, e a biblioteca padrão mantém em cache o catálogo já
+analisado.
+
 ## t-strings { #t-strings }
 
 ```python
@@ -178,6 +218,7 @@ este pacote [fornece para o Babel](extraction.md).
 | Qual flag PO o Babel infere, para as ferramentas existentes validarem? | `python-format` | `python-brace-format` | nenhuma | `python-brace-format` |
 | Usa catálogos PO/MO comuns? | sim | sim | sim | sim |
 | Precisa de extrator de código-fonte personalizado? | não | não | não | sim, atualmente |
+| Onde vive "o idioma atual"? | onde a aplicação o colocar | onde a aplicação o colocar | uma pilha de códigos de idioma no objeto de aplicação compartilhado | um `ContextVar`, por tarefa ou requisição |
 
 Sobre a verificação na renderização: mensagens no singular são verificadas por
 correspondência exata de marcadores. Mensagens no plural também são
@@ -228,3 +269,5 @@ contado, com as fontes, em [Contexto](background.md).
   [comportamento documentado]: https://flufli18n.readthedocs.io/en/stable/using.html#substitutions-and-placeholders
   [Template personalizado]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_substitute.py
   [tradutor]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_translator.py
+  [application object]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_application.py
+  [strategy]: https://flufli18n.readthedocs.io/en/stable/strategies.html

@@ -114,6 +114,55 @@ pasirinkimas galioja ir eilutei, kuri atvaizduojama ne savo kvietimo vietoje.
 Daugiskaitos formos priklauso nuo veikimo meto skaičiaus, todėl jas
 atvaizduokite iš karto su `ngettext` ten, kur skaičius žinomas.
 
+## Kelios kalbos vienu metu { #several-languages-at-once }
+
+Vienai užklausai neretai reikia daugiau nei vienos kalbos: puslapis
+atvaizduojamas skaitytojui, o kartu į eilę statomas pranešimas paskyrai,
+kuriai nustatyta kita kalba, arba santrauka, cituojanti kiekvieną dalyvį jo
+paties kalba. Susiejimai dedami vienas į kitą, o išėjus iš vidinio bloko
+atkuriamas išorinis.
+
+```python
+with use_translations(reader):
+    page = tr(t"Hello {name}")
+    with use_translations(recipient):
+        notice = tr(t"Hello {name}")  # the recipient's language
+    footer = tr(t"Hello {name}")  # the reader's again
+```
+
+Einant per gavėjų sąrašą darbą atlieka atidėtos eilutės: pranešimas parašomas
+vieną kartą, importavimo metu, ir atvaizduojamas po kartą kiekvienai kalbai.
+
+```python
+SUBJECT = lazy_gettext(t"Your order shipped")
+
+for user in users:
+    with use_translations(load_translations(user.locale)):
+        send(user.email, str(SUBJECT))
+```
+
+Susiejimas yra `ContextVar`, o ne dėklas, laikomas bendrame objekte, todėl
+persidengiančios užklausos negali pasigriebti viena kitos kalbos — įskaitant
+atvejį, kai jos iš savo blokų *išeina* ta pačia tvarka, kuria į juos įėjo:
+būtent šį persipynimą dėklas apdoroja klaidingai. Įkelti katalogą kiekvienai
+kalbai pigu: `gettext.translation()` kiekvieną `.mo` perskaito vieną kartą ir
+dalija kopijas, kurios naudoja tą patį perskaitytą katalogą.
+
+!!! warning "Ar darbinė gija paveldi susiejimą, priklauso nuo darinio"
+
+    Plika `threading.Thread` ar `ThreadPoolExecutor.submit` pradeda arba nuo
+    iškvietėjo konteksto kopijos, arba nuo tuščio, o kuris iš jų —
+    `sys.flags.thread_inherit_context`: laisvų gijų dariniuose jis pagal
+    nutylėjimą teisingas, visur kitur — klaidingas. Todėl tas pats kodas su
+    3.14t atvaizduoja susietą kalbą, o su 3.14 — proceso globalų katalogą.
+    Perduokite kontekstą, užuot pasikliovę numatytąja elgsena:
+
+    ```python
+    pool.submit(contextvars.copy_context().run, render)
+    ```
+
+    `asyncio.to_thread` tai už jus jau padaro.
+
 ## Kas nutinka, kai katalogas klaidingas { #what-happens-when-a-catalog-is-wrong }
 
 Jei vertimo vietaženkliai neatitinka pirminių — trūkstamas, nežinomas ar

@@ -111,6 +111,52 @@ SAVE = lazy_gettext(t"Save changes", strict=True)
 צורות ריבוי תלויות במונה של זמן ריצה, ולכן רנדרו אותן מיידית עם
 `ngettext` במקום שבו המונה ידוע.
 
+## כמה שפות בבת אחת { #several-languages-at-once }
+
+בקשה אחת זקוקה לא פעם ליותר משפה אחת: עמוד המרונדר עבור הקורא, שגם מציב בתור
+התראה לחשבון המוגדר לשפה אחרת, או תקציר המצטט כל משתתף בשפתו שלו. הקשירות
+מקננות, ויציאה מהבלוק הפנימי משיבה את החיצוני.
+
+```python
+with use_translations(reader):
+    page = tr(t"Hello {name}")
+    with use_translations(recipient):
+        notice = tr(t"Hello {name}")  # the recipient's language
+    footer = tr(t"Hello {name}")  # the reader's again
+```
+
+על פני רשימת נמענים, מחרוזות דחויות עושות את העבודה: ההודעה נכתבת פעם אחת,
+בזמן הייבוא, ומרונדרת פעם אחת לכל שפה.
+
+```python
+SUBJECT = lazy_gettext(t"Your order shipped")
+
+for user in users:
+    with use_translations(load_translations(user.locale)):
+        send(user.email, str(SUBJECT))
+```
+
+הקשירה היא `ContextVar`, לא מחסנית המוחזקת על אובייקט משותף, ולכן בקשות
+חופפות אינן יכולות לקלוט זו את שפתה של זו — כולל המקרה שבו הן *יוצאות*
+מהבלוקים שלהן בסדר שבו נכנסו אליהם, שהוא בדיוק השזירה שמחסנית דחיפה שוגה בה.
+טעינת קטלוג לכל שפה היא זולה: `gettext.translation()` מפענחת כל `.mo` פעם
+אחת ומחלקת עותקים החולקים את הקטלוג המפוענח.
+
+!!! warning "השאלה אם תהליכון עובד יורש את הקשירה תלויה בבנייה"
+
+    `threading.Thread` חשוף, או `ThreadPoolExecutor.submit`, מתחיל או מעותק
+    של ההקשר של הקורא או מהקשר ריק, ואיזו משתי האפשרויות תתקיים נקבע בידי
+    `sys.flags.thread_inherit_context` — אמת כברירת מחדל בבניות free-threaded,
+    שקר בכל מקום אחר. אותו קוד עצמו מציג אפוא את השפה הקשורה ב-3.14t ואת
+    קטלוג gettext הגלובלי של התהליך ב-3.14. העבירו את ההקשר במקום להסתמך על
+    ברירת המחדל:
+
+    ```python
+    pool.submit(contextvars.copy_context().run, render)
+    ```
+
+    `asyncio.to_thread` כבר עושה זאת עבורכם.
+
 ## מה קורה כשקטלוג שגוי { #what-happens-when-a-catalog-is-wrong }
 
 אם מצייני המקום של תרגום אינם תואמים את המקור — שדה חסר, לא מוכר או

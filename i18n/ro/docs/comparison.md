@@ -123,6 +123,44 @@ totodată cadrul apelantului parte din spațiul de nume al substituțiilor
 catalogului. Comparația de mai jos descrie `flufl.i18n` 6.0.0, nu orice
 utilizare posibilă a lui `string.Template`.
 
+El răspunde totodată la o întrebare pe care celelalte două stiluri de formatare
+o lasă în întregime aplicației: *care* limbă este cea curentă și cum se schimbă.
+Un [obiect aplicație][application object] ține o stivă de limbi, `_.push(code)`
+și `_.pop()` o mișcă, `with _.using(code):` se imbrichează, iar o
+[strategie][strategy] găsește catalogul pentru un cod de limbă, așa încât
+aplicația nu manevrează niciodată obiecte de catalog. Un server care trebuie să
+producă text în mai multe limbi în cadrul unei singure unități de lucru — o
+pagină pentru cititor, o notificare pentru cineva al cărui cont este setat
+altfel — este exact cazul pentru care există asta.
+
+Stiva trăiește pe acel obiect aplicație, pe care întregul proces îl împarte.
+Două cereri care se suprapun împart deci o singură stivă, iar blocurile care nu
+sunt strict imbricate *în timp* își dau unul altuia limba greșită:
+
+```python
+async def greet(code, delay):
+    with _.using(code):
+        await asyncio.sleep(delay)
+        return _("Hello $name")
+
+
+async def main():
+    return await asyncio.gather(greet("fr", 0.01), greet("ja", 0.02))
+```
+
+```pycon
+>>> asyncio.run(main())  # "fr" entered first and left first, so it read "ja" off the top
+['こんにちは Ada', 'Bonjour Ada']
+```
+
+Biblioteca de față păstrează aceeași capabilitate — legările se imbrichează și
+se desfac la fel — într-o `ContextVar` în loc de o stivă partajată, așa că
+întrepătrunderea de mai sus se rezolvă per task. Echivalentele se află pe
+[Mai multe limbi deodată](guide.md#several-languages-at-once). Ce nu oferă este
+căutarea catalogului după codul de limbă: tu treci un obiect translations, care
+în cazul obișnuit înseamnă un singur apel `gettext.translation()`, iar
+biblioteca standard ține în cache catalogul deja parsat.
+
 ## t-stringuri { #t-strings }
 
 ```python
@@ -178,6 +216,7 @@ t-stringuri, precum cel pe care acest pachet îl
 | Ce flag PO deduce Babel, pentru ca uneltele existente să valideze? | `python-format` | `python-brace-format` | niciunul | `python-brace-format` |
 | Folosește cataloage PO/MO obișnuite? | da | da | da | da |
 | Are nevoie de un extractor de sursă propriu? | nu | nu | nu | da, deocamdată |
+| Unde trăiește „limba curentă”? | oriunde o pune aplicația | oriunde o pune aplicația | o stivă de coduri de limbă pe obiectul aplicație partajat | o `ContextVar`, per task sau per cerere |
 
 Despre verificarea de la momentul randării: mesajelor la singular li se verifică
 o potrivire exactă a substituenților. Și mesajelor la plural li se verifică,
@@ -228,3 +267,5 @@ povestit, cu surse, în [Context](background.md).
   [documented behavior]: https://flufli18n.readthedocs.io/en/stable/using.html#substitutions-and-placeholders
   [custom Template]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_substitute.py
   [translator]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_translator.py
+  [application object]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_application.py
+  [strategy]: https://flufli18n.readthedocs.io/en/stable/strategies.html

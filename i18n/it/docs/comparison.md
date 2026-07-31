@@ -128,6 +128,46 @@ anche il frame del chiamante parte dello spazio dei nomi di sostituzione del
 catalogo. Il confronto qui sotto descrive `flufl.i18n` 6.0.0, non ogni
 possibile uso di `string.Template`.
 
+Risponde anche a una domanda che gli altri due stili di formattazione lasciano
+interamente all'applicazione: *quale* lingua è quella corrente, e come
+cambiarla. Un [oggetto applicazione][application object] mantiene uno stack di
+lingue, `_.push(code)` e `_.pop()` lo muovono, `with _.using(code):` annida, e
+una [strategia][strategy] trova il catalogo per un codice di lingua, così che
+l'applicazione non maneggi mai oggetti catalogo. Un server che deve produrre
+testo in più di una lingua nel corso di una sola unità di lavoro — una pagina
+per chi legge, una notifica per qualcuno il cui account è impostato
+diversamente — è il caso per cui questo esiste.
+
+Lo stack vive su quell'oggetto applicazione, che l'intero processo condivide.
+Due richieste sovrapposte condividono quindi un unico stack, e i blocchi che
+non sono strettamente annidati *nel tempo* si passano l'un l'altro la lingua
+sbagliata:
+
+```python
+async def greet(code, delay):
+    with _.using(code):
+        await asyncio.sleep(delay)
+        return _("Hello $name")
+
+
+async def main():
+    return await asyncio.gather(greet("fr", 0.01), greet("ja", 0.02))
+```
+
+```pycon
+>>> asyncio.run(main())  # "fr" entered first and left first, so it read "ja" off the top
+['こんにちは Ada', 'Bonjour Ada']
+```
+
+Questa libreria conserva la stessa capacità — i binding si annidano e si
+sciolgono allo stesso modo — dentro una `ContextVar` invece che in uno stack
+condiviso, così l'intreccio qui sopra si risolve per task. Gli equivalenti
+sono su [Più lingue insieme](guide.md#several-languages-at-once). Ciò che non
+fornisce è la ricerca dal codice di lingua al catalogo: passi un oggetto
+translations, che nel caso comune è una sola chiamata a
+`gettext.translation()`, e la libreria standard mette in cache il catalogo già
+analizzato.
+
 ## t-string { #t-strings }
 
 ```python
@@ -182,6 +222,7 @@ come quello che questo pacchetto [fornisce per Babel](extraction.md).
 | Quale flag PO inferisce Babel, perché gli strumenti esistenti validino? | `python-format` | `python-brace-format` | nessuno | `python-brace-format` |
 | Usa normali cataloghi PO/MO? | sì | sì | sì | sì |
 | Serve un estrattore di sorgenti dedicato? | no | no | no | sì, per ora |
+| Dove vive "la lingua corrente"? | dove la mette l'applicazione | dove la mette l'applicazione | uno stack di codici di lingua sull'oggetto applicazione condiviso | una `ContextVar`, per task o per richiesta |
 
 Sul controllo a tempo di rendering: i messaggi singolari sono verificati per
 una corrispondenza esatta dei segnaposto. Anche i messaggi plurali sono
@@ -233,3 +274,5 @@ fonti in [Contesto](background.md).
   [documented behavior]: https://flufli18n.readthedocs.io/en/stable/using.html#substitutions-and-placeholders
   [custom Template]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_substitute.py
   [translator]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_translator.py
+  [application object]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_application.py
+  [strategy]: https://flufli18n.readthedocs.io/en/stable/strategies.html

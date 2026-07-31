@@ -122,6 +122,44 @@ print(_("Hello $name"))  # Hello Ada — the value came from the caller's locals
 підстановки каталогу. Порівняння нижче описує `flufl.i18n` 6.0.0, а не всі
 можливі способи використання `string.Template`.
 
+Він також відповідає на питання, яке два інші стилі форматування повністю
+лишають застосунку: *яка* мова зараз поточна і як її змінити.
+[Об'єкт застосунку][application object] тримає стек мов, `_.push(code)` і
+`_.pop()` рухають його, `with _.using(code):` вкладається, а
+[стратегія][strategy] знаходить каталог за кодом мови, тож застосунок ніколи не
+має справи з об'єктами каталогів. Сервер, якому доводиться видавати текст
+кількома мовами в межах однієї одиниці роботи — сторінку для читача, сповіщення
+для когось, чий обліковий запис налаштовано інакше, — це саме той випадок,
+заради якого це існує.
+
+Стек живе на тому об'єкті застосунку, спільному для всього процесу. Тому два
+запити, що перекриваються, ділять один стек, а блоки, не вкладені строго
+*в часі*, підсовують один одному не ту мову:
+
+```python
+async def greet(code, delay):
+    with _.using(code):
+        await asyncio.sleep(delay)
+        return _("Hello $name")
+
+
+async def main():
+    return await asyncio.gather(greet("fr", 0.01), greet("ja", 0.02))
+```
+
+```pycon
+>>> asyncio.run(main())  # "fr" entered first and left first, so it read "ja" off the top
+['こんにちは Ada', 'Bonjour Ada']
+```
+
+Ця бібліотека зберігає ту саму можливість — прив'язки так само вкладаються й
+розкручуються — у `ContextVar` замість спільного стека, тож наведене вище
+чергування розв'язується для кожної задачі окремо. Еквіваленти — на сторінці
+[Кілька мов одночасно](guide.md#several-languages-at-once). Чого вона не дає,
+то це пошуку каталогу за кодом мови: ви передаєте об'єкт translations, який у
+типовому випадку є одним викликом `gettext.translation()`, а стандартна
+бібліотека кешує розібраний каталог.
+
 ## t-рядки { #t-strings }
 
 ```python
@@ -175,6 +213,7 @@ tr(t"Total: {amount:,.2f}")  # msgid is "Total: {amount}"
 | Який PO-прапорець виводить Babel, щоб наявні інструменти перевіряли? | `python-format` | `python-brace-format` | жодного | `python-brace-format` |
 | Використовує звичайні каталоги PO/MO? | так | так | так | так |
 | Потребує власного видобувача з коду? | ні | ні | ні | так, наразі |
+| Де живе «поточна мова»? | там, куди її покладе застосунок | там, куди її покладе застосунок | стек кодів мов на спільному об'єкті застосунку | у `ContextVar`, для кожної задачі чи запиту |
 
 Про перевірку під час рендерингу: одиничні повідомлення перевіряються на
 точний збіг заповнювачів. Повідомлення з множиною теж перевіряються — за
@@ -223,3 +262,5 @@ tr(t"Hello {name}")
   [documented behavior]: https://flufli18n.readthedocs.io/en/stable/using.html#substitutions-and-placeholders
   [custom Template]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_substitute.py
   [translator]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_translator.py
+  [application object]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_application.py
+  [strategy]: https://flufli18n.readthedocs.io/en/stable/strategies.html

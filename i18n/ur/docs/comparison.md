@@ -123,6 +123,44 @@ print(_("Hello $name"))  # Hello Ada — the value came from the caller's locals
 نیم اسپیس کا حصہ بھی بنا دیتا ہے۔ نیچے کا تقابل `flufl.i18n` 6.0.0 کا بیان
 ہے، `string.Template` کے ہر ممکن استعمال کا نہیں۔
 
+یہ اُس سوال کا جواب بھی دیتا ہے جو باقی دونوں فارمیٹنگ اسلوب پورے کا پورا
+ایپلی کیشن پر چھوڑ دیتے ہیں: *کون سی* زبان اِس وقت فعال ہے، اور اسے کیسے بدلا
+جائے۔ [ایپلی کیشن آبجیکٹ][application object] زبانوں کا ایک سٹیک رکھتا ہے،
+`_.push(code)` اور `_.pop()` اسے حرکت دیتے ہیں، `with _.using(code):` اسے
+نیسٹ کرتا ہے، اور [حکمتِ عملی][strategy] کسی زبان کے کوڈ کے لیے کیٹلاگ ڈھونڈ
+لیتی ہے تاکہ ایپلی کیشن کو خود کبھی کیٹلاگ آبجیکٹس سے واسطہ نہ پڑے۔ یہ سب اُس
+سرور کے لیے ہے جسے کام کی ایک ہی اکائی کے دوران ایک سے زیادہ زبانوں میں متن
+پیدا کرنا ہو — قاری کے لیے ایک صفحہ، اور ایسے شخص کے لیے اطلاع جس کا کھاتہ کسی
+اور زبان پر مقرر ہو۔
+
+سٹیک اُسی ایپلی کیشن آبجیکٹ پر رہتا ہے، جسے پورا پروسیس مشترک رکھتا ہے۔ چنانچہ
+دو باہم متداخل درخواستیں ایک ہی سٹیک بانٹتی ہیں، اور جو بلاک *وقت کے اعتبار
+سے* سختی سے نیسٹ نہ ہوں، وہ ایک دوسرے کو غلط زبان تھما دیتے ہیں:
+
+```python
+async def greet(code, delay):
+    with _.using(code):
+        await asyncio.sleep(delay)
+        return _("Hello $name")
+
+
+async def main():
+    return await asyncio.gather(greet("fr", 0.01), greet("ja", 0.02))
+```
+
+```pycon
+>>> asyncio.run(main())  # "fr" entered first and left first, so it read "ja" off the top
+['こんにちは Ada', 'Bonjour Ada']
+```
+
+یہ لائبریری وہی صلاحیت برقرار رکھتی ہے — بندشیں اُسی طرح نیسٹ ہوتی اور کھلتی
+ہیں — مگر مشترک سٹیک کے بجائے `ContextVar` میں، چنانچہ اوپر والا تداخل ہر ٹاسک
+کے لیے الگ حل ہو جاتا ہے۔ اس کے مساوی طریقے
+[ایک ساتھ کئی زبانیں](guide.md#several-languages-at-once) میں دیے گئے ہیں۔ جو
+چیز یہ فراہم نہیں کرتی وہ زبان کے کوڈ سے کیٹلاگ تک کی تلاش ہے: ترجمہ آبجیکٹ آپ
+خود دیتے ہیں، جو عام صورت میں `gettext.translation()` کی ایک کال ہوتی ہے، اور
+تجزیہ شدہ کیٹلاگ معیاری لائبریری خود کیش کر لیتی ہے۔
+
 ## ‏t-strings { #t-strings }
 
 ```python
@@ -177,6 +215,7 @@ tr(t"Total: {amount:,.2f}")  # msgid is "Total: {amount}"
 | موجودہ اوزاروں کی توثیق کے لیے Babel کون سا PO نشان اخذ کرتا ہے؟ | `python-format` | `python-brace-format` | کوئی نہیں | `python-brace-format` |
 | کیا عام PO/MO کیٹلاگ استعمال کرتا ہے؟ | ہاں | ہاں | ہاں | ہاں |
 | کیا الگ ماخذ استخراج کار درکار ہے؟ | نہیں | نہیں | نہیں | ہاں، فی الحال |
+| "موجودہ زبان" کہاں رہتی ہے؟ | جہاں ایپلی کیشن اسے رکھے | جہاں ایپلی کیشن اسے رکھے | مشترک ایپلی کیشن آبجیکٹ پر زبان کے کوڈوں کا ایک سٹیک | `ContextVar`، فی ٹاسک یا فی درخواست |
 
 رینڈر کے وقت کی جانچ کے بارے میں: واحد پیغامات میں پلیس ہولڈرز کی بالکل
 مطابقت جانچی جاتی ہے۔ جمع والے پیغامات بھی جانچے جاتے ہیں، اُس
@@ -226,3 +265,5 @@ Python اس دوراہے تک کیسے پہنچا — دس برس کے فاصل�
   [documented behavior]: https://flufli18n.readthedocs.io/en/stable/using.html#substitutions-and-placeholders
   [custom Template]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_substitute.py
   [translator]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_translator.py
+  [application object]: https://gitlab.com/flufl/flufl.i18n/-/blob/6.0.0/src/flufl/i18n/_application.py
+  [strategy]: https://flufli18n.readthedocs.io/en/stable/strategies.html
