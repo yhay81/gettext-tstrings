@@ -267,6 +267,15 @@ gettext_tstrings.errors.InvalidTranslationError: translation does not match the
 source placeholders: {name} is missing; {nombre} is not in the source message
 ```
 
+Questi messaggi sono scritti per chi può intervenire, e per un problema di
+catalogo è più spesso un traduttore che un programmatore — perciò, dove un
+segnaposto *sembra* presente ma non lo è, il messaggio spiega il perché invece
+di ripetere che manca. Graffe a larghezza intera, un `{{name}}` doppio, uno
+spazio unificatore invisibile, una lettera cirillica tra lettere latine: ogni
+caso ha la sua formulazione, elencata con esempi in
+[Per i traduttori](translators.md#reading-a-failure-message). Quella pagina è
+scritta per essere consegnata a chi modifica il `.po`.
+
 ## Rendere un pattern senza un catalogo { #rendering-a-pattern-without-a-catalog }
 
 `compile_template` espone lo stesso meccanismo un livello più in basso:
