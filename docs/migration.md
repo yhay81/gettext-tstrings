@@ -114,9 +114,12 @@ Three things to know about that state:
   `.mo`, so the application renders the source message until a human confirms
   the pair — [the same degradation](workflow.md#the-cycle-after-the-first-translation)
   any reworded message goes through.
-- **`pybabel compile` reports each one**, because the carried-over `%(name)s`
-  is not a valid brace placeholder, and exits non-zero. That list is your work
-  queue, not a false alarm; the entries in it genuinely need editing.
+- **CI stays green while they are fuzzy.** The placeholder checker skips fuzzy
+  entries, exactly as `msgfmt --check-format` does, because an entry that
+  cannot reach the runtime should not fail a build. The moment a translator
+  clears the flag, the entry is checked like any other — so a `%(name)s` left
+  in a confirmed translation is caught then, which is the point at which it
+  would otherwise start rendering.
 - **The old `python-format` flag rides along** and should be deleted with the
   `fuzzy` flag, or `msgfmt --check-format` will keep applying printf rules to
   a brace-format message.
@@ -127,9 +130,9 @@ followed by a translator's review, rather than a re-translation. Positional
 `%s` is not mechanical: it has no name to carry over, and choosing one is the
 point of the change.
 
-Because of this, the practical order is to migrate `%`-format messages
-deliberately — a module, a release, a language at a time — rather than in one
-sweep that turns every catalog red at once.
+The migration can therefore proceed at whatever pace review allows: an
+unconverted fuzzy entry is a visible piece of work in the catalog, not a
+broken build.
 
 ## Old and new calls coexist
 

@@ -24,6 +24,17 @@ def check_tstring(catalog: Catalog | None, message: Message) -> None:
     if MARKER_COMMENT not in message.auto_comments:
         return
 
+    # A fuzzy entry is an unconfirmed machine guess that ``pybabel compile``
+    # leaves out of the ``.mo``, so it can never reach a render. Reporting it
+    # would make the compile step fail for as long as a reworded message waits
+    # on a translator — a permanently red gate, which is the failure mode this
+    # project's own documentation warns about — and it is loudest exactly when
+    # a project is migrating from ``%``-format, where every carried-over
+    # translation is fuzzy by construction. GNU ``msgfmt --check-format``
+    # skips them for the same reason.
+    if message.fuzzy:
+        return
+
     source_patterns = _strings(message.id)
     if not source_patterns:
         return

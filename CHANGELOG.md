@@ -2,6 +2,27 @@
 
 ## Unreleased
 
+- The Babel checker no longer reports `fuzzy` entries. `pybabel compile`
+  leaves them out of the `.mo`, so a broken one cannot reach a render, and
+  failing the build on one kept the gate red for as long as a reworded message
+  waited on a translator. GNU `msgfmt --check-format` has always skipped them.
+  Found while documenting migration from `%`-format, where `pybabel update`
+  carries every existing translation across as fuzzy and still holding printf
+  placeholders — a whole catalog of errors nobody could act on faster than
+  translation allows. Clearing the flag is what submits an entry for checking.
+- Rebuild the documentation site around the decision a reader arrives with.
+  The status, the Python requirement and an *Is this for you?* answer are now
+  above the fold; *Why t-strings* leads with its tables, grouped by translator
+  mistakes, catalog authority and integration cost; the sidebar is four
+  sections rather than eleven flat entries. Two pages are new — *Migration*,
+  for a project that already has gettext catalogs, and *For translators*, the
+  one page to hand to whoever edits the `.po`.
+- Say plainly that locale-aware values are not this library's job. It decides
+  *where* a value lands in a translated message; `{amount:,.2f}` is a fixed
+  format, not a localized one, and the digits, separators and currency
+  placement a language wants come from Babel before the call. The site used
+  that example to praise keeping formatting out of the catalog without ever
+  saying which half of the problem it solves.
 - Document translating into several languages within one request, which the
   binding already supported and nothing said so. `flufl.i18n` has made a
   feature of this for years; its stack lives on an application object the whole

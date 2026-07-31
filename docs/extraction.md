@@ -192,6 +192,12 @@ two cases:
 ASCII names keep every tool in the chain able to validate the message. The
 library itself accepts any `str.isidentifier()` name.
 
+Both checkers agree on one exclusion: a `fuzzy` entry is not checked. It is an
+unconfirmed guess that `pybabel compile` leaves out of the `.mo`, so it cannot
+reach a render, and failing the build on one would keep a gate red for as long
+as a reworded message waits on a translator. Clearing the flag is what submits
+the entry for checking — and for shipping.
+
 ## Templates and other tools
 
 t-strings are Python syntax, so this library covers Python source. Template

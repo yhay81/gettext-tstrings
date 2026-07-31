@@ -145,3 +145,25 @@ def test_checker_reports_a_msgid_that_is_not_a_valid_pattern() -> None:
 
     with pytest.raises(TranslationError, match="invalid translation pattern"):
         check_tstring(Catalog(locale="ja"), message)
+
+
+def test_checker_skips_a_fuzzy_entry() -> None:
+    # `pybabel compile` leaves fuzzy entries out of the .mo, so a broken one
+    # cannot reach a render — and reporting it would fail the build for as long
+    # as a reworded message waits on a translator. Migrating away from
+    # %-format makes that the normal state of a catalog rather than the
+    # exception, since every old translation is carried across fuzzy and still
+    # holds printf placeholders. GNU msgfmt --check-format skips them too.
+    message = marked_message("Hello {name}", "こんにちは %(name)s")
+    message.flags.add("fuzzy")
+
+    check_tstring(Catalog(locale="ja"), message)
+
+
+def test_checker_still_reports_the_entry_once_the_fuzzy_flag_is_cleared() -> None:
+    # Confirming the pair is exactly what puts it into the .mo, so that is the
+    # moment the placeholders have to be right.
+    message = marked_message("Hello {name}", "こんにちは %(name)s")
+
+    with pytest.raises(TranslationError, match="does not match the source placeholders"):
+        check_tstring(Catalog(locale="ja"), message)
