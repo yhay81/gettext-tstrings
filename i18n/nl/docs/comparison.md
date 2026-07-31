@@ -1,24 +1,17 @@
 ---
-description: "Hetzelfde vertaalbare bericht geschreven met %-format, .format(), flufl.i18n $-strings en een t-string, inclusief hoe elk waarden bindt en met een beschadigde catalogus omgaat."
+description: "Hetzelfde vertaalbare bericht geschreven met %-format, .format(), flufl.i18n $-strings en een t-string, vergeleken op vertaalfouten, catalogusbevoegdheid en integratiekosten."
 ---
 
 # Waarom t-strings
 
-Vier manieren om een waarde in een vertaalbaar bericht te zetten, vergeleken
-op dezelfde zin. De korte versie:
+Vier manieren om een waarde in een vertaalbaar bericht te zetten, vergeleken op
+hetzelfde bericht. Alle vier benoemen ze hun placeholders en laten ze een
+vertaler die verplaatsen; ze verschillen in wat er gebeurt wanneer een vertaling
+fout is, in hoeveel van je programma de catalogus kan bereiken, en in wat het
+kost om ze in te voeren.
 
-- Met **%-format** wordt één door een vertaler verwijderde letter een crash
-  in productie.
-- Met **str.format** kan een vertaling attributen lezen van de objecten die
-  je code doorgeeft — inclusief geheimen.
-- Met **$-strings** (flufl.i18n) worden waarden impliciet uit de variabelen
-  van de aanroepende functie gehaald, en placeholders met punten bereiken
-  ook attributen.
-- Met **t-strings** blijft de opmaak in je code, worden vertalingen tijdens
-  runtime gecontroleerd, en valt een kapotte catalogus terug op de brontekst
-  in plaats van te crashen.
-
-De rest van deze pagina is het bewijs, methode voor methode.
+De tabellen komen eerst, zodat je de rij kunt zoeken die jou aangaat en alleen
+de sectie erachter hoeft te lezen.
 
 !!! note "Drie partijen raken elk vertaald bericht aan"
 
@@ -32,6 +25,74 @@ De rest van deze pagina is het bewijs, methode voor methode.
     van de formattaal mag de catalogus besturen?* In de voorbeelden is `_`
     de conventionele naam voor de vertaalfunctie, en `tr` die van deze
     bibliotheek.
+
+## Naast elkaar { #side-by-side }
+
+**Wanneer een vertaler een fout maakt.** Een catalogus gaat door veel handen, en
+het meeste wat erin misgaat is per ongeluk:
+
+| | `%(name)s` | `.format()` | `flufl.i18n` `$name` | `t"…"` |
+| --- | --- | --- | --- | --- |
+| Een vertaling *laat een placeholder vallen* — wat wordt gerenderd? | de waarde verdwijnt geruisloos | de waarde verdwijnt geruisloos | de waarde verdwijnt geruisloos | het bronbericht, met een waarschuwing ([standaard](guide.md#what-happens-when-a-catalog-is-wrong)) |
+| Een vertaling *voegt* een onbekende placeholder *toe* — wat wordt gerenderd? | een exceptie | een exceptie | de placeholder blijft als tekst zichtbaar | het bronbericht, met een waarschuwing ([standaard](guide.md#what-happens-when-a-catalog-is-wrong)) |
+| Een vertaling *hermaakt de opmaak van* een placeholder — wat wordt gerenderd? | wat de catalogus vroeg, of een exceptie als de type-letter niet meer bij de waarde past | wat de catalogus vroeg | niet uit te drukken in `$`-strings | het bronbericht, met een waarschuwing |
+| Worden placeholders bij het renderen gecontroleerd? | nee | nee | nee | ja (zie hieronder) |
+
+**Welke bevoegdheid de catalogus heeft.** Een vertaling is data van buiten je
+repository, en elke stijl geeft haar een andere hoeveelheid macht:
+
+| | `%(name)s` | `.format()` | `flufl.i18n` `$name` | `t"…"` |
+| --- | --- | --- | --- | --- |
+| Waar komen de waarden vandaan? | een expliciete mapping | expliciete argumenten | de lokale en globale variabelen van de aanroeper, plus optionele `extras` | de waarden die in de t-string zijn vastgelegd |
+| Kan de catalogus veranderen hoe een waarde wordt opgemaakt? | ja | ja | nee | nee |
+| Kan de catalogus in objecten reiken (attribuuttoegang)? | nee | ja | ja, met puntnamen | nee |
+| Waar leeft "de huidige taal"? | waar de applicatie hem ook neerzet | waar de applicatie hem ook neerzet | een stapel taalcodes op het gedeelde applicatieobject | een `ContextVar`, per taak of request |
+
+**Wat integreren kost.** Al het bovenstaande is gratis als de tooling past; hier
+is waar dat misschien niet zo is:
+
+| | `%(name)s` | `.format()` | `flufl.i18n` `$name` | `t"…"` |
+| --- | --- | --- | --- | --- |
+| Minimale Python | elke | elke | 3.10 | **3.14** |
+| Volwassenheid | standaardbibliotheek | standaardbibliotheek | stabiele release | **alfa** |
+| Gebruikt gewone PO/MO-catalogi? | ja | ja | ja | ja |
+| Vereist een eigen bron-extractor? | nee | nee | nee | ja, momenteel |
+| Welke PO-vlag leidt Babel af, zodat bestaande tools kunnen valideren? | `python-format` | `python-brace-format` | geen | `python-brace-format` |
+
+Over de controle tijdens het renderen: enkelvoudige berichten worden
+gecontroleerd op een exacte placeholder-overeenkomst. Meervoudsberichten
+worden ook gecontroleerd, tegen de
+[unie/doorsnede-regel](spec.md) die de meervoudsvormen van een doeltaal laat
+afwijken van die van de bron; de striktere controle per vorm draait wanneer
+catalogi worden gecompileerd ([Extractie](extraction.md)).
+
+De rij over de format-vlag gaat over placeholder-bewuste validatie, niet
+over cataloguscompatibiliteit. `geen` betekent dat standaard gettext-tools
+het bericht nog steeds lezen en compileren, maar dat
+`msgfmt --check-format` geen `$`-placeholder-grammatica heeft om toe te
+passen.
+
+## Compatibiliteit en volwassenheid { #compatibility-and-maturity }
+
+De eerste twee rijen van de laatste tabel zijn degene die over invoering
+beslissen, dus ze zijn het waard om ronduit uitgeschreven te worden in plaats
+van als cellen.
+
+`%`-format en `.format()` zitten in Python ingebouwd en vergen helemaal geen
+dependency. [`flufl.i18n`][flufl-i18n] is een volwassen pakket, uitgebracht en
+in productie in gebruik, dat op Python 3.10 en later draait.
+`gettext-tstrings` is een **alfa** en vereist **Python 3.14 of nieuwer**, omdat
+t-strings nieuwe syntaxis zijn in 3.14 — er is geen back-port en die kan er ook
+niet komen. Zijn [specificatie](spec.md) is er het stabiele deel van; de
+Python-API kan vóór 1.0 nog bewegen.
+
+Wat geen van hen kost is cataloguscompatibiliteit. Alle vier produceren ze
+gewone POT/PO/MO-bestanden die elke PO-editor, elk vertaalplatform en elk GNU
+gettext-tool al leest, dus de keuze hieronder is omkeerbaar op een manier
+waarop het wisselen van catalogus*formaat* dat niet zou zijn.
+[Migratie](migration.md) behandelt het verhuizen van een bestaand project.
+
+De secties hieronder tonen elke afweging in detail, één methode tegelijk.
 
 ## %-format { #-format }
 
@@ -53,10 +114,10 @@ Traceback (most recent call last):
 ValueError: incomplete format
 ```
 
-Een bewerking van één teken in een PO-editor wordt een traceback in
-productie. GNU `msgfmt --check-format` vangt het wel af, maar alleen voor
-berichten met de vlag `python-format`, en alleen als de catalogus op weg naar
-je applicatie daadwerkelijk door msgfmt gaat.
+Een bewerking van één teken in een PO-editor wordt een runtime-exceptie, tenzij
+catalogusvalidatie hem eerst vangt. GNU `msgfmt --check-format` vangt deze wel
+af, maar alleen voor berichten met de vlag `python-format`, en alleen als de
+catalogus op weg naar je applicatie daadwerkelijk door msgfmt gaat.
 
 ## str.format { #strformat }
 
@@ -125,7 +186,7 @@ aanroeper. Een vertaalde placeholder mag elke beschikbare local of global
 van de aanroeper benoemen en, met puntsyntaxis, zijn attributen doorlopen.
 Dat is handig wanneer een bericht een attribuut nodig heeft, maar maakt
 tegelijk het frame van de aanroeper deel van de substitutienamespace van de
-catalogus. De vergelijking hieronder beschrijft `flufl.i18n` 6.0.0, niet elk
+catalogus. De vergelijking hier beschrijft `flufl.i18n` 6.0.0, niet elk
 mogelijk gebruik van `string.Template`.
 
 Het beantwoordt ook een vraag die de andere twee opmaakstijlen volledig aan de
@@ -189,7 +250,7 @@ Tegen `t"Hello {name}"`:
 | `{nombre}` | translation does not match the source placeholders: `{name}` is missing; `{nombre}` is not in the source message |
 
 Afgewezen betekent niet gecrasht: standaard logt de bibliotheek een
-waarschuwing en rendert ze de brontekst, zodat een slechte catalogus de
+waarschuwing en rendert ze het bronbericht, zodat een slechte catalogus de
 applicatie nooit neerhaalt —
 [hetzelfde contract dat gettext zelf nakomt](guide.md#what-happens-when-a-catalog-is-wrong).
 
@@ -200,57 +261,19 @@ amount = 1234.5
 tr(t"Total: {amount:,.2f}")  # msgid is "Total: {amount}"
 ```
 
-`:,.2f` bereikt de catalogus nooit, dus geen vertaling kan het veranderen,
-en geen vertaler hoeft ernaar te kijken.
+`:,.2f` bereikt de catalogus nooit, dus geen vertaling kan het veranderen, en
+geen vertaler hoeft ernaar te kijken. Het is wel een *vaste* opmaak, geen
+gelokaliseerde — cijfers en scheidingstekens per taal kiezen is
+[het werk van Babel, vóór de aanroep](guide.md#locale-aware-values).
 
 Nog een verschil is tooling: t-strings zijn nieuwe syntaxis, dus ze naar een
 `.pot` extraheren vereist momenteel een t-string-bewuste extractor, zoals
 degene die dit pakket [voor Babel levert](extraction.md).
 
-## Naast elkaar { #side-by-side }
+## Wat de beperking kost { #the-cost-of-the-restriction }
 
-| | `%(name)s` | `.format()` | `flufl.i18n` `$name` | `t"…"` |
-| --- | --- | --- | --- | --- |
-| Heeft de placeholder een naam? | ja | ja | ja | ja |
-| Kan een vertaler placeholders verplaatsen? | ja | ja | ja | ja |
-| Waar komen de waarden vandaan? | een expliciete mapping | expliciete argumenten | de lokale en globale variabelen van de aanroeper, plus optionele `extras` | de waarden die in de t-string zijn vastgelegd |
-| Kan de catalogus veranderen hoe een waarde wordt opgemaakt? | ja | ja | nee | nee |
-| Kan de catalogus in objecten reiken (attribuuttoegang)? | nee | ja | ja, met puntnamen | nee |
-| Een vertaling *laat een placeholder vallen* — wat wordt gerenderd? | de waarde verdwijnt geruisloos | de waarde verdwijnt geruisloos | de waarde verdwijnt geruisloos | de brontekst, met een waarschuwing ([standaard](guide.md#what-happens-when-a-catalog-is-wrong)) |
-| Een vertaling *voegt* een onbekende placeholder *toe* — wat wordt gerenderd? | een exceptie | een exceptie | de placeholder blijft als tekst zichtbaar | de brontekst, met een waarschuwing ([standaard](guide.md#what-happens-when-a-catalog-is-wrong)) |
-| Worden placeholders bij het renderen gecontroleerd? | nee | nee | nee | ja (zie hieronder) |
-| Welke PO-vlag leidt Babel af, zodat bestaande tools kunnen valideren? | `python-format` | `python-brace-format` | geen | `python-brace-format` |
-| Gebruikt gewone PO/MO-catalogi? | ja | ja | ja | ja |
-| Vereist een eigen bron-extractor? | nee | nee | nee | ja, momenteel |
-| Waar leeft "de huidige taal"? | waar de applicatie hem ook neerzet | waar de applicatie hem ook neerzet | een stapel taalcodes op het gedeelde applicatieobject | een `ContextVar`, per taak of request |
-
-Over de controle tijdens het renderen: enkelvoudige berichten worden
-gecontroleerd op een exacte placeholder-overeenkomst. Meervoudsberichten
-worden ook gecontroleerd, tegen de
-[unie/doorsnede-regel](spec.md) die de meervoudsvormen van een doeltaal laat
-afwijken van die van de bron; de striktere controle per vorm draait wanneer
-catalogi worden gecompileerd ([Extractie](extraction.md)).
-
-De rij over de format-vlag gaat over placeholder-bewuste validatie, niet
-over cataloguscompatibiliteit. `geen` betekent dat standaard gettext-tools
-het bericht nog steeds lezen en compileren, maar dat
-`msgfmt --check-format` geen `$`-placeholder-grammatica heeft om toe te
-passen.
-
-## Wat het kost { #what-it-costs }
-
-Een f-string kan op deze manier helemaal niet worden gebruikt — tegen de
-tijd dat een bibliotheek er een ziet, is het al een afgeronde string, dus
-hem vertalen betekent een fragment vertalen. t-strings ([PEP 750]) houden de
-statische tekst en de waarden gescheiden, met behoud van f-string-achtige
-syntaxis en expliciete waardebinding. `$`-strings bieden al een beknopt
-alternatief met een ander bindings- en faalmodel. `flufl.i18n` is een
-volwassen pakket dat op Python 3.10 en later draait; `gettext-tstrings` is
-momenteel een alfa, en omdat t-strings nieuwe syntaxis zijn vereist het
-Python 3.14 of nieuwer.
-
-De andere kostenpost is de beperking zelf: een interpolatie moet een
-gewone naam zijn.
+Naast de Python-eis is de prijs van dit alles één regel: een interpolatie moet
+een gewone naam zijn.
 
 ```python
 tr(t"Hello {user.name}")  # raises InvalidTemplateError at the call site
@@ -261,9 +284,16 @@ name = user.name  # compute it first
 tr(t"Hello {name}")
 ```
 
-Dat is een echte beperking. Samen met waardebinding aan de bronkant en
-placeholdercontrole tijdens runtime voorkomt ze dat catalogusstrings
-expressies evalueren, en houdt ze placeholdernamen betekenisvol.
+Dat is een echte beperking, en het is dezelfde beperking die de garanties
+hierboven voortbrengt. Samen met waardebinding aan de bronkant en
+placeholdercontrole tijdens runtime voorkomt ze dat catalogusstrings expressies
+evalueren, en houdt ze placeholdernamen betekenisvol voor wie ze vertaalt.
+
+Een f-string kan op deze manier helemaal niet worden gebruikt — tegen de tijd
+dat een bibliotheek er een ziet, is het al een afgeronde string, dus hem
+vertalen betekent een fragment vertalen. t-strings ([PEP 750]) houden de
+statische tekst en de waarden gescheiden, met behoud van f-string-achtige
+syntaxis en expliciete waardebinding.
 
 Hoe Python op dit kruispunt belandde — twee PEP's met tien jaar ertussen, en
 de stdlib-discussie die zonder antwoord gesloten werd — wordt met bronnen

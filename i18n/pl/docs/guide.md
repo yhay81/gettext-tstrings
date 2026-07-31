@@ -1,5 +1,5 @@
 ---
-description: "API czasu działania: wiązanie katalogu, języki na żądanie, odroczone łańcuchy i sposób raportowania uszkodzonego tłumaczenia."
+description: "API czasu działania: którego punktu wejścia użyć, wiązanie katalogu, języki na żądanie, odroczone łańcuchy, wartości zależne od locale i sposób raportowania uszkodzonego tłumaczenia."
 ---
 
 # Przewodnik
@@ -11,6 +11,22 @@ wyodrębnij, przetłumacz, skompiluj, uruchom — jest Ci jeszcze obca,
 walidację katalogów opisuje [Ekstrakcja](extraction.md), a to, jak zespół
 utrzymuje pętlę w ruchu — cykle aktualizacji, CI, platformy tłumaczeniowe —
 strona [W produkcji](workflow.md).
+
+## Którego punktu wejścia użyć? { #which-entry-point-should-i-use }
+
+Pakiet udostępnia kilka sposobów tłumaczenia komunikatu, bo aplikacje wiążą
+język na kilka różnych sposobów. Wybieraj według tego, jak Twój program
+decyduje, w jakim jest języku:
+
+| Twoja sytuacja | Użyj |
+| --- | --- |
+| Jeden język na cały proces — CLI, aplikacja desktopowa, skrypt | `Translator`, wywoływany jako `_` |
+| Jeden język na żądanie lub na zadanie asynchroniczne — aplikacja webowa | `use_translations()` wokół pracy, a potem `tr()` |
+| Komunikat zdefiniowany w czasie importu — etykieta formularza, enum, stała | `lazy_gettext()` albo `lazy_pgettext()` |
+| O brzmieniu decyduje liczba | `ngettext()` / `npgettext()`, w dowolnej z powyższych form |
+| Renderowanie wzorca bez udziału katalogu | `compile_template()` |
+
+Wszystko poniżej to te pięć przypadków, w tej kolejności.
 
 ## Wiązanie katalogu { #binding-a-catalog }
 
@@ -60,6 +76,7 @@ from gettext_tstrings import tr, use_translations
 
 
 def handle(request):
+    name = request.user.display_name
     translations = load_translations(request.locale)
     with use_translations(translations):
         return render(tr(t"Hello {name}"))
@@ -166,13 +183,54 @@ sparsowany katalog.
 
     `asyncio.to_thread` już robi to za Ciebie.
 
+## Wartości zależne od locale { #locale-aware-values }
+
+Ta biblioteka decyduje o tym, *gdzie* wartość pojawia się w przetłumaczonym
+komunikacie. Nie lokalizuje samej wartości. `{amount:,.2f}` to pythonowa
+specyfikacja formatu o ustalonym zachowaniu — przecinek co trzy cyfry i kropka
+przed częścią dziesiętną — i daje te same znaki niezależnie od tego, w jakim
+języku jest komunikat:
+
+```pycon
+>>> f"{1234.5:,.2f}"  # the same in every locale
+'1,234.50'
+```
+
+Po niemiecku ta liczba zapisuje się `1.234,50`, po francusku `1 234,50`, a
+hindi grupuje `1234567` jako `12,34,567`, a nie `1,234,567`. Liczby, waluty,
+daty, godziny i jednostki należą do [Babel][babel-numbers]. Najpierw sformatuj
+wartość, potem wstaw gotowy łańcuch:
+
+```python
+from babel.numbers import format_currency
+
+total = format_currency(amount, "EUR", locale=locale)
+tr(t"Your order comes to {total}")
+```
+
+W komunikacie z licznikiem liczba pełni dwie role — wybiera formę liczby
+mnogiej i pojawia się w tekście — a lokalizowana jest tylko ta druga. Zachowaj
+surowy licznik do wyboru formy, a do wyświetlenia przekaż sformatowany
+łańcuch:
+
+```python
+from babel.numbers import format_decimal
+
+shown = format_decimal(n, locale=locale)
+_.ngettext(t"One file", t"{shown} files", n)
+```
+
+Formatowanie przed wywołaniem jest też tym, co trzyma specyfikację formatu
+poza katalogiem: tłumacz widzi gotowy kawałek tekstu, a nie liczbę wraz z
+instrukcjami jej renderowania.
+
 ## Co się dzieje, gdy katalog jest błędny { #what-happens-when-a-catalog-is-wrong }
 
 Jeśli symbole zastępcze tłumaczenia nie pasują do źródła — brakujące,
 nieznane albo przeformatowane pole, które prześlizgnęło się przez walidację,
 z ręcznie edytowanego MO, katalogu od dostawcy albo potoku pomijającego
-checker — domyślnym zachowaniem jest odtworzenie tekstu źródłowego, a nie
-zgłoszenie wyjątku. To odzwierciedla kontrakt samego gettext, że zły katalog
+checker — domyślnym zachowaniem jest wyrenderowanie komunikatu źródłowego, a
+nie zgłoszenie wyjątku. To odzwierciedla kontrakt samego gettext, że zły katalog
 nigdy nie psuje aplikacji.
 
 Przy `Hello {name}` przetłumaczonym jako `こんにちは {nombre}` renderowanie
@@ -210,45 +268,15 @@ gettext_tstrings.errors.InvalidTranslationError: translation does not match the
 source placeholders: {name} is missing; {nombre} is not in the source message
 ```
 
-## Czytanie komunikatu o błędzie { #reading-a-failure-message }
+Te komunikaty są pisane dla tego, kto może na nie zareagować, a przy problemie
+z katalogiem jest to częściej tłumacz niż programista — więc tam, gdzie symbol
+zastępczy wygląda na obecny, a nie jest, komunikat wyjaśnia dlaczego, zamiast
+powtarzać, że go brakuje. Nawiasy klamrowe pełnej szerokości, podwojone
+`{{name}}`, niewidoczna twarda spacja, cyrylicka litera wśród łacińskich:
+każdy z tych przypadków ma własne brzmienie, wypisane z przykładami na stronie
+[Dla tłumaczy](translators.md#reading-a-failure-message). Ta strona jest
+napisana tak, by przekazać ją osobie edytującej `.po`.
 
-Te komunikaty są pisane dla tego, kto może na nie zareagować, a przy
-problemie z katalogiem jest to częściej tłumacz niż programista. Zgłoszenie
-tylko tego, że brakuje `{name}`, jest ślepą uliczką, gdy czytelnik widzi te
-znaki przed sobą — więc tam, gdzie symbol zastępczy wygląda na obecny, a nie
-jest, komunikat mówi dlaczego. Względem źródła `Hello {name}` każdy z
-poniższych przypadków jest raportowany pod
-`translation does not match the source placeholders:`
-
-| Tłumaczenie mówi | Podany powód |
-| --- | --- |
-| `こんにちは ｛name｝` | `{name}` is missing (the braces around it are not the ASCII `{` and `}`) |
-| `こんにちは {{name}}` | `{name}` is missing (it is written `{{name}}`, which is how a literal brace is escaped) |
-| `こんにちは name` | `{name}` is missing (the name appears, but not inside braces) |
-| `こんにちは {名前}` | `{name}` is missing; `{名前}` is not in the source message |
-
-Znaki, których nie widać, dostają osobne traktowanie. Twarda spacja wewnątrz
-nawiasów klamrowych to coś, co produkuje metoda wprowadzania i czego nie
-pokazuje żaden edytor, więc komunikat wypisuje ją jako punkt kodowy, zamiast
-nazywać znak, którego czytelnik nie znajdzie:
-
-```text
-placeholder {<U+00A0>name} has a space inside the braces; write {name}
-```
-
-Nazwa, której litery mieszają systemy pisma — przypadek homoglifów, gdzie
-cyrylickie `а` jest nieodróżnialne od łacińskiego — jest pokazywana dwa razy,
-raz czytelnie i raz w formie z sekwencją ucieczki, jedynej, która je
-rozróżnia:
-
-```text
-translation does not match the source placeholders: {name} is missing;
-{nаme} (n\u0430me) is not in the source message
-```
-
-To samo rozróżnienie stosuje się, gdy grecka lub cyrylicka nazwa zapisana w
-całości jednym pismem koliduje z ASCII nazwą źródłową, w tym w
-jednoliterowym przypadku łacińskiego `a` i cyrylickiego `а`.
 
 ## Renderowanie wzorca bez katalogu { #rendering-a-pattern-without-a-catalog }
 
@@ -305,3 +333,5 @@ wyrenderowanego wyniku dla jego celu (HTML, powłoka, terminal) oraz
 **integralność katalogu**, bo wrogi katalog może powtarzać symbol zastępczy,
 by zwielokrotnić rozmiar wyniku, co jest nieodłączne dla każdego i18n
 opartego na symbolach zastępczych.
+
+  [babel-numbers]: https://babel.pocoo.org/en/latest/api/numbers.html

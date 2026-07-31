@@ -49,9 +49,12 @@ Translator(translations, strict=False)
 
 | 名前 | 用途 |
 | --- | --- |
-| `lazy_gettext(template, /, *, strict=False)` | 翻訳を最初に使う時点まで遅延します。 |
+| `lazy_gettext(template, /, *, strict=False)` | 翻訳をレンダリングのたびまで遅延します。 |
 | `lazy_pgettext(context, template, /, *, strict=False)` | コンテキスト付きの形式です。 |
-| `LazyString` | 上記2関数の戻り値です。`str()`と`format()`、f-stringでレンダリングされ、表示文字列と等値比較でき、意図的にhash不能です。 |
+| `LazyString` | 上記2関数の戻り値です。その時点で束縛されている言語で`str()`と`format()`を通じてレンダリングされ、レンダリング後のテキストと等値比較でき、意図的にhash不能です。 |
+
+`strict`を定義側に置く理由を含め、実際に動かせる例は
+[遅延翻訳](guide.md#deferred-translation)にあります。
 
 ## 低レベルAPI { #lower-level }
 

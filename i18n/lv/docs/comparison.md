@@ -1,22 +1,17 @@
 ---
-description: "Viens un tas pats tulkojamais ziņojums, uzrakstīts ar %-formātu, .format(), flufl.i18n $-virknēm un t-virkni, ieskaitot to, kā katrs piesaista vērtības un rīkojas ar sabojātu katalogu."
+description: "Viens un tas pats tulkojamais ziņojums, uzrakstīts ar %-formātu, .format(), flufl.i18n $-virknēm un t-virkni, salīdzināts pēc tulkotāju kļūdām, kataloga varas un integrācijas cenas."
 ---
 
 # Kāpēc t-virknes
 
 Četri veidi, kā ielikt vērtību tulkojamā ziņojumā, salīdzināti uz viena un tā
-paša teikuma. Īsā versija:
+paša ziņojuma. Visi četri savus vietturus nosauc un ļauj tulkotājam tos
+pārkārtot; tie atšķiras ar to, kas notiek, kad tulkojums ir kļūdains, ar to,
+cik tālu jūsu programmā katalogs spēj sniegties, un ar to, cik maksā to
+pārņemšana.
 
-- Ar **%-formātu** viens tulkotāja nodzēsts burts kļūst par avāriju
-  produkcijā.
-- Ar **str.format** tulkojums var nolasīt atribūtus no objektiem, ko padod
-  jūsu kods — arī noslēpumus.
-- Ar **$-virknēm** (flufl.i18n) vērtības tiek netieši paņemtas no izsaucošās
-  funkcijas mainīgajiem, un vietturi ar punktiem sniedzas arī līdz atribūtiem.
-- Ar **t-virknēm** formatējums paliek jūsu kodā, tulkojumi tiek pārbaudīti
-  izpildlaikā, un sabojāts katalogs atkāpjas uz avota tekstu, nevis avarē.
-
-Pārējā lapas daļa ir pierādījumi, pa vienai metodei.
+Vispirms nāk tabulas, lai jūs varētu atrast sev svarīgo rindu un izlasīt tikai
+to sadaļu, kas aiz tās stāv.
 
 !!! note "Katram iztulkotam ziņojumam pieskaras trīs puses"
 
@@ -29,6 +24,71 @@ Pārējā lapas daļa ir pierādījumi, pa vienai metodei.
     stiliem atbild uz vienu un to pašu jautājumu citādi: *cik daudz no
     formāta valodas katalogs drīkst kontrolēt?* Piemēros `_` ir ierastais
     tulkošanas funkcijas nosaukums, bet `tr` — šīs bibliotēkas nosaukums.
+
+## Blakus salikts { #side-by-side }
+
+**Kad tulkotājs kļūdās.** Katalogs iziet caur daudzām rokām, un lielākā daļa
+no tā, kas tajā noiet greizi, ir nejaušība:
+
+| | `%(name)s` | `.format()` | `flufl.i18n` `$name` | `t"…"` |
+| --- | --- | --- | --- | --- |
+| Tulkojums *nomet* vietturi — kas tiek renderēts? | vērtība klusējot pazūd | vērtība klusējot pazūd | vērtība klusējot pazūd | avota ziņojums, ar brīdinājumu ([pēc noklusējuma](guide.md#what-happens-when-a-catalog-is-wrong)) |
+| Tulkojums *pievieno* nezināmu vietturi — kas tiek renderēts? | izņēmums | izņēmums | vietturis paliek redzams kā teksts | avota ziņojums, ar brīdinājumu ([pēc noklusējuma](guide.md#what-happens-when-a-catalog-is-wrong)) |
+| Tulkojums *pārformatē* vietturi — kas tiek renderēts? | tas, ko prasīja katalogs, vai izņēmums, ja tipa burts vairs neder vērtībai | tas, ko prasīja katalogs | `$`-virknēs nav izsakāms | avota ziņojums, ar brīdinājumu |
+| Vai vietturi tiek pārbaudīti renderēšanas brīdī? | nē | nē | nē | jā (skatiet zemāk) |
+
+**Kāda vara ir katalogam.** Tulkojums ir dati no ārpuses jūsu repozitorijam, un
+katrs stils tam iedod atšķirīgu varas daudzumu:
+
+| | `%(name)s` | `.format()` | `flufl.i18n` `$name` | `t"…"` |
+| --- | --- | --- | --- | --- |
+| No kurienes nāk vērtības? | no skaidra attēlojuma | no skaidriem argumentiem | no izsaucēja lokālajiem un globālajiem mainīgajiem, plus neobligātā `extras` | no vērtībām, kas notvertas t-virknē |
+| Vai katalogs var mainīt to, kā vērtība tiek formatēta? | jā | jā | nē | nē |
+| Vai katalogs var sniegties objektos (piekļuve atribūtiem)? | nē | jā | jā, ar nosaukumiem caur punktu | nē |
+| Kur dzīvo “tekošā valoda”? | tur, kur to noliek lietotne | tur, kur to noliek lietotne | valodu kodu steks uz koplietotā lietotnes objekta | `ContextVar`, katram uzdevumam vai pieprasījumam |
+
+**Cik maksā integrācija.** Viss augšminētais ir bez maksas, ja rīki der; tieši
+šeit tie var arī nederēt:
+
+| | `%(name)s` | `.format()` | `flufl.i18n` `$name` | `t"…"` |
+| --- | --- | --- | --- | --- |
+| Minimālais Python | jebkurš | jebkurš | 3.10 | **3.14** |
+| Briedums | standarta bibliotēka | standarta bibliotēka | stabils laidiens | **alfa** |
+| Vai izmanto parastus PO/MO katalogus? | jā | jā | jā | jā |
+| Vai vajadzīgs pielāgots pirmkoda ekstraktors? | nē | nē | nē | pašlaik jā |
+| Kādu PO karogu izsecina Babel, lai esošie rīki varētu validēt? | `python-format` | `python-brace-format` | nekādu | `python-brace-format` |
+
+Par pārbaudi renderēšanas brīdī: vienskaitļa ziņojumiem tiek pārbaudīta precīza
+vietturu sakritība. Daudzskaitļa ziņojumi arī tiek pārbaudīti — pret
+[apvienojuma/šķēluma likumu](spec.md), kas ļauj mērķa valodas daudzskaitļa
+formām atšķirties no avota valodas formām; stingrākā pārbaude katrai formai
+notiek, kad katalogi tiek kompilēti ([Ekstrakcija](extraction.md)).
+
+Rinda par formāta karogu ir par vietturus ievērojošu validāciju, nevis par
+katalogu savietojamību. `nekādu` nozīmē, ka standarta gettext rīki ziņojumu
+joprojām nolasa un kompilē, taču `msgfmt --check-format` nav nekādas
+`$`-vietturu gramatikas, ko piemērot.
+
+## Savietojamība un briedums { #compatibility-and-maturity }
+
+Pēdējās tabulas pirmās divas rindas ir tās, kas izlemj pārņemšanu, tāpēc tās ir
+vērts pateikt skaidri, nevis atstāt šūnās.
+
+`%`-formāts un `.format()` ir iebūvēti Python un tiem nav vajadzīga nekāda
+atkarība. [`flufl.i18n`][flufl-i18n] ir nobriedusi pakotne — izlaista un
+produkcijā lietota —, kas darbojas uz Python 3.10 un jaunākiem.
+`gettext-tstrings` ir **alfa**, un tam vajadzīgs **Python 3.14 vai jaunāks**,
+jo t-virknes ir jauna sintakse 3.14 versijā — atpakaļpārneses nav un nevar būt.
+Tā [specifikācija](spec.md) ir tā stabilā daļa; Python API pirms 1.0 vēl var
+mainīties.
+
+Ko neviens no tiem nemaksā, ir katalogu savietojamība. Visi četri rada parastus
+POT/PO/MO failus, ko jau lasa katrs PO redaktors, tulkošanas platforma un GNU
+gettext rīks, tāpēc zemāk aprakstītā izvēle ir atgriezeniska tā, kā katalogu
+*formātu* maiņa nebūtu. [Migrācija](migration.md) apraksta esoša projekta
+pārcelšanu.
+
+Sadaļas zemāk parāda katru kompromisu detalizēti, pa vienai metodei.
 
 ## %-formāts { #-format }
 
@@ -48,10 +108,10 @@ Traceback (most recent call last):
 ValueError: incomplete format
 ```
 
-Viena rakstzīmes labojums PO redaktorā kļūst par traceback produkcijā. GNU
-`msgfmt --check-format` to gan pamana, taču tikai ziņojumiem ar karogu
-`python-format` un tikai tad, ja katalogs ceļā uz jūsu lietotni patiešām iziet
-cauri msgfmt.
+Viena rakstzīmes labojums PO redaktorā kļūst par izpildlaika izņēmumu, ja vien
+to iepriekš nenoķer katalogu validācija. GNU `msgfmt --check-format` šo gan
+pamana, taču tikai ziņojumiem ar karogu `python-format` un tikai tad, ja
+katalogs ceļā uz jūsu lietotni patiešām iziet cauri msgfmt.
 
 ## str.format { #strformat }
 
@@ -115,7 +175,7 @@ atribūtu vai konvertējot vērtību, joprojām var izplatīties tālāk.
 izsaucēja vērtībām. Iztulkots vietturis drīkst nosaukt jebkuru pieejamu
 izsaucēja lokālo vai globālo mainīgo un, ar punktu sintaksi, izstaigāt tā
 atribūtus. Tas ir ērti, kad ziņojumam ir vajadzīgs atribūts, bet vienlaikus
-padara izsaucēja frame par kataloga aizstāšanas vārdtelpas daļu. Zemāk
+padara izsaucēja frame par kataloga aizstāšanas vārdtelpas daļu. Šeit
 esošais salīdzinājums apraksta `flufl.i18n` 6.0.0, nevis katru iespējamo
 `string.Template` lietojumu.
 
@@ -178,7 +238,7 @@ vietturiem, un tā pieņem kailus nosaukumus un neko citu. Pret
 | `{nombre}` | translation does not match the source placeholders: `{name}` is missing; `{nombre}` is not in the source message |
 
 Noraidīts nenozīmē avarējis: pēc noklusējuma bibliotēka ieraksta žurnālā
-brīdinājumu un renderē avota tekstu, tāpēc slikts katalogs nekad nenogāž
+brīdinājumu un renderē avota ziņojumu, tāpēc slikts katalogs nekad nenogāž
 lietotni —
 [tas pats kontrakts, ko ievēro pats gettext](guide.md#what-happens-when-a-catalog-is-wrong).
 
@@ -190,52 +250,18 @@ tr(t"Total: {amount:,.2f}")  # msgid is "Total: {amount}"
 ```
 
 `:,.2f` nekad nenonāk katalogā, tāpēc neviens tulkojums to nevar mainīt un
-nevienam tulkotājam uz to nav jāskatās.
+nevienam tulkotājam uz to nav jāskatās. Tomēr tas ir *fiksēts* formāts, nevis
+lokalizēts — ciparu un atdalītāju izvēle katrai valodai ir
+[Babel darbs, pirms izsaukuma](guide.md#locale-aware-values).
 
 Vēl viena atšķirība ir rīki: t-virknes ir jauna sintakse, tāpēc to
 ekstrahēšanai `.pot` failā pašlaik ir vajadzīgs t-virknes pratējs ekstraktors,
 piemēram, tāds, kādu šī pakotne [piedāvā Babel](extraction.md).
 
-## Blakus salikts { #side-by-side }
+## Ierobežojuma cena { #the-cost-of-the-restriction }
 
-| | `%(name)s` | `.format()` | `flufl.i18n` `$name` | `t"…"` |
-| --- | --- | --- | --- | --- |
-| Vai vietturis ir nosaukts? | jā | jā | jā | jā |
-| Vai tulkotājs drīkst pārkārtot vietturus? | jā | jā | jā | jā |
-| No kurienes nāk vērtības? | no skaidra attēlojuma | no skaidriem argumentiem | no izsaucēja lokālajiem un globālajiem mainīgajiem, plus neobligātā `extras` | no vērtībām, kas notvertas t-virknē |
-| Vai katalogs var mainīt to, kā vērtība tiek formatēta? | jā | jā | nē | nē |
-| Vai katalogs var sniegties objektos (piekļuve atribūtiem)? | nē | jā | jā, ar nosaukumiem caur punktu | nē |
-| Tulkojums *nomet* vietturi — kas tiek renderēts? | vērtība klusējot pazūd | vērtība klusējot pazūd | vērtība klusējot pazūd | avota teksts, ar brīdinājumu ([pēc noklusējuma](guide.md#what-happens-when-a-catalog-is-wrong)) |
-| Tulkojums *pievieno* nezināmu vietturi — kas tiek renderēts? | izņēmums | izņēmums | vietturis paliek redzams kā teksts | avota teksts, ar brīdinājumu ([pēc noklusējuma](guide.md#what-happens-when-a-catalog-is-wrong)) |
-| Vai vietturi tiek pārbaudīti renderēšanas brīdī? | nē | nē | nē | jā (skatiet zemāk) |
-| Kādu PO karogu izsecina Babel, lai esošie rīki varētu validēt? | `python-format` | `python-brace-format` | nekādu | `python-brace-format` |
-| Vai izmanto parastus PO/MO katalogus? | jā | jā | jā | jā |
-| Vai vajadzīgs pielāgots pirmkoda ekstraktors? | nē | nē | nē | pašlaik jā |
-| Kur dzīvo “tekošā valoda”? | tur, kur to noliek lietotne | tur, kur to noliek lietotne | valodu kodu steks uz koplietotā lietotnes objekta | `ContextVar`, katram uzdevumam vai pieprasījumam |
-
-Par pārbaudi renderēšanas brīdī: vienskaitļa ziņojumiem tiek pārbaudīta precīza
-vietturu sakritība. Daudzskaitļa ziņojumi arī tiek pārbaudīti — pret
-[apvienojuma/šķēluma likumu](spec.md), kas ļauj mērķa valodas daudzskaitļa
-formām atšķirties no avota valodas formām; stingrākā pārbaude katrai formai
-notiek, kad katalogi tiek kompilēti ([Ekstrakcija](extraction.md)).
-
-Rinda par formāta karogu ir par vietturus ievērojošu validāciju, nevis par
-katalogu savietojamību. `nekādu` nozīmē, ka standarta gettext rīki ziņojumu
-joprojām nolasa un kompilē, taču `msgfmt --check-format` nav nekādas
-`$`-vietturu gramatikas, ko piemērot.
-
-## Ko tas maksā { #what-it-costs }
-
-F-virkni šādi izmantot nav iespējams vispār — brīdī, kad kāda bibliotēka to
-ierauga, tā jau ir pabeigta virkne, tāpēc tās tulkošana nozīmē fragmenta
-tulkošanu. T-virknes ([PEP 750]) tur statisko tekstu un vērtības atsevišķi,
-vienlaikus saglabājot f-virknei līdzīgu sintaksi un skaidru vērtību
-piesaisti. `$`-virknes jau piedāvā kodolīgu alternatīvu ar citu piesaistes un
-kļūmes modeli. `flufl.i18n` ir nobriedusi pakotne, kas darbojas uz Python 3.10
-un jaunākiem; `gettext-tstrings` pašlaik ir alfa, un, tā kā t-virknes ir jauna
-sintakse, tam vajadzīgs Python 3.14 vai jaunāks.
-
-Otrā cena ir pats ierobežojums: interpolācijai jābūt kailam nosaukumam.
+Bez Python prasības visa tā cena ir viens noteikums: interpolācijai jābūt
+kailam nosaukumam.
 
 ```python
 tr(t"Hello {user.name}")  # raises InvalidTemplateError at the call site
@@ -246,9 +272,15 @@ name = user.name  # compute it first
 tr(t"Hello {name}")
 ```
 
-Tas ir īsts ierobežojums. Kopā ar vērtību piesaisti avota pusē un vietturu
-pārbaudi izpildlaikā tas neļauj kataloga virknēm izvērtēt izteiksmes un
-saglabā vietturu nosaukumus jēgpilnus.
+Tas ir īsts ierobežojums, un tas ir tas pats ierobežojums, kas rada augšminētās
+garantijas. Kopā ar vērtību piesaisti avota pusē un vietturu pārbaudi
+izpildlaikā tas neļauj kataloga virknēm izvērtēt izteiksmes un saglabā vietturu
+nosaukumus jēgpilnus tam, kurš tos tulko.
+
+F-virkni šādi izmantot nav iespējams vispār — brīdī, kad kāda bibliotēka to
+ierauga, tā jau ir pabeigta virkne, tāpēc tās tulkošana nozīmē fragmenta
+tulkošanu. T-virknes ([PEP 750]) tur statisko tekstu un vērtības atsevišķi,
+vienlaikus saglabājot f-virknei līdzīgu sintaksi un skaidru vērtību piesaisti.
 
 Kā Python nonāca pie šī krustceļa — divi PEP ar desmit gadu starpību un
 standarta bibliotēkas diskusija, kas noslēdzās bez atbildes — ir izstāstīts ar

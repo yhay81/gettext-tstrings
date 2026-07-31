@@ -88,3 +88,27 @@ msgid_plural "Rendered {n} pages in {seconds}s"
 msgstr[0] "Atvaizduotas {n} puslapis per {seconds} s"
 msgstr[1] "Atvaizduoti {n} puslapiai per {seconds} s"
 msgstr[2] "Atvaizduota {n} puslapių per {seconds} s"
+
+#. gettext-tstrings
+msgid "Start here"
+msgstr "Pradėkite čia"
+
+#. gettext-tstrings
+msgid "Use it"
+msgstr "Naudokite"
+
+#. gettext-tstrings
+msgid "Migration"
+msgstr "Migracija"
+
+#. gettext-tstrings
+msgid "For translators"
+msgstr "Vertėjams"
+
+#. gettext-tstrings
+msgid "Understand it"
+msgstr "Supraskite"
+
+#. gettext-tstrings
+msgid "Reference"
+msgstr "Žinynas"

@@ -12,6 +12,18 @@ każdym wydaniem. Ta strona jest tą praktyką — co zostaje w repozytorium, co
 podróżuje, co musi bramkować CI i gdzie środowisko uruchomieniowe wiąże
 język.
 
+Wszystko to sprowadza się do sześciu kontroli, więc najpierw one; każda sekcja
+poniżej ustawia jedną z nich.
+
+- `pybabel update --check` przechodzi — żaden komunikat nie zmienił się bez
+  wiedzy katalogów.
+- `pybabel compile` bramkuje build swoim statusem wyjścia.
+- Pozostałe wpisy `fuzzy` są zamierzone — każdy z nich renderuje się jako
+  tekst źródłowy, dopóki tłumacz go nie potwierdzi.
+- Zestaw testów renderuje każdy wysyłany język raz z `strict=True`.
+- Artefakt produkcyjny zawiera pliki `.mo` i nie zawiera Babel.
+- Logger `gettext_tstrings` jest podpięty do monitoringu.
+
 ## Kształt projektu { #the-shape-of-a-project }
 
 ```text
@@ -33,8 +45,8 @@ pakowaniu, zamiast je commitować, żeby `.po` i jego `.mo` nigdy nie mogły
 się różnić co do tego, co wychodzi.
 
 Jeden plik ma rolę w każdą stronę: `.pot` niesie Twoje komunikaty *do*
-tłumaczy, pliki `.po` niosą tłumaczenia *z powrotem*. Wszystko poniżej to
-ruch między tymi dwoma.
+tłumaczy, pliki `.po` niosą tłumaczenia *z powrotem*. Reszta tej strony to
+to, co kursuje między nimi.
 
 ```mermaid
 flowchart LR
@@ -48,8 +60,8 @@ flowchart LR
 
 ## Cykl po pierwszym tłumaczeniu { #the-cycle-after-the-first-translation }
 
-Samouczkowy `pybabel init` uruchamia się raz na język — na zawsze. Od tej
-pory roboczy cykl to **ekstrakcja → aktualizacja → tłumaczenie →
+Samouczkowy `pybabel init` uruchamia się zwykle raz, przy dodawaniu języka. Od
+tej pory roboczy cykl to **ekstrakcja → aktualizacja → tłumaczenie →
 kompilacja**, a jego środkiem jest `pybabel update`, który wtapia świeży
 szablon w istniejące katalogi bez odrzucania tłumaczeń już w nich obecnych.
 
@@ -77,8 +89,8 @@ msgstr "こんにちは {name}"
 
 Babel zauważył, że nowy msgid przypomina usunięty, i sparował go ze starym
 tłumaczeniem — ale oznaczył parę jako **fuzzy**: maszynowe przypuszczenie
-czekające na człowieka. Ta flaga ma zęby. `pybabel compile` **wyklucza wpisy
-fuzzy z `.mo`**, więc dopóki tłumacz nie potwierdzi pary, aplikacja
+czekające na człowieka. Ta flaga zmienia to, co się kompiluje. `pybabel
+compile` **wyklucza wpisy fuzzy z `.mo`**, więc dopóki tłumacz nie potwierdzi pary, aplikacja
 renderuje nowy angielski tekst, a nie przeterminowany japoński:
 
 ```console
@@ -128,34 +140,18 @@ zarówno Babel, jak i
 [zarejestrowanego checkera](extraction.md#your-existing-toolchain-validates-these-catalogs)
 tego pakietu.
 
-!!! bug "`--check` nie potrafi bramkować katalogu używającego kontekstów"
+!!! bug "Babel 2.18.0: `--check` nie potrafi bramkować katalogu używającego kontekstów"
 
     W Babel 2.18.0 `pybabel update --check` raportuje **każdy** katalog
     zawierający `msgctxt` jako nieaktualny, przy każdym uruchomieniu,
-    niezależnie od tego, jak bardzo jest aktualny. Porównanie przebiega
-    przez `Catalog.is_identical`, które wyszukuje każdy komunikat po kluczu,
-    pod którym jest przechowywany — a dla komunikatu z kontekstem tym
-    kluczem jest para `(id, context)`, której `Catalog.get` nie przyjmuje.
-    Wyszukiwanie nie zwraca nic, więc katalogi nigdy nie okazują się równe:
-
-    ```pycon
-    >>> from babel.messages.catalog import Catalog
-    >>> c = Catalog(locale="ja")
-    >>> c.add("Guide", "ガイド", context="navigation")
-    <Message 'Guide' (flags: [])>
-    >>> c.is_identical(c)
-    False
-    ```
-
-    Więc jeśli w ogóle używasz `pgettext` albo `npgettext` — a
-    ujednoznacznianie homonimu jest powodem, dla którego one istnieją — ten
-    krok zawodzi otwarcie w najgorszy możliwy sposób: zawsze na czerwono,
-    więc zespół go wyłącza, więc nic nie bramkuje nieaktualności. Dopóki nie
-    zostanie to naprawione u źródła, porównuj zbiory komunikatów
-    samodzielnie. Wczytanie szablonu i każdego katalogu za pomocą
+    niezależnie od tego, jak bardzo jest aktualny. Bramka, która zawsze
+    zawodzi, jest gorsza niż jej brak, bo zespół ją wyłącza — więc jeśli w
+    ogóle używasz `pgettext` albo `npgettext`, zastąp ten krok, zamiast z nim
+    żyć. Wczytanie szablonu i każdego katalogu za pomocą
     `babel.messages.pofile.read_po` oraz porównanie
     `{(m.context, m.id) for m in catalog if m.id}` to cała kontrola — i
-    dokładnie to robi [własny build tej strony](index.md).
+    dokładnie to robi [własny build tej strony](index.md). Przyczyna jest
+    [opisana w Pułapkach](pitfalls.md#your-tools-have-bugs-too).
 
 !!! danger "Sprawdzaj status wyjścia, nie log"
 

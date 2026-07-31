@@ -15,6 +15,22 @@ msgid "Safe gettext and Babel integration for Python t-strings."
 msgstr "面向 Python t-string 的安全 gettext 与 Babel 集成。"
 
 #. gettext-tstrings
+msgid "Start here"
+msgstr "入门"
+
+#. gettext-tstrings
+msgid "Use it"
+msgstr "正式使用"
+
+#. gettext-tstrings
+msgid "Understand it"
+msgstr "深入理解"
+
+#. gettext-tstrings
+msgid "Reference"
+msgstr "参考"
+
+#. gettext-tstrings
 msgid "Home"
 msgstr "首页"
 
@@ -42,6 +58,14 @@ msgstr "提取"
 #. gettext-tstrings
 msgid "In production"
 msgstr "生产实践"
+
+#. gettext-tstrings
+msgid "Migration"
+msgstr "迁移"
+
+#. gettext-tstrings
+msgid "For translators"
+msgstr "面向翻译者"
 
 #. gettext-tstrings
 msgid "Pitfalls"

@@ -199,8 +199,8 @@ Eftir sömu grunnreglu fær staðgengill sem „vantar“ en *sýnist* vera til
 staðar fjarveru sína útskýrða — breiðir slaufusvigar úr austur-asískri
 innsláttaraðferð, `{{name}}`-tvöföldun úr escape-ritun fram og til baka,
 nafnið utan allra slaufusviga.
-[Villulestrartafla handbókarinnar](guide.md#reading-a-failure-message) sýnir
-hver þessara skilaboða orðrétt.
+[Villulestrartaflan](translators.md#reading-a-failure-message) sem skrifuð er
+fyrir þýðendur sýnir hver þessara skilaboða orðrétt.
 
 ## Heita leiðin { #the-hot-path }
 

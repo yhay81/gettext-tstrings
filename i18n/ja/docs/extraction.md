@@ -43,10 +43,13 @@ pybabel compile -d locales
 gettext名、`tr()` / `ntr()` alias、遅延用の`lazy_gettext()` /
 `lazy_pgettext()`を認識します。
 
-!!! warning "`-c`は省略できません"
+!!! warning "`-c`で翻訳者向けコメントを有効にする"
 
     通常のgettext呼び出しと同じく、`pybabel extract`で翻訳者向けコメントを
-    収集するには`-c "Translators:"`を渡す必要があります。
+    収集するには`-c "Translators:"`を渡す必要があります。渡さなくても抽出
+    自体は動きますが、コメントがカタログへ届かなくなります。カタログ上の
+    コメントは、ワークフロー全体で
+    [最も安上がりな品質向上の手段](workflow.md#working-with-translators-and-platforms)です。
 
 ## 独自の関数名を登録する { #registering-your-own-function-names }
 
@@ -85,9 +88,9 @@ optionは`tr_functions`、`ntr_functions`、`gettext_functions`、
     対応するのは標準の引数順だけです。通常はmessageが先、`pgettext`ではcontextの
     次にmessage、`npgettext`ではcontext、単数形、複数形の順です。
 
-## 既定で堅牢 { #robust-by-default }
+## ローカルでは寛容に、CIでは厳密に { #lenient-locally-strict-in-ci }
 
-1つの不正なファイルで抽出全体が停止することはありません。
+既定では、1つの不正なファイルで抽出全体が停止することはありません。
 
 - extractorが拒否するt-string（属性アクセス、式、不正な引数）は警告して
   skipします。
@@ -95,8 +98,30 @@ optionは`tr_functions`、`ntr_functions`、`gettext_functions`、
 - `ast`では受理されても`tokenize`だけが拒否するファイルもskipします。そうしないと
   Babel自身のpassが停止するためです。
 
-mapping optionで`strict = true`を指定すると、これらをすべてhard failureにできます。
-CIではこの設定が適しています。
+これは編集中には便利ですが、そうでないときには危険です。skipされたメッセージは
+単に**POTに現れない**ため、翻訳されることもなく、それを知らせるものもありません。
+人の目が抽出を見ていない場所では、mapping optionで`strict = true`を指定して
+ください。
+
+=== "babel.cfg"
+
+    ```ini
+    [gettext_tstrings: **.py]
+    encoding = utf-8
+    strict = true
+    ```
+
+=== "babel.toml"
+
+    ```toml
+    [[mappings]]
+    method = "gettext_tstrings"
+    pattern = "**.py"
+    strict = true
+    ```
+
+これで上記の警告はすべてhard failureになります。こちらを本番向けの設定、既定を
+ローカル向けの設定と考えてください。
 
 ## 既存toolchainによるカタログ検証 { #your-existing-toolchain-validates-these-catalogs }
 
@@ -121,8 +146,8 @@ msgfmt: found 1 fatal error
 ```
 
 Weblateでは同じ検証が[Python brace format][weblate-checks]として文書化されており、
-商用platformにも同じflagに基づくplaceholder QAがあります。その挙動は各製品に
-属します。ここで検証しているのは以下の2ツールです。
+商用platformにも同じflagに基づくplaceholder QAがあります。各platformの挙動は
+それぞれのものです。ここで検証しているのは以下の2ツールです。
 
   [weblate-checks]: https://docs.weblate.org/en/latest/user/checks.html
 
@@ -151,7 +176,8 @@ match the source placeholders: {n} is missing
     されます。出荷を止められるのはその終了statusだけです。それを働かせるビルド
     ステップは[CIで防ぐこと](workflow.md#what-ci-gates)で示します。
 
-2つの検証は重複していません。同梱checkerの方が厳密な箇所が少なくとも2つあります。
+2つの検証は重複していません。このパッケージのcheckerの方が厳密な場面が
+少なくとも2つあります。
 
 - msgidの波括弧がescapeされたものだけ（`Config {{raw}} only`）なら
   `python-brace-format` flagが付かないため、外部ツールは一切検証しません。

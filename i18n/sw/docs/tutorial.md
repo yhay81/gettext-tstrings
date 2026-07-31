@@ -11,8 +11,8 @@ unajua kama uko kwenye njia sahihi.
 
 Unahitaji Python 3.14 au mpya zaidi, kwa sababu t-strings ni sintaksia mpya
 katika 3.14. Kijapani ndicho kielelezo cha ukurasa huu, lakini hakuna
-kinachotegemea chaguo hilo — badilisha lugha yoyote katika hatua ya 4, ambapo
-msimbo wa eneo `ja` ndicho kitu pekee kinachoitaja.
+kinachotegemea chaguo hilo. Ili kutumia lugha nyingine, badilisha `ja` katika
+hatua ya 4 — msimbo huo wa eneo ndicho kitu pekee kinachoitaja.
 
 ## 1. Sakinisha { #1-install }
 
@@ -54,9 +54,10 @@ kilichojengwa ndani.
 
 ## 3. Toa jumbe { #3-extract-the-messages }
 
-Wafasiri hawasomi msimbo wako chanzo; faili dogo linaloitwa **katalogi**
-husafiri kati yako na wao. Hatua ya kwanza kuelekea kwake ni kukusanya kila
-ujumbe uliowekewa alama kutoka kwenye msimbo.
+Wafasiri kwa kawaida hufanya kazi kutoka katalogi badala ya msimbo chanzo,
+hivyo faili dogo linaloitwa **katalogi** husafiri kati yako na wao. Hatua ya
+kwanza kuelekea kwake ni kukusanya kila ujumbe uliowekewa alama kutoka kwenye
+msimbo.
 
 Mwambie Babel jinsi ya kupata jumbe zako kwa kutengeneza `babel.cfg`:
 
@@ -128,7 +129,17 @@ source placeholders: {name} is missing; {nome} is not in the source message
 1 errors encountered.
 ```
 
+Tahadhari moja inayostahili kujulikana sasa: huripoti hitilafu na hutoka kwa
+hali isiyo sifuri, lakini huandika `.mo` hata hivyo. Katika mradi halisi ni CI
+inayopaswa kusimama kwa hali hiyo ya kutoka —
+[Katika uzalishaji](workflow.md#what-ci-gates) huiweka.
+
 ## 5. Iendeshe { #5-run-it }
+
+Hatua za 2–4 zilitumia `tr()`, ambayo hutafuta katalogi na haipati yoyote. Sasa
+kwa kuwa moja ipo, ipakie na uifunge mara moja: `Translator` hushikilia
+katalogi ili sehemu za wito zisilazimike kuitaja, nalo `_` ni jina la kawaida
+la gettext kwa matokeo yake.
 
 Elekeza `app.py` kwenye katalogi iliyokusanywa. Bofya alama ili uone kila
 mstari unafanya nini:
@@ -146,8 +157,8 @@ print(_(t"Hello {name}"))  # (2)!
 
 1. Maktaba sanifu hupakia `.mo` iliyokusanywa, na `Translator` huifunga kwenye
    kitendakazi. `_` ni jina la kawaida la gettext lenye maana ya "tafsiri hii"
-   — fupi kwa sababu huonekana kwenye kila mfuatano unaomfikia mtumiaji. Ni
-   kitendakazi kilekile kama `tr`, kilichofungwa kwenye katalogi moja.
+   — fupi kwa sababu huonekana kwenye kila mfuatano unaomfikia mtumiaji.
+   Hufanya tafsiri ileile kama `tr`, ikiwa imefungwa kwenye katalogi moja.
 2. Wakati wa wito: maandishi ya t-string huwa ufunguo wa utafutaji
    `Hello {name}`, katalogi hujibu `こんにちは {name}`, jibu hukaguliwa dhidi ya
    vishika nafasi vya chanzo, na hapo tu ndipo thamani huingizwa.
@@ -182,5 +193,9 @@ tovuti hii ni uboreshaji wa mojawapo ya hatua hizo tano.
   tafsiri.
 - [Utoaji](extraction.md) — marejeo kamili ya `pybabel`: majina maalum ya
   vitendakazi, hali kali ya CI, na ukaguzi unaolinda katalogi zako.
+- [Uhamiaji](migration.md) — ikiwa mradi ambao kwa kweli unataka kufanya haya
+  ndani yake tayari una katalogi za gettext.
+- [Kwa watafsiri](translators.md) — ukurasa mmoja wa kumkabidhi yeyote
+  anayejaza mistari hiyo ya `msgstr`.
 
   [Babel]: https://babel.pocoo.org/

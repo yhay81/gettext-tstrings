@@ -43,10 +43,13 @@ Extraktorn `gettext_tstrings` hanterar också vanliga `_()`-, `gettext()`- och
 igen `_()`, de fyra standardnamnen i gettext, aliasen `tr()` / `ntr()` och de
 uppskjutna `lazy_gettext()` / `lazy_pgettext()`.
 
-!!! warning "`-c` är inte valfritt"
+!!! warning "Aktivera översättarkommentarer med `-c`"
 
     `pybabel extract` samlar bara in översättarkommentarer när du skickar
-    `-c "Translators:"`, precis som för vanliga gettext-anrop.
+    `-c "Translators:"`, precis som för vanliga gettext-anrop. Utelämnar du det
+    fungerar extraheringen ändå — kommentarerna når bara aldrig katalogen, där
+    de är [den billigaste kvalitetshävstången](workflow.md#working-with-translators-and-platforms)
+    i hela arbetsflödet.
 
 ## Registrera dina egna funktionsnamn { #registering-your-own-function-names }
 
@@ -88,9 +91,9 @@ Alternativen är `tr_functions`, `ntr_functions`, `gettext_functions`,
     meddelande för `pgettext`, kontext sedan singular sedan plural för
     `npgettext`.
 
-## Robust som standard { #robust-by-default }
+## Överseende lokalt, strikt i CI { #lenient-locally-strict-in-ci }
 
-En dålig fil avslutar inte körningen:
+Som standard avslutar en dålig fil inte körningen:
 
 - En t-string som extraktorn avvisar — attributåtkomst, ett uttryck, ett
   felaktigt argument — rapporteras som en varning och hoppas över.
@@ -98,8 +101,30 @@ En dålig fil avslutar inte körningen:
 - Likaså en fil som bara `tokenize` vägrar medan `ast` accepterar den, som
   Babels egen genomgång annars skulle avbryta på.
 
-Sätt `strict = true` i mappningsalternativen för att i stället göra vart och
-ett av dessa till ett hårt fel, vilket är vad du vill ha i CI.
+Det är bekvämt medan du redigerar och farligt när du inte gör det: ett
+överhoppat meddelande är helt enkelt **frånvarande ur POT-filen**, så det blir
+aldrig översatt och ingenting säger till. Sätt `strict = true` i
+mappningsalternativen överallt där extraheringen inte bevakas av en människa:
+
+=== "babel.cfg"
+
+    ```ini
+    [gettext_tstrings: **.py]
+    encoding = utf-8
+    strict = true
+    ```
+
+=== "babel.toml"
+
+    ```toml
+    [[mappings]]
+    method = "gettext_tstrings"
+    pattern = "**.py"
+    strict = true
+    ```
+
+Varje varning ovan blir då ett hårt fel. Behandla detta som
+produktionsinställningen och standardvärdet som den lokala.
 
 ## Din befintliga verktygskedja validerar dessa kataloger { #your-existing-toolchain-validates-these-catalogs }
 
@@ -126,8 +151,8 @@ msgfmt: found 1 fatal error
 
 Weblate dokumenterar samma kontroll som
 [Python brace format][weblate-checks], och de kommersiella plattformarna har
-sin egen platshållar-QA nycklad på samma flagga. Deras beteende är deras
-eget; de två verktygen nedan är de som verifieras här.
+sin egen platshållar-QA nycklad på samma flagga. Varje plattforms beteende är
+dess eget; de två verktygen nedan är de som verifieras här.
 
   [weblate-checks]: https://docs.weblate.org/en/latest/user/checks.html
 
@@ -158,8 +183,8 @@ match the source placeholders: {n} is missing
     [Vad CI ska grinda](workflow.md#what-ci-gates) visar byggsteget som
     låter den göra det.
 
-De två kontrollerna är inte överflödiga sida vid sida. Den medföljande
-kontrollen är den strängare parten på minst två punkter:
+De två kontrollerna är inte överflödiga sida vid sida. Paketets kontroll är
+strängare i minst två fall:
 
 - En msgid vars enda klamrar är escapade (`Config {{raw}} only`) får aldrig
   flaggan `python-brace-format`, så inget externt verktyg validerar den alls.

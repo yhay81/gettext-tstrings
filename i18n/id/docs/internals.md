@@ -206,8 +206,8 @@ Dengan prinsip yang sama, placeholder "hilang" yang *tampak* hadir dijelaskan
 ketiadaannya — kurung kurawal lebar penuh dari metode input Asia Timur,
 penggandaan `{{name}}` dari perjalanan pulang-pergi escaping, nama di luar
 kurung kurawal mana pun.
-[Tabel pembacaan kegagalan panduan](guide.md#reading-a-failure-message)
-menunjukkan masing-masing pesan itu verbatim.
+[Tabel pembacaan kegagalan](translators.md#reading-a-failure-message) yang
+ditulis untuk penerjemah menunjukkan masing-masing pesan itu verbatim.
 
 ## Jalur panas { #the-hot-path }
 

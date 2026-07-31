@@ -193,8 +193,8 @@ editor is a dead end, so the messages are computed with three rules:
 On the same principle, a "missing" placeholder that *looks* present gets its
 absence explained — full-width braces from an East Asian input method,
 `{{name}}` doubling from an escaping round trip, the name outside any braces.
-The [guide's failure-reading table](guide.md#reading-a-failure-message) shows
-each of these messages verbatim.
+The [failure-reading table](translators.md#reading-a-failure-message) written
+for translators shows each of these messages verbatim.
 
 ## The hot path
 

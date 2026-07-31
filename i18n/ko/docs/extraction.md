@@ -42,10 +42,12 @@ pybabel compile -d locales
 `tr()`, `ntr()`, `lazy_gettext()`, `lazy_pgettext()`가 섞인 코드를 모두
 다룹니다.
 
-!!! warning "`-c`는 선택 사항이 아님"
+!!! warning "`-c`로 번역자 주석을 켜기"
 
     일반 gettext처럼 번역자 주석을 모으려면 `-c "Translators:"`를
-    전달해야 합니다.
+    전달해야 합니다. 빼도 추출은 그대로 동작합니다 — 주석이 카탈로그에
+    도달하지 않을 뿐이고, 그곳에서 주석은 이 워크플로 전체에서
+    [가장 값싼 품질 지렛대](workflow.md#working-with-translators-and-platforms)입니다.
 
 ## 사용자 정의 함수 이름 { #registering-your-own-function-names }
 
@@ -78,13 +80,38 @@ INI 값은 공백이나 쉼표로 나눈 문자열이고 TOML은 목록을 받�
 
     표준 인수 순서만 지원합니다.
 
-## 기본적으로 견고함 { #robust-by-default }
+## 로컬에서는 관대하게, CI에서는 엄격하게 { #lenient-locally-strict-in-ci }
+
+기본적으로 파일 하나가 잘못되어도 실행이 끝나지 않습니다.
 
 - 거부된 t-string은 경고 후 건너뜁니다.
 - 파싱할 수 없는 파일도 같은 방식으로 격리합니다.
 - `tokenize`만 거부하는 파일도 격리합니다.
 
-CI에서 경고를 오류로 바꾸려면 `strict = true`를 사용하세요.
+편집하는 동안에는 편리하지만 그렇지 않을 때는 위험합니다. 건너뛴 메시지는
+그저 **POT에 없을** 뿐이라, 번역되지 않으면서 아무것도 그 사실을 알려주지
+않습니다. 사람이 추출을 지켜보지 않는 곳에서는 매핑 옵션에
+`strict = true`를 설정하세요.
+
+=== "babel.cfg"
+
+    ```ini
+    [gettext_tstrings: **.py]
+    encoding = utf-8
+    strict = true
+    ```
+
+=== "babel.toml"
+
+    ```toml
+    [[mappings]]
+    method = "gettext_tstrings"
+    pattern = "**.py"
+    strict = true
+    ```
+
+그러면 위의 모든 경고가 하드 실패가 됩니다. 이쪽을 프로덕션 설정으로,
+기본값을 로컬 설정으로 여기세요.
 
 ## 기존 도구 체인으로 검증 { #your-existing-toolchain-validates-these-catalogs }
 
@@ -108,7 +135,8 @@ msgfmt: found 1 fatal error
 ```
 
 Weblate는 이 검사를 [Python brace format][weblate-checks]으로 설명합니다.
-여기서 검증한 도구는 msgfmt와 패키지가 제공하는 Babel checker입니다.
+각 플랫폼의 동작은 그 플랫폼의 것입니다. 여기서 검증한 도구는 msgfmt와
+패키지가 제공하는 Babel checker입니다.
 
   [weblate-checks]: https://docs.weblate.org/en/latest/user/checks.html
 
@@ -135,7 +163,8 @@ match the source placeholders: {n} is missing
     수 있으며, 이를 가능하게 하는 빌드 단계는
     [CI가 막는 것](workflow.md#what-ci-gates)에서 보여줍니다.
 
-검사는 중복이 아닙니다. 제공된 checker는 msgfmt가 통과시킬 수 있는
+두 검사는 중복이 아닙니다. 패키지의 checker는 적어도 두 경우에 더
+엄격합니다. 이 checker는 msgfmt가 통과시킬 수 있는
 이스케이프된 중괄호와 각 복수형을 따로 검증합니다. ASCII 이름은 모든
 도구가 검사하게 하며 라이브러리 자체는 모든 `str.isidentifier()` 이름을
 허용합니다.

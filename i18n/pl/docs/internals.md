@@ -209,8 +209,8 @@ Na tej samej zasadzie „brakujący" symbol zastępczy, który *wygląda* na
 obecny, dostaje wyjaśnienie swojej nieobecności — pełnej szerokości nawiasy
 klamrowe z metody wprowadzania wschodnioazjatyckiej, podwojenie `{{name}}`
 z rundy escapowania, nazwa poza jakimikolwiek nawiasami.
-[Tabela czytania błędów w przewodniku](guide.md#reading-a-failure-message)
-pokazuje każdy z tych komunikatów dosłownie.
+[Tabela czytania błędów](translators.md#reading-a-failure-message) napisana
+z myślą o tłumaczach pokazuje każdy z tych komunikatów dosłownie.
 
 ## Gorąca ścieżka { #the-hot-path }
 

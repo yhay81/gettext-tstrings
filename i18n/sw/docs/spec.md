@@ -70,6 +70,10 @@ Viingizio huelezwa kimuundo, kamwe si kama msimbo chanzo wa Python:
 }
 ```
 
+Sehemu ya `"spec"` **si** toleo la ainisho — kila kisa katika `v1.json` ni cha
+ainisho v1. Hutaja sehemu ya `SPEC.md` ambayo kisa hicho hujaribu, hivyo
+`"2.2"` husomeka kama §2.2, kanuni ya kutokeza tokeni ya kishika nafasi.
+
 Utekelezaji wa marejeo huendesha seti hiyo kama sehemu ya seti yake ya
 majaribio, hivyo maandishi na msimbo haviwezi kutengana kimyakimya.
 

@@ -42,10 +42,14 @@ O extrator também processa `_()`, `gettext()` e `ngettext()`. Um único
 mapeamento cobre código misto, incluindo `tr()`, `ntr()`, `lazy_gettext()` e
 `lazy_pgettext()`.
 
-!!! warning "`-c` não é opcional"
+!!! warning "Ative os comentários para quem traduz com `-c`"
 
-    Use `-c "Translators:"` para coletar comentários dirigidos a quem traduz,
-    como no gettext comum.
+    O `pybabel extract` só coleta comentários dirigidos a quem traduz quando
+    você passa `-c "Translators:"`, exatamente como faz com as chamadas gettext
+    comuns. Sem essa opção a extração continua funcionando — os comentários
+    simplesmente nunca chegam ao catálogo, onde são
+    [a alavanca de qualidade mais barata](workflow.md#working-with-translators-and-platforms)
+    de todo o fluxo.
 
 ## Nomes de função personalizados { #registering-your-own-function-names }
 
@@ -78,13 +82,41 @@ lista. As opções cobrem as seis famílias de funções gettext.
 
     Somente a ordem padrão de argumentos é aceita.
 
-## Robusto por padrão { #robust-by-default }
+## Tolerante localmente, estrito na CI { #lenient-locally-strict-in-ci }
 
-- Uma t-string rejeitada é avisada e ignorada.
-- Um arquivo impossível de analisar é isolado da mesma forma.
-- Um arquivo recusado apenas por `tokenize` também é isolado.
+Por padrão, um arquivo ruim não encerra a execução:
 
-Defina `strict = true` para transformar esses avisos em erros na CI.
+- Uma t-string que o extrator rejeita — acesso a atributo, uma expressão, um
+  argumento errado — é reportada como aviso e ignorada.
+- Um arquivo que não pode ser analisado de jeito nenhum é isolado do mesmo
+  modo.
+- E também um arquivo que só o `tokenize` recusa enquanto o `ast` aceita, no
+  qual a passagem do próprio Babel abortaria.
+
+Isso é conveniente enquanto você está editando e perigoso quando não está: uma
+mensagem ignorada fica simplesmente **ausente do POT**, então ela nunca é
+traduzida e nada avisa. Defina `strict = true` nas opções do mapeamento em todo
+lugar em que a extração não esteja sendo observada por uma pessoa:
+
+=== "babel.cfg"
+
+    ```ini
+    [gettext_tstrings: **.py]
+    encoding = utf-8
+    strict = true
+    ```
+
+=== "babel.toml"
+
+    ```toml
+    [[mappings]]
+    method = "gettext_tstrings"
+    pattern = "**.py"
+    strict = true
+    ```
+
+Cada aviso acima passa então a ser uma falha dura. Trate isto como a
+configuração de produção e o padrão como a configuração local.
 
 ## Validação com as ferramentas existentes { #your-existing-toolchain-validates-these-catalogs }
 
@@ -108,8 +140,10 @@ msgfmt: found 1 fatal error
 ```
 
 O Weblate documenta essa verificação como
-[Python brace format][weblate-checks]. As ferramentas verificadas aqui são
-msgfmt e o checker Babel incluído.
+[Python brace format][weblate-checks], e as plataformas comerciais têm sua
+própria QA de marcadores baseada na mesma flag. O comportamento de cada
+plataforma é assunto dela; as duas ferramentas abaixo são as que foram
+verificadas aqui.
 
   [weblate-checks]: https://docs.weblate.org/en/latest/user/checks.html
 
@@ -136,8 +170,9 @@ match the source placeholders: {n} is missing
     publicá-lo; [O que o CI barra](workflow.md#what-ci-gates) mostra o passo de
     build que faz isso.
 
-As verificações não são redundantes: o checker incluído valida chaves escapadas
-e cada forma plural separadamente, onde msgfmt pode aceitar o arquivo. Nomes
+As duas verificações não são redundantes: o verificador do pacote é mais
+estrito em pelo menos dois casos, validando chaves escapadas e cada forma de
+plural separadamente, onde o msgfmt pode aceitar o arquivo. Nomes
 ASCII permitem que todas as ferramentas participem; a biblioteca aceita
 qualquer `str.isidentifier()`.
 

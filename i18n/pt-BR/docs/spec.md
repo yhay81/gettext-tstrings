@@ -58,6 +58,11 @@ das mensagens de erro ou dos tipos de exceção.
 }
 ```
 
+O campo `"spec"` **não** é uma versão de especificação — todos os casos de
+`v1.json` pertencem à spec v1. Ele nomeia a seção de `SPEC.md` que o caso
+exercita, então `"2.2"` se lê como §2.2, a regra para derivar um token de
+marcador.
+
 A implementação de referência executa essa suíte em seus próprios testes.
 
 ## Versionamento { #versioning }

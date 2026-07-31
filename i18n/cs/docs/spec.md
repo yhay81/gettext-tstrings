@@ -71,6 +71,11 @@ Interpolace se popisují strukturálně, nikdy jako pythonovský zdrojový kód:
 }
 ```
 
+Pole `"spec"` **není** verzí specifikace — každý případ ve `v1.json` patří ke
+spec v1. Pojmenovává tu sekci `SPEC.md`, kterou daný případ prověřuje, takže
+`"2.2"` se čte jako §2.2, tedy pravidlo pro odvození tokenu zástupného
+symbolu.
+
 Referenční implementace spouští tuto sadu jako součást vlastních testů,
 takže se próza a kód nemohou potichu rozejít.
 

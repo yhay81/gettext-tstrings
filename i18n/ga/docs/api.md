@@ -51,9 +51,12 @@ agus tá sé sábháilte faoi chomhuainíocht.
 
 | Ainm | Cuspóir |
 | --- | --- |
-| `lazy_gettext(template, /, *, strict=False)` | Cuir aistriúchán ar athló go dtí an chéad úsáid. |
+| `lazy_gettext(template, /, *, strict=False)` | Cuir an t-aistriúchán ar athló go dtí gach rindreáil. |
 | `lazy_pgettext(context, template, /, *, strict=False)` | An fhoirm chomhthéacsúil. |
-| `LazyString` | An rud a fhilleann an dá cheann. Rindreáileann sé trí `str()` agus `format()`, bíonn sé cothrom lena théacs i gcomparáid, agus níl hais air d'aon ghnó. |
+| `LazyString` | An rud a fhilleann an dá cheann. Rindreáileann sé trí `str()` agus `format()` sa teanga atá ceangailte ag an nóiméad sin, bíonn sé cothrom lena théacs rindreáilte i gcomparáid, agus níl hais air d'aon ghnó. |
+
+Tá samplaí oibrithe, lena n-áirítear an chúis a mbaineann `strict` leis an
+sainmhíniú, faoi [Aistriúchán iarchurtha](guide.md#deferred-translation).
 
 ## Leibhéal níos ísle { #lower-level }
 

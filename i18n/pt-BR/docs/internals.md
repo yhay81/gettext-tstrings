@@ -205,7 +205,8 @@ Pelo mesmo princípio, um marcador "ausente" que *parece* presente tem sua
 ausência explicada — chaves de largura total de um método de entrada do leste
 asiático, o dobramento `{{name}}` de uma ida e volta de escape, o nome fora
 de quaisquer chaves. A
-[tabela de leitura de falhas do guia](guide.md#reading-a-failure-message)
+[tabela de leitura de falhas](translators.md#reading-a-failure-message)
+escrita para quem traduz
 mostra cada uma dessas mensagens na íntegra.
 
 ## O caminho quente { #the-hot-path }

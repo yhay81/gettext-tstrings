@@ -82,17 +82,23 @@ EXTRACTOR = cast("Any", extract_tstrings)
 
 SITE_MESSAGES = {
     (None, "Safe gettext and Babel integration for Python t-strings."),
+    (None, "Start here"),
     (None, "Home"),
     (None, "Tutorial"),
     (None, "Why t-strings"),
-    (None, "Background"),
+    (None, "Use it"),
     ("navigation", "Guide"),
     (None, "Extraction"),
     (None, "In production"),
+    (None, "Migration"),
+    (None, "For translators"),
+    (None, "Understand it"),
+    (None, "Background"),
     (None, "Pitfalls"),
     (None, "How it works"),
-    (None, "Specification"),
+    (None, "Reference"),
     (None, "API"),
+    (None, "Specification"),
     (None, "Switch to dark mode"),
     (None, "Switch to light mode"),
     (None, "Copyright © 2026 {author} · MIT License"),
@@ -249,7 +255,18 @@ def test_translated_sites_cover_every_english_page(language: str) -> None:
 # survive translation byte for byte. ``mermaid`` is deliberately absent: its
 # node labels are prose and each edition translates them.
 VERBATIM_FENCES = frozenset(
-    {"python", "pycon", "console", "po", "text", "yaml", "ini", "toml", "json"},
+    {
+        "python",
+        "pycon",
+        "console",
+        "po",
+        "text",
+        "yaml",
+        "ini",
+        "toml",
+        "json",
+        "dockerfile",
+    },
 )
 
 

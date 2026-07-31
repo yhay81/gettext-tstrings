@@ -48,9 +48,13 @@ La liaison utilise un `ContextVar` et reste sûre en concurrence.
 
 | Nom | Rôle |
 | --- | --- |
-| `lazy_gettext(template, /, *, strict=False)` | Diffère la traduction jusqu'à l'utilisation. |
+| `lazy_gettext(template, /, *, strict=False)` | Diffère la traduction jusqu'à chaque rendu. |
 | `lazy_pgettext(context, template, /, *, strict=False)` | Variante avec contexte. |
-| `LazyString` | Type renvoyé. Se rend via `str()`, `format()` et les f-strings, se compare à son texte et n'est volontairement pas hashable. |
+| `LazyString` | Type renvoyé. Se rend via `str()` et `format()` dans la langue liée à cet instant précis, se compare à son texte rendu et n'est volontairement pas hashable. |
+
+Des exemples travaillés, dont la raison pour laquelle `strict` se décide à la
+définition, figurent sous
+[Traduction différée](guide.md#deferred-translation).
 
 ## Bas niveau { #lower-level }
 

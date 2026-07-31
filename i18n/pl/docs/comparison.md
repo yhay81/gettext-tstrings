@@ -1,24 +1,17 @@
 ---
-description: "Ten sam przetłumaczalny komunikat zapisany z %-formatem, .format(), $-stringami flufl.i18n i t-stringiem, wraz z tym, jak każdy z nich wiąże wartości i traktuje uszkodzony katalog."
+description: "Ten sam przetłumaczalny komunikat zapisany z %-formatem, .format(), $-stringami flufl.i18n i t-stringiem, porównany pod kątem pomyłek tłumacza, władzy katalogu i kosztu integracji."
 ---
 
 # Dlaczego t-stringi
 
 Cztery sposoby wstawienia wartości do przetłumaczalnego komunikatu, porównane
-na tym samym zdaniu. Wersja skrócona:
+na tym samym zdaniu. Wszystkie cztery nazywają swoje symbole zastępcze i
+pozwalają tłumaczowi je przestawiać; różnią się tym, co dzieje się, gdy
+tłumaczenie jest złe, tym, jak dużą część Twojego programu może sięgnąć
+katalog, i tym, ile kosztuje ich przyjęcie.
 
-- Przy **%-formacie** jedna litera usunięta przez tłumacza staje się awarią
-  na produkcji.
-- Przy **str.format** tłumaczenie może czytać atrybuty obiektów, które
-  przekazuje Twój kod — łącznie z sekretami.
-- Przy **$-stringach** (flufl.i18n) wartości są pobierane niejawnie ze
-  zmiennych funkcji wywołującej, a symbole zastępcze z kropką sięgają także
-  atrybutów.
-- Przy **t-stringach** formatowanie zostaje w Twoim kodzie, tłumaczenia są
-  sprawdzane w czasie działania, a uszkodzony katalog wraca do tekstu
-  źródłowego zamiast powodować awarię.
-
-Reszta tej strony to materiał dowodowy, metoda po metodzie.
+Tabele są na początku, żebyś mógł znaleźć interesujący Cię wiersz i przeczytać
+tylko sekcję, która za nim stoi.
 
 !!! note "Każdego przetłumaczonego komunikatu dotykają trzy strony"
 
@@ -32,6 +25,71 @@ Reszta tej strony to materiał dowodowy, metoda po metodzie.
     samo pytanie: *jak dużą część języka formatowania kontroluje katalog?*
     W przykładach `_` to konwencjonalna nazwa funkcji tłumaczącej, a `tr` to
     nazwa z tej biblioteki.
+
+## Obok siebie { #side-by-side }
+
+**Gdy tłumacz popełni pomyłkę.** Katalog przechodzi przez wiele rąk, a
+większość tego, co się w nim psuje, dzieje się przypadkiem:
+
+| | `%(name)s` | `.format()` | `flufl.i18n` `$name` | `t"…"` |
+| --- | --- | --- | --- | --- |
+| Tłumaczenie *gubi* symbol zastępczy — co się renderuje? | wartość znika po cichu | wartość znika po cichu | wartość znika po cichu | tekst źródłowy, z ostrzeżeniem ([domyślnie](guide.md#what-happens-when-a-catalog-is-wrong)) |
+| Tłumaczenie *dodaje* nieznany symbol zastępczy — co się renderuje? | wyjątek | wyjątek | symbol zastępczy pozostaje widoczny jako tekst | tekst źródłowy, z ostrzeżeniem ([domyślnie](guide.md#what-happens-when-a-catalog-is-wrong)) |
+| Tłumaczenie *przeformatowuje* symbol zastępczy — co się renderuje? | to, o co poprosił katalog, albo wyjątek, jeśli litera typu przestaje pasować do wartości | to, o co poprosił katalog | niewyrażalne w `$`-stringach | tekst źródłowy, z ostrzeżeniem |
+| Czy symbole zastępcze są sprawdzane w czasie renderowania? | nie | nie | nie | tak (patrz niżej) |
+
+**Jaką władzę ma katalog.** Tłumaczenie to dane spoza Twojego repozytorium, a
+każdy styl daje im inną porcję władzy:
+
+| | `%(name)s` | `.format()` | `flufl.i18n` `$name` | `t"…"` |
+| --- | --- | --- | --- | --- |
+| Skąd pochodzą wartości? | jawne mapowanie | jawne argumenty | zmienne lokalne i globalne wywołującego, plus opcjonalne `extras` | wartości przechwycone wewnątrz t-stringa |
+| Czy katalog może zmienić sposób formatowania wartości? | tak | tak | nie | nie |
+| Czy katalog może sięgać do obiektów (dostęp do atrybutów)? | nie | tak | tak, nazwami z kropką | nie |
+| Gdzie mieszka „bieżący język"? | tam, gdzie umieści go aplikacja | tam, gdzie umieści go aplikacja | stos kodów języków na współdzielonym obiekcie aplikacji | `ContextVar`, osobno dla zadania lub żądania |
+
+**Ile kosztuje integracja.** Wszystko powyżej jest darmowe, jeśli narzędzia
+pasują; tutaj mogą nie pasować:
+
+| | `%(name)s` | `.format()` | `flufl.i18n` `$name` | `t"…"` |
+| --- | --- | --- | --- | --- |
+| Minimalna wersja Pythona | dowolna | dowolna | 3.10 | **3.14** |
+| Dojrzałość | biblioteka standardowa | biblioteka standardowa | stabilne wydanie | **alfa** |
+| Używa zwykłych katalogów PO/MO? | tak | tak | tak | tak |
+| Potrzebuje własnego ekstraktora źródeł? | nie | nie | nie | tak, na razie |
+| Jaką flagę PO wywnioskuje Babel, by istniejące narzędzia walidowały? | `python-format` | `python-brace-format` | brak | `python-brace-format` |
+
+O kontroli w czasie renderowania: komunikaty w liczbie pojedynczej są
+sprawdzane pod kątem dokładnego dopasowania symboli zastępczych. Komunikaty w
+liczbie mnogiej też — względem
+[reguły sumy i części wspólnej](spec.md), która pozwala formom liczby mnogiej
+języka docelowego różnić się od źródłowych; surowsza kontrola per forma
+działa przy kompilacji katalogów ([Ekstrakcja](extraction.md)).
+
+Wiersz o fladze formatu dotyczy walidacji świadomej symboli zastępczych, nie
+zgodności katalogów. `brak` oznacza, że standardowe narzędzia gettext nadal
+czytają i kompilują komunikat, ale `msgfmt --check-format` nie ma gramatyki
+symboli `$`, którą mógłby zastosować.
+
+## Zgodność i dojrzałość { #compatibility-and-maturity }
+
+Dwa pierwsze wiersze ostatniej tabeli to te, które decydują o przyjęciu
+narzędzia, więc warto powiedzieć je wprost, a nie w komórkach tabeli.
+
+`%`-format i `.format()` są wbudowane w Pythona i nie wymagają żadnej
+zależności. [`flufl.i18n`][flufl-i18n] to dojrzały pakiet, wydany i używany na
+produkcji, działający na Pythonie 3.10 i nowszych. `gettext-tstrings` jest w
+wersji **alfa** i wymaga **Pythona 3.14 lub nowszego**, bo t-stringi to nowa
+składnia w 3.14 — nie ma back-portu i nie może go być. [Specyfikacja](spec.md)
+jest jego stabilną częścią; API Pythona może się jeszcze zmienić przed 1.0.
+
+Czego żaden z nich nie kosztuje, to zgodność katalogów. Wszystkie cztery
+wytwarzają zwykłe pliki POT/PO/MO, które czyta już każdy edytor PO, każda
+platforma tłumaczeniowa i każde narzędzie GNU gettext, więc poniższy wybór jest
+odwracalny w sposób, w jaki zmiana *formatu* katalogów nie byłaby.
+[Migracja](migration.md) opisuje przeniesienie istniejącego projektu.
+
+Poniższe sekcje pokazują każdy kompromis szczegółowo, metoda po metodzie.
 
 ## %-format { #-format }
 
@@ -123,7 +181,7 @@ wywołującego. Przetłumaczony symbol zastępczy może nazwać dowolną dostęp
 zmienną lokalną lub globalną wywołującego i, składnią z kropką, przechodzić
 po jej atrybutach. To wygodne, gdy komunikat potrzebuje atrybutu, a
 jednocześnie czyni ramkę wywołującego częścią przestrzeni podstawień
-katalogu. Porównanie poniżej opisuje `flufl.i18n` 6.0.0, nie każde możliwe
+katalogu. Porównanie tutaj opisuje `flufl.i18n` 6.0.0, nie każde możliwe
 użycie `string.Template`.
 
 Odpowiada też na pytanie, które dwa pozostałe style formatowania zostawiają w
@@ -197,54 +255,19 @@ tr(t"Total: {amount:,.2f}")  # msgid is "Total: {amount}"
 ```
 
 `:,.2f` nigdy nie dociera do katalogu, więc żadne tłumaczenie nie może go
-zmienić i żaden tłumacz nie musi na nie patrzeć.
+zmienić i żaden tłumacz nie musi na nie patrzeć. Jest to jednak format
+*ustalony*, a nie zlokalizowany — wybór cyfr i separatorów zależnie od języka
+to [zadanie Babel, przed wywołaniem](guide.md#locale-aware-values).
 
 Jeszcze jedna różnica to narzędzia: t-stringi to nowa składnia, więc
 wyodrębnianie ich do `.pot` wymaga obecnie ekstraktora świadomego
 t-stringów, takiego jak ten, który ten pakiet
 [dostarcza dla Babel](extraction.md).
 
-## Obok siebie { #side-by-side }
+## Koszt tego ograniczenia { #the-cost-of-the-restriction }
 
-| | `%(name)s` | `.format()` | `flufl.i18n` `$name` | `t"…"` |
-| --- | --- | --- | --- | --- |
-| Czy symbol zastępczy jest nazwany? | tak | tak | tak | tak |
-| Czy tłumacz może przestawiać symbole zastępcze? | tak | tak | tak | tak |
-| Skąd pochodzą wartości? | jawne mapowanie | jawne argumenty | zmienne lokalne i globalne wywołującego, plus opcjonalne `extras` | wartości przechwycone wewnątrz t-stringa |
-| Czy katalog może zmienić sposób formatowania wartości? | tak | tak | nie | nie |
-| Czy katalog może sięgać do obiektów (dostęp do atrybutów)? | nie | tak | tak, nazwami z kropką | nie |
-| Tłumaczenie *gubi* symbol zastępczy — co się renderuje? | wartość znika po cichu | wartość znika po cichu | wartość znika po cichu | tekst źródłowy, z ostrzeżeniem ([domyślnie](guide.md#what-happens-when-a-catalog-is-wrong)) |
-| Tłumaczenie *dodaje* nieznany symbol zastępczy — co się renderuje? | wyjątek | wyjątek | symbol zastępczy pozostaje widoczny jako tekst | tekst źródłowy, z ostrzeżeniem ([domyślnie](guide.md#what-happens-when-a-catalog-is-wrong)) |
-| Czy symbole zastępcze są sprawdzane w czasie renderowania? | nie | nie | nie | tak (patrz niżej) |
-| Jaką flagę PO wywnioskuje Babel, by istniejące narzędzia walidowały? | `python-format` | `python-brace-format` | brak | `python-brace-format` |
-| Używa zwykłych katalogów PO/MO? | tak | tak | tak | tak |
-| Potrzebuje własnego ekstraktora źródeł? | nie | nie | nie | tak, na razie |
-| Gdzie mieszka „bieżący język"? | tam, gdzie umieści go aplikacja | tam, gdzie umieści go aplikacja | stos kodów języków na współdzielonym obiekcie aplikacji | `ContextVar`, osobno dla zadania lub żądania |
-
-O kontroli w czasie renderowania: komunikaty w liczbie pojedynczej są
-sprawdzane pod kątem dokładnego dopasowania symboli zastępczych. Komunikaty w
-liczbie mnogiej też — względem
-[reguły sumy i części wspólnej](spec.md), która pozwala formom liczby mnogiej
-języka docelowego różnić się od źródłowych; surowsza kontrola per forma
-działa przy kompilacji katalogów ([Ekstrakcja](extraction.md)).
-
-Wiersz o fladze formatu dotyczy walidacji świadomej symboli zastępczych, nie
-zgodności katalogów. `brak` oznacza, że standardowe narzędzia gettext nadal
-czytają i kompilują komunikat, ale `msgfmt --check-format` nie ma gramatyki
-symboli `$`, którą mógłby zastosować.
-
-## Ile to kosztuje { #what-it-costs }
-
-F-stringa nie da się tak użyć w ogóle — zanim jakakolwiek biblioteka go
-zobaczy, jest już gotowym łańcuchem, więc tłumaczenie go oznacza tłumaczenie
-fragmentu. T-stringi ([PEP 750]) trzymają tekst statyczny i wartości osobno,
-zachowując składnię podobną do f-stringów i jawne wiązanie wartości.
-`$`-stringi już dziś oferują zwięzłą alternatywę z innym modelem wiązania i
-błędów. `flufl.i18n` to dojrzały pakiet działający na Pythonie 3.10 i
-nowszych; `gettext-tstrings` jest obecnie w wersji alfa, a ponieważ
-t-stringi to nowa składnia, wymaga Pythona 3.14 lub nowszego.
-
-Drugim kosztem jest samo ograniczenie: interpolacja musi być prostą nazwą.
+Poza wymaganiem wersji Pythona ceną tego wszystkiego jest jedna reguła:
+interpolacja musi być prostą nazwą.
 
 ```python
 tr(t"Hello {user.name}")  # raises InvalidTemplateError at the call site
@@ -255,10 +278,16 @@ name = user.name  # compute it first
 tr(t"Hello {name}")
 ```
 
-To realne ograniczenie. Razem z wiązaniem wartości po stronie źródła i
-sprawdzaniem symboli zastępczych w czasie działania zapobiega temu, by
-łańcuchy z katalogu wykonywały wyrażenia, i utrzymuje znaczące nazwy symboli
-zastępczych.
+To realne ograniczenie i to samo ograniczenie, które wytwarza powyższe
+gwarancje. Razem z wiązaniem wartości po stronie źródła i sprawdzaniem symboli
+zastępczych w czasie działania zapobiega temu, by łańcuchy z katalogu
+wykonywały wyrażenia, i utrzymuje nazwy symboli zastępczych znaczące dla
+osoby, która je tłumaczy.
+
+F-stringa nie da się tak użyć w ogóle — zanim jakakolwiek biblioteka go
+zobaczy, jest już gotowym łańcuchem, więc tłumaczenie go oznacza tłumaczenie
+fragmentu. T-stringi ([PEP 750]) trzymają tekst statyczny i wartości osobno,
+zachowując składnię podobną do f-stringów i jawne wiązanie wartości.
 
 Jak Python doszedł do tego rozdroża — dwa PEP-y w odstępie dziesięciu lat i
 dyskusja o bibliotece standardowej zamknięta bez odpowiedzi — opowiada ze

@@ -45,11 +45,14 @@ measctha. Aithníonn sé `_()`, na ceithre ainm chaighdeánacha gettext, na
 leasainmneacha `tr()` / `ntr()`, agus na cinn iarchurtha `lazy_gettext()` /
 `lazy_pgettext()`.
 
-!!! warning "Níl `-c` roghnach"
+!!! warning "Cumasaigh nótaí tráchta d'aistritheoirí le `-c`"
 
     Ní bhailíonn `pybabel extract` nótaí tráchta d'aistritheoirí ach nuair a
     chuireann tú `-c "Translators:"` isteach, díreach mar a dhéanann sé do
-    ghnáthghlaonna gettext.
+    ghnáthghlaonna gettext. Fág ar lár é agus oibríonn an t-eastóscadh fós —
+    ní shroicheann na nótaí tráchta an chatalóg riamh, sin uile, agus is ansin
+    atá [an luamhán cáilíochta is saoire](workflow.md#working-with-translators-and-platforms)
+    sa sreabhadh oibre ar fad.
 
 ## Do chuid ainmneacha feidhme féin a chlárú { #registering-your-own-function-names }
 
@@ -90,9 +93,10 @@ Is iad na roghanna `tr_functions`, `ntr_functions`, `gettext_functions`,
     dtús, an comhthéacs agus ansin an teachtaireacht do `pgettext`, an
     comhthéacs agus ansin an t-uatha agus ansin an t-iolra do `npgettext`.
 
-## Stóinsithe de réir réamhshocraithe { #robust-by-default }
+## Bog go háitiúil, dian i CI { #lenient-locally-strict-in-ci }
 
-Ní chuireann drochchomhad amháin deireadh leis an rith:
+De réir réamhshocraithe ní chuireann drochchomhad amháin deireadh leis an
+rith:
 
 - Tuairiscítear t-string a ndiúltaíonn an t-eastóscóir dó — rochtain ar
   thréith, slonn, argóint mhícheart — mar rabhadh agus scipeáiltear é.
@@ -100,8 +104,31 @@ Ní chuireann drochchomhad amháin deireadh leis an rith:
 - Mar an gcéanna le comhad nach ndiúltaíonn ach `tokenize` dó agus a nglacann
   `ast` leis, rud a chuirfeadh deireadh le pas Babel féin murach sin.
 
-Socraigh `strict = true` i roghanna na mapála chun gach ceann díobh sin a
-iompú ina chrua-theip ina áit sin, agus sin an rud is mian leat i CI.
+Tá sé sin áisiúil agus tú i mbun eagarthóireachta agus contúirteach nuair
+nach bhfuil: bíonn teachtaireacht scipeáilte **as láthair ón POT**, gan
+níos mó, mar sin ní aistrítear riamh í agus ní deir aon rud é sin. Socraigh
+`strict = true` i roghanna na mapála cibé áit nach mbíonn duine ag faire ar an
+eastóscadh:
+
+=== "babel.cfg"
+
+    ```ini
+    [gettext_tstrings: **.py]
+    encoding = utf-8
+    strict = true
+    ```
+
+=== "babel.toml"
+
+    ```toml
+    [[mappings]]
+    method = "gettext_tstrings"
+    pattern = "**.py"
+    strict = true
+    ```
+
+Iompaíonn gach rabhadh thuas ina chrua-theip ansin. Caith leis seo mar an
+socrú táirgthe agus leis an réamhshocrú mar an ceann áitiúil.
 
 ## Bailíochtaíonn do shlabhra uirlisí atá ann cheana na catalóga seo { #your-existing-toolchain-validates-these-catalogs }
 
@@ -130,8 +157,8 @@ msgfmt: found 1 fatal error
 Doiciméadaíonn Weblate an tseiceáil chéanna mar
 [Python brace format][weblate-checks], agus tá a ndearbhú cáilíochta
 sealbhóirí ionaid féin ag na hardáin thráchtála bunaithe ar an mbratach
-chéanna. Is leo féin a n-iompar; is iad an dá uirlis thíos na cinn atá
-fíoraithe anseo.
+chéanna. Is leis féin iompar gach ardáin; is iad an dá uirlis thíos na cinn
+atá fíoraithe anseo.
 
   [weblate-checks]: https://docs.weblate.org/en/latest/user/checks.html
 
@@ -163,8 +190,8 @@ match the source placeholders: {n} is missing
     [Cad a gheataíonn CI](workflow.md#what-ci-gates) an chéim tógála a
     cheadaíonn é sin.
 
-Níl an dá sheiceáil iomarcach. Is é an seiceálaí a sheoltar leis an bpacáiste
-an páirtí is déine in dhá áit ar a laghad:
+Níl an dá sheiceáil iomarcach. Bíonn seiceálaí an phacáiste níos déine in dhá
+chás ar a laghad:
 
 - Ní fhaigheann msgid nach bhfuil ann ach lúibíní éalaithe
   (`Config {{raw}} only`) an bhratach `python-brace-format` riamh, mar sin ní

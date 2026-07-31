@@ -75,6 +75,11 @@ Az interpolációkat szerkezetileg írjuk le, soha nem Python-forrásként:
 }
 ```
 
+A `"spec"` mező **nem** specifikációverzió — a `v1.json` minden esete a v1-es
+specifikációhoz tartozik. Azt nevezi meg, hogy a `SPEC.md` melyik szakaszát
+gyakorolja az eset, tehát a `"2.2"` §2.2-ként olvasandó: ez a helyőrzőtoken
+levezetésének szabálya.
+
 A referencia-megvalósítás a saját tesztkészlete részeként futtatja a
 készletet, így a szöveg és a kód nem sodródhat szét csendben.
 

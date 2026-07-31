@@ -11,6 +11,19 @@ egyetlen üzenetből álló programon. Valódi projektben a ciklus tovább forog
 Ez az oldal maga a gyakorlat — mi marad a tárolóban, mi utazik, mit kell a
 CI-nek kapuznia, és hol köti be a nyelvet a futásidő.
 
+Mindez hat ellenőrzésre fut ki, ezért álljanak itt legelöl; az alábbi
+szakaszok mindegyike egyet-egyet állít be közülük.
+
+- A `pybabel update --check` átmegy — nem változott üzenet anélkül, hogy a
+  katalógusok értesültek volna róla.
+- A `pybabel compile` a kilépési státuszával kapuzza a buildet.
+- A megmaradt `fuzzy` bejegyzések szándékosak — mindegyik forrásszövegként
+  jelenik meg, amíg egy fordító meg nem erősíti.
+- A tesztkészlet minden kiszállított nyelvet lerenderel egyszer,
+  `strict=True` mellett.
+- Az éles artefaktum `.mo` fájlokat tartalmaz, Babelt nem.
+- A `gettext_tstrings` naplózója a monitorozásba van vezetve.
+
 ## Egy projekt alakja { #the-shape-of-a-project }
 
 ```text
@@ -33,8 +46,8 @@ egy `.po` és a hozzá tartozó `.mo` soha ne mondhasson mást arról, mi kerül
 kiszállításra.
 
 Egy-egy fájlnak mindkét irányban szerepe van: a `.pot` viszi *ki* az
-üzeneteidet a fordítókhoz, a `.po` fájlok hozzák *vissza* a fordításokat.
-Minden, ami alább következik, e kettő közti forgalom.
+üzeneteidet a fordítókhoz, a `.po` fájlok hozzák *vissza* a fordításokat. Az
+oldal további része az, ami e kettő között mozog.
 
 ```mermaid
 flowchart LR
@@ -48,11 +61,11 @@ flowchart LR
 
 ## A kör az első fordítás után { #the-cycle-after-the-first-translation }
 
-Az oktatóanyag `pybabel init` parancsa nyelvenként egyszer fut le, örökre.
-Ettől kezdve a munkakör: **kinyerés → frissítés → fordítás → bináris
-fordítás**, és ennek középpontja a `pybabel update`, amely úgy gyúrja bele a
-friss sablont a meglévő katalógusokba, hogy közben nem dobja el a bennük már
-meglévő fordításokat.
+Az oktatóanyag `pybabel init` parancsa rendszerint egyszer fut le, amikor egy
+nyelvet hozzáadunk. Ettől kezdve a munkakör: **kinyerés → frissítés →
+fordítás → bináris fordítás**, és ennek középpontja a `pybabel update`, amely
+úgy gyúrja bele a friss sablont a meglévő katalógusokba, hogy közben nem
+dobja el a bennük már meglévő fordításokat.
 
 Tegyük fel, hogy a `Hello {name}` köszönést — amelynek fordítása már
 `こんにちは {name}` — a kódban `Welcome back, {name}` alakra fogalmazzuk át.
@@ -78,10 +91,10 @@ msgstr "こんにちは {name}"
 
 A Babel észrevette, hogy az új msgid hasonlít egy eltávolítottra, és
 párosította a régi fordítással — de **fuzzy** jelzővel látta el a párost: egy
-gép tippje, amely emberre vár. A jelzőnek foga van. A `pybabel compile`
-**kihagyja a fuzzy bejegyzéseket a `.mo` fájlból**, így amíg egy fordító meg
-nem erősíti a párosítást, az alkalmazás az új angol szöveget jeleníti meg egy
-elavult japán helyett:
+gép tippje, amely emberre vár. A jelző megváltoztatja, mi fordul le. A
+`pybabel compile` **kihagyja a fuzzy bejegyzéseket a `.mo` fájlból**, így amíg
+egy fordító meg nem erősíti a párosítást, az alkalmazás az új angol szöveget
+jeleníti meg egy elavult japán helyett:
 
 ```console
 $ pybabel compile -d locales
@@ -129,35 +142,19 @@ hogy ne kerüljön be olyan kód, amelynek üzeneteit senki nem nyerte ki újra.
 helyőrző-ellenőrzéseit
 ([regisztrált ellenőrző](extraction.md#your-existing-toolchain-validates-these-catalogs)).
 
-!!! bug "A `--check` nem tud kapuzni kontextust használó katalógust"
+!!! bug "Babel 2.18.0: a `--check` nem tud kapuzni kontextust használó katalógust"
 
     A Babel 2.18.0 verzióján a `pybabel update --check` **minden** olyan
     katalógust elavultként jelent, amely `msgctxt` bejegyzést tartalmaz —
-    minden futáskor, bármilyen naprakész is. Az összehasonlítás a
-    `Catalog.is_identical` metóduson keresztül fut, amely minden üzenetet azon
-    a kulcson keres ki, amely alatt tárolva van — kontextusos üzenetnél pedig
-    ez a kulcs az `(id, context)` páros, amelyet a `Catalog.get` nem fogad el.
-    A keresés semmit nem ad vissza, és a katalógusok soha nem bizonyulnak
-    egyenlőnek:
-
-    ```pycon
-    >>> from babel.messages.catalog import Catalog
-    >>> c = Catalog(locale="ja")
-    >>> c.add("Guide", "ガイド", context="navigation")
-    <Message 'Guide' (flags: [])>
-    >>> c.is_identical(c)
-    False
-    ```
-
-    Vagyis ha egyáltalán használsz `pgettext`-et vagy `npgettext`-et — és a
-    homonimák egyértelműsítése épp az, amiért léteznek —, ez a lépés a
-    legrosszabb módon bukik nyitottra: mindig piros, ezért egy csapat
-    kikapcsolja, ezért semmi nem kapuzza az elavulást. Amíg fel nem javítják
-    az upstreamben, hasonlítsd össze magad az üzenethalmazokat. A sablon és
-    minden katalógus beolvasása a `babel.messages.pofile.read_po` függvénnyel,
-    majd a `{(m.context, m.id) for m in catalog if m.id}` halmazok
-    összevetése — ennyi az egész ellenőrzés, és pontosan ezt teszi
-    [ennek a webhelynek a saját buildje](index.md).
+    minden futáskor, bármilyen naprakész is. A tartósan bukó kapu rosszabb,
+    mint a kapu hiánya, mert a csapat kikapcsolja — tehát ha egyáltalán
+    használsz `pgettext`-et vagy `npgettext`-et, inkább cseréld le ezt a
+    lépést, mint hogy együtt élj vele. A sablon és minden katalógus beolvasása
+    a `babel.messages.pofile.read_po` függvénnyel, majd a
+    `{(m.context, m.id) for m in catalog if m.id}` halmazok összevetése —
+    ennyi az egész ellenőrzés, és pontosan ezt teszi
+    [ennek a webhelynek a saját buildje](index.md). Az okot
+    [a Buktatók oldal írja le](pitfalls.md#your-tools-have-bugs-too).
 
 !!! danger "A kilépési státuszt nézd, ne a naplót"
 

@@ -73,6 +73,11 @@ Interpolările sunt descrise structural, niciodată ca sursă Python:
 }
 ```
 
+Câmpul `"spec"` **nu** este o versiune a specificației — fiecare caz din
+`v1.json` aparține specificației v1. El numește secțiunea din `SPEC.md` pe care
+o exersează cazul, așa că `"2.2"` se citește ca §2.2, regula de derivare a unui
+token de substituent.
+
 Implementarea de referință rulează suita ca parte a propriei suite de teste,
 astfel încât proza și codul nu pot să se depărteze una de alta în tăcere.
 

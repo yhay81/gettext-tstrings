@@ -135,10 +135,23 @@ degradeせず、テンプレートのincludeが失敗して、その言語版は
 
 このドキュメントが古いカタログを検出するために勧めているCIステップ
 `pybabel update --check`は、`pgettext`や`npgettext`を使うプロジェクトでは
-その仕事を果たせません。比較がメッセージを検索する方法にあるバグのせいで、
-`msgctxt`を持つカタログをすべて、毎回、古いと報告するのです。これはここで実際に
-使おうとして見つかり、上流へ報告され、[回避策とともに詳しく説明](workflow.md#what-ci-gates)
-してあります。
+その仕事を果たせません。Babel 2.18.0では、`msgctxt`を持つカタログをすべて、
+毎回、古いと報告します。比較は`Catalog.is_identical`を通ります。これは各
+メッセージを、格納に使われたキーで引きます — そしてコンテキスト付きメッセージの
+そのキーは`(id, context)`の組であり、`Catalog.get`はそれを受け付けません。参照は
+何も返さず、カタログ同士が等しいと判定されることは決してありません。
+
+```pycon
+>>> from babel.messages.catalog import Catalog
+>>> c = Catalog(locale="ja")
+>>> c.add("Guide", "ガイド", context="navigation")
+<Message 'Guide' (flags: [])>
+>>> c.is_identical(c)
+False
+```
+
+これはここで実際に使おうとして見つかり、上流へ報告されました。代わりに置く検査は
+[実運用のページ](workflow.md#what-ci-gates)にあります。
 
 一般的な教訓は、居心地の悪いほうです。常に赤いゲートは、ゲートが無いより
 悪いのです。チームがそれを切ってしまうからです。落ちることを信頼する前に、

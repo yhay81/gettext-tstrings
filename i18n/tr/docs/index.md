@@ -1,5 +1,5 @@
 ---
-description: "Tam t-string mesajlarını gettext ve Babel üzerinden çevirin; biçimlendirme katalogdan uzak tutulur."
+description: "Tam t-string mesajlarını gettext ve Babel üzerinden çevirin; değerler de biçimlendirme de katalogdan uzak tutulur."
 title: "gettext-tstrings"
 hide:
   - navigation
@@ -8,10 +8,11 @@ hide:
 
 <div class="home-hero" markdown>
 
-# Cümleyi bir kez yaz.<br>Bütün olarak çevir.
+# Parçaları değil,<br>bütün mesajları çevirin.
 
-Python 3.14+ t-string'leri için güvenli gettext ve Babel entegrasyonu — değer
-yerinde kalır, katalog ise mesajın tamamını görür:
+`gettext-tstrings`, Python 3.14+ t-string'lerini standart gettext kataloglarına
+ve Babel araçlarına bağlar. Değerler ve biçimlendirme uygulama kodunda kalır;
+katalog ise yalın `{name}` yer tutucuları olan eksiksiz bir mesaj tutar:
 
 ```python
 import gettext
@@ -24,7 +25,10 @@ print(_(t"Hello {name}"))  # with a Japanese catalog: こんにちは Ada
 ```
 
 [Öğreticiye başla :material-arrow-right:](tutorial.md){ .md-button .md-button--primary }
-[Neden t-string?](comparison.md){ .md-button }
+[Alternatifleri karşılaştır](comparison.md){ .md-button }
+
+Alfa · Python 3.14+ · sıradan PO/MO katalogları · çalışma zamanı bağımlılığı yok
+{ .home-facts }
 
 Bu site belgelediğini bizzat uygular: her dil sürümü — gezinme,
 etiketler ve çoğula duyarlı derleme raporu —
@@ -34,20 +38,44 @@ tarafından PO kataloglarından render edilir.
 
 </div>
 
-Katalog, `Hello {name}` cümlesinin tamamını alır. Bir çeviri `{name}` yer
-tutucusunu yeniden sıralayabilir ya da yineleyebilir; onu atamaz, yenisini
-uyduramaz ve kendi biçimlendirmesini ekleyemez — bu kütüphane bunu denetler ve
-bozuk bir katalog çökmek yerine kaynak metne geri düşer.
+## Bu size göre mi? { #is-this-for-you }
+
+**Bugün uygun bir seçim:** uygulamanız Python 3.14 ya da daha yenisinde
+çalışıyorsa; gettext ile Babel'i zaten kullanıyor ya da onların PO/MO iş
+akışını benimsemek istiyorsanız; ve render edilmeden önce denetlenen
+adlandırılmış yer tutucularıyla t-string sözdizimi istiyorsanız.
+
+**Henüz uygun değil:** Python 3.13 ya da daha eskisine ihtiyacınız varsa;
+kararlı bir Python API'si gerekiyorsa — bu bir alfa ve [belirtim](spec.md)
+onun oturmuş olan parçası; ya da çevrilebilir metninizin neredeyse tamamı
+Python kaynağında değil bir şablon dilinde yaşıyorsa.
+
+Elinizde zaten katalog var mı? Çalışmaya devam ederler.
+`_("Hello {name}").format(name=name)` ile `tr(t"Hello {name}")` aynı msgid'yi
+üretir; yani geçişte mevcut çeviriler korunur — [Geçiş](migration.md)
+taşınmanın tamamını adım adım anlatır.
+
+## Kataloğun söyleyebilecekleri { #what-the-catalog-may-say }
+
+Katalog, `Hello {name}` mesajının tamamını alır. Bir çeviri `{name}` yer
+tutucusunu yeniden sıralayabilir ya da yineleyebilir ve çevresindeki her
+sözcüğü yeniden yazabilir. Yer tutucuyu atamaz, yenisini uyduramaz, onun
+üzerinden nesnelerinize uzanamaz ve kendi biçimlendirmesini iliştiremez.
+
+Verilen söz bundan ibaret: **bir çeviri, çevirdiği mesajın yapısını
+değiştiremez.** Kütüphane bunu girişte — kataloglar derlenirken — ve bir kez
+daha render anında denetler; yine de üretime sızan bozuk bir girdi, çökmek
+yerine bir uyarı kaydeder ve kaynak mesajı render eder.
 
 !!! note "gettext'e yeni misiniz? Tüm iş akışı dört cümlede"
 
     **gettext**, Python'da ve çok ötesinde, yazılımın çevrilmesinin standart
-    yoludur. Kodunuz çevrilebilir dizgileri işaretler; bir *çıkarıcı* onları
+    yoludur. Kodunuz çevrilebilir mesajları işaretler; bir *çıkarıcı* onları
     bir şablon dosyasında (`.pot`) toplar; çoğunlukla programcı olmayan bir
     çevirmen dil başına bir katalog dosyasını (`.po`) doldurur; bu dosya da
     uygulamanızın çalışma zamanında yüklediği ikili bir `.mo` dosyasına
     derlenir. Çeviri işlevinin geleneksel adı `_` olduğundan
-    `_(t"Hello {name}")` "bu cümleyi çevir" diye okunur.
+    `_(t"Hello {name}")` "bu mesajı çevir" diye okunur.
     **[Öğretici](tutorial.md)** tüm yolu — işaretle, çıkar, çevir, derle,
     çalıştır — yaklaşık beş dakikada baştan sona yürür.
 
@@ -67,17 +95,22 @@ söyleyen hiçbir şey yoktur. Bu kütüphane o seçimi yapar, onu
 [sürümlenmiş bir belirtim](spec.md) olarak yazıya döker ve denetlemek için
 [uyumluluk paketini](spec.md#conformance) birlikte sunar.
 
-## Yaptığı seçim { #the-choice-it-makes }
+## Tasarım kuralları { #the-design-rules }
 
 - Cümle parçalarını değil, her zaman tam mesajları çevir.
 - Yalnızca `{name}` gibi yalın değişken adlarını kabul et.
 - `!r` ve `:.2f` gibi biçimlendirmeyi uygulamanın denetiminde, katalogdan
   uzakta tut.
-- Çevirmenler bilinen yer tutucuları yeniden sıralayabilsin ve
-  yineleyebilsin — ama öznitelik çağıramasın ve biçimlendirme davranışı
-  ekleyemesin.
+- Çeviriler bilinen yer tutucuları yeniden sıralayabilsin ve
+  yineleyebilsin — ama özniteliklere uzanamasın ve biçimlendirme ekleyemesin.
 - Sıradan POT, PO ve MO dosyalarını ve onları zaten okuyan araçları yeniden
   kullan.
+
+Ve bilerek dokunmadığı şeylerin listesi: sayıları, para birimlerini ya da
+tarihleri yerelleştirmez — [önce onları biçimlendirin](guide.md#locale-aware-values),
+Babel ile; render edilen çıktıyı HTML, kabuk ya da terminal için kaçışlamaz;
+ve bir çevirinin *doğru* olup olmadığına karar veremez, yalnızca yer
+tutucularının sağlam olup olmadığına.
 
 ## Kurulum { #install }
 
@@ -98,45 +131,55 @@ python -m pip install "gettext-tstrings[babel]"
 
 ## Sonraki adımlar { #where-to-go-next }
 
-Buraya üç tür okur gelir: ilk programını çeviren biri, gerçek bir projeye
-çeviri bağlayan biri ve mekanizmanın neden tam da bu biçimde olduğunu bilmek
-isteyen biri. Her birinin bir yolu var.
-
-**Öğrenmek için** — gettext deneyimi varsayılmaz:
+**Buradan başlayın** — gettext deneyimi varsayılmaz:
 
 <div class="grid cards" markdown>
 
-- **[Öğretici](tutorial.md)** — buradan başlayın: boş bir dizinden çalışan bir
-  Japonca çeviriye beş adımda, her komut çıktısıyla birlikte gösterilir.
+- **[Öğretici](tutorial.md)** — boş bir dizinden çalışan bir Japonca çeviriye
+  beş adımda, her komut çıktısıyla birlikte gösterilir.
 - **[Neden t-string?](comparison.md)** — aynı mesajın dört farklı yazımı ve
   `%(name)s`, `.format()` ile `$`-dizgilerinin her birinin kataloğa neyi
   teslim ettiği.
-- **[Arka Plan](background.md)** — bu kütüphanenin var olma nedeni: otuz
-  yıllık gettext, iki PEP ve yanıtsız kapanan stdlib tartışması.
 
 </div>
 
-**Ciddi biçimde kullanmak için** — çalışma referansları:
+**Kullanın** — çalışma referansları:
 
 <div class="grid cards" markdown>
 
-- **[Kılavuz](guide.md)** — çalışma zamanı API'si: çoğullar, istek başına
-  diller, ertelenmiş dizgiler ve bir katalog yanlış olduğunda olanlar.
+- **[Kılavuz](guide.md)** — çalışma zamanı API'si: hangi giriş noktasını
+  seçeceğiniz, çoğullar, istek başına diller, ertelenmiş dizgiler ve bir
+  katalog yanlış olduğunda olanlar.
 - **[Çıkarma](extraction.md)** — `pybabel` referansı: yapılandırma, özel işlev
   adları ve elinizdeki araçların bu katalogları bedavaya nasıl doğruladığı.
 - **[Üretimde](workflow.md)** — döngünün bir ekip tarafından işletilişi:
-  güncelleme çevrimi, fuzzy girdiler, CI kapıları, çeviri platformları ve bir
-  web uygulamasında istek başına diller.
-- **[API](api.md)** — paketin dışa aktardığı her şey, tek sayfada.
+  güncelleme çevrimi, fuzzy girdiler, CI kapıları, çeviri platformları ve
+  sevkiyat.
+- **[Geçiş](migration.md)** — bunu, elinde zaten katalog bulunan bir projede,
+  çağrı noktası çağrı noktası benimsemek.
+- **[Çevirmenler için](translators.md)** — `.po` dosyalarını dolduran kişiye
+  uzatılacak tek sayfa.
 
 </div>
 
-**Anlamak için** — ilkelerden gerçekleştirime:
+**Anlayın** — tarihten gerçekleştirime:
 
 <div class="grid cards" markdown>
 
+- **[Arka Plan](background.md)** — bu kütüphanenin var olma nedeni: otuz
+  yıllık gettext, iki PEP ve yanıtsız kapanan stdlib tartışması.
+- **[Tuzaklar](pitfalls.md)** — bu siteyi otuz beş dile çevirmenin gerçekte
+  neleri bozduğu ve bunların hangi yarısını bir araç yakalayabiliyor.
 - **[Nasıl Çalışır](internals.md)** — PEP 750'nin template nesnesinden render
   edilmiş dizgiye ve denetimi ucuz kılan önbelleklere.
+
+</div>
+
+**Başvuru** — sözleşmeler:
+
+<div class="grid cards" markdown>
+
+- **[API](api.md)** — paketin dışa aktardığı her şey, tek sayfada.
 - **[Belirtim](spec.md)** — t-string ↔ msgid uzlaşımı; kararlı, sürümlenmiş
   bir sözleşme olarak, makine tarafından okunabilir bir uyumluluk paketiyle
   birlikte.

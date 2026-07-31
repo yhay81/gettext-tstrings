@@ -43,10 +43,13 @@ The `gettext_tstrings` extractor also handles ordinary `_()`, `gettext()`, and
 the four standard gettext names, the `tr()` / `ntr()` aliases, and the deferred
 `lazy_gettext()` / `lazy_pgettext()`.
 
-!!! warning "`-c` is not optional"
+!!! warning "Enable translator comments with `-c`"
 
     `pybabel extract` only collects translator comments when you pass
-    `-c "Translators:"`, exactly as it does for ordinary gettext calls.
+    `-c "Translators:"`, exactly as it does for ordinary gettext calls. Leave
+    it off and extraction still works — the comments simply never reach the
+    catalog, where they are [the cheapest quality lever](workflow.md#working-with-translators-and-platforms)
+    in the whole workflow.
 
 ## Registering your own function names
 
@@ -85,9 +88,9 @@ The options are `tr_functions`, `ntr_functions`, `gettext_functions`,
     Only the standard argument order is supported: message first, context then
     message for `pgettext`, context then singular then plural for `npgettext`.
 
-## Robust by default
+## Lenient locally, strict in CI { #lenient-locally-strict-in-ci }
 
-One bad file does not end the run:
+By default one bad file does not end the run:
 
 - A t-string the extractor rejects — attribute access, an expression, a wrong
   argument — is reported as a warning and skipped.
@@ -95,8 +98,30 @@ One bad file does not end the run:
 - So is a file that only `tokenize` refuses while `ast` accepts it, which Babel's
   own pass would otherwise abort on.
 
-Set `strict = true` in the mapping options to turn every one of those into a hard
-failure instead, which is what you want in CI.
+That is convenient while you are editing and dangerous when you are not:
+a skipped message is simply **absent from the POT**, so it is never translated
+and nothing says so. Set `strict = true` in the mapping options wherever the
+extraction is not being watched by a human:
+
+=== "babel.cfg"
+
+    ```ini
+    [gettext_tstrings: **.py]
+    encoding = utf-8
+    strict = true
+    ```
+
+=== "babel.toml"
+
+    ```toml
+    [[mappings]]
+    method = "gettext_tstrings"
+    pattern = "**.py"
+    strict = true
+    ```
+
+Every warning above then becomes a hard failure. Treat this as the production
+setting and the default as the local one.
 
 ## Your existing toolchain validates these catalogs
 
@@ -123,7 +148,8 @@ msgfmt: found 1 fatal error
 
 Weblate documents the same check as [Python brace format][weblate-checks], and
 the commercial platforms have their own placeholder QA keyed on the same flag.
-Their behaviour is theirs; the two tools below are the ones verified here.
+Each platform's behavior is its own; the two tools below are the ones verified
+here.
 
   [weblate-checks]: https://docs.weblate.org/en/latest/user/checks.html
 
@@ -153,8 +179,8 @@ match the source placeholders: {n} is missing
     from shipping it; [What CI gates](workflow.md#what-ci-gates) shows the
     build step that lets it.
 
-The two checks are not redundant. The shipped checker is the stricter party in at
-least two places:
+The two checks are not redundant. The package's checker is stricter in at least
+two cases:
 
 - A msgid whose only braces are escaped (`Config {{raw}} only`) never gets the
   `python-brace-format` flag, so no external tool validates it at all.
@@ -165,6 +191,12 @@ least two places:
 `msgfmt` only checks placeholder names it can parse as Python brace format, so
 ASCII names keep every tool in the chain able to validate the message. The
 library itself accepts any `str.isidentifier()` name.
+
+Both checkers agree on one exclusion: a `fuzzy` entry is not checked. It is an
+unconfirmed guess that `pybabel compile` leaves out of the `.mo`, so it cannot
+reach a render, and failing the build on one would keep a gate red for as long
+as a reworded message waits on a translator. Clearing the flag is what submits
+the entry for checking — and for shipping.
 
 ## Templates and other tools
 

@@ -43,10 +43,13 @@ adım anlatılır.
 `_()` işlevini, dört standart gettext adını, `tr()` / `ntr()` takma adlarını
 ve ertelenmiş `lazy_gettext()` / `lazy_pgettext()` işlevlerini tanır.
 
-!!! warning "`-c` isteğe bağlı değildir"
+!!! warning "Çevirmen yorumlarını `-c` ile etkinleştirin"
 
     `pybabel extract`, çevirmen yorumlarını yalnızca `-c "Translators:"`
-    verdiğinizde toplar; tıpkı sıradan gettext çağrılarında olduğu gibi.
+    verdiğinizde toplar; tıpkı sıradan gettext çağrılarında olduğu gibi. Onu
+    yazmazsanız çıkarma yine çalışır — yorumlar yalnızca kataloğa hiç
+    ulaşmaz; oysa orada tüm iş akışındaki
+    [en ucuz kalite kaldıracıdırlar](workflow.md#working-with-translators-and-platforms).
 
 ## Kendi işlev adlarınızı kaydetmek { #registering-your-own-function-names }
 
@@ -86,9 +89,9 @@ Seçenekler şunlardır: `tr_functions`, `ntr_functions`, `gettext_functions`,
     Yalnızca standart argüman sırası desteklenir: önce mesaj; `pgettext` için
     bağlam sonra mesaj; `npgettext` için bağlam, sonra tekil, sonra çoğul.
 
-## Varsayılan olarak dayanıklı { #robust-by-default }
+## Yerelde hoşgörülü, CI'da katı { #lenient-locally-strict-in-ci }
 
-Tek bir kötü dosya çalıştırmayı sonlandırmaz:
+Varsayılan olarak tek bir kötü dosya çalıştırmayı sonlandırmaz:
 
 - Çıkarıcının reddettiği bir t-string — öznitelik erişimi, bir ifade, yanlış
   bir argüman — uyarı olarak raporlanır ve atlanır.
@@ -96,8 +99,30 @@ Tek bir kötü dosya çalıştırmayı sonlandırmaz:
 - `ast` kabul ederken yalnızca `tokenize`ın reddettiği bir dosya da öyle —
   Babel'in kendi geçişi aksi halde bunda iptal olurdu.
 
-Eşleme seçeneklerinde `strict = true` ayarlayarak bunların her birini sert
-bir hataya çevirin; CI'da istediğiniz budur.
+Bu, siz düzenleme yaparken elverişli, yapmadığınızda tehlikelidir: atlanan bir
+mesaj basitçe **POT'ta bulunmaz**; dolayısıyla hiç çevrilmez ve bunu söyleyen
+de olmaz. Çıkarmanın bir insan tarafından izlenmediği her yerde eşleme
+seçeneklerinde `strict = true` ayarlayın:
+
+=== "babel.cfg"
+
+    ```ini
+    [gettext_tstrings: **.py]
+    encoding = utf-8
+    strict = true
+    ```
+
+=== "babel.toml"
+
+    ```toml
+    [[mappings]]
+    method = "gettext_tstrings"
+    pattern = "**.py"
+    strict = true
+    ```
+
+Yukarıdaki her uyarı böylece sert bir hataya dönüşür. Bunu üretim ayarı,
+varsayılanı da yerel ayar olarak görün.
 
 ## Mevcut araç zinciriniz bu katalogları doğrular { #your-existing-toolchain-validates-these-catalogs }
 
@@ -125,7 +150,7 @@ msgfmt: found 1 fatal error
 
 Weblate aynı denetimi [Python brace format][weblate-checks] adıyla belgeler
 ve ticari platformların aynı bayrağa dayanan kendi yer tutucu QA'ları vardır.
-Onların davranışı kendilerine aittir; burada doğrulanan, aşağıdaki iki
+Her platformun davranışı kendisine aittir; burada doğrulanan, aşağıdaki iki
 araçtır.
 
   [weblate-checks]: https://docs.weblate.org/en/latest/user/checks.html
@@ -157,8 +182,8 @@ match the source placeholders: {n} is missing
     durdurabilir; [CI'ın neyi kapıladığı](workflow.md#what-ci-gates), buna
     izin veren derleme adımını gösterir.
 
-İki denetim birbirinin yedeği değildir. Paketle gelen denetleyici en az iki
-noktada daha katı taraftır:
+İki denetim birbirinin yedeği değildir. Paketin denetleyicisi en az iki
+durumda daha katıdır:
 
 - Tek ayraçları kaçışlanmış olan bir msgid (`Config {{raw}} only`)
   `python-brace-format` bayrağını hiç almaz; dolayısıyla hiçbir harici araç

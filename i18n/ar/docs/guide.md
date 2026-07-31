@@ -1,5 +1,5 @@
 ---
-description: "API وقت التشغيل: ربط الكتالوج، لغة كل طلب، السلاسل المؤجلة، والتعامل مع الترجمات الخاطئة."
+description: "API وقت التشغيل: أي مدخل تستخدم، وربط الكتالوج، ولغة كل طلب، والسلاسل المؤجلة، والقيم المرتبطة باللغة، وكيف يُبلَّغ عن الترجمة المعطوبة."
 ---
 
 # الدليل
@@ -10,6 +10,21 @@ description: "API وقت التشغيل: ربط الكتالوج، لغة كل �
 في خمس دقائق؛ ويغطي [الاستخراج](extraction.md) إنشاء الكتالوجات والتحقق
 منها، أما كيف يُبقي فريقٌ الحلقةَ دائرة — دورات التحديث وCI ومنصات
 الترجمة — فذلك في [في الإنتاج](workflow.md).
+
+## أي مدخل ينبغي أن أستخدم؟ { #which-entry-point-should-i-use }
+
+تصدّر الحزمة عدة طرق لترجمة رسالة لأن التطبيقات تربط اللغة بطرق مختلفة.
+اختر بحسب الكيفية التي يقرر بها برنامجك ما اللغة التي هو فيها:
+
+| حالتك | استخدم |
+| --- | --- |
+| لغة واحدة للعملية كلها — أداة سطر أوامر، تطبيق مكتبي، سكربت | `Translator`، مستدعىً باسم `_` |
+| لغة لكل طلب أو لكل مهمة غير متزامنة — تطبيق ويب | `use_translations()` حول العمل، ثم `tr()` |
+| رسالة تُعرَّف وقت الاستيراد — عنوان حقل، enum، ثابت | `lazy_gettext()` أو `lazy_pgettext()` |
+| عدد يحدد الصياغة | `ngettext()` / `npgettext()`، بأي من الأشكال أعلاه |
+| عرض نمط من دون أي كتالوج | `compile_template()` |
+
+وكل ما يلي هو هذه الخمسة، بهذا الترتيب.
 
 ## ربط كتالوج { #binding-a-catalog }
 
@@ -57,6 +72,7 @@ from gettext_tstrings import tr, use_translations
 
 
 def handle(request):
+    name = request.user.display_name
     translations = load_translations(request.locale)
     with use_translations(translations):
         return render(tr(t"Hello {name}"))
@@ -150,9 +166,47 @@ for user in users:
 
     أما `asyncio.to_thread` فيفعل ذلك عنك بالفعل.
 
+## القيم المرتبطة باللغة { #locale-aware-values }
+
+تقرر هذه المكتبة *أين* تظهر القيمة داخل الرسالة المترجمة، لا كيف تُوطَّن
+القيمة نفسها. فـ`{amount:,.2f}` مواصفة تنسيق في Python ذات سلوك ثابت —
+فاصلة كل ثلاث خانات ونقطة قبل الكسور — وتنتج المحارف نفسها مهما كانت لغة
+الرسالة:
+
+```pycon
+>>> f"{1234.5:,.2f}"  # the same in every locale
+'1,234.50'
+```
+
+تكتب الألمانية هذا العدد `1.234,50`، والفرنسية `1 234,50`، وتجمّع الهندية
+`1234567` على شكل `12,34,567` لا `1,234,567`. فالأعداد والعملات والتواريخ
+والأوقات والوحدات كلها من اختصاص [Babel][babel-numbers]. نسّق القيمة أولاً،
+ثم ضع النص الجاهز في موضعه:
+
+```python
+from babel.numbers import format_currency
+
+total = format_currency(amount, "EUR", locale=locale)
+tr(t"Your order comes to {total}")
+```
+
+وفي الرسالة المعدودة يؤدي العدد وظيفتين — يختار صيغة الجمع ويظهر في النص —
+والثانية وحدها هي التي تُوطَّن. أبقِ العدد الخام للاختيار ومرّر النص المنسّق
+للعرض:
+
+```python
+from babel.numbers import format_decimal
+
+shown = format_decimal(n, locale=locale)
+_.ngettext(t"One file", t"{shown} files", n)
+```
+
+والتنسيق قبل الاستدعاء هو أيضاً ما يُبقي مواصفة التنسيق خارج الكتالوج: فما
+يراه المترجم نص جاهز، لا عدد مصحوب بتعليمات عرضه.
+
 ## عندما يكون الكتالوج خاطئاً { #what-happens-when-a-catalog-is-wrong }
 
-إذا لم تطابق العناصر النائبة في الترجمة المصدر، يعرض الوضع الافتراضي نص
+إذا لم تطابق العناصر النائبة في الترجمة المصدر، يعرض الوضع الافتراضي رسالة
 المصدر بدلاً من إثارة استثناء. يتبع ذلك عقد gettext: لا ينبغي لكتالوج سيئ أن
 يوقف التطبيق.
 
@@ -188,31 +242,13 @@ gettext_tstrings.errors.InvalidTranslationError: translation does not match the
 source placeholders: {name} is missing; {nombre} is not in the source message
 ```
 
-## قراءة رسالة الخطأ { #reading-a-failure-message }
-
-تشرح الرسائل أيضاً لماذا لا يكون العنصر النائب الظاهر صالحاً:
-
-| ما تحتويه الترجمة | السبب |
-| --- | --- |
-| `こんにちは ｛name｝` | `{name}` is missing (the braces around it are not the ASCII `{` and `}`) |
-| `こんにちは {{name}}` | `{name}` is missing (it is written `{{name}}`, which is how a literal brace is escaped) |
-| `こんにちは name` | `{name}` is missing (the name appears, but not inside braces) |
-| `こんにちは {名前}` | `{name}` is missing; `{名前}` is not in the source message |
-
-تُعرض المسافة غير المنقسمة غير المرئية بنقطة الترميز:
-
-```text
-placeholder {<U+00A0>name} has a space inside the braces; write {name}
-```
-
-ويُعرض الحرف الشبيه من أبجدية أخرى بصورته المقروءة والمهربة:
-
-```text
-translation does not match the source placeholders: {name} is missing;
-{nаme} (n\u0430me) is not in the source message
-```
-
-يغطي ذلك أيضاً التعارض بين أسماء يونانية أو سيريليّة بالكامل ونظائرها ASCII.
+وهذه الرسائل مكتوبة لمن يستطيع التصرف حيالها، وهو في مشكلات الكتالوج مترجمٌ
+أكثر منه مبرمجاً — فحيث يبدو العنصر النائب حاضراً وهو ليس كذلك، تشرح الرسالة
+السبب بدلاً من تكرار أنه مفقود. أقواس معقوفة كاملة العرض، أو `{{name}}`
+مضاعفة، أو مسافة غير منقسمة غير مرئية، أو حرف سيريلي بين حروف لاتينية: لكلٍّ
+منها صياغته الخاصة، وهي مسرودة بأمثلتها في
+[للمترجمين](translators.md#reading-a-failure-message). تلك الصفحة مكتوبة كي
+تُسلَّم إلى من يحرر ملف `.po`.
 
 ## عرض نمط من دون كتالوج { #rendering-a-pattern-without-a-catalog }
 
@@ -257,3 +293,5 @@ tr(t"Hello {name}")
 لا تُقيّم الترجمة أبداً، ولا تستطيع إضافة وصول إلى خاصية أو استدعاء أو تحويل
 أو تنسيق. كما في gettext العادي، يبقى التطبيق مسؤولاً عن **التهريب الملائم
 لوجهة الإخراج** و**سلامة الكتالوج**.
+
+  [babel-numbers]: https://babel.pocoo.org/en/latest/api/numbers.html

@@ -153,11 +153,24 @@ vullen.
 
 De CI-stap die deze documentatie aanbeveelt om verouderde catalogi op te
 sporen, `pybabel update --check`, kan dat werk niet doen voor een project dat
-`pgettext` of `npgettext` gebruikt — hij meldt elke catalogus met een
-`msgctxt` als verouderd, bij elke run, door een bug in de manier waarop de
-vergelijking berichten opzoekt. Hij is hier gevonden door hem te willen
-gebruiken, upstream gemeld, en wordt
-[volledig beschreven, met de workaround](workflow.md#what-ci-gates).
+`pgettext` of `npgettext` gebruikt. Op Babel 2.18.0 meldt hij elke catalogus
+met een `msgctxt` als verouderd, bij elke run. De vergelijking loopt via
+`Catalog.is_identical`, dat elk bericht opzoekt onder de sleutel waaronder
+het is opgeslagen — en voor een contextueel bericht is die sleutel het paar
+`(id, context)`, dat `Catalog.get` niet accepteert. De opzoeking levert
+niets op, en de catalogi zijn dus nooit gelijk:
+
+```pycon
+>>> from babel.messages.catalog import Catalog
+>>> c = Catalog(locale="ja")
+>>> c.add("Guide", "ガイド", context="navigation")
+<Message 'Guide' (flags: [])>
+>>> c.is_identical(c)
+False
+```
+
+Hij is hier gevonden door hem te willen gebruiken, upstream gemeld, en de
+vervangende controle staat [op de productiepagina](workflow.md#what-ci-gates).
 
 De algemene les is de ongemakkelijke: een poort die altijd rood staat is erger
 dan geen poort, want een team zet hem uit. Controleer of je CI-check echt kan

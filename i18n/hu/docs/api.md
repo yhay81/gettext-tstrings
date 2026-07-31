@@ -51,9 +51,13 @@ mellett.
 
 | Név | Mire való |
 | --- | --- |
-| `lazy_gettext(template, /, *, strict=False)` | Egy fordítás elhalasztása az első használatig. |
+| `lazy_gettext(template, /, *, strict=False)` | A fordítás elhalasztása minden egyes megjelenítésig. |
 | `lazy_pgettext(context, template, /, *, strict=False)` | A kontextusos alak. |
-| `LazyString` | Amit mindkettő visszaad. A `str()` és a `format()` révén jelenik meg, egyenlőnek bizonyul a szövegével, és szándékosan nem hashelhető. |
+| `LazyString` | Amit mindkettő visszaad. A `str()` és a `format()` révén abban a nyelvben jelenik meg, amelyik az adott pillanatban be van kötve, egyenlőnek bizonyul a renderelt szövegével, és szándékosan nem hashelhető. |
+
+Kidolgozott példák — köztük az is, hogy a `strict` miért a definícióhoz
+tartozik — a [Késleltetett fordítás](guide.md#deferred-translation) alatt
+találhatók.
 
 ## Alacsonyabb szint { #lower-level }
 

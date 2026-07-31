@@ -1,5 +1,5 @@
 ---
-description: "런타임 API: 카탈로그 바인딩, 요청별 언어, 지연 문자열, 잘못된 번역 처리."
+description: "런타임 API: 어떤 진입점을 쓸지, 카탈로그 바인딩, 요청별 언어, 지연 문자열, 로케일에 맞는 값, 잘못된 번역 처리."
 ---
 
 # 가이드
@@ -11,6 +11,22 @@ description: "런타임 API: 카탈로그 바인딩, 요청별 언어, 지연 �
 검증은 [추출](extraction.md)에서 다루며, 팀이 루프를 계속 돌리는 방법 —
 업데이트 주기, CI, 번역 플랫폼 — 은 [프로덕션에서](workflow.md)가
 다룹니다.
+
+## 어떤 진입점을 써야 하나요? { #which-entry-point-should-i-use }
+
+애플리케이션이 언어를 바인딩하는 방식이 여럿이므로, 이 패키지도 메시지를
+번역하는 방법을 여럿 내보냅니다. 프로그램이 자신이 어떤 언어인지 정하는
+방식에 따라 고르세요.
+
+| 여러분의 상황 | 사용할 것 |
+| --- | --- |
+| 프로세스 전체가 한 언어 — CLI, 데스크톱 앱, 스크립트 | `Translator`를 `_`로 호출 |
+| 요청마다 또는 async 태스크마다 한 언어 — 웹 애플리케이션 | 작업을 `use_translations()`로 감싸고 `tr()` |
+| import 시점에 정의되는 메시지 — 폼 레이블, enum, 상수 | `lazy_gettext()` 또는 `lazy_pgettext()` |
+| 개수가 표현을 결정 | 위의 어느 형태로든 `ngettext()` / `npgettext()` |
+| 카탈로그 없이 패턴만 렌더링 | `compile_template()` |
+
+아래 내용은 이 다섯 가지를 그 순서대로 다룹니다.
 
 ## 카탈로그 바인딩 { #binding-a-catalog }
 
@@ -58,6 +74,7 @@ from gettext_tstrings import tr, use_translations
 
 
 def handle(request):
+    name = request.user.display_name
     translations = load_translations(request.locale)
     with use_translations(translations):
         return render(tr(t"Hello {name}"))
@@ -156,10 +173,49 @@ for user in users:
 
     `asyncio.to_thread`는 이미 이 일을 대신해 줍니다.
 
+## 로케일에 맞는 값 { #locale-aware-values }
+
+이 라이브러리는 값이 번역된 메시지의 *어디에* 나타날지를 결정합니다. 값
+자체를 지역화하지는 않습니다. `{amount:,.2f}`는 동작이 고정된 Python 포맷
+스펙이며 — 세 자리마다 쉼표, 소수점 앞에 점 — 메시지가 어떤 언어이든 같은
+문자를 만들어 냅니다.
+
+```pycon
+>>> f"{1234.5:,.2f}"  # the same in every locale
+'1,234.50'
+```
+
+독일어는 그 숫자를 `1.234,50`, 프랑스어는 `1 234,50`으로 쓰고, 힌디어는
+`1234567`을 `1,234,567`이 아니라 `12,34,567`로 묶습니다. 숫자, 통화, 날짜,
+시각, 단위는 [Babel][babel-numbers]의 몫입니다. 값을 먼저 서식화한 다음,
+완성된 문자열을 놓으세요.
+
+```python
+from babel.numbers import format_currency
+
+total = format_currency(amount, "EUR", locale=locale)
+tr(t"Your order comes to {total}")
+```
+
+개수가 있는 메시지에서 숫자는 두 가지 일을 합니다 — 복수형을 고르고,
+텍스트에도 나타납니다 — 그런데 지역화되는 것은 두 번째뿐입니다. 선택에는
+가공하지 않은 개수를 그대로 쓰고, 표시용으로는 서식화한 문자열을 넘기세요.
+
+```python
+from babel.numbers import format_decimal
+
+shown = format_decimal(n, locale=locale)
+_.ngettext(t"One file", t"{shown} files", n)
+```
+
+호출 전에 서식화하는 것은 포맷 스펙을 카탈로그 밖에 두는 방법이기도
+합니다. 번역자가 보는 것은 숫자와 렌더링 지시가 아니라 완성된 텍스트
+조각입니다.
+
 ## 카탈로그가 잘못되었을 때 { #what-happens-when-a-catalog-is-wrong }
 
 번역의 플레이스홀더가 원본과 맞지 않으면 기본 모드는 예외 대신 원본
-텍스트를 렌더링합니다. 잘못된 카탈로그가 애플리케이션을 중단하지 않아야
+메시지를 렌더링합니다. 잘못된 카탈로그가 애플리케이션을 중단하지 않아야
 한다는 gettext의 계약을 따릅니다.
 
 `Hello {name}`의 번역이 `こんにちは {nombre}`라면 렌더링은 성공하고
@@ -195,33 +251,14 @@ gettext_tstrings.errors.InvalidTranslationError: translation does not match the
 source placeholders: {name} is missing; {nombre} is not in the source message
 ```
 
-## 오류 메시지 읽기 { #reading-a-failure-message }
-
-메시지는 눈에 보이는 플레이스홀더가 왜 유효하지 않은지도 설명합니다.
-
-| 번역에 포함된 내용 | 이유 |
-| --- | --- |
-| `こんにちは ｛name｝` | `{name}` is missing (the braces around it are not the ASCII `{` and `}`) |
-| `こんにちは {{name}}` | `{name}` is missing (it is written `{{name}}`, which is how a literal brace is escaped) |
-| `こんにちは name` | `{name}` is missing (the name appears, but not inside braces) |
-| `こんにちは {名前}` | `{name}` is missing; `{名前}` is not in the source message |
-
-보이지 않는 줄 바꿈 없는 공백은 코드 포인트로 표시됩니다.
-
-```text
-placeholder {<U+00A0>name} has a space inside the braces; write {name}
-```
-
-다른 문자 체계의 동형 문자는 읽을 수 있는 형태와 이스케이프를 함께
-표시합니다.
-
-```text
-translation does not match the source placeholders: {name} is missing;
-{nаme} (n\u0430me) is not in the source message
-```
-
-그리스어 또는 키릴 문자로만 된 이름과 ASCII 이름의 충돌도 같은 방식으로
-처리합니다.
+이 메시지들은 그것을 보고 행동할 수 있는 사람을 위해 쓰였고, 카탈로그
+문제라면 그 사람은 프로그래머보다 번역자인 경우가 많습니다 — 그래서
+플레이스홀더가 있어 보이는데 없을 때, 메시지는 없다는 말을 되풀이하는 대신
+왜 그런지 설명합니다. 전각 중괄호, 겹쳐진 `{{name}}`, 보이지 않는 줄 바꿈
+없는 공백, 라틴 문자 사이의 키릴 문자 — 각각에 고유한 문구가 있으며,
+예시와 함께 [번역자를 위한 안내](translators.md#reading-a-failure-message)에
+정리되어 있습니다. 그 페이지는 `.po`를 편집하는 사람에게 그대로 건네도록
+쓰였습니다.
 
 ## 카탈로그 없이 패턴 렌더링 { #rendering-a-pattern-without-a-catalog }
 
@@ -266,3 +303,5 @@ tr(t"Hello {name}")
 번역은 평가되지 않으며 속성 접근, 호출, 변환, 포맷을 추가할 수 없습니다.
 일반 gettext와 마찬가지로 애플리케이션이 출력 대상의 **이스케이프**와
 **카탈로그 무결성**을 책임집니다.
+
+  [babel-numbers]: https://babel.pocoo.org/en/latest/api/numbers.html

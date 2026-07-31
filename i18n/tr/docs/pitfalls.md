@@ -146,10 +146,23 @@ vardır.
 
 Bu belgelerin bayat katalogları yakalamak için önerdiği CI adımı,
 `pybabel update --check`, `pgettext` ya da `npgettext` kullanan hiçbir projede
-bu işi yapamaz — `msgctxt` taşıyan her kataloğu, her koşuda güncel değil diye
-raporlar; çünkü karşılaştırmanın mesajları arama biçiminde bir hata vardır.
-Burada, kullanılmaya çalışılırken bulundu, üst akışa bildirildi ve
-[geçici çözümüyle birlikte tam olarak anlatıldı](workflow.md#what-ci-gates).
+bu işi yapamaz. Babel 2.18.0'da `msgctxt` taşıyan her kataloğu, her koşuda
+güncel değil diye raporlar. Karşılaştırma `Catalog.is_identical` üzerinden
+geçer; bu da her mesajı, saklandığı anahtarla arar — ve bağlamlı bir mesaj
+için o anahtar, `Catalog.get`in kabul etmediği `(id, context)` çiftidir. Arama
+hiçbir şey döndürmez ve kataloglar hiçbir zaman eşit çıkmaz:
+
+```pycon
+>>> from babel.messages.catalog import Catalog
+>>> c = Catalog(locale="ja")
+>>> c.add("Guide", "ガイド", context="navigation")
+<Message 'Guide' (flags: [])>
+>>> c.is_identical(c)
+False
+```
+
+Burada, kullanılmaya çalışılırken bulundu, üst akışa bildirildi ve yerine
+geçecek denetim [üretim sayfasındadır](workflow.md#what-ci-gates).
 
 Genel ders, rahatsız edici olanıdır: hep kırmızı yanan bir kapı, hiç kapı
 olmamasından kötüdür; çünkü ekip onu kapatır. CI denetiminizin başarısız

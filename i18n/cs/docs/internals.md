@@ -204,8 +204,8 @@ Na stejném principu dostane „chybějící“ zástupný symbol, který *vypad
 přítomně, vysvětlení své nepřítomnosti — složené závorky plné šířky z
 východoasijské vstupní metody, zdvojení `{{name}}` z escapovacího
 kolečka, jméno mimo jakékoli závorky.
-[Tabulka čtení selhání v průvodci](guide.md#reading-a-failure-message)
-ukazuje každou z těchto zpráv doslova.
+[Tabulka čtení selhání](translators.md#reading-a-failure-message) psaná pro
+překladatele ukazuje každou z těchto zpráv doslova.
 
 ## Horká cesta { #the-hot-path }
 

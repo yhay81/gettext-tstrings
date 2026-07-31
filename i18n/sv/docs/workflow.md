@@ -12,6 +12,18 @@ levereras med varje release. Den här sidan är den praktiken — vad som
 stannar i förrådet, vad som reser, vad CI måste grinda, och var körmiljön
 binder ett språk.
 
+Vad det summerar till är sex kontroller, så här är de först; varje avsnitt
+nedan sätter upp en av dem.
+
+- `pybabel update --check` går igenom — inget meddelande har ändrats utan att
+  katalogerna fått veta det.
+- `pybabel compile` grindar bygget på sin avslutsstatus.
+- Kvarvarande `fuzzy`-poster är avsiktliga — var och en renderas som källtext
+  tills en översättare bekräftar den.
+- Testsviten renderar varje levererat språk en gång med `strict=True`.
+- Produktionsartefakten innehåller `.mo`-filer och ingen Babel.
+- Loggern `gettext_tstrings` är kopplad till övervakningen.
+
 ## Formen på ett projekt { #the-shape-of-a-project }
 
 ```text
@@ -33,8 +45,8 @@ producera dem i CI eller vid paketering i stället för att committa dem, så
 att en `.po` och dess `.mo` aldrig kan bli oense om vad som levereras.
 
 En fil har en roll i vardera riktningen: `.pot`-filen bär dina meddelanden
-*ut* till översättarna, `.po`-filerna bär översättningarna *tillbaka*. Allt
-nedan är trafiken mellan de två.
+*ut* till översättarna, `.po`-filerna bär översättningarna *tillbaka*. Resten
+av den här sidan är det som rör sig mellan dem.
 
 ```mermaid
 flowchart LR
@@ -48,8 +60,8 @@ flowchart LR
 
 ## Cykeln efter den första översättningen { #the-cycle-after-the-first-translation }
 
-Handledningens `pybabel init` körs en gång per språk, någonsin. Från och med
-då är arbetscykeln **extrahera → uppdatera → översätt → kompilera**, och
+Handledningens `pybabel init` körs normalt en gång, när ett språk läggs till.
+Från och med då är arbetscykeln **extrahera → uppdatera → översätt → kompilera**, och
 dess mittpunkt är `pybabel update`, som viker in en färsk mall i de
 befintliga katalogerna utan att kasta bort översättningarna som redan finns
 i dem.
@@ -78,7 +90,7 @@ msgstr "こんにちは {name}"
 
 Babel märkte att den nya msgid:n liknar en borttagen och parade ihop den med
 den gamla översättningen — men flaggade paret **fuzzy**: en maskins gissning
-som väntar på en människa. Flaggan har tänder. `pybabel compile`
+som väntar på en människa. Flaggan ändrar vad som kompileras. `pybabel compile`
 **utesluter fuzzy-poster ur `.mo`-filen**, så tills en översättare bekräftar
 paret renderar applikationen den nya engelska texten snarare än en inaktuell
 japansk:
@@ -128,32 +140,17 @@ sammanfoga kod vars meddelanden ingen extraherade om. `pybabel compile` kör
 platshållarkontrollerna från både Babel och detta pakets
 [registrerade kontroll](extraction.md#your-existing-toolchain-validates-these-catalogs).
 
-!!! bug "`--check` kan inte grinda en katalog som använder kontexter"
+!!! bug "Babel 2.18.0: `--check` kan inte grinda en katalog som använder kontexter"
 
     På Babel 2.18.0 rapporterar `pybabel update --check` **varje** katalog som
     innehåller ett `msgctxt` som inaktuell, vid varje körning, hur aktuell den
-    än är. Jämförelsen går genom `Catalog.is_identical`, som slår upp varje
-    meddelande under den nyckel det lagras under — och för ett kontextbärande
-    meddelande är den nyckeln paret `(id, context)`, som `Catalog.get` inte tar
-    emot. Uppslagningen ger ingenting, och katalogerna blir aldrig lika:
-
-    ```pycon
-    >>> from babel.messages.catalog import Catalog
-    >>> c = Catalog(locale="ja")
-    >>> c.add("Guide", "ガイド", context="navigation")
-    <Message 'Guide' (flags: [])>
-    >>> c.is_identical(c)
-    False
-    ```
-
-    Så om du över huvud taget använder `pgettext` eller `npgettext` — och att
-    särskilja en homonym är själva skälet till att de finns — fallerar det här
-    steget på värsta tänkbara sätt: alltid rött, så ett team stänger av det, så
-    ingenting grindar inaktualitet. Tills det är åtgärdat uppströms får du
-    jämföra meddelandemängderna själv. Att läsa mallen och varje katalog med
-    `babel.messages.pofile.read_po` och jämföra
-    `{(m.context, m.id) for m in catalog if m.id}` är hela kontrollen, och det
-    är vad [den här webbplatsens eget bygge](index.md) gör.
+    än är. En grind som alltid fallerar är sämre än ingen grind alls, eftersom
+    ett team stänger av den — så om du över huvud taget använder `pgettext`
+    eller `npgettext`, byt ut det här steget i stället för att leva med det.
+    Att läsa mallen och varje katalog med `babel.messages.pofile.read_po` och
+    jämföra `{(m.context, m.id) for m in catalog if m.id}` är hela kontrollen,
+    och det är vad [den här webbplatsens eget bygge](index.md) gör. Orsaken är
+    [beskriven på Fallgropar](pitfalls.md#your-tools-have-bugs-too).
 
 !!! danger "Kontrollera avslutsstatusen, inte loggen"
 

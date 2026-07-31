@@ -1,23 +1,17 @@
 ---
-description: "Același mesaj traductibil scris cu %-format, .format(), $-stringuri flufl.i18n și un t-string, inclusiv modul în care fiecare leagă valorile și tratează un catalog deteriorat."
+description: "Același mesaj traductibil scris cu %-format, .format(), $-stringuri flufl.i18n și un t-string, comparate după greșelile traducătorilor, autoritatea catalogului și costul de integrare."
 ---
 
 # De ce t-stringuri
 
 Patru moduri de a pune o valoare într-un mesaj traductibil, comparate pe
-aceeași propoziție. Pe scurt:
+același mesaj. Toate patru își denumesc substituenții și îi lasă pe traducători
+să îi reordoneze; ele diferă prin ce se întâmplă când o traducere este greșită,
+prin cât din programul tău poate atinge catalogul și prin cât costă adoptarea
+lor.
 
-- Cu **%-format**, o singură literă ștearsă de un traducător devine o cădere
-  în producție.
-- Cu **str.format**, o traducere poate citi atribute de pe obiectele pe care
-  le transmite codul tău — inclusiv secrete.
-- Cu **$-stringuri** (flufl.i18n), valorile sunt preluate implicit din
-  variabilele funcției apelante, iar substituenții cu punct ajung și la atribute.
-- Cu **t-stringuri**, formatarea rămâne în codul tău, traducerile sunt
-  verificate la rulare, iar un catalog stricat revine la textul sursă în loc
-  să cadă.
-
-Restul paginii este dovada, metodă cu metodă.
+Tabelele vin primele, ca să găsești rândul care te interesează și să citești
+numai secțiunea din spatele lui.
 
 !!! note "Trei părți ating fiecare mesaj tradus"
 
@@ -31,6 +25,71 @@ Restul paginii este dovada, metodă cu metodă.
     întrebare: *cât din limbajul de format ajunge sub controlul catalogului?*
     În exemple, `_` este numele convențional al funcției de traducere, iar
     `tr` este cel al acestei biblioteci.
+
+## Una lângă alta { #side-by-side }
+
+**Când un traducător face o greșeală.** Un catalog trece prin multe mâini, iar
+cea mai mare parte din ce merge prost în el este accidentală:
+
+| | `%(name)s` | `.format()` | `flufl.i18n` `$name` | `t"…"` |
+| --- | --- | --- | --- | --- |
+| O traducere *pierde* un substituent — ce se randează? | valoarea dispare pe tăcute | valoarea dispare pe tăcute | valoarea dispare pe tăcute | mesajul sursă, cu un avertisment ([în mod implicit](guide.md#what-happens-when-a-catalog-is-wrong)) |
+| O traducere *adaugă* un substituent necunoscut — ce se randează? | o excepție | o excepție | substituentul rămâne vizibil ca text | mesajul sursă, cu un avertisment ([în mod implicit](guide.md#what-happens-when-a-catalog-is-wrong)) |
+| O traducere *reformatează* un substituent — ce se randează? | ce a cerut catalogul, sau o excepție dacă litera de tip nu se mai potrivește valorii | ce a cerut catalogul | inexprimabil în `$`-stringuri | mesajul sursă, cu un avertisment |
+| Sunt substituenții verificați la momentul randării? | nu | nu | nu | da (vezi mai jos) |
+
+**Ce autoritate are catalogul.** O traducere este date venite din afara
+depozitului tău, iar fiecare stil îi dă o cantitate diferită de putere:
+
+| | `%(name)s` | `.format()` | `flufl.i18n` `$name` | `t"…"` |
+| --- | --- | --- | --- | --- |
+| De unde vin valorile? | dintr-o mapare explicită | din argumente explicite | din variabilele locale și globale ale apelantului, plus `extras` opțional | din valorile captate înăuntrul t-stringului |
+| Poate catalogul să schimbe felul în care este formatată o valoare? | da | da | nu | nu |
+| Poate catalogul să ajungă în interiorul obiectelor (acces la atribute)? | nu | da | da, cu nume cu punct | nu |
+| Unde trăiește „limba curentă”? | oriunde o pune aplicația | oriunde o pune aplicația | o stivă de coduri de limbă pe obiectul aplicație partajat | o `ContextVar`, per task sau per cerere |
+
+**Cât costă integrarea.** Tot ce este mai sus vine pe gratis dacă uneltele se
+potrivesc; aici se poate să nu se potrivească:
+
+| | `%(name)s` | `.format()` | `flufl.i18n` `$name` | `t"…"` |
+| --- | --- | --- | --- | --- |
+| Python minim | oricare | oricare | 3.10 | **3.14** |
+| Maturitate | biblioteca standard | biblioteca standard | lansare stabilă | **alpha** |
+| Folosește cataloage PO/MO obișnuite? | da | da | da | da |
+| Are nevoie de un extractor de sursă propriu? | nu | nu | nu | da, deocamdată |
+| Ce flag PO deduce Babel, pentru ca uneltele existente să valideze? | `python-format` | `python-brace-format` | niciunul | `python-brace-format` |
+
+Despre verificarea de la momentul randării: mesajelor la singular li se verifică
+o potrivire exactă a substituenților. Și mesajelor la plural li se verifică,
+față de [regula de reuniune/intersecție](spec.md) care permite ca formele de
+plural ale unei limbi țintă să difere de cele ale sursei; verificarea mai
+strictă, formă cu formă, rulează atunci când cataloagele sunt compilate
+([Extragere](extraction.md)).
+
+Rândul cu flagul de format este despre validarea conștientă de substituenți, nu
+despre compatibilitatea cataloagelor. `niciunul` înseamnă că uneltele gettext
+standard citesc și compilează în continuare mesajul, dar `msgfmt --check-format`
+nu are nicio gramatică de substituenți `$` pe care să o aplice.
+
+## Compatibilitate și maturitate { #compatibility-and-maturity }
+
+Primele două rânduri ale ultimului tabel sunt cele care decid adoptarea, așa că
+merită spuse pe șleau, nu ca celule de tabel.
+
+`%`-format și `.format()` sunt încorporate în Python și nu cer nicio dependență.
+[`flufl.i18n`][flufl-i18n] este un pachet matur, lansat și folosit în producție,
+care rulează pe Python 3.10 și mai nou. `gettext-tstrings` este un **alpha** și
+cere **Python 3.14 sau mai nou**, pentru că t-stringurile sunt sintaxă nouă în
+3.14 — nu există un back-port și nici nu poate exista. [Specificația](spec.md)
+lui este partea stabilă; API-ul Python se mai poate mișca înainte de 1.0.
+
+Ce nu costă niciunul dintre ele este compatibilitatea cataloagelor. Toate patru
+produc fișiere POT/PO/MO obișnuite, pe care orice editor de PO, platformă de
+traducere și unealtă GNU gettext le citește deja, așa că alegerea de mai jos
+este reversibilă într-un fel în care schimbarea *formatului* de catalog nu ar
+fi. [Migrare](migration.md) acoperă mutarea unui proiect existent.
+
+Secțiunile de mai jos arată fiecare compromis în detaliu, metodă cu metodă.
 
 ## %-format { #-format }
 
@@ -51,10 +110,10 @@ Traceback (most recent call last):
 ValueError: incomplete format
 ```
 
-O modificare de un caracter într-un editor PO devine un traceback în
-producție. GNU `msgfmt --check-format` chiar o prinde, dar numai pentru
-mesajele marcate `python-format` și numai dacă în drumul său către aplicație
-catalogul trece într-adevăr prin msgfmt.
+O modificare de un caracter într-un editor PO devine o excepție la rulare, dacă
+nu o prinde întâi validarea catalogului. GNU `msgfmt --check-format` chiar o
+prinde pe aceasta, dar numai pentru mesajele marcate `python-format` și numai
+dacă în drumul său către aplicație catalogul trece într-adevăr prin msgfmt.
 
 ## str.format { #strformat }
 
@@ -120,7 +179,7 @@ apelantului. Un substituent tradus poate numi orice locală sau globală
 disponibilă a apelantului și, cu sintaxa cu punct, îi poate parcurge atributele.
 Asta este comod atunci când un mesaj are nevoie de un atribut, dar face
 totodată cadrul apelantului parte din spațiul de nume al substituțiilor
-catalogului. Comparația de mai jos descrie `flufl.i18n` 6.0.0, nu orice
+catalogului. Comparația de aici descrie `flufl.i18n` 6.0.0, nu orice
 utilizare posibilă a lui `string.Template`.
 
 El răspunde totodată la o întrebare pe care celelalte două stiluri de formatare
@@ -182,7 +241,7 @@ sursă înainte de randare, și acceptă nume goale și nimic altceva. Față de
 | `{nombre}` | translation does not match the source placeholders: `{name}` is missing; `{nombre}` is not in the source message |
 
 Respins nu înseamnă căzut: în mod implicit biblioteca jurnalizează un
-avertisment și randează textul sursă, așa că un catalog prost nu doboară
+avertisment și randează mesajul sursă, așa că un catalog prost nu doboară
 niciodată aplicația —
 [același contract pe care îl ține gettext însuși](guide.md#what-happens-when-a-catalog-is-wrong).
 
@@ -194,55 +253,19 @@ tr(t"Total: {amount:,.2f}")  # msgid is "Total: {amount}"
 ```
 
 `:,.2f` nu ajunge niciodată la catalog, așa că nicio traducere nu îl poate
-schimba și niciun traducător nu trebuie să se uite la el.
+schimba și niciun traducător nu trebuie să se uite la el. Este însă un format
+*fix*, nu unul localizat — alegerea cifrelor și a separatorilor pentru fiecare
+limbă este [treaba lui Babel, dinaintea apelului](guide.md#locale-aware-values).
 
 Încă o diferență ține de unelte: t-stringurile sunt sintaxă nouă, așa că
 extragerea lor într-un `.pot` cere deocamdată un extractor care știe de
 t-stringuri, precum cel pe care acest pachet îl
 [oferă pentru Babel](extraction.md).
 
-## Una lângă alta { #side-by-side }
+## Costul restricției { #the-cost-of-the-restriction }
 
-| | `%(name)s` | `.format()` | `flufl.i18n` `$name` | `t"…"` |
-| --- | --- | --- | --- | --- |
-| Substituentul are nume? | da | da | da | da |
-| Poate un traducător să reordoneze substituenții? | da | da | da | da |
-| De unde vin valorile? | dintr-o mapare explicită | din argumente explicite | din variabilele locale și globale ale apelantului, plus `extras` opțional | din valorile captate înăuntrul t-stringului |
-| Poate catalogul să schimbe felul în care este formatată o valoare? | da | da | nu | nu |
-| Poate catalogul să ajungă în interiorul obiectelor (acces la atribute)? | nu | da | da, cu nume cu punct | nu |
-| O traducere *pierde* un substituent — ce se randează? | valoarea dispare pe tăcute | valoarea dispare pe tăcute | valoarea dispare pe tăcute | textul sursă, cu un avertisment ([în mod implicit](guide.md#what-happens-when-a-catalog-is-wrong)) |
-| O traducere *adaugă* un substituent necunoscut — ce se randează? | o excepție | o excepție | substituentul rămâne vizibil ca text | textul sursă, cu un avertisment ([în mod implicit](guide.md#what-happens-when-a-catalog-is-wrong)) |
-| Sunt substituenții verificați la momentul randării? | nu | nu | nu | da (vezi mai jos) |
-| Ce flag PO deduce Babel, pentru ca uneltele existente să valideze? | `python-format` | `python-brace-format` | niciunul | `python-brace-format` |
-| Folosește cataloage PO/MO obișnuite? | da | da | da | da |
-| Are nevoie de un extractor de sursă propriu? | nu | nu | nu | da, deocamdată |
-| Unde trăiește „limba curentă”? | oriunde o pune aplicația | oriunde o pune aplicația | o stivă de coduri de limbă pe obiectul aplicație partajat | o `ContextVar`, per task sau per cerere |
-
-Despre verificarea de la momentul randării: mesajelor la singular li se verifică
-o potrivire exactă a substituenților. Și mesajelor la plural li se verifică,
-față de [regula de reuniune/intersecție](spec.md) care permite ca formele de
-plural ale unei limbi țintă să difere de cele ale sursei; verificarea mai
-strictă, formă cu formă, rulează atunci când cataloagele sunt compilate
-([Extragere](extraction.md)).
-
-Rândul cu flagul de format este despre validarea conștientă de substituenți, nu
-despre compatibilitatea cataloagelor. `niciunul` înseamnă că uneltele gettext
-standard citesc și compilează în continuare mesajul, dar `msgfmt --check-format`
-nu are nicio gramatică de substituenți `$` pe care să o aplice.
-
-## Cât costă { #what-it-costs }
-
-Un f-string nu poate fi folosit deloc în acest fel — până când vreo bibliotecă
-apucă să vadă unul, el este deja un șir terminat, așa că a-l traduce înseamnă a
-traduce un fragment. T-stringurile ([PEP 750]) țin separate textul static și
-valorile, păstrând totodată o sintaxă asemănătoare f-stringurilor și legarea
-explicită a valorilor. `$`-stringurile oferă deja o alternativă concisă, cu un
-model diferit de legare și de eșec. `flufl.i18n` este un pachet matur, care
-rulează pe Python 3.10 și mai nou; `gettext-tstrings` este deocamdată un alpha
-și, pentru că t-stringurile sunt sintaxă nouă, cere Python 3.14 sau mai nou.
-
-Celălalt cost este chiar restricția: o interpolare trebuie să fie un nume
-simplu.
+Dincolo de cerința de versiune Python, prețul a toate acestea este o singură
+regulă: o interpolare trebuie să fie un nume simplu.
 
 ```python
 tr(t"Hello {user.name}")  # raises InvalidTemplateError at the call site
@@ -253,9 +276,17 @@ name = user.name  # compute it first
 tr(t"Hello {name}")
 ```
 
-Aceasta este o constrângere reală. Împreună cu legarea valorilor dinspre sursă
-și cu verificarea substituenților la rulare, ea împiedică șirurile din catalog
-să evalueze expresii și păstrează numele substituenților pline de înțeles.
+Aceasta este o constrângere reală, și este chiar constrângerea care produce
+garanțiile de mai sus. Împreună cu legarea valorilor dinspre sursă și cu
+verificarea substituenților la rulare, ea împiedică șirurile din catalog să
+evalueze expresii și păstrează numele substituenților pline de înțeles pentru
+persoana care le traduce.
+
+Un f-string nu poate fi folosit deloc în acest fel — până când vreo bibliotecă
+apucă să vadă unul, el este deja un șir terminat, așa că a-l traduce înseamnă a
+traduce un fragment. T-stringurile ([PEP 750]) țin separate textul static și
+valorile, păstrând totodată o sintaxă asemănătoare f-stringurilor și legarea
+explicită a valorilor.
 
 Cum a ajuns Python la această răscruce — două PEP-uri la zece ani distanță și
 discuția din biblioteca standard care s-a închis fără un răspuns — este

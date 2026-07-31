@@ -40,10 +40,12 @@ pybabel compile -d locales
 名称、`tr()` / `ntr()` 别名，以及延迟翻译用的 `lazy_gettext()` /
 `lazy_pgettext()`。
 
-!!! warning "`-c` 不能省略"
+!!! warning "用 `-c` 打开翻译者注释"
 
     与普通 gettext 调用完全一样，只有向 `pybabel extract` 传入
-    `-c "Translators:"` 才会收集翻译者注释。
+    `-c "Translators:"` 才会收集翻译者注释。不加它，提取照样能跑——只是这些注释
+    永远到不了目录，而在目录里它们是[整个工作流中成本最低的质量
+    杠杆](workflow.md#working-with-translators-and-platforms)。
 
 ## 注册自定义函数名 { #registering-your-own-function-names }
 
@@ -81,17 +83,38 @@ ini 文件提供一个字符串，TOML mapping 提供一个列表；字符串内
     仅支持标准参数顺序：普通调用先放 message；`pgettext` 依次为 context、message；
     `npgettext` 依次为 context、单数、复数。
 
-## 默认健壮 { #robust-by-default }
+## 本地宽容，CI 严格 { #lenient-locally-strict-in-ci }
 
-一个坏文件不会终止整个提取过程：
+默认情况下，一个坏文件不会终止整个提取过程：
 
 - extractor 拒绝的 t-string——属性访问、表达式、错误参数——会被报告为警告并跳过。
 - 无法 parse 的文件也以同样方式跳过。
 - `ast` 接受但只有 `tokenize` 拒绝的文件同样会跳过，否则 Babel 自身的 pass 会
   因此中止。
 
-在 mapping 选项中设置 `strict = true`，可将以上情况全部变成 hard failure；CI
-应当使用这一模式。
+这在你正编辑代码时很方便，在你不看着它时却很危险：被跳过的消息就是**在 POT 中
+缺席**，于是它永远不会被翻译，而且没有任何东西会提醒你。凡是提取过程没有人盯着
+的地方，请在 mapping 选项中设置 `strict = true`：
+
+=== "babel.cfg"
+
+    ```ini
+    [gettext_tstrings: **.py]
+    encoding = utf-8
+    strict = true
+    ```
+
+=== "babel.toml"
+
+    ```toml
+    [[mappings]]
+    method = "gettext_tstrings"
+    pattern = "**.py"
+    strict = true
+    ```
+
+这样一来，上面的每一条警告都会变成 hard failure。请把它当作生产环境的设置，
+而把默认值当作本地开发的设置。
 
 ## 现有 toolchain 会验证这些目录 { #your-existing-toolchain-validates-these-catalogs }
 
@@ -115,7 +138,7 @@ msgfmt: found 1 fatal error
 ```
 
 Weblate 将同一检查记录为 [Python brace format][weblate-checks]，商业平台也有基于
-同一标志的占位符 QA。它们的行为由各自产品负责；下面两个工具才是本项目明确验证的。
+同一标志的占位符 QA。每个平台的行为由它自己负责；下面两个工具才是本项目明确验证的。
 
   [weblate-checks]: https://docs.weblate.org/en/latest/user/checks.html
 
@@ -143,7 +166,7 @@ match the source placeholders: {n} is missing
     状态才能阻止 pipeline 发布它；[CI 把守什么](workflow.md#what-ci-gates)展示了
     实现这一点的构建步骤。
 
-两种检查并不重复。内置 checker 至少在两处更加严格：
+两种检查并不重复。本包的 checker 至少在两种情形下更加严格：
 
 - 如果 msgid 中只有转义花括号（`Config {{raw}} only`），就不会获得
   `python-brace-format` 标志，因此外部工具完全不会验证它。

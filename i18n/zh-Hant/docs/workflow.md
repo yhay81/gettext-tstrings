@@ -9,6 +9,15 @@ description: "團隊實際運轉的 gettext 循環：週而復始的更新週期
 按自己的節奏工作，而每一次發行都會帶著一份編譯好的目錄出貨。本頁講的就是那份實務——
 什麼留在儲存庫裡、什麼會往外流動、CI 必須把守什麼，以及執行階段在哪裡繫結語言。
 
+這一切加起來就是六項檢查，所以先把它們擺在最前面；底下每一節各自把其中一項架設起來。
+
+- `pybabel update --check` 通過——沒有訊息改動而目錄卻毫不知情。
+- `pybabel compile` 以其離開狀態碼把守建置。
+- 剩下的 `fuzzy` 條目都是刻意留著的——在譯者確認之前，每一筆都渲染成原文。
+- 測試套件對每一種出貨語言都以 `strict=True` 渲染過一次。
+- 正式環境產物裡有 `.mo` 檔，而且沒有 Babel。
+- `gettext_tstrings` logger 已導向監控系統。
+
 ## 一個專案的形態 { #the-shape-of-a-project }
 
 ```text
@@ -29,7 +38,7 @@ myapp/
 了什麼」各說各話。
 
 有一個檔案在兩個方向上各有其角色：`.pot` 把你的訊息帶*出去*給譯者，`.po` 檔則把翻譯
-帶*回來*。以下所有內容，都是這兩者之間的往來。
+帶*回來*。本頁接下來講的，就是在這兩者之間流動的東西。
 
 ```mermaid
 flowchart LR
@@ -43,7 +52,7 @@ flowchart LR
 
 ## 第一次翻譯之後的週期 { #the-cycle-after-the-first-translation }
 
-教學裡的 `pybabel init` 每種語言一輩子只跑一次。從那之後，日常運轉的週期就是
+教學裡的 `pybabel init` 通常只在新增一種語言時跑一次。從那之後，日常運轉的週期就是
 **擷取 → 更新 → 翻譯 → 編譯**，而它的核心是 `pybabel update`：它把一份新的樣板併進
 既有目錄，同時不丟掉裡面已經有的翻譯。
 
@@ -69,7 +78,7 @@ msgstr "こんにちは {name}"
 ```
 
 Babel 注意到這個新的 msgid 和某個被移除的很像，就把它和舊的翻譯配成了一對——但把這
-一對標上了 **fuzzy**：一台機器的猜測，等著人來確認。這個旗標是有牙齒的。
+一對標上了 **fuzzy**：一台機器的猜測，等著人來確認。這個旗標會改變編譯出來的東西。
 `pybabel compile` 會**把 fuzzy 條目排除在 `.mo` 之外**，所以在譯者確認這一對之前，
 應用程式渲染的是新的英文文字，而不是過時的日文：
 
@@ -112,29 +121,15 @@ Welcome back, Ada
 [所註冊的檢查器](extraction.md#your-existing-toolchain-validates-these-catalogs)兩邊的
 佔位符檢查。
 
-!!! bug "`--check` 沒辦法把守使用了上下文的目錄"
+!!! bug "Babel 2.18.0：`--check` 沒辦法把守使用了上下文的目錄"
 
     在 Babel 2.18.0 上，`pybabel update --check` 會把**每一份**含有 `msgctxt` 的目錄
-    都報成過期，每次執行都如此，不管它其實多麼新。這個比較走的是
-    `Catalog.is_identical`，它會用每則訊息被存放時所用的 key 去查找——而對一則帶上下文
-    的訊息來說，那個 key 是 `(id, context)` 這一對，`Catalog.get` 並不接受它。查找回來
-    的是空的，於是兩份目錄永遠比不出相等：
-
-    ```pycon
-    >>> from babel.messages.catalog import Catalog
-    >>> c = Catalog(locale="ja")
-    >>> c.add("Guide", "ガイド", context="navigation")
-    <Message 'Guide' (flags: [])>
-    >>> c.is_identical(c)
-    False
-    ```
-
-    所以只要你有用到 `pgettext` 或 `npgettext`——而消解同形異義詞的歧義正是它們存在的
-    理由——這個步驟就會以最糟的方式失效：永遠是紅的，於是團隊把它關掉，於是再也沒有
-    東西在把守過期問題。在上游修好之前，請自己比較訊息集合。用
-    `babel.messages.pofile.read_po` 讀進樣板與每一份目錄，再比較
+    都報成過期，每次執行都如此，不管它其實多麼新。一道永遠失敗的關卡比沒有關卡還糟，
+    因為團隊會把它關掉——所以只要你有用到 `pgettext` 或 `npgettext`，就請換掉這個步驟，
+    而不要將就著用。用 `babel.messages.pofile.read_po` 讀進樣板與每一份目錄，再比較
     `{(m.context, m.id) for m in catalog if m.id}`，這就是整項檢查的全部，而
-    [本站自己的建置](index.md)做的正是這件事。
+    [本站自己的建置](index.md)做的正是這件事。成因
+    [寫在常見陷阱頁](pitfalls.md#your-tools-have-bugs-too)。
 
 !!! danger "看離開狀態碼，不要看日誌"
 

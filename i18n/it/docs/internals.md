@@ -210,8 +210,8 @@ Sullo stesso principio, un segnaposto "mancante" che *sembra* presente
 riceve una spiegazione della sua assenza — graffe a larghezza intera da un
 metodo di input est-asiatico, il raddoppio `{{name}}` da un giro di escaping,
 il nome fuori da qualunque graffa. La
-[tabella di lettura dei fallimenti della guida](guide.md#reading-a-failure-message)
-mostra ciascuno di questi messaggi alla lettera.
+[tabella di lettura dei fallimenti](translators.md#reading-a-failure-message)
+scritta per i traduttori mostra ciascuno di questi messaggi alla lettera.
 
 ## Il percorso caldo { #the-hot-path }
 

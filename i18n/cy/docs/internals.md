@@ -204,8 +204,8 @@ olygydd yn ben ffordd, felly cyfrifir y negeseuon â thair rheol:
 Ar yr un egwyddor, caiff daliwr lle "coll" sydd *yn edrych* yn bresennol ei
 absenoldeb wedi'i esbonio — bracedi lled-llawn o ddull mewnbwn Dwyrain Asiaidd,
 dyblu `{{name}}` o daith osgoi, yr enw y tu allan i unrhyw fracedi. Mae
-[tabl darllen methiannau'r canllaw](guide.md#reading-a-failure-message) yn
-dangos pob un o'r negeseuon hyn air am air.
+[tabl darllen methiannau](translators.md#reading-a-failure-message) a
+ysgrifennwyd ar gyfer cyfieithwyr yn dangos pob un o'r negeseuon hyn air am air.
 
 ## Y llwybr poeth { #the-hot-path }
 

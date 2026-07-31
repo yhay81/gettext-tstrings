@@ -151,11 +151,25 @@ kujengwa kabisa. Faili mbili za hazina hii yenyewe zipo ili kuziba pengo hilo.
 
 Hatua ya CI ambayo nyaraka hizi hupendekeza kwa kunasa katalogi zilizopitwa na
 wakati, `pybabel update --check`, haiwezi kufanya kazi hiyo kwa mradi wowote
-unaotumia `pgettext` au `npgettext` — huripoti kila katalogi yenye `msgctxt`
-kuwa imepitwa na wakati, kila inapoendeshwa, kwa sababu ya hitilafu katika
-jinsi ulinganisho unavyotafuta jumbe. Ilipatikana hapa kwa kujaribu kuitumia,
-ikaripotiwa kwa watengenezaji walio juu ya mkondo, nayo [imeelezwa kwa ukamilifu
-pamoja na njia ya kuizunguka](workflow.md#what-ci-gates).
+unaotumia `pgettext` au `npgettext`. Katika Babel 2.18.0 huripoti kila katalogi
+yenye `msgctxt` kuwa imepitwa na wakati, kila inapoendeshwa. Ulinganisho hupita
+kwenye `Catalog.is_identical`, ambayo hutafuta kila ujumbe kwa ufunguo ambao
+umehifadhiwa nao — na kwa ujumbe wenye muktadha ufunguo huo ni jozi ya
+`(id, context)`, ambayo `Catalog.get` haikubali. Utafutaji haurudishi chochote,
+nazo katalogi hazilingani kamwe:
+
+```pycon
+>>> from babel.messages.catalog import Catalog
+>>> c = Catalog(locale="ja")
+>>> c.add("Guide", "ガイド", context="navigation")
+<Message 'Guide' (flags: [])>
+>>> c.is_identical(c)
+False
+```
+
+Ilipatikana hapa kwa kujaribu kuitumia, ikaripotiwa kwa watengenezaji walio juu
+ya mkondo, nao ukaguzi wa kubadilisha uko
+[kwenye ukurasa wa uzalishaji](workflow.md#what-ci-gates).
 
 Funzo la jumla ndilo lisilopendeza: kizuizi kilicho chekundu daima ni kibaya
 kuliko kutokuwa na kizuizi kabisa, kwa sababu timu hukizima. Hakikisha kwamba

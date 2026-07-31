@@ -11,6 +11,19 @@ grafiku, o sukompiliuotas katalogas iškeliauja su kiekvienu leidimu. Šis
 puslapis yra ta praktika — kas lieka saugykloje, kas keliauja, ką privalo
 tikrinti CI ir kur veikimo metu susiejama kalba.
 
+Susumavus, tai yra šešios patikros, tad štai jos pirmiausia; kiekvienas žemiau
+esantis skyrius parengia po vieną iš jų.
+
+- `pybabel update --check` praeina — nė vienas pranešimas nepasikeitė
+  katalogams apie tai neišgirdus.
+- `pybabel compile` pagal savo išėjimo būseną sustabdo kūrimą.
+- Likę `fuzzy` įrašai yra sąmoningi — kiekvienas iš jų atvaizduojamas kaip
+  pirminis tekstas, kol vertėjas jo nepatvirtina.
+- Testų rinkinys po kartą atvaizduoja kiekvieną siunčiamą kalbą su
+  `strict=True`.
+- Produkcinis artefaktas turi `.mo` failus ir neturi Babel.
+- `gettext_tstrings` žurnalintuvas nukreiptas į stebėseną.
+
 ## Projekto forma { #the-shape-of-a-project }
 
 ```text
@@ -32,8 +45,8 @@ arba pakavimo metu, o ne dėkite į saugyklą, kad `.po` ir jo `.mo` niekada
 negalėtų nesutarti dėl to, kas iškeliauja.
 
 Vienas failas turi vaidmenį kiekviena kryptimi: `.pot` neša jūsų pranešimus
-*lauk* vertėjams, `.po` failai neša vertimus *atgal*. Visa, kas žemiau, yra
-eismas tarp tų dviejų.
+*lauk* vertėjams, `.po` failai neša vertimus *atgal*. Likusi šio puslapio dalis
+yra tai, kas juda tarp jų.
 
 ```mermaid
 flowchart LR
@@ -47,8 +60,8 @@ flowchart LR
 
 ## Ciklas po pirmojo vertimo { #the-cycle-after-the-first-translation }
 
-Pamokos `pybabel init` paleidžiama po kartą kiekvienai kalbai, ir tiek. Nuo tol
-darbinis ciklas yra **ištraukti → atnaujinti → išversti → sukompiliuoti**, o jo
+Pamokos `pybabel init` paprastai paleidžiama vieną kartą — kai pridedama kalba.
+Nuo tol darbinis ciklas yra **ištraukti → atnaujinti → išversti → sukompiliuoti**, o jo
 centre yra `pybabel update`, įpinanti šviežią šabloną į esamus katalogus
 neišmetant jau juose esančių vertimų.
 
@@ -76,7 +89,8 @@ msgstr "こんにちは {name}"
 
 Babel pastebėjo, kad naujasis msgid panašus į pašalintą, ir suporavo jį su senu
 vertimu — bet porą pažymėjo **fuzzy**: mašinos spėjimu, laukiančiu žmogaus. Ta
-žyma turi dantis. `pybabel compile` **fuzzy įrašų į `.mo` neįtraukia**, todėl,
+žyma keičia tai, kas sukompiliuojama. `pybabel compile` **fuzzy įrašų į `.mo`
+neįtraukia**, todėl,
 kol vertėjas poros nepatvirtina, programa atvaizduoja naują anglišką tekstą, o
 ne pasenusį japonišką:
 
@@ -125,33 +139,17 @@ Babel, ir šio paketo
 [užregistruoto tikrintuvo](extraction.md#your-existing-toolchain-validates-these-catalogs)
 vietaženklių patikras.
 
-!!! bug "`--check` negali tikrinti katalogo, naudojančio kontekstus"
+!!! bug "Babel 2.18.0: `--check` negali tikrinti katalogo, naudojančio kontekstus"
 
     Su Babel 2.18.0 `pybabel update --check` praneša, kad **kiekvienas**
     katalogas, turintis `msgctxt`, yra pasenęs — kiekvieną kartą, kad ir koks
-    šviežias jis būtų. Palyginimas eina per `Catalog.is_identical`, kuris
-    kiekvieno pranešimo ieško pagal raktą, su kuriuo jis saugomas — o
-    kontekstinio pranešimo tas raktas yra pora `(id, context)`, kurios
-    `Catalog.get` nepriima. Paieška negrąžina nieko, ir katalogai niekada
-    nepasirodo lygūs:
-
-    ```pycon
-    >>> from babel.messages.catalog import Catalog
-    >>> c = Catalog(locale="ja")
-    >>> c.add("Guide", "ガイド", context="navigation")
-    <Message 'Guide' (flags: [])>
-    >>> c.is_identical(c)
-    False
-    ```
-
-    Taigi jei apskritai naudojate `pgettext` ar `npgettext` — o homonimų
-    atskyrimas yra jų egzistavimo priežastis — šis žingsnis genda blogiausiu
-    būdu: visada raudonas, tad komanda jį išjungia, tad senumo niekas
-    nebetikrina. Kol tai nepataisyta aukštupyje, pranešimų aibes palyginkite
-    patys. Perskaityti šabloną ir kiekvieną katalogą su
-    `babel.messages.pofile.read_po` bei palyginti
-    `{(m.context, m.id) for m in catalog if m.id}` yra visa patikra, ir būtent
-    tai daro [šios svetainės kūrimas](index.md).
+    šviežias jis būtų. Nuolat krintantys vartai yra blogiau nei jokių vartų,
+    nes komanda juos išjungia — tad jei apskritai naudojate `pgettext` ar
+    `npgettext`, šį žingsnį geriau pakeisti, o ne su juo gyventi. Perskaityti
+    šabloną ir kiekvieną katalogą su `babel.messages.pofile.read_po` bei
+    palyginti `{(m.context, m.id) for m in catalog if m.id}` yra visa patikra,
+    ir būtent tai daro [šios svetainės kūrimas](index.md). Priežastis
+    [aprašyta Spąstų puslapyje](pitfalls.md#your-tools-have-bugs-too).
 
 !!! danger "Tikrinkite išėjimo būseną, o ne žurnalą"
 

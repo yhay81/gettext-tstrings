@@ -74,6 +74,11 @@ Python:
 }
 ```
 
+Field `"spec"` **bukan** versi spesifikasi — setiap kasus dalam `v1.json`
+termasuk spec v1. Field itu menamai bagian `SPEC.md` yang diuji oleh kasus
+tersebut, sehingga `"2.2"` dibaca sebagai §2.2, aturan untuk menurunkan token
+placeholder.
+
 Implementasi referensi menjalankan suite ini sebagai bagian dari suite
 pengujiannya sendiri, sehingga prosa dan kodenya tidak dapat saling menjauh
 dalam diam.

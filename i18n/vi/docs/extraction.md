@@ -43,11 +43,14 @@ Bộ trích xuất `gettext_tstrings` cũng xử lý các lời gọi `_()`, `ge
 hỗn hợp. Nó nhận diện `_()`, bốn tên gettext chuẩn, các bí danh `tr()` /
 `ntr()`, và các dạng trì hoãn `lazy_gettext()` / `lazy_pgettext()`.
 
-!!! warning "`-c` không thể bỏ qua"
+!!! warning "Bật chú thích cho người dịch bằng `-c`"
 
     `pybabel extract` chỉ thu thập chú thích dành cho người dịch khi bạn
     truyền `-c "Translators:"`, đúng như cách nó làm với các lời gọi gettext
-    thông thường.
+    thông thường. Bỏ tùy chọn đó thì việc trích xuất vẫn chạy — chỉ là các
+    chú thích không bao giờ tới được catalog, nơi chúng là [đòn bẩy chất lượng
+    rẻ nhất](workflow.md#working-with-translators-and-platforms) trong toàn bộ
+    quy trình.
 
 ## Đăng ký tên hàm của riêng bạn { #registering-your-own-function-names }
 
@@ -89,9 +92,9 @@ Các tùy chọn gồm `tr_functions`, `ntr_functions`, `gettext_functions`,
     đến thông điệp với `pgettext`; ngữ cảnh, rồi số ít, rồi số nhiều với
     `npgettext`.
 
-## Bền bỉ theo mặc định { #robust-by-default }
+## Khoan dung tại chỗ, nghiêm ngặt trong CI { #lenient-locally-strict-in-ci }
 
-Một tệp hỏng không làm chấm dứt cả lượt chạy:
+Theo mặc định, một tệp hỏng không làm chấm dứt cả lượt chạy:
 
 - Một t-string bị bộ trích xuất từ chối — truy cập thuộc tính, một biểu thức,
   một đối số sai — được báo dưới dạng cảnh báo rồi bỏ qua.
@@ -99,8 +102,31 @@ Một tệp hỏng không làm chấm dứt cả lượt chạy:
 - Tương tự với tệp mà chỉ `tokenize` từ chối trong khi `ast` chấp nhận —
   trường hợp mà lượt chạy của chính Babel lẽ ra sẽ dừng hẳn.
 
-Đặt `strict = true` trong các tùy chọn của mapping để biến mọi trường hợp
-trên thành lỗi cứng — và đó chính là điều bạn muốn trong CI.
+Điều đó tiện lợi khi bạn đang ngồi sửa mã và nguy hiểm khi bạn không ngồi đó:
+một thông điệp bị bỏ qua đơn giản là **vắng mặt trong tệp POT**, nên nó không
+bao giờ được dịch mà cũng chẳng có gì báo cho bạn biết. Hãy đặt `strict = true`
+trong các tùy chọn của mapping ở bất cứ nơi nào việc trích xuất không có người
+theo dõi:
+
+=== "babel.cfg"
+
+    ```ini
+    [gettext_tstrings: **.py]
+    encoding = utf-8
+    strict = true
+    ```
+
+=== "babel.toml"
+
+    ```toml
+    [[mappings]]
+    method = "gettext_tstrings"
+    pattern = "**.py"
+    strict = true
+    ```
+
+Khi đó mọi cảnh báo bên trên đều trở thành lỗi cứng. Hãy coi đây là thiết lập
+cho production, còn mặc định là thiết lập cho máy của bạn.
 
 ## Toolchain hiện có của bạn xác thực các catalog này { #your-existing-toolchain-validates-these-catalogs }
 
@@ -128,8 +154,9 @@ msgfmt: found 1 fatal error
 
 Weblate ghi nhận cùng phép kiểm tra này dưới tên
 [Python brace format][weblate-checks], và các nền tảng thương mại có cơ chế
-QA placeholder riêng dựa trên cùng cờ đó. Hành vi của họ là chuyện của họ;
-hai công cụ dưới đây mới là những công cụ đã được kiểm chứng tại đây.
+QA placeholder riêng dựa trên cùng cờ đó. Hành vi của mỗi nền tảng là chuyện
+riêng của nền tảng đó; hai công cụ dưới đây mới là những công cụ đã được kiểm
+chứng tại đây.
 
   [weblate-checks]: https://docs.weblate.org/en/latest/user/checks.html
 
@@ -159,8 +186,8 @@ match the source placeholders: {n} is missing
     [Những gì CI chặn lại](workflow.md#what-ci-gates) trình bày bước build
     thực hiện điều này.
 
-Hai phép kiểm tra không hề trùng lặp. Checker đi kèm là bên nghiêm ngặt hơn ở
-ít nhất hai điểm:
+Hai phép kiểm tra không hề trùng lặp. Checker của gói này nghiêm ngặt hơn ở ít
+nhất hai trường hợp:
 
 - Một msgid mà mọi dấu ngoặc nhọn trong nó đều đã được escape
   (`Config {{raw}} only`) không bao giờ nhận cờ `python-brace-format`, nên

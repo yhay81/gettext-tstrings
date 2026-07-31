@@ -1,5 +1,5 @@
 ---
-description: "Þýddu heil t-string-skilaboð gegnum gettext og Babel, með sniðið haldið utan þýðingaskrárinnar."
+description: "Þýddu heil t-string-skilaboð gegnum gettext og Babel, með gildunum og sniðinu haldið utan þýðingaskrárinnar."
 title: "gettext-tstrings"
 hide:
   - navigation
@@ -8,10 +8,12 @@ hide:
 
 <div class="home-hero" markdown>
 
-# Skrifaðu setninguna einu sinni.<br>Þýddu hana heila.
+# Þýddu heil skilaboð,<br>ekki strengjabúta.
 
-Örugg samþætting gettext og Babel fyrir t-strings í Python 3.14+ — gildið
-helst á sínum stað og þýðingaskráin sér öll skilaboðin:
+`gettext-tstrings` tengir t-strengi í Python 3.14+ við staðlaðar
+gettext-þýðingaskrár og Babel-tólakeðjuna. Gildi og snið haldast í
+forritskóðanum; þýðingaskráin geymir heil skilaboð með einföldum
+`{name}`-staðgenglum:
 
 ```python
 import gettext
@@ -24,7 +26,11 @@ print(_(t"Hello {name}"))  # with a Japanese catalog: こんにちは Ada
 ```
 
 [Byrjaðu á kennsluefninu :material-arrow-right:](tutorial.md){ .md-button .md-button--primary }
-[Hvers vegna t-strings](comparison.md){ .md-button }
+[Berðu saman valkostina](comparison.md){ .md-button }
+
+Alfa · Python 3.14+ · venjulegar PO/MO-þýðingaskrár · engar háðar einingar á
+keyrslutíma
+{ .home-facts }
 
 Þessi vefur fer sjálfur eftir því sem hann kennir: hver einasta
 tungumálaútgáfa — leiðarkerfi, merkingar og byggingarskýrslan sem kann
@@ -34,20 +40,44 @@ fleirtölu — er birt úr PO-þýðingaskrám af
 
 </div>
 
-Þýðingaskráin tekur við heilli setningu, `Hello {name}`. Þýðing má víxla
-`{name}` til eða endurtaka hann; hún má ekki sleppa honum, búa einn til eða
-hengja við sitt eigið snið — þetta safn athugar það, og biluð þýðingaskrá
-fellur aftur í frumtextann í stað þess að hrynja.
+## Er þetta fyrir þig? { #is-this-for-you }
+
+**Það passar í dag þegar** forritið þitt keyrir á Python 3.14 eða nýrri; þú
+notar nú þegar gettext og Babel, eða vilt taka upp PO/MO-hringrás þeirra; og
+þú vilt t-strengjamálskipan með nefndum staðgenglum sem eru athugaðir áður en
+þeir birtast.
+
+**Það passar ekki enn þegar** þú þarft Python 3.13 eða eldri; þú krefst
+stöðugs Python-viðmóts — þetta er alfa og [forskriftin](spec.md) er sá hluti
+þess sem hefur sest; eða nánast allur þýðanlegur texti þinn býr í
+sniðmátsmáli fremur en í Python-frumkóða.
+
+Áttu þýðingaskrár nú þegar? Þær halda áfram að virka.
+`_("Hello {name}").format(name=name)` og `tr(t"Hello {name}")` framleiða sama
+msgid, svo að núverandi þýðingar lifa skiptin af —
+[Yfirfærsla](migration.md) gengur gegnum alla færsluna.
+
+## Hvað þýðingaskráin má segja { #what-the-catalog-may-say }
+
+Þýðingaskráin tekur við heilum skilaboðum, `Hello {name}`. Þýðing má víxla
+`{name}` til eða endurtaka hann, og má umskrifa hvert annað orð í kringum
+hann. Hún má ekki sleppa staðgenglinum, búa til nýjan, seilast gegnum hann inn
+í hlutina þína eða hengja við sitt eigið snið.
+
+Það er allt loforðið: **þýðing getur ekki breytt gerð þeirra skilaboða sem hún
+þýðir.** Safnið athugar það á leiðinni inn — þegar þýðingaskrár eru vistþýddar
+— og aftur við birtingu; biluð færsla sem kemst engu að síður í rekstur skráir
+viðvörun og birtir frumtextaskilaboðin í stað þess að hrynja.
 
 !!! note "Nýliði í gettext? Öll hringrásin í fjórum setningum"
 
     **gettext** er staðlaða leiðin til að þýða hugbúnað, í Python og langt
-    þar út fyrir. Kóðinn þinn merkir þýðanlega strengi; *útdráttartól* safnar
+    þar út fyrir. Kóðinn þinn merkir þýðanleg skilaboð; *útdráttartól* safnar
     þeim í sniðmátsskrá (`.pot`); þýðandi — sjaldnast forritari — fyllir út
     eina þýðingaskrá (`.po`) fyrir hvert tungumál, sem er vistþýdd í tvíundar-
     `.mo` sem forritið þitt les inn á keyrslutíma. Venjubundna nafnið á
-    þýðingarfallinu er `_`, svo `_(t"Hello {name}")` les sem „þýddu þessa
-    setningu“. **[Kennsluefnið](tutorial.md)** gengur alla leiðina — merkja,
+    þýðingarfallinu er `_`, svo `_(t"Hello {name}")` les sem „þýddu þessi
+    skilaboð“. **[Kennsluefnið](tutorial.md)** gengur alla leiðina — merkja,
     draga út, þýða, vistþýða, keyra — á um það bil fimm mínútum.
 
 ## Vandinn sem það leysir { #the-problem-it-solves }
@@ -66,14 +96,20 @@ skilaboðum. Þetta safn tekur þá ákvörðun, skrifar hana niður sem
 [útgáfumerkta forskrift](spec.md) og lætur
 [samræmisprófin](spec.md#conformance) fylgja með til að athuga hana.
 
-## Valið sem það tekur { #the-choice-it-makes }
+## Hönnunarreglurnar { #the-design-rules }
 
 - Þýða heil skilaboð, aldrei setningarbúta.
 - Taka aðeins við einföldum breytunöfnum á borð við `{name}`.
 - Halda `!r` og `:.2f` undir stjórn forritsins, utan þýðingaskrárinnar.
-- Leyfa þýðendum að víxla og endurtaka þekkta staðgengla — en ekki kalla á
-  eigindi og ekki bæta við sniðhegðun.
+- Leyfa þýðingum að víxla og endurtaka þekkta staðgengla, en koma um leið í
+  veg fyrir að þær nái til eiginda eða bæti við sniði.
 - Endurnýta venjulegar POT-, PO- og MO-skrár, og tólin sem lesa þær nú þegar.
+
+Og samsvarandi listi yfir það sem það lætur af ásettu ráði í friði: það
+staðfærir ekki tölur, gjaldmiðla eða dagsetningar —
+[sníddu þau fyrst](guide.md#locale-aware-values), með Babel; það escape-ritar
+ekki birt úttak fyrir HTML, skel eða skjáhermi; og það getur ekki dæmt um
+hvort þýðing sé *rétt*, aðeins hvort staðgenglar hennar séu heilir.
 
 ## Uppsetning { #install }
 
@@ -94,46 +130,55 @@ python -m pip install "gettext-tstrings[babel]"
 
 ## Hvert skal halda næst { #where-to-go-next }
 
-Þrenns konar lesendur koma hingað: sá sem er að þýða sitt fyrsta forrit, sá
-sem er að tengja þýðingar inn í raunverulegt verkefni, og sá sem vill vita
-nákvæmlega hvers vegna vélbúnaðurinn er lagaður svona. Hver hefur sína leið.
-
-**Að læra það** — engrar gettext-reynslu krafist:
+**Byrjaðu hér** — engrar gettext-reynslu krafist:
 
 <div class="grid cards" markdown>
 
-- **[Kennsluefni](tutorial.md)** — byrjaðu hér: úr tómri möppu í keyrandi
-  japanska þýðingu í fimm skrefum, hver skipun sýnd með úttaki sínu.
+- **[Kennsluefni](tutorial.md)** — úr tómri möppu í keyrandi japanska þýðingu
+  í fimm skrefum, hver skipun sýnd með úttaki sínu.
 - **[Hvers vegna t-strings](comparison.md)** — sömu skilaboðin rituð á fjóra
   vegu, og hvað `%(name)s`, `.format()` og `$`-strengir rétta hver um sig
   þýðingaskránni.
-- **[Bakgrunnur](background.md)** — hvers vegna þetta safn er til: þrjátíu ár
-  af gettext, tveir PEP-ar og umræðan í staðalsafninu sem lokaðist án svars.
 
 </div>
 
-**Að nota það í alvöru** — vinnuheimildirnar:
+**Notaðu það** — vinnuheimildirnar:
 
 <div class="grid cards" markdown>
 
-- **[Handbók](guide.md)** — keyrslutíma-API-ið: fleirtala, tungumál eftir
-  beiðni, frestaðir strengir, og hvað gerist þegar þýðingaskrá er röng.
+- **[Handbók](guide.md)** — keyrslutíma-API-ið: hvaða aðgangsstað skal nota,
+  fleirtala, tungumál eftir beiðni, frestaðir strengir, og hvað gerist þegar
+  þýðingaskrá er röng.
 - **[Útdráttur](extraction.md)** — `pybabel`-heimildin: stillingar, eigin
   fallanöfn, og hvernig tólin sem þegar eru til staðfesta þessar þýðingaskrár
   án nokkurs aukakostnaðar.
 - **[Í rekstri](workflow.md)** — hringrásin eins og teymi keyrir hana:
-  uppfærsluferlið, fuzzy-færslur, CI-hlið, þýðingavettvangar og tungumál
-  eftir beiðni í vefforriti.
-- **[API](api.md)** — allt sem pakkinn flytur út, á einni síðu.
+  uppfærsluferlið, fuzzy-færslur, CI-hlið, þýðingavettvangar og útgáfa.
+- **[Yfirfærsla](migration.md)** — að taka þetta upp í verkefni sem hefur nú
+  þegar þýðingaskrár, einn köllunarstað í einu.
+- **[Fyrir þýðendur](translators.md)** — ein síða til að rétta þeim sem
+  ritstýrir `.po`-skránum.
 
 </div>
 
-**Að skilja það** — frá grunnreglum að útfærslu:
+**Skildu það** — frá sögunni að útfærslunni:
 
 <div class="grid cards" markdown>
 
+- **[Bakgrunnur](background.md)** — hvers vegna þetta safn er til: þrjátíu ár
+  af gettext, tveir PEP-ar og umræðan í staðalsafninu sem lokaðist án svars.
+- **[Fallgryfjur](pitfalls.md)** — hvað brotnaði í raun við að þýða þennan vef
+  á þrjátíu og fimm tungumál, og hvorn helminginn tól getur gripið.
 - **[Hvernig þetta virkar](internals.md)** — frá sniðmátshlutnum í PEP 750 að
   birta strengnum, og skyndiminnunum sem gera athugunina ódýra.
+
+</div>
+
+**Uppflettirit** — samningarnir:
+
+<div class="grid cards" markdown>
+
+- **[API](api.md)** — allt sem pakkinn flytur út, á einni síðu.
 - **[Forskrift](spec.md)** — venjan t-strengur ↔ msgid sem stöðugur,
   útgáfumerktur samningur, með vélleseinlegum samræmisprófum.
 

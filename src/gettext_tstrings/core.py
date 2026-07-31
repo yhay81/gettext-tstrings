@@ -703,6 +703,14 @@ def gettext(
         strict=strict,
     )
 
+    # The block below is duplicated in pgettext(), differing only in the
+    # warning's wording, and _ngettext_impl carries a third copy for the plural
+    # pair. Unlike the render tail, this one is not kept apart for speed —
+    # extracting it was measured and dropped, because the helper removes no net
+    # lines and adds ~5% to the path a damaged catalog entry takes on every
+    # render. Keep the copies in sync: each is pinned by its own test in
+    # tests/test_core.py (test_invalid_translation_warns_once_and_keeps_rendering,
+    # test_contextual_..., test_plural_...), which is what catches a one-sided edit.
     render_plan = plan.patterns.get(pattern)
     if render_plan is None:
         if not strict and pattern in plan.invalid:
@@ -781,6 +789,7 @@ def pgettext(
         strict=strict,
     )
 
+    # Duplicated from gettext(); that copy carries the reasoning. Keep in sync.
     render_plan = plan.patterns.get(pattern)
     if render_plan is None:
         if not strict and pattern in plan.invalid:
@@ -943,6 +952,8 @@ def _ngettext_impl(
     # branch is empty no translation entry can exist, so render the source.
     if not singular_plan.msgid or not plural_plan.msgid:
         return _render_plural_source(singular_plan, singular, plural_plan, plural, n)
+    # The plan resolution below is gettext()'s block again, over a merged plural
+    # plan; that copy carries the reasoning. Keep in sync.
     merged = _merge_plural_plans(singular_plan, plural_plan)
 
     if translations is None:

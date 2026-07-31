@@ -86,3 +86,27 @@ msgid "Rendered {n} page in {seconds}s"
 msgid_plural "Rendered {n} pages in {seconds}s"
 msgstr[0] "{n} पेज {seconds}s में रेंडर किया गया"
 msgstr[1] "{n} पेज {seconds}s में रेंडर किए गए"
+
+#. gettext-tstrings
+msgid "Start here"
+msgstr "यहाँ से शुरू करें"
+
+#. gettext-tstrings
+msgid "Use it"
+msgstr "उपयोग करें"
+
+#. gettext-tstrings
+msgid "Migration"
+msgstr "माइग्रेशन"
+
+#. gettext-tstrings
+msgid "For translators"
+msgstr "अनुवादकों के लिए"
+
+#. gettext-tstrings
+msgid "Understand it"
+msgstr "समझें"
+
+#. gettext-tstrings
+msgid "Reference"
+msgstr "संदर्भ"

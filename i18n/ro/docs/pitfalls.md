@@ -150,11 +150,24 @@ să acopere acel gol.
 
 Pasul de CI pe care documentația de față îl recomandă pentru prinderea
 cataloagelor rămase în urmă, `pybabel update --check`, nu poate face treaba
-aceea pentru niciun proiect care folosește `pgettext` sau `npgettext` — el
-raportă drept învechit fiecare catalog cu un `msgctxt`, la fiecare rulare, din
-cauza unui bug în felul în care comparația caută mesajele. A fost găsit aici
-încercând să fie folosit, raportat în amonte și este
-[descris pe larg, împreună cu soluția de ocolire](workflow.md#what-ci-gates).
+aceea pentru niciun proiect care folosește `pgettext` sau `npgettext`. Pe Babel
+2.18.0 el raportă drept învechit fiecare catalog cu un `msgctxt`, la fiecare
+rulare. Comparația trece prin `Catalog.is_identical`, care caută fiecare mesaj
+după cheia sub care este stocat — iar pentru un mesaj cu context acea cheie este
+perechea `(id, context)`, pe care `Catalog.get` nu o acceptă. Căutarea nu
+întoarce nimic, iar cataloagele nu ies niciodată egale:
+
+```pycon
+>>> from babel.messages.catalog import Catalog
+>>> c = Catalog(locale="ja")
+>>> c.add("Guide", "ガイド", context="navigation")
+<Message 'Guide' (flags: [])>
+>>> c.is_identical(c)
+False
+```
+
+A fost găsit aici încercând să fie folosit, raportat în amonte, iar verificarea
+de înlocuire este [pe pagina de producție](workflow.md#what-ci-gates).
 
 Lecția generală este cea incomodă: o poartă mereu roșie este mai rea decât
 nicio poartă, pentru că o echipă o oprește. Verifică dacă verificarea ta de CI

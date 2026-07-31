@@ -11,6 +11,18 @@ parte și după propriul orar, iar un catalog compilat este livrat cu fiecare
 lansare. Pagina de față este acea practică — ce rămâne în depozit, ce
 călătorește, ce trebuie să păzească CI-ul și unde leagă runtime-ul o limbă.
 
+Totul se adună la șase verificări, așa că iată-le mai întâi; fiecare secțiune de
+mai jos o configurează pe una dintre ele.
+
+- `pybabel update --check` trece — niciun mesaj nu s-a schimbat fără ca
+  cataloagele să afle.
+- `pybabel compile` condiționează buildul de starea lui de ieșire.
+- Intrările `fuzzy` rămase sunt intenționate — fiecare se randează ca text sursă
+  până când un traducător o confirmă.
+- Suita de teste randează o dată fiecare limbă livrată, cu `strict=True`.
+- Artefactul de producție conține fișiere `.mo` și niciun Babel.
+- Jurnalizatorul `gettext_tstrings` este dirijat către monitorizare.
+
 ## Forma unui proiect { #the-shape-of-a-project }
 
 ```text
@@ -33,8 +45,8 @@ un `.po` și `.mo`-ul lui să nu poată niciodată să nu fie de acord asupra a 
 ce se livrează.
 
 Un fișier are câte un rol în fiecare direcție: `.pot`-ul îți duce mesajele
-*afară*, către traducători, iar fișierele `.po` aduc traducerile *înapoi*. Tot
-ce urmează este traficul dintre acestea două.
+*afară*, către traducători, iar fișierele `.po` aduc traducerile *înapoi*.
+Restul acestei pagini este ceea ce circulă între ele.
 
 ```mermaid
 flowchart LR
@@ -48,8 +60,8 @@ flowchart LR
 
 ## Ciclul de după prima traducere { #the-cycle-after-the-first-translation }
 
-`pybabel init` din tutorial se rulează o dată pe limbă, o dată pentru
-totdeauna. De atunci încolo, ciclul de lucru este **extrage → actualizează →
+`pybabel init` din tutorial se rulează de obicei o singură dată, atunci când se
+adaugă o limbă. De atunci încolo, ciclul de lucru este **extrage → actualizează →
 tradu → compilează**, iar centrul lui este `pybabel update`, care pliază un
 șablon proaspăt peste cataloagele existente fără să arunce traducerile aflate
 deja în ele.
@@ -77,8 +89,9 @@ msgstr "こんにちは {name}"
 
 Babel a observat că noul msgid seamănă cu unul eliminat și l-a împerecheat cu
 vechea traducere — dar a marcat perechea **fuzzy**: ghiceala unei mașini care
-așteaptă un om. Marcajul are dinți. `pybabel compile` **exclude intrările fuzzy
-din `.mo`**, așa că, până când un traducător confirmă perechea, aplicația
+așteaptă un om. Marcajul schimbă ce anume se compilează. `pybabel compile`
+**exclude intrările fuzzy din `.mo`**, așa că, până când un traducător confirmă
+perechea, aplicația
 randează noul text englezesc, nu unul japonez învechit:
 
 ```console
@@ -129,33 +142,18 @@ când un catalog nu mai este la zi față de șablonul proaspăt extras — paza
 [verificatorului înregistrat](extraction.md#your-existing-toolchain-validates-these-catalogs)
 al acestui pachet.
 
-!!! bug "`--check` nu poate păzi un catalog care folosește contexte"
+!!! bug "Babel 2.18.0: `--check` nu poate păzi un catalog care folosește contexte"
 
     Pe Babel 2.18.0, `pybabel update --check` raportează **fiecare** catalog
-    care conține un `msgctxt` ca fiind neactualizat, la fiecare rulare,
-    indiferent cât de la zi ar fi. Comparația trece prin
-    `Catalog.is_identical`, care caută fiecare mesaj după cheia sub care este
-    stocat — iar pentru un mesaj cu context acea cheie este perechea
-    `(id, context)`, pe care `Catalog.get` nu o acceptă. Căutarea nu întoarce
-    nimic, iar cataloagele nu se compară niciodată egale:
-
-    ```pycon
-    >>> from babel.messages.catalog import Catalog
-    >>> c = Catalog(locale="ja")
-    >>> c.add("Guide", "ガイド", context="navigation")
-    <Message 'Guide' (flags: [])>
-    >>> c.is_identical(c)
-    False
-    ```
-
-    Așa că, dacă folosești `pgettext` sau `npgettext` cât de cât — iar
-    dezambiguizarea unui omonim este chiar motivul pentru care ele există —
-    acest pas eșuează deschis în modul cel mai rău cu putință: mereu roșu, deci
-    echipa îl oprește, deci nimic nu mai păzește învechirea. Până când va fi
-    reparat în amonte, compară singur mulțimile de mesaje. Citirea șablonului
-    și a fiecărui catalog cu `babel.messages.pofile.read_po` și compararea lui
+    care conține un `msgctxt` ca fiind neactualizat, la fiecare rulare, oricât
+    de la zi ar fi. O poartă care pică permanent este mai rea decât nicio
+    poartă, pentru că echipa o oprește — așa că, dacă folosești `pgettext` sau
+    `npgettext` cât de cât, înlocuiește acest pas în loc să trăiești cu el.
+    Citirea șablonului și a fiecărui catalog cu
+    `babel.messages.pofile.read_po` și compararea lui
     `{(m.context, m.id) for m in catalog if m.id}` este toată verificarea, și
-    este exact ce face [buildul propriu al acestui sit](index.md).
+    este exact ce face [buildul propriu al acestui sit](index.md). Cauza este
+    [descrisă pe pagina Capcane](pitfalls.md#your-tools-have-bugs-too).
 
 !!! danger "Verifică starea de ieșire, nu jurnalul"
 

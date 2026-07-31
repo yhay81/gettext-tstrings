@@ -51,9 +51,12 @@ concurrency.
 
 | Naam | Doel |
 | --- | --- |
-| `lazy_gettext(template, /, *, strict=False)` | Stel een vertaling uit tot het eerste gebruik. |
+| `lazy_gettext(template, /, *, strict=False)` | Stel de vertaling uit tot elke render. |
 | `lazy_pgettext(context, template, /, *, strict=False)` | De contextuele vorm. |
-| `LazyString` | Wat beide teruggeven. Rendert via `str()` en `format()`, is gelijk aan zijn tekst, en is bewust unhashable. |
+| `LazyString` | Wat beide teruggeven. Rendert via `str()` en `format()` in de taal die op dat moment gebonden is, is gelijk aan zijn gerenderde tekst, en is bewust unhashable. |
+
+Uitgewerkte voorbeelden, inclusief waarom `strict` bij de definitie hoort,
+staan onder [Uitgestelde vertaling](guide.md#deferred-translation).
 
 ## Lager niveau { #lower-level }
 

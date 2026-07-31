@@ -43,11 +43,14 @@ El extractor `gettext_tstrings` también procesa llamadas ordinarias a `_()`,
 mixta. Reconoce `_()`, los cuatro nombres estándar de gettext, los alias `tr()` /
 `ntr()` y las funciones diferidas `lazy_gettext()` / `lazy_pgettext()`.
 
-!!! warning "`-c` no es opcional"
+!!! warning "Activa los comentarios para traductores con `-c`"
 
     `pybabel extract` solo recoge los comentarios para traductores si se pasa
     `-c "Translators:"`, exactamente igual que con las llamadas gettext
-    ordinarias.
+    ordinarias. Si lo omites, la extracción sigue funcionando: lo que pasa es
+    que los comentarios nunca llegan al catálogo, donde son [la palanca de
+    calidad más barata](workflow.md#working-with-translators-and-platforms) de
+    todo el flujo de trabajo.
 
 ## Registrar nombres de función propios { #registering-your-own-function-names }
 
@@ -87,9 +90,9 @@ Las opciones son `tr_functions`, `ntr_functions`, `gettext_functions`,
     Solo se admite el orden de argumentos estándar: primero el mensaje; en
     `pgettext`, contexto y mensaje; en `npgettext`, contexto, singular y plural.
 
-## Robusto por defecto { #robust-by-default }
+## Permisivo en local, estricto en CI { #lenient-locally-strict-in-ci }
 
-Un archivo incorrecto no detiene la ejecución:
+Por defecto, un archivo incorrecto no detiene la ejecución:
 
 - Una t-string rechazada por el extractor —acceso a atributos, una expresión o
   un argumento incorrecto— se notifica como advertencia y se omite.
@@ -97,8 +100,30 @@ Un archivo incorrecto no detiene la ejecución:
 - También se omite un archivo que solo rechaza `tokenize` aunque `ast` lo acepte,
   ya que de otro modo el propio paso de Babel se detendría.
 
-Establece `strict = true` en las opciones del mapping para convertir todos esos
-casos en errores, que es lo apropiado para CI.
+Eso resulta cómodo mientras estás editando y peligroso cuando no lo estás: un
+mensaje omitido está sencillamente **ausente del POT**, así que nunca se traduce
+y nada lo advierte. Establece `strict = true` en las opciones del mapping allí
+donde ninguna persona esté vigilando la extracción:
+
+=== "babel.cfg"
+
+    ```ini
+    [gettext_tstrings: **.py]
+    encoding = utf-8
+    strict = true
+    ```
+
+=== "babel.toml"
+
+    ```toml
+    [[mappings]]
+    method = "gettext_tstrings"
+    pattern = "**.py"
+    strict = true
+    ```
+
+Con ello, todas las advertencias anteriores pasan a ser errores. Considera esta
+la configuración de producción y la anterior la de trabajo local.
 
 ## El toolchain existente valida estos catálogos { #your-existing-toolchain-validates-these-catalogs }
 
@@ -124,8 +149,9 @@ msgfmt: found 1 fatal error
 
 Weblate documenta la misma comprobación como
 [Python brace format][weblate-checks], y las plataformas comerciales tienen su
-propio QA de marcadores basado en el mismo flag. Su comportamiento les
-corresponde; las dos herramientas siguientes son las verificadas aquí.
+propio QA de marcadores basado en el mismo flag. El comportamiento de cada
+plataforma es cosa suya; las dos herramientas siguientes son las verificadas
+aquí.
 
   [weblate-checks]: https://docs.weblate.org/en/latest/user/checks.html
 
@@ -155,8 +181,8 @@ match the source placeholders: {n} is missing
     un pipeline lo publique; [Qué controla la CI](workflow.md#what-ci-gates)
     muestra el paso de compilación que lo permite.
 
-Las dos comprobaciones no son redundantes. El checker incluido es más estricto
-al menos en dos puntos:
+Las dos comprobaciones no son redundantes. El checker del paquete es más
+estricto al menos en dos casos:
 
 - Un msgid cuyas únicas llaves están escapadas (`Config {{raw}} only`) nunca
   recibe el flag `python-brace-format`, así que ninguna herramienta externa lo

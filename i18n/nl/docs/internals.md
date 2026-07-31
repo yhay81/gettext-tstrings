@@ -209,8 +209,8 @@ Volgens hetzelfde principe krijgt een "ontbrekende" placeholder die
 aanwezig *lijkt*, zijn afwezigheid uitgelegd — accolades op volle breedte
 uit een Oost-Aziatische invoermethode, `{{name}}`-verdubbeling uit een
 escaping-rondreis, de naam buiten enige accolades. De
-[foutleestabel van de handleiding](guide.md#reading-a-failure-message) toont
-elk van deze meldingen woordelijk.
+[foutleestabel](translators.md#reading-a-failure-message) die voor vertalers
+geschreven is, toont elk van deze meldingen woordelijk.
 
 ## Het hete pad { #the-hot-path }
 

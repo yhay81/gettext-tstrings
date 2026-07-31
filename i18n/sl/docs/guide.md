@@ -1,5 +1,5 @@
 ---
-description: "API med izvajanjem: vezava kataloga, jezik na zahtevo, odloženi nizi in kako se sporoči pokvarjen prevod."
+description: "API med izvajanjem: katero vstopno točko uporabiti, vezava kataloga, jezik na zahtevo, odloženi nizi, vrednosti glede na locale in kako se sporoči pokvarjen prevod."
 ---
 
 # Vodnik
@@ -11,6 +11,22 @@ izvleci, prevedi, kompiliraj, zaženi — še niste videli, jo
 preverjanje katalogov pokriva [Ekstrakcija](extraction.md), kako pa ekipa to
 zanko vrti naprej — cikli posodobitev, CI, prevajalske platforme —, je
 opisano v [V produkciji](workflow.md).
+
+## Katero vstopno točko naj uporabim? { #which-entry-point-should-i-use }
+
+Paket izvaža več načinov za prevod sporočila, ker aplikacije jezik vežejo na
+več različnih načinov. Izberite glede na to, kako se vaš program odloči, v
+katerem jeziku je:
+
+| Vaš položaj | Uporabite |
+| --- | --- |
+| En jezik za ves proces — CLI, namizna aplikacija, skript | `Translator`, klican kot `_` |
+| En jezik na zahtevo ali na asinhrono opravilo — spletna aplikacija | `use_translations()` okoli dela, nato `tr()` |
+| Sporočilo, določeno ob uvozu — oznaka obrazca, naštevni tip, konstanta | `lazy_gettext()` ali `lazy_pgettext()` |
+| O ubeseditvi odloča število | `ngettext()` / `npgettext()`, v kateri koli zgornji obliki |
+| Izris vzorca, pri katerem ni nobenega kataloga | `compile_template()` |
+
+Vse spodnje je teh pet, v tem vrstnem redu.
 
 ## Vezava kataloga { #binding-a-catalog }
 
@@ -60,6 +76,7 @@ from gettext_tstrings import tr, use_translations
 
 
 def handle(request):
+    name = request.user.display_name
     translations = load_translations(request.locale)
     with use_translations(translations):
         return render(tr(t"Hello {name}"))
@@ -160,12 +177,52 @@ razčlenjeni katalog delijo.
 
     `asyncio.to_thread` to za vas stori že sam.
 
+## Vrednosti glede na locale { #locale-aware-values }
+
+Ta knjižnica odloči, *kje* se vrednost pojavi v prevedenem sporočilu.
+Vrednosti same ne lokalizira. `{amount:,.2f}` je pythonska formatna
+specifikacija z nespremenljivim vedenjem — vejica na vsake tri števke in pika
+pred decimalkami — in proizvede iste znake, ne glede na to, v katerem jeziku
+je sporočilo:
+
+```pycon
+>>> f"{1234.5:,.2f}"  # the same in every locale
+'1,234.50'
+```
+
+Nemščina to število zapiše `1.234,50`, francoščina `1 234,50`, hindijščina pa
+`1234567` združuje kot `12,34,567` in ne `1,234,567`. Števila, valute, datumi,
+ure in enote sodijo k [Babelu][babel-numbers]. Vrednost najprej oblikujte,
+nato postavite dokončani niz:
+
+```python
+from babel.numbers import format_currency
+
+total = format_currency(amount, "EUR", locale=locale)
+tr(t"Your order comes to {total}")
+```
+
+Pri sporočilu s številom to število opravlja dve nalogi — izbere množinsko
+obliko in se pojavi v besedilu — lokalizirana pa je le druga. Za izbiro
+ohranite surovo število, za prikaz pa podajte oblikovani niz:
+
+```python
+from babel.numbers import format_decimal
+
+shown = format_decimal(n, locale=locale)
+_.ngettext(t"One file", t"{shown} files", n)
+```
+
+Oblikovanje pred klicem je tudi tisto, kar formatno specifikacijo drži zunaj
+kataloga: prevajalec vidi dokončan kos besedila, ne števila skupaj z navodili
+za njegov izris.
+
 ## Kaj se zgodi, kadar je katalog napačen { #what-happens-when-a-catalog-is-wrong }
 
 Če se ograde prevoda ne ujemajo z izvornimi — manjkajoče, neznano ali
 preoblikovano polje, ki se je izmuznilo preverjanju, iz ročno urejenega MO, iz
 prevzetega kataloga ali iz cevovoda, ki preskoči preverjevalnik —, je privzeti
-odziv, da se ponovi izvorno besedilo, ne pa da se sproži izjema. To zrcali
+odziv, da se izriše izvorno sporočilo, ne pa da se sproži izjema. To zrcali
 gettextov lastni dogovor, da slab katalog nikoli ne pokvari aplikacije.
 
 Kadar je `Hello {name}` preveden kot `こんにちは {nombre}`, izris uspe, v
@@ -203,43 +260,14 @@ gettext_tstrings.errors.InvalidTranslationError: translation does not match the
 source placeholders: {name} is missing; {nombre} is not in the source message
 ```
 
-## Kako brati sporočilo o napaki { #reading-a-failure-message }
-
 Ta sporočila so napisana za tistega, ki lahko ukrepa, pri težavi s katalogom pa
-je to pogosteje prevajalec kot programer. Sporočiti zgolj, da `{name}` manjka,
-je slepa ulica, kadar bralec te znake vidi pred sabo, zato tam, kjer je ograda
-videti navzoča, pa ni, sporočilo pove tudi zakaj. Glede na izvirnik
-`Hello {name}` se vsaka od naslednjih javi pod
-`translation does not match the source placeholders:`
-
-| Prevod pravi | Naveden razlog |
-| --- | --- |
-| `こんにちは ｛name｝` | `{name}` manjka (oklepaja okoli njega nista znaka ASCII `{` in `}`) |
-| `こんにちは {{name}}` | `{name}` manjka (zapisan je kot `{{name}}`, kar je ubežni zapis dobesednega oklepaja) |
-| `こんにちは name` | `{name}` manjka (ime se pojavi, a ne znotraj oklepajev) |
-| `こんにちは {名前}` | `{name}` manjka; `{名前}` ni v izvornem sporočilu |
-
-Znaki, ki jih ni mogoče videti, so obravnavani posebej. Nedeljivi presledek
-znotraj oklepajev je nekaj, kar proizvede vnosna metoda in česar noben
-urejevalnik ne pokaže, zato ga sporočilo izpiše po kodni točki, namesto da bi
-poimenovalo znak, ki ga bralec ne more najti:
-
-```text
-placeholder {<U+00A0>name} has a space inside the braces; write {name}
-```
-
-Ime, katerega črke mešajo pisave — primer homoglifa, kjer cirilski `а` ni
-razločljiv od latinskega —, je prikazano dvakrat, enkrat berljivo in enkrat
-ubežno zapisano, kar je edina oblika, ki oba loči:
-
-```text
-translation does not match the source placeholders: {name} is missing;
-{nаme} (n\u0430me) is not in the source message
-```
-
-Isto razdvoumljanje velja, kadar grško ali cirilsko ime, zapisano povsem v eni
-pisavi, trči z izvornim imenom v ASCII, vključno z enočrkovnim primerom
-latinskega `a` proti cirilskemu `а`.
+je to pogosteje prevajalec kot programer — zato tam, kjer je ograda videti
+navzoča, pa ni, sporočilo pojasni zakaj, namesto da bi ponavljalo, da manjka.
+Široki zaviti oklepaji, podvojeni `{{name}}`, neviden nedeljivi presledek,
+cirilska črka med latinskimi: vsak ima svojo ubeseditev, naštete pa so s
+primeri vred na strani
+[Za prevajalce](translators.md#reading-a-failure-message). Ta stran je napisana
+tako, da jo izročite osebi, ki ureja `.po`.
 
 ## Izris vzorca brez kataloga { #rendering-a-pattern-without-a-catalog }
 
@@ -295,3 +323,5 @@ standardne knjižnice — **ubežno zapisovanje** izrisanega izhoda za njegov
 ponor (HTML, lupina, terminal) in **celovitost kataloga**, saj lahko sovražen
 katalog ogrado ponovi in tako napihne velikost izhoda, kar je lastno vsakemu
 i18n, ki temelji na ogradah.
+
+  [babel-numbers]: https://babel.pocoo.org/en/latest/api/numbers.html

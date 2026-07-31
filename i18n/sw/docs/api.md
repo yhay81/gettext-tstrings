@@ -51,9 +51,12 @@ utendaji sambamba.
 
 | Jina | Kusudi |
 | --- | --- |
-| `lazy_gettext(template, /, *, strict=False)` | Ahirisha tafsiri hadi matumizi ya kwanza. |
+| `lazy_gettext(template, /, *, strict=False)` | Ahirisha tafsiri hadi kila uonyeshaji. |
 | `lazy_pgettext(context, template, /, *, strict=False)` | Umbo lenye muktadha. |
-| `LazyString` | Kile ambacho zote mbili hurudisha. Huonyeshwa kupitia `str()` na `format()`, hulingana sawa na maandishi yake, nayo haihifadhiki kwa makusudi. |
+| `LazyString` | Kile ambacho zote mbili hurudisha. Huonyeshwa kupitia `str()` na `format()` katika lugha yoyote iliyofungwa wakati huo, hulingana sawa na maandishi yake yaliyoonyeshwa, nayo haihifadhiki kwa makusudi. |
+
+Mifano iliyofanyiwa kazi, pamoja na sababu ya `strict` kuwekwa mahali pa
+kufafanua, imo chini ya [Tafsiri iliyoahirishwa](guide.md#deferred-translation).
 
 ## Ngazi ya chini { #lower-level }
 

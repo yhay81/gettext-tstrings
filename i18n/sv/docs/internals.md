@@ -199,9 +199,9 @@ programmerare, och ofta i en fil där problemet är osynligt. Att säga
 Enligt samma princip får en "saknad" platshållare som *ser* närvarande ut
 sin frånvaro förklarad — fullbreddsklamrar från en östasiatisk
 inmatningsmetod, `{{name}}`-dubblering från en escape-rundresa, namnet
-utanför alla klamrar. [Guidens tabell för att läsa
-felmeddelanden](guide.md#reading-a-failure-message) visar vart och ett av de
-meddelandena ordagrant.
+utanför alla klamrar. [Tabellen för att läsa
+felmeddelanden](translators.md#reading-a-failure-message), skriven för
+översättare, visar vart och ett av de meddelandena ordagrant.
 
 ## Den heta vägen { #the-hot-path }
 

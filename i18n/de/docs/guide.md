@@ -1,5 +1,5 @@
 ---
-description: "Laufzeit-API: Katalogbindung, Sprache pro Anfrage, verzögerte Strings und Umgang mit fehlerhaften Übersetzungen."
+description: "Laufzeit-API: welcher Einstiegspunkt der richtige ist, Katalogbindung, Sprache pro Anfrage, verzögerte Strings, lokalisierte Werte und Umgang mit fehlerhaften Übersetzungen."
 ---
 
 # Anleitung
@@ -12,6 +12,22 @@ Minuten durch; das Erstellen und Validieren von Katalogen behandelt die
 [Extraktion](extraction.md), und wie ein Team die Schleife am Laufen hält —
 Update-Zyklen, CI, Übersetzungsplattformen — zeigt
 [Im Produktivbetrieb](workflow.md).
+
+## Welchen Einstiegspunkt soll ich nehmen? { #which-entry-point-should-i-use }
+
+Das Paket exportiert mehrere Wege, eine Nachricht zu übersetzen, weil
+Anwendungen eine Sprache auf sehr unterschiedliche Weise binden. Wähle danach,
+wie dein Programm entscheidet, in welcher Sprache es gerade ist:
+
+| Deine Situation | Nimm |
+| --- | --- |
+| Eine Sprache für den ganzen Prozess — ein CLI, eine Desktop-App, ein Skript | `Translator`, aufgerufen als `_` |
+| Eine Sprache pro Anfrage oder pro async-Task — eine Webanwendung | `use_translations()` um die Arbeit herum, dann `tr()` |
+| Eine beim Import definierte Nachricht — ein Formularlabel, ein Enum, eine Konstante | `lazy_gettext()` oder `lazy_pgettext()` |
+| Eine Zahl entscheidet über die Formulierung | `ngettext()` / `npgettext()`, in welcher der obigen Formen auch immer |
+| Ein Pattern rendern, ohne dass ein Katalog beteiligt ist | `compile_template()` |
+
+Alles Weitere sind diese fünf, in dieser Reihenfolge.
 
 ## Einen Katalog binden { #binding-a-catalog }
 
@@ -62,6 +78,7 @@ from gettext_tstrings import tr, use_translations
 
 
 def handle(request):
+    name = request.user.display_name
     translations = load_translations(request.locale)
     with use_translations(translations):
         return render(tr(t"Hello {name}"))
@@ -167,11 +184,54 @@ sich den geparsten Katalog teilen.
 
     `asyncio.to_thread` erledigt das bereits für dich.
 
+## Lokalisierte Werte { #locale-aware-values }
+
+Diese Bibliothek entscheidet, *wo* ein Wert in einer übersetzten Nachricht
+erscheint. Sie lokalisiert den Wert selbst nicht. `{amount:,.2f}` ist eine
+Python-Formatangabe mit festem Verhalten — ein Komma alle drei Stellen und ein
+Punkt vor den Nachkommastellen — und erzeugt dieselben Zeichen, in welcher
+Sprache die Nachricht auch steht:
+
+```pycon
+>>> f"{1234.5:,.2f}"  # the same in every locale
+'1,234.50'
+```
+
+Auf Deutsch schreibt man diese Zahl `1.234,50`, auf Französisch `1 234,50`, und
+Hindi gruppiert `1234567` als `12,34,567` statt als `1,234,567`. Zahlen,
+Währungen, Datums- und Zeitangaben sowie Einheiten gehören zu
+[Babel][babel-numbers]. Formatiere den Wert zuerst und setze dann den fertigen
+String ein:
+
+```python
+from babel.numbers import format_currency
+
+total = format_currency(amount, "EUR", locale=locale)
+tr(t"Your order comes to {total}")
+```
+
+Bei einer gezählten Nachricht erledigt die Zahl zwei Aufgaben — sie wählt die
+Pluralform aus und sie erscheint im Text —, und nur die zweite wird
+lokalisiert. Behalte die rohe Zahl für die Auswahl und übergib den formatierten
+String für die Anzeige:
+
+```python
+from babel.numbers import format_decimal
+
+shown = format_decimal(n, locale=locale)
+_.ngettext(t"One file", t"{shown} files", n)
+```
+
+Vor dem Aufruf zu formatieren hält außerdem jede Formatangabe aus dem Katalog
+heraus: Was eine übersetzende Person zu sehen bekommt, ist ein fertiges Stück
+Text und keine Zahl samt Anweisung, wie sie darzustellen ist.
+
 ## Wenn ein Katalog fehlerhaft ist { #what-happens-when-a-catalog-is-wrong }
 
 Wenn die Platzhalter einer Übersetzung nicht zur Quelle passen, rendert der
-Standardmodus den Quelltext, statt eine Exception auszulösen. Das entspricht
-dem gettext-Vertrag: Ein schlechter Katalog soll die Anwendung nicht beenden.
+Standardmodus die Quellnachricht, statt eine Exception auszulösen. Das
+entspricht dem gettext-Vertrag: Ein schlechter Katalog soll die Anwendung nicht
+beenden.
 
 Ist `Hello {name}` als `こんにちは {nombre}` übersetzt, gelingt das Rendern und
 der Logger `gettext_tstrings` erhält eine Warnung:
@@ -207,33 +267,16 @@ gettext_tstrings.errors.InvalidTranslationError: translation does not match the
 source placeholders: {name} is missing; {nombre} is not in the source message
 ```
 
-## Fehlermeldungen lesen { #reading-a-failure-message }
-
-Die Meldungen erklären auch, warum ein sichtbarer Platzhalter ungültig ist:
-
-| Übersetzung enthält | Grund |
-| --- | --- |
-| `こんにちは ｛name｝` | `{name}` is missing (the braces around it are not the ASCII `{` and `}`) |
-| `こんにちは {{name}}` | `{name}` is missing (it is written `{{name}}`, which is how a literal brace is escaped) |
-| `こんにちは name` | `{name}` is missing (the name appears, but not inside braces) |
-| `こんにちは {名前}` | `{name}` is missing; `{名前}` is not in the source message |
-
-Ein unsichtbares geschütztes Leerzeichen wird als Codepoint dargestellt:
-
-```text
-placeholder {<U+00A0>name} has a space inside the braces; write {name}
-```
-
-Ein Homoglyph aus einem anderen Alphabet erscheint lesbar und zusätzlich
-maskiert:
-
-```text
-translation does not match the source placeholders: {name} is missing;
-{nаme} (n\u0430me) is not in the source message
-```
-
-Das gilt auch für Konflikte zwischen rein griechischen oder kyrillischen Namen
-und ihren ASCII-Pendants.
+Diese Meldungen sind für die Person geschrieben, die etwas an ihnen ändern
+kann, und das ist bei einem Katalogproblem häufiger eine übersetzende als eine
+programmierende — wo ein Platzhalter also vorhanden *aussieht*, es aber nicht
+ist, erklärt die Meldung warum, statt zu wiederholen, dass er fehlt.
+Vollbreite Klammern, ein verdoppeltes `{{name}}`, ein unsichtbares geschütztes
+Leerzeichen, ein kyrillischer Buchstabe unter lateinischen: Jeder Fall hat
+seine eigene Formulierung, aufgelistet mit Beispielen unter
+[Für Übersetzende](translators.md#reading-a-failure-message). Diese Seite ist
+so geschrieben, dass man sie der Person in die Hand drücken kann, die die
+`.po` bearbeitet.
 
 ## Ein Pattern ohne Katalog rendern { #rendering-a-pattern-without-a-catalog }
 
@@ -280,3 +323,5 @@ Eine Übersetzung wird nie ausgewertet und kann weder Attributzugriffe noch
 Aufrufe, Konvertierungen oder Formate hinzufügen. Wie bei normalem gettext
 bleibt die Anwendung für **Escaping am Ausgabeziel** und
 **Katalogintegrität** verantwortlich.
+
+  [babel-numbers]: https://babel.pocoo.org/en/latest/api/numbers.html

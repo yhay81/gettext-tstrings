@@ -84,3 +84,27 @@ msgctxt "build report"
 msgid "Rendered {n} page in {seconds}s"
 msgid_plural "Rendered {n} pages in {seconds}s"
 msgstr[0] "Merender {n} halaman dalam {seconds}s"
+
+#. gettext-tstrings
+msgid "Start here"
+msgstr "Mulai di sini"
+
+#. gettext-tstrings
+msgid "Use it"
+msgstr "Menggunakannya"
+
+#. gettext-tstrings
+msgid "Migration"
+msgstr "Migrasi"
+
+#. gettext-tstrings
+msgid "For translators"
+msgstr "Untuk penerjemah"
+
+#. gettext-tstrings
+msgid "Understand it"
+msgstr "Memahaminya"
+
+#. gettext-tstrings
+msgid "Reference"
+msgstr "Referensi"

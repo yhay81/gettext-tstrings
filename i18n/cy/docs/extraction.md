@@ -43,11 +43,14 @@ Mae'r echdynnwr `gettext_tstrings` hefyd yn trin galwadau `_()`, `gettext()` ac
 adnabod `_()`, y pedwar enw gettext safonol, yr enwau eraill `tr()` / `ntr()`,
 a'r rhai gohiriedig `lazy_gettext()` / `lazy_pgettext()`.
 
-!!! warning "Nid yw `-c` yn ddewisol"
+!!! warning "Galluogwch sylwadau i gyfieithwyr â `-c`"
 
     Nid yw `pybabel extract` yn casglu sylwadau i gyfieithwyr oni bo chi'n
     pasio `-c "Translators:"`, yn union fel y mae'n ei wneud ar gyfer galwadau
-    gettext cyffredin.
+    gettext cyffredin. Gadewch ef allan ac mae'r echdynnu'n dal i weithio — nid
+    yw'r sylwadau'n cyrraedd y catalog, dyna i gyd, lle maent
+    [y lifer ansawdd rhataf](workflow.md#working-with-translators-and-platforms)
+    yn y llif gwaith cyfan.
 
 ## Cofrestru eich enwau ffwythiant eich hun { #registering-your-own-function-names }
 
@@ -88,9 +91,9 @@ Yr opsiynau yw `tr_functions`, `ntr_functions`, `gettext_functions`,
     ac wedyn neges ar gyfer `pgettext`, cyd-destun ac wedyn unigol ac wedyn
     lluosog ar gyfer `npgettext`.
 
-## Cadarn yn ddiofyn { #robust-by-default }
+## Goddefgar yn lleol, llym mewn CI { #lenient-locally-strict-in-ci }
 
-Nid yw un ffeil ddrwg yn terfynu'r rhediad:
+Yn ddiofyn nid yw un ffeil ddrwg yn terfynu'r rhediad:
 
 - Caiff llinyn-t y mae'r echdynnwr yn ei wrthod — galw priodoledd, ymadrodd,
   ymresymiad anghywir — ei adrodd fel rhybudd a'i hepgor.
@@ -98,8 +101,30 @@ Nid yw un ffeil ddrwg yn terfynu'r rhediad:
 - Felly hefyd ffeil y mae `tokenize` yn unig yn ei gwrthod tra bo `ast` yn ei
   derbyn, sef un y byddai pas Babel ei hun fel arall yn erthylu arni.
 
-Gosodwch `strict = true` yn opsiynau'r mapio i droi pob un o'r rheini'n fethiant
-caled yn lle hynny, sef yr hyn yr ydych ei eisiau mewn CI.
+Mae hynny'n gyfleus tra byddwch yn golygu ac yn beryglus pan na fyddwch:
+mae neges a hepgorwyd yn syml **absennol o'r POT**, felly ni chaiff byth ei
+chyfieithu ac nid oes dim yn dweud hynny. Gosodwch `strict = true` yn opsiynau'r
+mapio ym mhob man lle nad oes dynol yn gwylio'r echdynnu:
+
+=== "babel.cfg"
+
+    ```ini
+    [gettext_tstrings: **.py]
+    encoding = utf-8
+    strict = true
+    ```
+
+=== "babel.toml"
+
+    ```toml
+    [[mappings]]
+    method = "gettext_tstrings"
+    pattern = "**.py"
+    strict = true
+    ```
+
+Yna daw pob rhybudd uchod yn fethiant caled. Trafodwch hwn fel y gosodiad
+cynhyrchu a'r diofyn fel yr un lleol.
 
 ## Mae eich cadwyn offer bresennol yn dilysu'r catalogau hyn { #your-existing-toolchain-validates-these-catalogs }
 
@@ -126,8 +151,8 @@ msgfmt: found 1 fatal error
 
 Mae Weblate yn dogfennu'r un gwiriad fel [Python brace format][weblate-checks],
 ac mae gan y llwyfannau masnachol eu QA dalwyr lle eu hunain wedi'i allweddu ar
-yr un faner. Eu heiddo hwy yw eu hymddygiad hwy; y ddau offeryn isod yw'r rhai a
-wiriwyd yma.
+yr un faner. Eiddo pob llwyfan ei hun yw ei ymddygiad; y ddau offeryn isod yw'r
+rhai a wiriwyd yma.
 
   [weblate-checks]: https://docs.weblate.org/en/latest/user/checks.html
 
@@ -158,8 +183,8 @@ match the source placeholders: {n} is missing
     gatio](workflow.md#what-ci-gates) yn dangos y cam adeiladu sy'n gadael
     iddo wneud hynny.
 
-Nid yw'r ddau wiriad yn ddiangen. Y gwiriwr a gludir yw'r parti llymaf mewn o
-leiaf dau le:
+Nid yw'r ddau wiriad yn ddiangen. Mae gwiriwr y pecyn yn llymach mewn o leiaf
+ddau achos:
 
 - Nid yw msgid nad oes ganddo ond bracedi wedi'u dianc (`Config {{raw}} only`)
   byth yn cael y faner `python-brace-format`, felly nid oes unrhyw offeryn

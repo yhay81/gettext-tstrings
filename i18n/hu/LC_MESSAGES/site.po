@@ -84,3 +84,27 @@ msgctxt "build report"
 msgid "Rendered {n} page in {seconds}s"
 msgid_plural "Rendered {n} pages in {seconds}s"
 msgstr[0] "{n} oldal renderelve {seconds} mp alatt"
+
+#. gettext-tstrings
+msgid "Start here"
+msgstr "Kezdd itt"
+
+#. gettext-tstrings
+msgid "Use it"
+msgstr "Használd"
+
+#. gettext-tstrings
+msgid "Migration"
+msgstr "Migráció"
+
+#. gettext-tstrings
+msgid "For translators"
+msgstr "Fordítóknak"
+
+#. gettext-tstrings
+msgid "Understand it"
+msgstr "Értsd meg"
+
+#. gettext-tstrings
+msgid "Reference"
+msgstr "Referencia"

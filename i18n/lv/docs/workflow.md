@@ -11,6 +11,18 @@ katalogs tiek piegādāts ar katru laidienu. Šī lapa ir tieši šī prakse —
 paliek repozitorijā, kas ceļo, ko CI ir jāaiztur un kur izpildlaiks piesaista
 valodu.
 
+Kopsummā tas ir sešas pārbaudes, tāpēc vispirms tās; katra zemāk esošā sadaļa
+iestata vienu no tām.
+
+- `pybabel update --check` iziet cauri — neviens ziņojums nav mainījies, par to
+  nedzirdot katalogiem.
+- `pybabel compile` aiztur būvējumu pēc tā izejas statusa.
+- Atlikušie `fuzzy` ieraksti ir apzināti — katrs no tiem renderējas kā avota
+  teksts, līdz tulkotājs to apstiprina.
+- Testu kopa katru piegādāto valodu vienreiz renderē ar `strict=True`.
+- Produkcijas artefaktā ir `.mo` faili un nav Babel.
+- Žurnalizētājs `gettext_tstrings` ir novirzīts uz uzraudzību.
+
 ## Kāda izskatās projekta forma { #the-shape-of-a-project }
 
 ```text
@@ -32,8 +44,8 @@ pakošanas laikā, nevis iekļaujiet versiju kontrolē, lai `.po` un tā `.mo`
 nekad nevarētu nesaskanēt par to, kas tiek piegādāts.
 
 Vienam failam ir loma katrā virzienā: `.pot` nes jūsu ziņojumus *ārā* pie
-tulkotājiem, `.po` faili nes tulkojumus *atpakaļ*. Viss zemāk esošais ir
-satiksme starp šiem diviem.
+tulkotājiem, `.po` faili nes tulkojumus *atpakaļ*. Pārējā lapas daļa ir tas,
+kas pārvietojas starp tiem.
 
 ```mermaid
 flowchart LR
@@ -47,8 +59,8 @@ flowchart LR
 
 ## Cikls pēc pirmā tulkojuma { #the-cycle-after-the-first-translation }
 
-Pamācības `pybabel init` katrai valodai tiek palaists vienu vienīgu reizi. No
-tā brīža darba cikls ir **ekstrahēt → atjaunināt → iztulkot → kompilēt**, un
+Pamācības `pybabel init` parasti tiek palaists vienreiz, kad valoda tiek
+pievienota. No tā brīža darba cikls ir **ekstrahēt → atjaunināt → iztulkot → kompilēt**, un
 tā centrs ir `pybabel update`, kas ielok svaigo veidni esošajos katalogos, bet
 neizmet tajos jau esošos tulkojumus.
 
@@ -76,8 +88,8 @@ msgstr "こんにちは {name}"
 
 Babel pamanīja, ka jaunais msgid atgādina kādu noņemtu, un sapāroja to ar veco
 tulkojumu — bet atzīmēja pāri kā **fuzzy**: mašīnas minējumu, kas gaida
-cilvēku. Šim karogam ir zobi. `pybabel compile` **fuzzy ierakstus `.mo` failā
-neiekļauj**, tāpēc, kamēr tulkotājs pāri neapstiprina, lietotne renderē jauno
+cilvēku. Šis karogs maina to, kas tiek kompilēts. `pybabel compile` **fuzzy
+ierakstus `.mo` failā neiekļauj**, tāpēc, kamēr tulkotājs pāri neapstiprina, lietotne renderē jauno
 angļu tekstu, nevis novecojušo japāņu:
 
 ```console
@@ -125,31 +137,17 @@ tāda koda sapludināšanu, kura ziņojumus neviens nav no jauna ekstrahējis.
 [reģistrētā pārbaudītāja](extraction.md#your-existing-toolchain-validates-these-catalogs)
 vietturu pārbaudes.
 
-!!! bug "`--check` nespēj aizturēt katalogu, kas lieto kontekstus"
+!!! bug "Babel 2.18.0: `--check` nespēj aizturēt katalogu, kas lieto kontekstus"
 
     Babel 2.18.0 versijā `pybabel update --check` ziņo, ka **katrs** katalogs,
     kas satur `msgctxt`, ir novecojis — katrā izpildē, lai cik svaigs tas arī
-    būtu. Salīdzināšana notiek caur `Catalog.is_identical`, kas meklē katru
-    ziņojumu pēc atslēgas, zem kuras tas glabājas, — un kontekstuālam
-    ziņojumam šī atslēga ir pāris `(id, context)`, ko `Catalog.get` nepieņem.
-    Meklēšana neatgriež neko, un katalogi nekad neizrādās vienādi:
-
-    ```pycon
-    >>> from babel.messages.catalog import Catalog
-    >>> c = Catalog(locale="ja")
-    >>> c.add("Guide", "ガイド", context="navigation")
-    <Message 'Guide' (flags: [])>
-    >>> c.is_identical(c)
-    False
-    ```
-
-    Tātad, ja jūs vispār lietojat `pgettext` vai `npgettext` — bet homonīmu
-    atšķiršana ir tieši tas, kāpēc tie pastāv —, šis solis kļūdās vissliktākajā
-    veidā: vienmēr sarkans, tāpēc komanda to izslēdz, tāpēc novecošanu neaiztur
-    nekas. Kamēr tas nav izlabots augšpusē, salīdziniet ziņojumu kopas paši.
-    Veidnes un katra kataloga nolasīšana ar `babel.messages.pofile.read_po` un
+    būtu. Pastāvīgi krītoši vārti ir sliktāki nekā nekādi vārti, jo komanda tos
+    izslēdz — tāpēc, ja jūs vispār lietojat `pgettext` vai `npgettext`,
+    aizstājiet šo soli, nevis samierinieties ar to. Veidnes un katra kataloga
+    nolasīšana ar `babel.messages.pofile.read_po` un
     `{(m.context, m.id) for m in catalog if m.id}` salīdzināšana ir visa
-    pārbaude, un tieši to dara [šīs vietnes pašas būvējums](index.md).
+    pārbaude, un tieši to dara [šīs vietnes pašas būvējums](index.md). Cēlonis
+    ir [aprakstīts lapā Kļūmes](pitfalls.md#your-tools-have-bugs-too).
 
 !!! danger "Pārbaudiet izejas statusu, nevis žurnālu"
 

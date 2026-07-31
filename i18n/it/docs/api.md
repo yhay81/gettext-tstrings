@@ -51,9 +51,13 @@ concorrenza.
 
 | Nome | Scopo |
 | --- | --- |
-| `lazy_gettext(template, /, *, strict=False)` | Rinvia una traduzione al primo uso. |
+| `lazy_gettext(template, /, *, strict=False)` | Rinvia la traduzione a ogni rendering. |
 | `lazy_pgettext(context, template, /, *, strict=False)` | La forma con contesto. |
-| `LazyString` | Ciò che entrambe restituiscono. Si rende attraverso `str()` e `format()`, risulta uguale al suo testo nei confronti ed è deliberatamente non hashabile. |
+| `LazyString` | Ciò che entrambe restituiscono. Si rende attraverso `str()` e `format()` nella lingua legata in quel momento, risulta uguale al suo testo reso nei confronti ed è deliberatamente non hashabile. |
+
+Esempi svolti, compreso il motivo per cui `strict` va indicato alla
+definizione, sono in
+[Traduzione differita](guide.md#deferred-translation).
 
 ## Livello più basso { #lower-level }
 

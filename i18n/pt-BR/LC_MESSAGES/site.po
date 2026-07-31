@@ -86,3 +86,27 @@ msgid "Rendered {n} page in {seconds}s"
 msgid_plural "Rendered {n} pages in {seconds}s"
 msgstr[0] "Renderizada {n} página em {seconds}s"
 msgstr[1] "Renderizadas {n} páginas em {seconds}s"
+
+#. gettext-tstrings
+msgid "Start here"
+msgstr "Comece aqui"
+
+#. gettext-tstrings
+msgid "Use it"
+msgstr "Use na prática"
+
+#. gettext-tstrings
+msgid "Migration"
+msgstr "Migração"
+
+#. gettext-tstrings
+msgid "For translators"
+msgstr "Para quem traduz"
+
+#. gettext-tstrings
+msgid "Understand it"
+msgstr "Entenda a fundo"
+
+#. gettext-tstrings
+msgid "Reference"
+msgstr "Referência"

@@ -1,5 +1,5 @@
 ---
-description: "Izpildlaika API: kataloga piesaiste, valodas katram pieprasījumam, atliktās virknes un tas, kā tiek ziņots par sabojātu tulkojumu."
+description: "Izpildlaika API: kuru ieejas punktu lietot, kataloga piesaiste, valodas katram pieprasījumam, atliktās virknes, lokāli ievērojošas vērtības un tas, kā tiek ziņots par sabojātu tulkojumu."
 ---
 
 # Ceļvedis
@@ -11,6 +11,22 @@ vienreiz piecās minūtēs; katalogu izveidošana un validēšana ir aprakstīta
 [Ekstrakcijā](extraction.md), bet tas, kā komanda tur ciklu griežamies —
 atjaunināšanas cikli, CI, tulkošanas platformas —, ir lapā
 [Produkcijā](workflow.md).
+
+## Kuru ieejas punktu lietot? { #which-entry-point-should-i-use }
+
+Pakotne eksportē vairākus veidus, kā iztulkot ziņojumu, jo lietotnes valodu
+piesaista vairākos dažādos veidos. Izvēlieties pēc tā, kā jūsu programma
+izlemj, kurā valodā tā ir:
+
+| Jūsu situācija | Lietojiet |
+| --- | --- |
+| Viena valoda visam procesam — CLI, darbvirsmas lietotne, skripts | `Translator`, izsaukts kā `_` |
+| Viena valoda katram pieprasījumam vai asinhronajam uzdevumam — tīmekļa lietotne | `use_translations()` ap darbu, tad `tr()` |
+| Ziņojums, definēts importa laikā — formas uzraksts, enum, konstante | `lazy_gettext()` vai `lazy_pgettext()` |
+| Formulējumu izlemj skaits | `ngettext()` / `npgettext()` jebkurā no augšminētajām formām |
+| Raksta renderēšana bez jebkāda kataloga | `compile_template()` |
+
+Viss tālāk ir šie pieci, tieši šādā secībā.
 
 ## Kataloga piesaiste { #binding-a-catalog }
 
@@ -60,6 +76,7 @@ from gettext_tstrings import tr, use_translations
 
 
 def handle(request):
+    name = request.user.display_name
     translations = load_translations(request.locale)
     with use_translations(translations):
         return render(tr(t"Hello {name}"))
@@ -161,12 +178,51 @@ kas dala parsēto katalogu.
 
     `asyncio.to_thread` to jūsu vietā jau dara.
 
+## Lokāli ievērojošas vērtības { #locale-aware-values }
+
+Šī bibliotēka izlemj, *kur* vērtība parādās iztulkotā ziņojumā. Tā nelokalizē
+pašu vērtību. `{amount:,.2f}` ir Python formāta specifikācija ar fiksētu
+uzvedību — komats ik pēc trim cipariem un punkts pirms decimāldaļas —, un tā
+rada tās pašas rakstzīmes neatkarīgi no ziņojuma valodas:
+
+```pycon
+>>> f"{1234.5:,.2f}"  # the same in every locale
+'1,234.50'
+```
+
+Vācu valodā šo skaitli raksta `1.234,50`, franču valodā `1 234,50`, bet hindi
+`1234567` grupē kā `12,34,567`, nevis `1,234,567`. Skaitļi, valūtas, datumi,
+laiki un mērvienības pieder [Babel][babel-numbers]. Vispirms noformatējiet
+vērtību, tad ielieciet gatavo virkni:
+
+```python
+from babel.numbers import format_currency
+
+total = format_currency(amount, "EUR", locale=locale)
+tr(t"Your order comes to {total}")
+```
+
+Skaitāmā ziņojumā skaitlis dara divus darbus — tas izvēlas daudzskaitļa formu
+un parādās tekstā —, un lokalizēts tiek tikai otrais. Paturiet neapstrādāto
+skaitu izvēlei un padodiet noformatēto virkni attēlošanai:
+
+```python
+from babel.numbers import format_decimal
+
+shown = format_decimal(n, locale=locale)
+_.ngettext(t"One file", t"{shown} files", n)
+```
+
+Formatēšana pirms izsaukuma ir arī tas, kas notur formāta specifikāciju ārpus
+kataloga: tulkotājs redz gatavu teksta gabalu, nevis skaitli plus norādījumus,
+kā to renderēt.
+
 ## Kas notiek, kad katalogs ir kļūdains { #what-happens-when-a-catalog-is-wrong }
 
 Ja tulkojuma vietturi neatbilst avotam — trūkstošs, nezināms vai
 pārformatēts lauks, kas paslīdējis garām validācijai, no ar roku rediģēta MO,
 piegādātāja kataloga vai konveijera, kas izlaiž pārbaudītāju —, noklusējums ir
-atveidot avota tekstu, nevis izraisīt kļūdu. Tas atspoguļo paša gettext
+renderēt avota ziņojumu, nevis izraisīt kļūdu. Tas atspoguļo paša gettext
 kontraktu, ka slikts katalogs nekad nesalauž lietotni.
 
 Ja `Hello {name}` ir iztulkots kā `こんにちは {nombre}`, renderēšana izdodas un
@@ -204,43 +260,14 @@ gettext_tstrings.errors.InvalidTranslationError: translation does not match the
 source placeholders: {name} is missing; {nombre} is not in the source message
 ```
 
-## Kā lasīt kļūmes ziņojumu { #reading-a-failure-message }
-
 Šie ziņojumi ir rakstīti tam, kurš var rīkoties, un kataloga problēmas
-gadījumā tas biežāk ir tulkotājs, nevis programmētājs. Ziņot tikai to, ka
-`{name}` trūkst, ir strupceļš, ja lasītājs šīs rakstzīmes redz sev priekšā,
-tāpēc tur, kur vietturis izskatās klāt esošs, bet nav, ziņojums pasaka, kāpēc.
-Pret avotu `Hello {name}` katrs no šiem tiek ziņots zem
-`translation does not match the source placeholders:`
-
-| Tulkojumā rakstīts | Norādītais iemesls |
-| --- | --- |
-| `こんにちは ｛name｝` | `{name}` is missing (figūriekavas ap to nav ASCII `{` un `}`) |
-| `こんにちは {{name}}` | `{name}` is missing (tas rakstīts kā `{{name}}`, un tā tiek atsoļota literāla figūriekava) |
-| `こんにちは name` | `{name}` is missing (nosaukums parādās, bet ne figūriekavās) |
-| `こんにちは {名前}` | `{name}` is missing; `{名前}` is not in the source message |
-
-Rakstzīmes, kas nav redzamas, saņem savu apstrādi. Nedalāmā atstarpe
-figūriekavās ir tas, ko rada ievades metode un ko neviens redaktors neparāda,
-tāpēc ziņojums to izdrukā pēc koda punkta, nevis nosauc rakstzīmi, ko lasītājs
-nespēj atrast:
-
-```text
-placeholder {<U+00A0>name} has a space inside the braces; write {name}
-```
-
-Nosaukums, kura burti sajauc rakstības sistēmas — homoglifu gadījums, kad
-kirilicas `а` nav atšķirama no latīņu burta —, tiek parādīts divreiz: vienreiz
-lasāmi un vienreiz atsoļots, un tā ir vienīgā forma, kas abus izšķir:
-
-```text
-translation does not match the source placeholders: {name} is missing;
-{nаme} (n\u0430me) is not in the source message
-```
-
-Tā pati atšķiršana notiek, kad grieķu vai kirilicas nosaukums, kas pilnībā
-rakstīts vienā rakstībā, konfliktē ar ASCII avota nosaukumu, arī viena burta
-gadījumā ar latīņu `a` un kirilicas `а`.
+gadījumā tas biežāk ir tulkotājs, nevis programmētājs — tāpēc tur, kur vietturis
+izskatās klāt esošs, bet nav, ziņojums paskaidro, kāpēc, nevis atkārto, ka tā
+trūkst. Pilnplatuma figūriekavas, dubultots `{{name}}`, neredzama nedalāmā
+atstarpe, kirilicas burts latīņu burtu vidū: katram no tiem ir savs
+formulējums, un tie kopā ar piemēriem ir uzskaitīti lapā
+[Tulkotājiem](translators.md#reading-a-failure-message). Tā lapa ir rakstīta
+tā, lai to varētu iedot cilvēkam, kurš rediģē `.po`.
 
 ## Raksta renderēšana bez kataloga { #rendering-a-pattern-without-a-catalog }
 
@@ -296,3 +323,5 @@ tieši tāpat kā ar standarta bibliotēkas gettext — renderētās izvades
 **atsoļošana** tās saņēmējam (HTML, čaula, terminālis) un **kataloga
 integritāte**, jo naidīgs katalogs var atkārtot vietturi, lai uzpūstu izvades
 apjomu, un tas ir raksturīgi jebkurai uz vietturiem balstītai i18n.
+
+  [babel-numbers]: https://babel.pocoo.org/en/latest/api/numbers.html

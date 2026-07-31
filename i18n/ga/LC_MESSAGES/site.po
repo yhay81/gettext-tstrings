@@ -92,3 +92,27 @@ msgstr[1] "Rindreáladh {n} leathanach in {seconds}s"
 msgstr[2] "Rindreáladh {n} leathanaigh in {seconds}s"
 msgstr[3] "Rindreáladh {n} leathanaigh in {seconds}s"
 msgstr[4] "Rindreáladh {n} leathanach in {seconds}s"
+
+#. gettext-tstrings
+msgid "Start here"
+msgstr "Tosaigh anseo"
+
+#. gettext-tstrings
+msgid "Use it"
+msgstr "Bain úsáid as"
+
+#. gettext-tstrings
+msgid "Migration"
+msgstr "Aistriú anonn"
+
+#. gettext-tstrings
+msgid "For translators"
+msgstr "D'aistritheoirí"
+
+#. gettext-tstrings
+msgid "Understand it"
+msgstr "Tuig é"
+
+#. gettext-tstrings
+msgid "Reference"
+msgstr "Tagairt"

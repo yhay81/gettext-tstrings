@@ -1,5 +1,5 @@
 ---
-description: "Dịch trọn vẹn thông điệp t-string qua gettext và Babel, với phần định dạng được giữ ngoài catalog."
+description: "Dịch trọn vẹn thông điệp t-string qua gettext và Babel, với giá trị và phần định dạng được giữ ngoài catalog."
 title: "gettext-tstrings"
 hide:
   - navigation
@@ -8,10 +8,11 @@ hide:
 
 <div class="home-hero" markdown>
 
-# Viết câu một lần.<br>Dịch trọn cả câu.
+# Dịch trọn cả thông điệp,<br>không dịch từng mảnh chuỗi.
 
-Tích hợp gettext và Babel an toàn cho t-string của Python 3.14+ — giá trị
-ở nguyên vị trí, còn catalog nhìn thấy toàn bộ thông điệp:
+`gettext-tstrings` nối t-string của Python 3.14+ với các catalog gettext tiêu
+chuẩn và bộ công cụ Babel. Giá trị và định dạng ở nguyên trong mã ứng dụng;
+catalog giữ một thông điệp trọn vẹn với các placeholder `{name}` giản dị:
 
 ```python
 import gettext
@@ -24,7 +25,10 @@ print(_(t"Hello {name}"))  # with a Japanese catalog: こんにちは Ada
 ```
 
 [Bắt đầu hướng dẫn nhập môn :material-arrow-right:](tutorial.md){ .md-button .md-button--primary }
-[Vì sao chọn t-string](comparison.md){ .md-button }
+[So sánh các lựa chọn khác](comparison.md){ .md-button }
+
+Alpha · Python 3.14+ · catalog PO/MO thông thường · không phụ thuộc lúc chạy
+{ .home-facts }
 
 Trang này thực hành đúng điều nó viết: mọi phiên bản ngôn ngữ —
 thanh điều hướng, nhãn, và báo cáo build có xử lý số nhiều — đều được kết xuất
@@ -34,10 +38,33 @@ từ các catalog PO bởi chính
 
 </div>
 
-Catalog nhận được trọn vẹn câu `Hello {name}`. Một bản dịch có thể đảo thứ tự
-hoặc lặp lại `{name}`; nó không được phép bỏ mất, tự bịa thêm, hay gắn định
-dạng của riêng mình — thư viện này kiểm tra điều đó, và một catalog hỏng sẽ
-quay về văn bản nguồn thay vì làm chương trình đổ vỡ.
+## Thư viện này có hợp với bạn không? { #is-this-for-you }
+
+**Hợp ngay hôm nay khi** ứng dụng của bạn chạy trên Python 3.14 trở lên; bạn đã
+dùng gettext và Babel, hoặc muốn áp dụng quy trình PO/MO của chúng; và bạn muốn
+cú pháp t-string với các placeholder có tên được kiểm tra trước khi kết xuất.
+
+**Chưa hợp khi** bạn cần Python 3.13 hoặc cũ hơn; bạn đòi hỏi một API Python ổn
+định — đây là bản alpha, và [đặc tả](spec.md) mới là phần đã ổn định của nó;
+hoặc gần như toàn bộ văn bản cần dịch của bạn nằm trong một ngôn ngữ template
+chứ không phải trong mã nguồn Python.
+
+Đã có sẵn catalog? Chúng vẫn chạy tốt. `_("Hello {name}").format(name=name)` và
+`tr(t"Hello {name}")` sinh ra cùng một msgid, nên các bản dịch hiện có sống sót
+qua lần chuyển đổi — [Chuyển đổi](migration.md) đi hết cả chặng đường ấy.
+
+## Catalog được phép nói gì { #what-the-catalog-may-say }
+
+Catalog nhận được trọn vẹn thông điệp `Hello {name}`. Một bản dịch có thể đảo
+thứ tự hoặc lặp lại `{name}`, và có thể viết lại mọi từ khác quanh nó. Nó không
+được phép bỏ mất placeholder, bịa ra một cái mới, thò qua nó để với vào đối
+tượng của bạn, hay gắn định dạng của riêng mình.
+
+Đó là toàn bộ lời hứa: **một bản dịch không thể thay đổi cấu trúc của thông
+điệp mà nó dịch.** Thư viện kiểm tra điều đó ở đầu vào — khi catalog được biên
+dịch — và kiểm tra lại lúc kết xuất; một mục hỏng mà dù sao vẫn lọt tới
+production sẽ ghi một cảnh báo và kết xuất thông điệp nguồn thay vì làm chương
+trình đổ vỡ.
 
 !!! note "Mới biết đến gettext? Toàn bộ quy trình trong bốn câu"
 
@@ -67,15 +94,22 @@ thành thông điệp như thế nào. Thư viện này đưa ra lựa chọn đ
 một [đặc tả có phiên bản](spec.md), và kèm theo [bộ kiểm thử tuân
 thủ](spec.md#conformance) để kiểm chứng.
 
-## Lựa chọn nó đưa ra { #the-choice-it-makes }
+## Các nguyên tắc thiết kế { #the-design-rules }
 
 - Dịch thông điệp trọn vẹn, không bao giờ dịch mảnh câu.
 - Chỉ chấp nhận tên biến đơn giản như `{name}`.
 - Giữ `!r` và `:.2f` dưới quyền kiểm soát của ứng dụng, ngoài catalog.
-- Cho phép người dịch đảo thứ tự và lặp lại các placeholder đã biết — nhưng
-  không được gọi thuộc tính, và không được thêm hành vi định dạng.
+- Cho phép người dịch đảo thứ tự và lặp lại các placeholder đã biết, đồng thời
+  ngăn họ với tới thuộc tính hay thêm định dạng.
 - Tái sử dụng các tệp POT, PO, MO thông thường, cùng những công cụ vốn đã
   đọc được chúng.
+
+Và đây là danh sách tương ứng của những gì nó cố tình không đụng tới: nó không
+bản địa hóa số, tiền tệ hay ngày tháng — [hãy định dạng chúng
+trước](guide.md#locale-aware-values), bằng Babel; nó không escape kết quả kết
+xuất cho HTML, shell hay terminal; và nó không thể phán xét một bản dịch có
+*đúng* hay không, chỉ biết các placeholder của bản dịch ấy còn nguyên vẹn hay
+không.
 
 ## Cài đặt { #install }
 
@@ -96,48 +130,56 @@ python -m pip install "gettext-tstrings[babel]"
 
 ## Đi tiếp đến đâu { #where-to-go-next }
 
-Ba kiểu độc giả đến trang này: người đang dịch chương trình đầu tiên của
-mình, người đang nối phần dịch vào một dự án thực, và người muốn biết chính
-xác vì sao bộ máy lại có hình hài như vậy. Mỗi người có một lộ trình.
-
-**Học nó** — không đòi hỏi kinh nghiệm gettext:
+**Bắt đầu ở đây** — không đòi hỏi kinh nghiệm gettext:
 
 <div class="grid cards" markdown>
 
-- **[Hướng dẫn nhập môn](tutorial.md)** — bắt đầu tại đây: từ một thư mục
-  trống đến một bản dịch tiếng Nhật chạy được trong năm bước, mọi lệnh đều
-  kèm kết quả thật.
+- **[Hướng dẫn nhập môn](tutorial.md)** — từ một thư mục trống đến một bản dịch
+  tiếng Nhật chạy được trong năm bước, mọi lệnh đều kèm kết quả thật.
 - **[Vì sao chọn t-string](comparison.md)** — cùng một thông điệp viết theo
   bốn cách, và những gì `%(name)s`, `.format()` và chuỗi `$` mỗi loại trao
   cho catalog.
-- **[Bối cảnh](background.md)** — vì sao thư viện này tồn tại: ba mươi năm
-  gettext, hai PEP, và cuộc thảo luận về thư viện chuẩn khép lại mà không có
-  câu trả lời.
 
 </div>
 
-**Dùng nó nghiêm túc** — các tài liệu tham chiếu khi làm việc:
+**Bắt tay vào dùng** — các tài liệu tham chiếu khi làm việc:
 
 <div class="grid cards" markdown>
 
-- **[Cẩm nang](guide.md)** — API lúc chạy: số nhiều, ngôn ngữ theo từng
-  request, chuỗi trì hoãn, và điều gì xảy ra khi một catalog sai.
+- **[Cẩm nang](guide.md)** — API lúc chạy: chọn điểm vào nào, số nhiều, ngôn
+  ngữ theo từng request, chuỗi trì hoãn, và điều gì xảy ra khi một catalog sai.
 - **[Trích xuất](extraction.md)** — tài liệu tham chiếu `pybabel`: cấu hình,
   tên hàm tùy biến, và cách các công cụ sẵn có kiểm tra những catalog này
   miễn phí.
 - **[Vận hành thực tế](workflow.md)** — vòng lặp như một đội ngũ vận hành
   nó: chu kỳ cập nhật, các mục fuzzy, cổng chặn CI, nền tảng dịch thuật, và
-  ngôn ngữ theo từng request trong một ứng dụng web.
-- **[API](api.md)** — mọi thứ gói này xuất ra, trên một trang.
+  chuyện đưa bản dịch lên sản phẩm.
+- **[Chuyển đổi](migration.md)** — áp dụng thư viện này vào một dự án đã có sẵn
+  catalog, mỗi lần một điểm gọi.
+- **[Dành cho người dịch](translators.md)** — một trang duy nhất để đưa cho ai
+  đó sẽ sửa các tệp `.po`.
 
 </div>
 
-**Hiểu nó** — từ nguyên tắc đến hiện thực:
+**Hiểu nó** — từ lịch sử đến hiện thực:
 
 <div class="grid cards" markdown>
 
+- **[Bối cảnh](background.md)** — vì sao thư viện này tồn tại: ba mươi năm
+  gettext, hai PEP, và cuộc thảo luận về thư viện chuẩn khép lại mà không có
+  câu trả lời.
+- **[Cạm bẫy](pitfalls.md)** — việc dịch trang này ra ba mươi lăm ngôn ngữ đã
+  thực sự làm hỏng những gì, và công cụ bắt được phân nửa nào.
 - **[Cách hoạt động](internals.md)** — từ đối tượng template của PEP 750 đến
   chuỗi được kết xuất, và các cache khiến việc kiểm tra trở nên rẻ.
+
+</div>
+
+**Tra cứu** — các bản hợp đồng:
+
+<div class="grid cards" markdown>
+
+- **[API](api.md)** — mọi thứ gói này xuất ra, trên một trang.
 - **[Đặc tả](spec.md)** — quy ước t-string ↔ msgid như một hợp đồng ổn định,
   có phiên bản, kèm bộ kiểm thử tuân thủ máy đọc được.
 

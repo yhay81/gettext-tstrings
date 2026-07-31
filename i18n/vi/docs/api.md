@@ -51,9 +51,12 @@ chạy đồng thời.
 
 | Tên | Mục đích |
 | --- | --- |
-| `lazy_gettext(template, /, *, strict=False)` | Trì hoãn một bản dịch đến lần dùng đầu tiên. |
+| `lazy_gettext(template, /, *, strict=False)` | Hoãn việc dịch cho tới từng lần kết xuất. |
 | `lazy_pgettext(context, template, /, *, strict=False)` | Dạng có ngữ cảnh. |
-| `LazyString` | Kiểu mà cả hai hàm trả về. Kết xuất qua `str()` và `format()`, so sánh bằng với văn bản của nó, và cố ý không thể băm. |
+| `LazyString` | Kiểu mà cả hai hàm trả về. Kết xuất qua `str()` và `format()` bằng ngôn ngữ đang được gắn tại đúng khoảnh khắc đó, so sánh bằng với văn bản đã kết xuất của nó, và cố ý không thể băm. |
+
+Các ví dụ đầy đủ, kể cả lý do `strict` thuộc về nơi định nghĩa, nằm ở
+[Bản dịch trì hoãn](guide.md#deferred-translation).
 
 ## Tầng thấp hơn { #lower-level }
 

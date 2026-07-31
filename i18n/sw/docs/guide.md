@@ -1,5 +1,5 @@
 ---
-description: "API ya wakati wa utekelezaji: kufunga katalogi, lugha kwa kila ombi, mifuatano iliyoahirishwa, na jinsi tafsiri mbovu inavyoripotiwa."
+description: "API ya wakati wa utekelezaji: sehemu ipi ya kuingilia kutumia, kufunga katalogi, lugha kwa kila ombi, mifuatano iliyoahirishwa, thamani zinazotambua eneo, na jinsi tafsiri mbovu inavyoripotiwa."
 ---
 
 # Mwongozo
@@ -11,6 +11,22 @@ hujaona bado mzunguko mzima — weka alama, toa, tafsiri, kusanya, endesha —
 kuthibitisha katalogi kumeelezwa katika [Utoaji](extraction.md), na jinsi timu
 inavyouzungusha mzunguko — mizunguko ya masasisho, CI, majukwaa ya tafsiri —
 imeelezwa katika [Katika uzalishaji](workflow.md).
+
+## Nitumie sehemu ipi ya kuingilia? { #which-entry-point-should-i-use }
+
+Kifurushi husafirisha njia kadhaa za kutafsiri ujumbe kwa sababu programu
+hufunga lugha kwa namna kadhaa tofauti. Chagua kwa kutegemea jinsi programu
+yako inavyoamua lugha iliyomo:
+
+| Hali yako | Tumia |
+| --- | --- |
+| Lugha moja kwa mchakato mzima — CLI, programu ya eneo-kazi, hati | `Translator`, ikiitwa kama `_` |
+| Lugha moja kwa kila ombi au kwa kila kazi ya async — programu ya wavuti | `use_translations()` kuzunguka kazi, kisha `tr()` |
+| Ujumbe unaofafanuliwa wakati wa kuingiza — lebo ya fomu, enum, thabiti | `lazy_gettext()` au `lazy_pgettext()` |
+| Idadi huamua matumizi ya maneno | `ngettext()` / `npgettext()`, katika umbo lolote lililo hapo juu |
+| Kuonyesha muundo bila katalogi kuhusika | `compile_template()` |
+
+Kila kilicho hapa chini ni hizo tano, kwa mpangilio huo.
 
 ## Kufunga katalogi { #binding-a-catalog }
 
@@ -60,6 +76,7 @@ from gettext_tstrings import tr, use_translations
 
 
 def handle(request):
+    name = request.user.display_name
     translations = load_translations(request.locale)
     with use_translations(translations):
         return render(tr(t"Hello {name}"))
@@ -166,12 +183,51 @@ zinazoshiriki katalogi iliyochanganuliwa.
 
     `asyncio.to_thread` tayari hufanya hivi kwa niaba yako.
 
+## Thamani zinazotambua eneo { #locale-aware-values }
+
+Maktaba hii huamua *mahali* thamani inapotokea ndani ya ujumbe uliotafsiriwa.
+Haiitafsirii thamani yenyewe kwa eneo. `{amount:,.2f}` ni kiainishi cha umbizo
+cha Python chenye tabia isiyobadilika — koma kila tarakimu tatu na nukta kabla
+ya desimali — nacho hutoa herufi zilezile lugha ya ujumbe iwe ipi:
+
+```pycon
+>>> f"{1234.5:,.2f}"  # the same in every locale
+'1,234.50'
+```
+
+Kijerumani huandika nambari hiyo `1.234,50`, Kifaransa `1 234,50`, nacho
+Kihindi hupanga `1234567` kama `12,34,567` badala ya `1,234,567`. Nambari,
+sarafu, tarehe, saa, na vipimo ni vya [Babel][babel-numbers]. Umbiza thamani
+kwanza, kisha weka mfuatano uliokamilika:
+
+```python
+from babel.numbers import format_currency
+
+total = format_currency(amount, "EUR", locale=locale)
+tr(t"Your order comes to {total}")
+```
+
+Kwa ujumbe wenye idadi nambari hufanya kazi mbili — huchagua umbo la wingi nayo
+huonekana katika maandishi — na ya pili tu ndiyo hutafsiriwa kwa eneo. Hifadhi
+idadi ghafi kwa uchaguzi na upitishe mfuatano ulioumbizwa kwa kuonyeshwa:
+
+```python
+from babel.numbers import format_decimal
+
+shown = format_decimal(n, locale=locale)
+_.ngettext(t"One file", t"{shown} files", n)
+```
+
+Kuumbiza kabla ya wito ndicho pia kinachoweka kiainishi cha umbizo nje ya
+katalogi: kile mfasiri anachokiona ni kipande cha maandishi kilichokamilika, si
+nambari pamoja na maelekezo ya kuionyesha.
+
 ## Kinachotokea katalogi inapokuwa na kasoro { #what-happens-when-a-catalog-is-wrong }
 
 Ikiwa vishika nafasi vya tafsiri havilingani na vya chanzo — uga uliokosekana,
 usiojulikana, au ulioumbizwa upya uliopita uthibitishaji, kutoka MO
 iliyohaririwa kwa mkono, katalogi ya muuzaji, au mkondo unaoruka kikaguzi —
-chaguo-msingi ni kuzalisha tena maandishi chanzo badala ya kuinua hitilafu.
+chaguo-msingi ni kuonyesha ujumbe chanzo badala ya kuinua hitilafu.
 Hili huakisi mkataba wa gettext wenyewe kwamba katalogi mbaya kamwe haivunji
 programu.
 
@@ -210,45 +266,14 @@ gettext_tstrings.errors.InvalidTranslationError: translation does not match the
 source placeholders: {name} is missing; {nombre} is not in the source message
 ```
 
-## Kusoma ujumbe wa kushindwa { #reading-a-failure-message }
-
 Jumbe hizi zimeandikwa kwa yeyote anayeweza kuchukua hatua juu yake, ambaye kwa
-tatizo la katalogi mara nyingi ni mfasiri kuliko mtayarishaji programu.
-Kuripoti tu kwamba `{name}` imekosekana ni njia isiyo na mwisho wakati msomaji
-anaweza kuona herufi hizo mbele yake, hivyo pale kishika nafasi kinapoonekana
-kipo lakini hakipo, ujumbe husema kwa nini. Dhidi ya chanzo `Hello {name}`,
-kila mojawapo ya haya huripotiwa chini ya
-`translation does not match the source placeholders:`
-
-| Tafsiri inasema | Sababu inayotolewa |
-| --- | --- |
-| `こんにちは ｛name｝` | `{name}` imekosekana (mabano yanayokizunguka si `{` na `}` za ASCII) |
-| `こんにちは {{name}}` | `{name}` imekosekana (imeandikwa `{{name}}`, ambayo ndiyo namna bano halisi hukwepwa) |
-| `こんにちは name` | `{name}` imekosekana (jina linaonekana, lakini si ndani ya mabano) |
-| `こんにちは {名前}` | `{name}` imekosekana; `{名前}` haipo ndani ya ujumbe chanzo |
-
-Herufi zisizoweza kuonekana hupata utaratibu wake. Nafasi isiyokatika ndani ya
-mabano ni kitu ambacho mbinu ya kuingiza maandishi huzalisha na hakuna kihariri
-kinachokionyesha, hivyo ujumbe hukichapisha kwa nukta ya msimbo badala ya
-kutaja herufi ambayo msomaji hawezi kuipata:
-
-```text
-placeholder {<U+00A0>name} has a space inside the braces; write {name}
-```
-
-Jina ambalo herufi zake huchanganya mifumo ya uandishi — kesi ya homoglifu,
-ambapo `а` ya Kisirili haitofautiani na ile ya Kilatini — huonyeshwa mara
-mbili, mara moja kwa namna inayosomeka na mara moja kwa namna iliyokwepwa,
-ambayo ndiyo namna pekee inayozitofautisha:
-
-```text
-translation does not match the source placeholders: {name} is missing;
-{nаme} (n\u0430me) is not in the source message
-```
-
-Utofautishaji uleule hutumika pale jina la Kigiriki au la Kisirili
-lililoandikwa kabisa kwa mfumo mmoja linapogongana na jina chanzo la ASCII,
-ikiwemo kesi ya herufi moja ya `a` ya Kilatini dhidi ya `а` ya Kisirili.
+tatizo la katalogi mara nyingi ni mfasiri kuliko mtayarishaji programu — hivyo
+pale kishika nafasi kinapoonekana kipo lakini hakipo, ujumbe hueleza kwa nini
+badala ya kurudia tu kwamba kimekosekana. Mabano ya upana kamili, `{{name}}`
+iliyorudufishwa, nafasi isiyokatika isiyoonekana, herufi ya Kisirili miongoni
+mwa za Kilatini: kila mojawapo ina maneno yake, imeorodheshwa pamoja na mifano
+katika [Kwa watafsiri](translators.md#reading-a-failure-message). Ukurasa huo
+umeandikwa ili kukabidhiwa mtu anayehariri `.po`.
 
 ## Kuonyesha muundo bila katalogi { #rendering-a-pattern-without-a-catalog }
 
@@ -304,3 +329,5 @@ gettext ya maktaba sanifu — **kukwepesha** matokeo yaliyoonyeshwa kwa ajili ya
 mahali yanapoenda (HTML, ganda, kituo), na **uadilifu wa katalogi**, kwa kuwa
 katalogi hasidi inaweza kurudia kishika nafasi ili kukuza ukubwa wa matokeo,
 jambo ambalo ni asili ya i18n yoyote inayotegemea vishika nafasi.
+
+  [babel-numbers]: https://babel.pocoo.org/en/latest/api/numbers.html

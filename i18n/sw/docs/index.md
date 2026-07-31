@@ -1,5 +1,5 @@
 ---
-description: "Tafsiri jumbe kamili za t-string kupitia gettext na Babel, huku uumbizaji ukibaki nje ya katalogi."
+description: "Tafsiri jumbe kamili za t-string kupitia gettext na Babel, huku thamani na uumbizaji vikibaki nje ya katalogi."
 title: "gettext-tstrings"
 hide:
   - navigation
@@ -8,10 +8,12 @@ hide:
 
 <div class="home-hero" markdown>
 
-# Andika sentensi mara moja.<br>Itafsiri nzima.
+# Tafsiri jumbe nzima,<br>si vipande vya mifuatano.
 
-Muunganisho salama wa gettext na Babel kwa t-strings za Python 3.14+ — thamani
-hubaki mahali pake, na katalogi huona ujumbe mzima:
+`gettext-tstrings` huunganisha t-strings za Python 3.14+ na katalogi sanifu za
+gettext na zana za Babel. Thamani na uumbizaji hubaki ndani ya msimbo wa
+programu; katalogi hushikilia ujumbe kamili wenye vishika nafasi rahisi vya
+`{name}`:
 
 ```python
 import gettext
@@ -24,7 +26,10 @@ print(_(t"Hello {name}"))  # with a Japanese catalog: こんにちは Ada
 ```
 
 [Anza mafunzo :material-arrow-right:](tutorial.md){ .md-button .md-button--primary }
-[Kwa nini t-strings](comparison.md){ .md-button }
+[Linganisha mbadala](comparison.md){ .md-button }
+
+Alpha · Python 3.14+ · katalogi za kawaida za PO/MO · hakuna vitegemezi vya wakati wa utekelezaji
+{ .home-facts }
 
 Tovuti hii hutekeleza kile inachoandika: kila toleo la lugha — urambazaji,
 lebo, na ripoti ya ujenzi inayotambua wingi — huonyeshwa kutoka katalogi za PO
@@ -34,21 +39,46 @@ na
 
 </div>
 
-Katalogi hupokea sentensi kamili `Hello {name}`. Tafsiri inaweza kupanga upya
-au kurudia `{name}`; haiwezi kukiondoa, kubuni kipya, wala kuambatisha umbizo
-lake yenyewe — maktaba hii hukagua hilo, na katalogi mbovu hurejea kwenye
-maandishi chanzo badala ya kuanguka.
+## Je, hii ni kwa ajili yako? { #is-this-for-you }
+
+**Inafaa leo ikiwa** programu yako huendeshwa kwenye Python 3.14 au mpya zaidi;
+tayari unatumia gettext na Babel, au unataka kuanza kutumia mtiririko wao wa
+PO/MO; nawe unataka sintaksia ya t-string yenye vishika nafasi vyenye majina
+vinavyokaguliwa kabla ya kuonyeshwa.
+
+**Bado haifai ikiwa** unahitaji Python 3.13 au ya zamani zaidi; unahitaji API
+thabiti ya Python — hii ni alpha, na [ainisho](spec.md) ndiyo sehemu yake
+iliyotulia; au takribani maandishi yako yote yanayotafsirika hukaa ndani ya
+lugha ya violezo badala ya msimbo chanzo wa Python.
+
+Tayari una katalogi? Zitaendelea kufanya kazi.
+`_("Hello {name}").format(name=name)` na `tr(t"Hello {name}")` huzalisha msgid
+ileile, hivyo tafsiri zilizopo hunusurika mabadiliko —
+[Uhamiaji](migration.md) hupitia hatua nzima.
+
+## Kile katalogi inachoruhusiwa kusema { #what-the-catalog-may-say }
+
+Katalogi hupokea ujumbe kamili `Hello {name}`. Tafsiri inaweza kupanga upya au
+kurudia `{name}`, nayo inaweza kuandika upya kila neno jingine linalokizunguka.
+Haiwezi kukiondoa kishika nafasi, kubuni kipya, kufikia vitu vyako kupitia
+kishika nafasi, wala kuambatisha umbizo lake yenyewe.
+
+Hiyo ndiyo ahadi nzima: **tafsiri haiwezi kubadilisha muundo wa ujumbe
+inaoutafsiri.** Maktaba hukagua hilo wakati wa kuingia — katalogi
+zinapokusanywa — na tena wakati wa kuonyesha; ingizo bovu linalofikia
+uzalishaji hata hivyo huandika onyo na huonyesha ujumbe chanzo badala ya
+kuanguka.
 
 !!! note "Mgeni kwa gettext? Mtiririko mzima wa kazi kwa sentensi nne"
 
     **gettext** ndiyo njia ya kawaida ambayo programu hutafsiriwa, ndani ya
-    Python na mbali zaidi. Msimbo wako huweka alama kwenye mifuatano
-    inayotafsirika; *kitoaji* huzikusanya katika faili la kiolezo (`.pot`);
+    Python na mbali zaidi. Msimbo wako huweka alama kwenye jumbe
+    zinazotafsirika; *kitoaji* huzikusanya katika faili la kiolezo (`.pot`);
     mfasiri — mara nyingi si mtayarishaji programu — hujaza faili moja la
     katalogi (`.po`) kwa kila lugha, ambalo hukusanywa kuwa `.mo` ya mfumo-jozi
     ambayo programu yako hupakia wakati wa utekelezaji. Jina la kawaida la
     kitendakazi cha kutafsiri ni `_`, hivyo `_(t"Hello {name}")` husomeka kama
-    "tafsiri sentensi hii". **[Mafunzo](tutorial.md)** hupitia njia nzima —
+    "tafsiri ujumbe huu". **[Mafunzo](tutorial.md)** hupitia njia nzima —
     weka alama, toa, tafsiri, kusanya, endesha — kwa takribani dakika tano.
 
 ## Tatizo linalotatuliwa { #the-problem-it-solves }
@@ -67,15 +97,21 @@ t-string inavyokuwa ujumbe. Maktaba hii hufanya uamuzi huo, huuandika kama
 [ainisho lenye matoleo](spec.md), na husambaza
 [seti ya utiifu](spec.md#conformance) ya kuukagua.
 
-## Uamuzi unaofanywa { #the-choice-it-makes }
+## Kanuni za muundo { #the-design-rules }
 
 - Tafsiri jumbe kamili, kamwe si vipande vya sentensi.
 - Kubali majina rahisi tu ya vigezo kama `{name}`.
 - Weka `!r` na `:.2f` chini ya udhibiti wa programu, nje ya katalogi.
-- Waache wafasiri wapange upya na warudie vishika nafasi vinavyojulikana —
-  lakini si kufikia sifa za vitu, wala kuongeza tabia ya uumbizaji.
+- Ruhusu tafsiri kupanga upya na kurudia vishika nafasi vinavyojulikana, huku
+  ukizizuia kufikia sifa za vitu au kuongeza uumbizaji.
 - Tumia tena mafaili ya kawaida ya POT, PO, na MO, pamoja na zana ambazo
   tayari huyasoma.
+
+Na orodha inayolingana ya kile inachokiacha kwa makusudi: haitafsirii nambari,
+sarafu, wala tarehe kwa eneo — [ziumbize kwanza](guide.md#locale-aware-values),
+kwa Babel; haikwepeshi matokeo yaliyoonyeshwa kwa ajili ya HTML, ganda, au
+kituo; nayo haiwezi kuhukumu kama tafsiri ni *sahihi*, bali tu kama vishika
+nafasi vyake vipo kamili.
 
 ## Usakinishaji { #install }
 
@@ -96,49 +132,58 @@ python -m pip install "gettext-tstrings[babel]"
 
 ## Wapi pa kwenda { #where-to-go-next }
 
-Aina tatu za wasomaji hufika hapa: yule anayetafsiri programu yake ya kwanza,
-yule anayeunganisha tafsiri katika mradi halisi, na yule anayetaka kujua hasa
-kwa nini mfumo umeundwa hivi. Kila mmoja ana njia yake.
-
-**Kujifunza** — hakuna uzoefu wa gettext unaohitajika:
+**Anza hapa** — hakuna uzoefu wa gettext unaohitajika:
 
 <div class="grid cards" markdown>
 
-- **[Mafunzo](tutorial.md)** — anza hapa: kutoka saraka tupu hadi tafsiri ya
-  Kijapani inayofanya kazi kwa hatua tano, kila amri ikionyeshwa na matokeo
-  yake.
+- **[Mafunzo](tutorial.md)** — kutoka saraka tupu hadi tafsiri ya Kijapani
+  inayofanya kazi kwa hatua tano, kila amri ikionyeshwa na matokeo yake.
 - **[Kwa nini t-strings](comparison.md)** — ujumbe uleule ulioandikwa kwa njia
   nne, na kile ambacho `%(name)s`, `.format()`, na `$`-strings kila kimoja
   hukikabidhi katalogi.
-- **[Usuli](background.md)** — kwa nini maktaba hii ipo: miaka thelathini ya
-  gettext, PEP mbili, na mjadala wa stdlib uliofungwa bila jibu.
 
 </div>
 
-**Kuitumia kwa dhati** — marejeo ya kazi:
+**Itumie** — marejeo ya kazi:
 
 <div class="grid cards" markdown>
 
-- **[Mwongozo](guide.md)** — API ya wakati wa utekelezaji: wingi, lugha kwa
-  kila ombi, mifuatano iliyoahirishwa, na kinachotokea katalogi inapokuwa na
-  kasoro.
+- **[Mwongozo](guide.md)** — API ya wakati wa utekelezaji: sehemu ipi ya
+  kuingilia kutumia, wingi, lugha kwa kila ombi, mifuatano iliyoahirishwa, na
+  kinachotokea katalogi inapokuwa na kasoro.
 - **[Utoaji](extraction.md)** — marejeo ya `pybabel`: usanidi, majina maalum ya
   vitendakazi, na jinsi zana zilizopo zinavyothibitisha katalogi hizi bure.
 - **[Katika uzalishaji](workflow.md)** — mzunguko kama timu inavyouendesha:
   mzunguko wa masasisho, maingizo ya fuzzy, vizuizi vya CI, majukwaa ya
-  tafsiri, na lugha kwa kila ombi katika programu ya wavuti.
-- **[API](api.md)** — kila kitu ambacho kifurushi hukitoa nje, kwenye ukurasa
-  mmoja.
+  tafsiri, na usafirishaji.
+- **[Uhamiaji](migration.md)** — kuanza kutumia hii katika mradi ambao tayari
+  una katalogi, sehemu moja ya wito baada ya nyingine.
+- **[Kwa watafsiri](translators.md)** — ukurasa mmoja wa kumkabidhi yeyote
+  anayehariri mafaili ya `.po`.
 
 </div>
 
-**Kuielewa** — kutoka misingi hadi utekelezaji:
+**Ielewe** — kutoka historia hadi utekelezaji:
 
 <div class="grid cards" markdown>
 
+- **[Usuli](background.md)** — kwa nini maktaba hii ipo: miaka thelathini ya
+  gettext, PEP mbili, na mjadala wa stdlib uliofungwa bila jibu.
+- **[Mitego](pitfalls.md)** — kile ambacho kutafsiri tovuti hii katika lugha
+  thelathini na tano kulivunja kwelikweli, na ni nusu ipi ambayo zana inaweza
+  kuinasa.
 - **[Jinsi inavyofanya kazi](internals.md)** — kutoka kwenye kitu cha kiolezo
   cha PEP 750 hadi mfuatano ulioonyeshwa, na akiba zinazofanya ukaguzi kuwa wa
   bei rahisi.
+
+</div>
+
+**Marejeleo** — mikataba:
+
+<div class="grid cards" markdown>
+
+- **[API](api.md)** — kila kitu ambacho kifurushi hukitoa nje, kwenye ukurasa
+  mmoja.
 - **[Ainisho](spec.md)** — makubaliano ya t-string ↔ msgid kama mkataba thabiti
   wenye matoleo, pamoja na seti ya utiifu inayosomeka na mashine.
 

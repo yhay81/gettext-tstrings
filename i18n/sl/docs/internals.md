@@ -194,8 +194,8 @@ sporočila izračunana po treh pravilih:
 Po istem načelu dobi »manjkajoča« ograda, ki je videti *navzoča*, pojasnjeno
 svojo odsotnost — široki zaviti oklepaji iz vzhodnoazijske vnosne metode,
 podvojitev `{{name}}` iz krožne poti ubežnega zapisovanja, ime zunaj vseh
-oklepajev. [Vodnikova tabela za branje napak](guide.md#reading-a-failure-message)
-prikaže vsako od teh sporočil dobesedno.
+oklepajev. [Tabela za branje napak](translators.md#reading-a-failure-message),
+napisana za prevajalce, prikaže vsako od teh sporočil dobesedno.
 
 ## Vroča pot { #the-hot-path }
 

@@ -1,24 +1,17 @@
 ---
-description: "Yr un neges gyfieithadwy wedi'i hysgrifennu â fformat-%, .format(), llinynnau-$ flufl.i18n, a llinyn-t, gan gynnwys sut y mae pob un yn rhwymo gwerthoedd ac yn trin catalog wedi'i niweidio."
+description: "Yr un neges gyfieithadwy wedi'i hysgrifennu â fformat-%, .format(), llinynnau-$ flufl.i18n, a llinyn-t, wedi'u cymharu ar gamgymeriadau cyfieithwyr, awdurdod y catalog, a chost integreiddio."
 ---
 
 # Pam llinynnau-t
 
 Pedair ffordd o roi gwerth i mewn i neges gyfieithadwy, wedi'u cymharu ar yr un
-frawddeg. Y fersiwn fer:
+neges. Mae'r pedair yn enwi eu dalwyr lle ac yn gadael i gyfieithydd eu
+haildrefnu; maent yn gwahaniaethu yn yr hyn sy'n digwydd pan fo cyfieithiad yn
+anghywir, yn faint o'ch rhaglen y gall y catalog ei chyrraedd, ac yn yr hyn y
+mae eu mabwysiadu'n ei gostio.
 
-- Gyda **fformat-%**, mae cyfieithydd yn dileu un llythyren yn troi'n chwalfa
-  mewn cynhyrchu.
-- Gyda **str.format**, gall cyfieithiad ddarllen priodoleddau oddi ar y
-  gwrthrychau y mae eich cod yn eu pasio i mewn — cyfrinachau yn eu plith.
-- Gyda **llinynnau-$** (flufl.i18n), tynnir gwerthoedd yn ymhlyg o newidynnau'r
-  ffwythiant sy'n galw, ac mae dalwyr lle dotiog yn cyrraedd priodoleddau
-  hefyd.
-- Gyda **llinynnau-t**, mae'r fformatio'n aros yn eich cod, gwirir cyfieithiadau
-  wrth redeg, ac mae catalog toredig yn cwympo'n ôl i'r testun ffynhonnell yn
-  lle chwalu.
-
-Y dystiolaeth yw gweddill y dudalen hon, un dull ar y tro.
+Daw'r tablau'n gyntaf, fel y gallwch ddod o hyd i'r rhes sydd o bwys i chi a
+darllen dim ond yr adran sydd y tu ôl iddi.
 
 !!! note "Mae tair plaid yn cyffwrdd â phob neges wedi'i chyfieithu"
 
@@ -32,6 +25,72 @@ Y dystiolaeth yw gweddill y dudalen hon, un dull ar y tro.
     cwestiwn yn wahanol: *faint o'r iaith fformat y caiff y catalog ei rheoli?*
     Yn yr enghreifftiau, `_` yw'r enw confensiynol ar y ffwythiant cyfieithu, ac
     `tr` yw un y llyfrgell hon.
+
+## Ochr yn ochr { #side-by-side }
+
+**Pan fo cyfieithydd yn gwneud camgymeriad.** Mae catalog yn teithio drwy lawer
+o ddwylo, ac mae'r rhan fwyaf o'r hyn sy'n mynd o'i le ynddo'n ddamweiniol:
+
+| | `%(name)s` | `.format()` | `flufl.i18n` `$name` | `t"…"` |
+| --- | --- | --- | --- | --- |
+| Mae cyfieithiad yn *gollwng* daliwr lle — beth sy'n rendro? | mae'r gwerth yn diflannu'n dawel | mae'r gwerth yn diflannu'n dawel | mae'r gwerth yn diflannu'n dawel | y neges ffynhonnell, gyda rhybudd ([yn ddiofyn](guide.md#what-happens-when-a-catalog-is-wrong)) |
+| Mae cyfieithiad yn *ychwanegu* daliwr lle anhysbys — beth sy'n rendro? | eithriad | eithriad | mae'r daliwr lle'n aros yn weladwy fel testun | y neges ffynhonnell, gyda rhybudd ([yn ddiofyn](guide.md#what-happens-when-a-catalog-is-wrong)) |
+| Mae cyfieithiad yn *ailfformatio* daliwr lle — beth sy'n rendro? | yr hyn a ofynnodd y catalog amdano, neu eithriad os nad yw'r llythyren fath yn ffitio'r gwerth mwyach | yr hyn a ofynnodd y catalog amdano | ni ellir ei fynegi mewn llinynnau-`$` | y neges ffynhonnell, gyda rhybudd |
+| A wirir dalwyr lle adeg rendro? | na | na | na | ie (gweler isod) |
+
+**Pa awdurdod sydd gan y catalog.** Data o'r tu allan i'ch storfa yw cyfieithiad,
+ac mae pob arddull yn rhoi swm gwahanol o rym iddo:
+
+| | `%(name)s` | `.format()` | `flufl.i18n` `$name` | `t"…"` |
+| --- | --- | --- | --- | --- |
+| O ble y daw'r gwerthoedd? | o fapio penodol | o ymresymiadau penodol | o newidynnau lleol a global y galwr, ynghyd ag `extras` dewisol | o'r gwerthoedd a ddaliwyd y tu mewn i'r llinyn-t |
+| A all y catalog newid sut y caiff gwerth ei fformatio? | ie | ie | na | na |
+| A all y catalog gyrraedd i mewn i wrthrychau (mynediad priodoledd)? | na | ie | ie, ag enwau dotiog | na |
+| Ble mae "yr iaith gyfredol" yn byw? | lle bynnag y mae'r rhaglen yn ei roi | lle bynnag y mae'r rhaglen yn ei roi | pentwr o godau iaith ar y gwrthrych rhaglen a rennir | `ContextVar`, fesul tasg neu gais |
+
+**Beth mae'n ei gostio i integreiddio.** Mae popeth uchod am ddim os yw'r offer
+yn ffitio; dyma lle efallai nad ydynt:
+
+| | `%(name)s` | `.format()` | `flufl.i18n` `$name` | `t"…"` |
+| --- | --- | --- | --- | --- |
+| Python lleiaf | unrhyw un | unrhyw un | 3.10 | **3.14** |
+| Aeddfedrwydd | llyfrgell safonol | llyfrgell safonol | rhyddhad sefydlog | **alffa** |
+| A yw'n defnyddio catalogau PO/MO cyffredin? | ie | ie | ie | ie |
+| A oes angen echdynnwr ffynhonnell pwrpasol? | na | na | na | ie, ar hyn o bryd |
+| Pa faner PO y mae Babel yn ei chasglu, i offer sy'n bodoli eu dilysu? | `python-format` | `python-brace-format` | dim | `python-brace-format` |
+
+Ynghylch y gwiriad adeg rendro: gwirir negeseuon unigol am gyfatebiaeth union o
+ddalwyr lle. Gwirir negeseuon lluosog hefyd, yn erbyn y
+[rheol uniad/croestoriad](spec.md) sy'n gadael i ffurfiau lluosog iaith darged
+fod yn wahanol i rai'r ffynhonnell; mae'r gwiriad llymach fesul ffurf yn rhedeg
+pan grynhoir catalogau ([Echdynnu](extraction.md)).
+
+Mae rhes y faner fformat yn ymwneud â dilysu sy'n ymwybodol o ddalwyr lle, nid â
+chydnawsedd catalogau. Mae `dim` yn golygu bod offer gettext safonol yn dal i
+ddarllen a chrynhoi'r neges, ond nad oes gan `msgfmt --check-format` unrhyw
+ramadeg dalwyr lle `$` i'w chymhwyso.
+
+## Cydnawsedd ac aeddfedrwydd { #compatibility-and-maturity }
+
+Dwy res gyntaf y tabl olaf yw'r rhai sy'n penderfynu mabwysiadu, felly mae'n
+werth eu nodi'n blaen yn hytrach nag fel celloedd.
+
+Mae fformat-`%` a `.format()` wedi'u hadeiladu i mewn i Python ac nid oes angen
+unrhyw ddibyniaeth o gwbl arnynt. Pecyn aeddfed yw
+[`flufl.i18n`][flufl-i18n], wedi'i ryddhau ac mewn defnydd cynhyrchu, sy'n
+rhedeg ar Python 3.10 a diweddarach. **Alffa** yw `gettext-tstrings` ac mae
+angen **Python 3.14 neu fwy newydd** arno, am fod llinynnau-t yn gystrawen
+newydd yn 3.14 — nid oes ôl-borthiad ac ni all fod un. Ei
+[fanyleb](spec.md) yw'r rhan sefydlog ohono; efallai y bydd yr API Python yn
+symud eto cyn 1.0.
+
+Yr hyn nad yw'r un ohonynt yn ei gostio yw cydnawsedd catalogau. Mae'r pedair yn
+cynhyrchu ffeiliau POT/PO/MO cyffredin y mae pob golygydd PO, llwyfan cyfieithu,
+ac offeryn gettext GNU eisoes yn eu darllen, felly mae'r dewis isod yn
+gildroadwy mewn ffordd na fyddai newid *fformatau* catalog. Mae
+[Mudo](migration.md) yn ymdrin â symud prosiect sy'n bodoli eisoes.
+
+Mae'r adrannau isod yn dangos pob cyfaddawd yn fanwl, un dull ar y tro.
 
 ## fformat-% { #-format }
 
@@ -53,10 +112,10 @@ Traceback (most recent call last):
 ValueError: incomplete format
 ```
 
-Mae golygiad un nod mewn golygydd PO yn troi'n ôl-lithriad mewn cynhyrchu. Mae
-`msgfmt --check-format` GNU yn ei ddal, ond dim ond ar gyfer negeseuon wedi'u
-baneru'n `python-format`, a dim ond os yw'r catalog yn mynd drwy msgfmt mewn
-gwirionedd ar ei ffordd i'ch rhaglen.
+Mae golygiad un nod mewn golygydd PO yn troi'n eithriad adeg rhedeg oni bai bod
+dilysu catalogau'n ei ddal yn gyntaf. Mae `msgfmt --check-format` GNU yn dal hwn,
+ond dim ond ar gyfer negeseuon wedi'u baneru'n `python-format`, a dim ond os yw'r
+catalog yn mynd drwy msgfmt mewn gwirionedd ar ei ffordd i'ch rhaglen.
 
 ## str.format { #strformat }
 
@@ -123,7 +182,7 @@ erbyn gwerthoedd y galwr. Caiff daliwr lle wedi'i gyfieithu enwi unrhyw local
 neu global sydd ar gael i'r galwr ac, â chystrawen ddotiog, deithio drwy ei
 briodoleddau. Mae hynny'n gyfleus pan fo neges angen priodoledd, tra hefyd yn
 gwneud ffrâm y galwr yn rhan o ofod enwau amnewid y catalog. Mae'r gymhariaeth
-isod yn disgrifio `flufl.i18n` 6.0.0, nid pob defnydd posibl o
+yma'n disgrifio `flufl.i18n` 6.0.0, nid pob defnydd posibl o
 `string.Template`.
 
 Mae hefyd yn ateb cwestiwn y mae'r ddwy arddull fformatio arall yn ei adael yn
@@ -187,7 +246,7 @@ ffynhonnell cyn rendro, ac nid yw'n derbyn dim ond enwau noeth. Yn erbyn
 | `{nombre}` | translation does not match the source placeholders: `{name}` is missing; `{nombre}` is not in the source message |
 
 Nid yw gwrthodwyd yn golygu chwalwyd: yn ddiofyn mae'r llyfrgell yn cofnodi
-rhybudd ac yn rendro'r testun ffynhonnell, felly nid yw catalog gwael byth yn
+rhybudd ac yn rendro'r neges ffynhonnell, felly nid yw catalog gwael byth yn
 bwrw'r rhaglen i lawr —
 [yr un contract y mae gettext ei hun yn ei gadw](guide.md#what-happens-when-a-catalog-is-wrong).
 
@@ -199,53 +258,19 @@ tr(t"Total: {amount:,.2f}")  # msgid is "Total: {amount}"
 ```
 
 Nid yw `:,.2f` byth yn cyrraedd y catalog, felly ni all unrhyw gyfieithiad ei
-newid, ac nid oes rhaid i unrhyw gyfieithydd edrych arno.
+newid, ac nid oes rhaid i unrhyw gyfieithydd edrych arno. Fformat *sefydlog*
+ydyw, serch hynny, nid un wedi'i leoleiddio — dewis digidau a gwahanyddion fesul
+iaith yw [gwaith Babel, cyn yr alwad](guide.md#locale-aware-values).
 
 Un gwahaniaeth arall yw'r offer: cystrawen newydd yw llinynnau-t, felly mae eu
 hechdynnu i mewn i `.pot` ar hyn o bryd yn gofyn am echdynnwr sy'n ymwybodol o
 linynnau-t, megis yr un y mae'r pecyn hwn yn ei
 [ddarparu ar gyfer Babel](extraction.md).
 
-## Ochr yn ochr { #side-by-side }
+## Cost y cyfyngiad { #the-cost-of-the-restriction }
 
-| | `%(name)s` | `.format()` | `flufl.i18n` `$name` | `t"…"` |
-| --- | --- | --- | --- | --- |
-| A yw'r daliwr lle wedi'i enwi? | ie | ie | ie | ie |
-| A all cyfieithydd aildrefnu dalwyr lle? | ie | ie | ie | ie |
-| O ble y daw'r gwerthoedd? | o fapio penodol | o ymresymiadau penodol | o newidynnau lleol a global y galwr, ynghyd ag `extras` dewisol | o'r gwerthoedd a ddaliwyd y tu mewn i'r llinyn-t |
-| A all y catalog newid sut y caiff gwerth ei fformatio? | ie | ie | na | na |
-| A all y catalog gyrraedd i mewn i wrthrychau (mynediad priodoledd)? | na | ie | ie, ag enwau dotiog | na |
-| Mae cyfieithiad yn *gollwng* daliwr lle — beth sy'n rendro? | mae'r gwerth yn diflannu'n dawel | mae'r gwerth yn diflannu'n dawel | mae'r gwerth yn diflannu'n dawel | y testun ffynhonnell, gyda rhybudd ([yn ddiofyn](guide.md#what-happens-when-a-catalog-is-wrong)) |
-| Mae cyfieithiad yn *ychwanegu* daliwr lle anhysbys — beth sy'n rendro? | eithriad | eithriad | mae'r daliwr lle'n aros yn weladwy fel testun | y testun ffynhonnell, gyda rhybudd ([yn ddiofyn](guide.md#what-happens-when-a-catalog-is-wrong)) |
-| A wirir dalwyr lle adeg rendro? | na | na | na | ie (gweler isod) |
-| Pa faner PO y mae Babel yn ei chasglu, i offer sy'n bodoli eu dilysu? | `python-format` | `python-brace-format` | dim | `python-brace-format` |
-| A yw'n defnyddio catalogau PO/MO cyffredin? | ie | ie | ie | ie |
-| A oes angen echdynnwr ffynhonnell pwrpasol? | na | na | na | ie, ar hyn o bryd |
-| Ble mae "yr iaith gyfredol" yn byw? | lle bynnag y mae'r rhaglen yn ei roi | lle bynnag y mae'r rhaglen yn ei roi | pentwr o godau iaith ar y gwrthrych rhaglen a rennir | `ContextVar`, fesul tasg neu gais |
-
-Ynghylch y gwiriad adeg rendro: gwirir negeseuon unigol am gyfatebiaeth union o
-ddalwyr lle. Gwirir negeseuon lluosog hefyd, yn erbyn y
-[rheol uniad/croestoriad](spec.md) sy'n gadael i ffurfiau lluosog iaith darged
-fod yn wahanol i rai'r ffynhonnell; mae'r gwiriad llymach fesul ffurf yn rhedeg
-pan grynhoir catalogau ([Echdynnu](extraction.md)).
-
-Mae rhes y faner fformat yn ymwneud â dilysu sy'n ymwybodol o ddalwyr lle, nid â
-chydnawsedd catalogau. Mae `dim` yn golygu bod offer gettext safonol yn dal i
-ddarllen a chrynhoi'r neges, ond nad oes gan `msgfmt --check-format` unrhyw
-ramadeg dalwyr lle `$` i'w chymhwyso.
-
-## Beth mae'n ei gostio { #what-it-costs }
-
-Ni ellir defnyddio llinyn-f fel hyn o gwbl — erbyn i unrhyw lyfrgell weld un
-mae eisoes yn llinyn gorffenedig, felly mae ei gyfieithu'n golygu cyfieithu
-darn. Mae llinynnau-t ([PEP 750]) yn cadw'r testun statig a'r gwerthoedd ar
-wahân tra'n cadw cystrawen debyg i linyn-f a rhwymo gwerthoedd penodol. Mae
-llinynnau-`$` eisoes yn cynnig dewis arall cryno â model rhwymo a methu
-gwahanol. Pecyn aeddfed sy'n rhedeg ar Python 3.10 a diweddarach yw
-`flufl.i18n`; alffa yw `gettext-tstrings` ar hyn o bryd, ac am mai cystrawen
-newydd yw llinynnau-t mae angen Python 3.14 neu fwy newydd arno.
-
-Y gost arall yw'r cyfyngiad ei hun: rhaid i ryngosodiad fod yn enw syml.
+Y tu hwnt i ofyniad Python, un rheol yw pris hyn i gyd: rhaid i ryngosodiad fod
+yn enw syml.
 
 ```python
 tr(t"Hello {user.name}")  # raises InvalidTemplateError at the call site
@@ -256,9 +281,15 @@ name = user.name  # compute it first
 tr(t"Hello {name}")
 ```
 
-Cyfyngiad go iawn yw hwnnw. Ynghyd â rhwymo gwerthoedd ar ochr y ffynhonnell a
-gwirio dalwyr lle wrth redeg, mae'n atal llinynnau catalog rhag gwerthuso
-ymadroddion ac yn cadw enwau dalwyr lle'n ystyrlon.
+Cyfyngiad go iawn yw hwnnw, a dyna'r un cyfyngiad sy'n cynhyrchu'r gwarantau
+uchod. Ynghyd â rhwymo gwerthoedd ar ochr y ffynhonnell a gwirio dalwyr lle wrth
+redeg, mae'n atal llinynnau catalog rhag gwerthuso ymadroddion ac yn cadw enwau
+dalwyr lle'n ystyrlon i'r person sy'n eu cyfieithu.
+
+Ni ellir defnyddio llinyn-f fel hyn o gwbl — erbyn i unrhyw lyfrgell weld un
+mae eisoes yn llinyn gorffenedig, felly mae ei gyfieithu'n golygu cyfieithu
+darn. Mae llinynnau-t ([PEP 750]) yn cadw'r testun statig a'r gwerthoedd ar
+wahân tra'n cadw cystrawen debyg i linyn-f a rhwymo gwerthoedd penodol.
 
 Adroddir sut y cyrhaeddodd Python y groesffordd hon — dau PEP ddeng mlynedd ar
 wahân, a'r drafodaeth am y llyfrgell safonol a gaeodd heb ateb — gyda

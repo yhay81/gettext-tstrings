@@ -43,10 +43,13 @@ Extraktor `gettext_tstrings` zpracovává i běžná volání `_()`, `gettext()`
 Rozpoznává `_()`, čtyři standardní gettextová jména, aliasy `tr()` / `ntr()`
 a odložené `lazy_gettext()` / `lazy_pgettext()`.
 
-!!! warning "`-c` není volitelné"
+!!! warning "Komentáře pro překladatele zapnete pomocí `-c`"
 
     `pybabel extract` sbírá komentáře pro překladatele jen tehdy, když
     předáte `-c "Translators:"`, přesně tak jako u běžných volání gettextu.
+    Bez něj extrakce stále funguje — komentáře se prostě nikdy nedostanou do
+    katalogu, kde jsou [nejlevnější pákou kvality](workflow.md#working-with-translators-and-platforms)
+    v celém pracovním postupu.
 
 ## Registrace vlastních jmen funkcí { #registering-your-own-function-names }
 
@@ -87,9 +90,9 @@ Dostupné volby jsou `tr_functions`, `ntr_functions`, `gettext_functions`,
     a pak zpráva u `pgettext`, kontext, jednotné číslo a pak množné číslo u
     `npgettext`.
 
-## Ve výchozím stavu odolný { #robust-by-default }
+## Lokálně shovívavě, v CI striktně { #lenient-locally-strict-in-ci }
 
-Jeden špatný soubor neukončí celý běh:
+Ve výchozím stavu jeden špatný soubor neukončí celý běh:
 
 - T-string, který extraktor odmítne — přístup k atributu, výraz, špatný
   argument — je nahlášen jako varování a přeskočen.
@@ -97,8 +100,30 @@ Jeden špatný soubor neukončí celý běh:
 - A stejně tak soubor, který odmítá jen `tokenize`, zatímco `ast` ho
   přijímá — na něm by se vlastní průchod Babelu jinak přerušil.
 
-Nastavte ve volbách mapování `strict = true`, aby se každý z těchto případů
-změnil v tvrdé selhání — což je přesně to, co chcete v CI.
+To je pohodlné, dokud kód upravujete, a nebezpečné, jakmile přestanete:
+přeskočená zpráva v POT jednoduše **chybí**, takže se nikdy nepřeloží a nic
+o tom neřekne. Nastavte `strict = true` ve volbách mapování všude tam, kde
+extrakci nesleduje člověk:
+
+=== "babel.cfg"
+
+    ```ini
+    [gettext_tstrings: **.py]
+    encoding = utf-8
+    strict = true
+    ```
+
+=== "babel.toml"
+
+    ```toml
+    [[mappings]]
+    method = "gettext_tstrings"
+    pattern = "**.py"
+    strict = true
+    ```
+
+Každé varování výše se pak změní v tvrdé selhání. Berte to jako produkční
+nastavení a výchozí chování jako to lokální.
 
 ## Vaše stávající sada nástrojů validuje tyto katalogy { #your-existing-toolchain-validates-these-catalogs }
 
@@ -126,8 +151,8 @@ msgfmt: found 1 fatal error
 
 Weblate dokumentuje tutéž kontrolu jako
 [Python brace format][weblate-checks] a komerční platformy mají vlastní QA
-zástupných symbolů navázané na tentýž příznak. Jejich chování je jejich
-věcí; dva nástroje níže jsou ty, které jsou ověřeny zde.
+zástupných symbolů navázané na tentýž příznak. Chování každé platformy je
+její vlastní; dva nástroje níže jsou ty, které jsou ověřeny zde.
 
   [weblate-checks]: https://docs.weblate.org/en/latest/user/checks.html
 
@@ -157,8 +182,8 @@ match the source placeholders: {n} is missing
     vydání; [Co hlídá CI](workflow.md#what-ci-gates) ukazuje krok sestavení,
     který mu to umožní.
 
-Ty dvě kontroly nejsou nadbytečné. Dodaný checker je přísnější stranou
-přinejmenším na dvou místech:
+Ty dvě kontroly nejsou nadbytečné. Checker z tohoto balíčku je přísnější
+přinejmenším ve dvou případech:
 
 - Msgid, jehož jediné složené závorky jsou escapované (`Config {{raw}}
   only`), nikdy nedostane příznak `python-brace-format`, takže ho žádný

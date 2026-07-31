@@ -206,8 +206,8 @@ Pe același principiu, un substituent „lipsă” care *pare* prezent își cap
 absența explicată — acolade cu lățime întreagă de la o metodă de introducere
 est-asiatică, dublarea în `{{name}}` de la un dus-întors de escapare, numele
 aflat în afara oricăror acolade.
-[Tabelul de citire a eșecurilor din ghid](guide.md#reading-a-failure-message)
-arată fiecare dintre aceste mesaje cuvânt cu cuvânt.
+[Tabelul de citire a eșecurilor](translators.md#reading-a-failure-message) scris
+pentru traducători arată fiecare dintre aceste mesaje cuvânt cu cuvânt.
 
 ## Calea fierbinte { #the-hot-path }
 

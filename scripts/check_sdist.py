@@ -33,7 +33,7 @@ def _is_forbidden(name: str) -> bool:
         return False
     if str(relative) in FORBIDDEN_FILES:
         return True
-    return any(relative == root or relative.is_relative_to(root) for root in FORBIDDEN_ROOTS)
+    return any(relative.is_relative_to(root) for root in FORBIDDEN_ROOTS)
 
 
 def main() -> int:

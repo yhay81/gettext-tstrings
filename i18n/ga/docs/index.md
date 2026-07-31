@@ -1,5 +1,5 @@
 ---
-description: "Aistrigh teachtaireachtaí t-string iomlána trí gettext agus Babel, agus an formáidiú coinnithe amuigh as an gcatalóg."
+description: "Aistrigh teachtaireachtaí t-string iomlána trí gettext agus Babel, agus na luachanna agus an formáidiú coinnithe amuigh as an gcatalóg."
 title: "gettext-tstrings"
 hide:
   - navigation
@@ -8,10 +8,12 @@ hide:
 
 <div class="home-hero" markdown>
 
-# Scríobh an abairt uair amháin.<br>Aistrigh í ina hiomláine.
+# Aistrigh teachtaireachtaí iomlána,<br>ní blúirí teaghráin.
 
-Comhtháthú sábháilte le gettext agus Babel do t-strings Python 3.14+ — fanann
-an luach ina áit, agus feiceann an chatalóg an teachtaireacht ina hiomláine:
+Ceanglaíonn `gettext-tstrings` t-strings Python 3.14+ le catalóga
+caighdeánacha gettext agus le huirlisí Babel. Fanann na luachanna agus an
+formáidiú i gcód an fheidhmchláir; coinníonn an chatalóg teachtaireacht
+iomlán le sealbhóirí ionaid shimplí `{name}`:
 
 ```python
 import gettext
@@ -24,7 +26,10 @@ print(_(t"Hello {name}"))  # with a Japanese catalog: こんにちは Ada
 ```
 
 [Tosaigh an rang teagaisc :material-arrow-right:](tutorial.md){ .md-button .md-button--primary }
-[Cén fáth t-strings](comparison.md){ .md-button }
+[Déan comparáid leis na roghanna eile](comparison.md){ .md-button }
+
+Alfa · Python 3.14+ · gnáthchatalóga PO/MO · gan spleáchais ag am rite
+{ .home-facts }
 
 Cleachtann an suíomh seo an rud a dhoiciméadaíonn sé: rindreáiltear gach
 eagrán teanga — an nascleanúint, na lipéid agus an tuairisc tógála a
@@ -34,22 +39,48 @@ thuigeann an t-iolra — ó chatalóga PO le
 
 </div>
 
-Faigheann an chatalóg an abairt iomlán `Hello {name}`. Tá cead ag aistriúchán
-`{name}` a athordú nó a athdhéanamh; níl cead aige é a fhágáil ar lár, ceann
-nua a chumadh, ná formáidiú dá chuid féin a cheangal leis — seiceálann an
-leabharlann seo é sin, agus titeann catalóg lochtach ar ais ar an téacs
-foinseach seachas tuairteáil.
+## An bhfuil sé seo duitse? { #is-this-for-you }
+
+**Feileann sé inniu** nuair a ritheann d'fheidhmchlár ar Python 3.14 nó níos
+nuaí; nuair a úsáideann tú gettext agus Babel cheana, nó nuair is mian leat
+glacadh lena sreabhadh oibre PO/MO; agus nuair atá comhréir t-string uait le
+sealbhóirí ionaid ainmnithe a sheiceáiltear sula rindreáiltear iad.
+
+**Ní fheileann sé fós** nuair a theastaíonn Python 3.13 nó níos sine uait;
+nuair a theastaíonn API cobhsaí Python uait — is alfa é seo, agus is í an
+[tsonraíocht](spec.md) an chuid de atá socraithe; nó nuair a bhíonn beagnach
+gach téacs inaistrithe agat i dteanga teimpléid seachas i bhfoinse Python.
+
+Catalóga agat cheana? Leanann siad ag obair. Táirgeann
+`_("Hello {name}").format(name=name)` agus `tr(t"Hello {name}")` an msgid
+céanna, mar sin maireann na haistriúcháin atá ann tríd an athrú — siúlann
+[Aistriú anonn](migration.md) an bogadh iomlán.
+
+## A bhfuil cead ag an gcatalóg a rá { #what-the-catalog-may-say }
+
+Faigheann an chatalóg an teachtaireacht iomlán `Hello {name}`. Tá cead ag
+aistriúchán `{name}` a athordú nó a athdhéanamh, agus gach focal eile timpeall
+air a athscríobh. Níl cead aige an sealbhóir ionaid a fhágáil ar lár, ceann
+nua a chumadh, síneadh tríd isteach i do chuid oibiachtaí, ná formáidiú dá
+chuid féin a cheangal leis.
+
+Sin an gealltanas ar fad: **ní féidir le haistriúchán struchtúr na
+teachtaireachta a aistríonn sé a athrú.** Seiceálann an leabharlann é ar an
+mbealach isteach — nuair a thiomsaítear na catalóga — agus arís ag am
+rindreála; iontráil lochtach a shroicheann an táirgeadh mar sin féin,
+logálann sí rabhadh agus rindreálann sí an teachtaireacht fhoinseach seachas
+tuairteáil.
 
 !!! note "gettext nua duit? An sreabhadh oibre iomlán i gceithre abairt"
 
     Is é **gettext** an bealach caighdeánach a aistrítear bogearraí, i bPython
-    agus i bhfad níos faide anonn. Marcálann do chód na teaghráin is féidir a
+    agus i bhfad níos faide anonn. Marcálann do chód na teachtaireachtaí is féidir a
     aistriú; bailíonn *eastóscóir* iad i gcomhad teimpléid (`.pot`); líonann
     aistritheoir — nach programmer é de ghnáth — comhad catalóige (`.po`)
     amháin in aghaidh na teanga, agus tiomsaítear é sin ina `.mo` dénártha a
     luchtaíonn d'fheidhmchlár ag am rite. Is é `_` an t-ainm traidisiúnta ar an
     bhfeidhm aistriúcháin, agus mar sin léitear `_(t"Hello {name}")` mar
-    "aistrigh an abairt seo". Siúlann an **[rang teagaisc](tutorial.md)** an
+    "aistrigh an teachtaireacht seo". Siúlann an **[rang teagaisc](tutorial.md)** an
     cosán ar fad — marcáil, eastóscadh, aistriú, tiomsú, rith — i thart ar
     chúig nóiméad.
 
@@ -70,16 +101,23 @@ t-string, áfach. Déanann an leabharlann seo an rogha sin, scríobhann síos í
 mar [shonraíocht le leagan uirthi](spec.md), agus seolann sí an
 [tsraith comhréireachta](spec.md#conformance) chun í a sheiceáil.
 
-## An rogha a dhéanann sé { #the-choice-it-makes }
+## Na rialacha deartha { #the-design-rules }
 
 - Aistrigh teachtaireachtaí iomlána, riamh blúirí abairte.
 - Ná glac ach le hainmneacha simplí athróg ar nós `{name}`.
 - Coinnigh `!r` agus `:.2f` faoi smacht an fheidhmchláir, amuigh as an
   gcatalóg.
-- Lig d'aistritheoirí sealbhóirí ionaid aitheanta a athordú agus a
-  athdhéanamh — ach gan tréithe a ghairm, agus gan iompar formáidithe a chur
-  leo.
+- Ceadaigh d'aistriúcháin sealbhóirí ionaid aitheanta a athordú agus a
+  athdhéanamh, agus cosc a chur orthu ag an am céanna síneadh chuig tréithe nó
+  formáidiú a chur leis.
 - Athúsáid gnáthchomhaid POT, PO agus MO, agus na huirlisí a léann cheana iad.
+
+Agus an liosta comhoiriúnach den rud a fhágann sé faoi d'aon ghnó: ní
+logánaíonn sé uimhreacha, airgeadraí ná dátaí — [formáidigh iad sin ar
+dtús](guide.md#locale-aware-values), le Babel; ní éalaíonn sé an t-aschur
+rindreáilte le haghaidh HTML, blaoisce ná teirminéil; agus ní féidir leis a
+mheas an bhfuil aistriúchán *ceart*, gan ach an bhfuil a chuid sealbhóirí
+ionaid slán.
 
 ## Suiteáil { #install }
 
@@ -100,53 +138,60 @@ python -m pip install "gettext-tstrings[babel]"
 
 ## Cá háit le dul ar aghaidh { #where-to-go-next }
 
-Tagann trí chineál léitheora anseo: duine atá ag aistriú a chéad chláir,
-duine atá ag ceangal an aistriúcháin le fíorthionscadal, agus duine ar mian
-leis a fháil amach go beacht cén fáth a bhfuil an t-inneall múnlaithe mar
-seo. Tá cosán ag gach duine acu.
-
-**Á fhoghlaim** — ní ghlactar le haon taithí ar gettext:
+**Tosaigh anseo** — ní ghlactar le haon taithí ar gettext:
 
 <div class="grid cards" markdown>
 
-- **[Rang teagaisc](tutorial.md)** — tosaigh anseo: ó chomhadlann fholamh go
-  haistriúchán Seapáinise atá ag rith, i gcúig chéim, gach ordú á thaispeáint
-  lena aschur.
+- **[Rang teagaisc](tutorial.md)** — ó chomhadlann fholamh go haistriúchán
+  Seapáinise atá ag rith, i gcúig chéim, gach ordú á thaispeáint lena aschur.
 - **[Cén fáth t-strings](comparison.md)** — an teachtaireacht chéanna scríofa
   ar cheithre bhealach, agus an rud a shíneann `%(name)s`, `.format()` agus
   `$`-strings chuig an gcatalóg.
-- **[Cúlra](background.md)** — cén fáth a bhfuil an leabharlann seo ann:
-  tríocha bliain de gettext, dhá PEP, agus an plé sa leabharlann chaighdeánach
-  a dúnadh gan freagra.
 
 </div>
 
-**Á úsáid i ndáiríre** — na tagairtí oibre:
+**Bain úsáid as** — na tagairtí oibre:
 
 <div class="grid cards" markdown>
 
-- **[Treoir](guide.md)** — an API ag am rite: iolraí, teangacha in aghaidh an
-  iarratais, teaghráin iarchurtha, agus a tharlaíonn nuair a bhíonn catalóg
-  mícheart.
+- **[Treoir](guide.md)** — an API ag am rite: cén pointe iontrála le húsáid,
+  iolraí, teangacha in aghaidh an iarratais, teaghráin iarchurtha, agus a
+  tharlaíonn nuair a bhíonn catalóg mícheart.
 - **[Eastóscadh](extraction.md)** — an tagairt do `pybabel`: cumraíocht,
   ainmneacha feidhme saincheaptha, agus an chaoi a mbailíochtaíonn uirlisí atá
   ann cheana na catalóga seo saor in aisce.
 - **[I dtáirgeadh](workflow.md)** — an lúb mar a ritheann foireann í: an
   timthriall nuashonraithe, iontrálacha `fuzzy`, geataí CI, ardáin
-  aistriúcháin, agus teangacha in aghaidh an iarratais i bhfeidhmchlár
-  gréasáin.
-- **[API](api.md)** — gach rud a easpórtálann an pacáiste, ar leathanach
-  amháin.
+  aistriúcháin, agus an seoladh.
+- **[Aistriú anonn](migration.md)** — é seo a ghlacadh chugat i dtionscadal a
+  bhfuil catalóga aige cheana, láithreán glaonna amháin sa turas.
+- **[D'aistritheoirí](translators.md)** — leathanach amháin le tabhairt do
+  cibé duine a chuireann na comhaid `.po` in eagar.
 
 </div>
 
-**Á thuiscint** — ó na prionsabail go dtí an cur i bhfeidhm:
+**Tuig é** — ón stair go dtí an cur i bhfeidhm:
 
 <div class="grid cards" markdown>
 
+- **[Cúlra](background.md)** — cén fáth a bhfuil an leabharlann seo ann:
+  tríocha bliain de gettext, dhá PEP, agus an plé sa leabharlann chaighdeánach
+  a dúnadh gan freagra.
+- **[Gaistí](pitfalls.md)** — an rud a bhris aistriú an tsuímh seo go cúig
+  theanga is tríocha i ndáiríre, agus cé acu leath is féidir le huirlis a
+  cheapadh.
 - **[Conas a oibríonn sé](internals.md)** — ó oibiacht teimpléid PEP 750 go
   dtí an teaghrán rindreáilte, agus na taiscí a fhágann go bhfuil an tseiceáil
   saor.
+
+</div>
+
+**Tagairt** — na conarthaí:
+
+<div class="grid cards" markdown>
+
+- **[API](api.md)** — gach rud a easpórtálann an pacáiste, ar leathanach
+  amháin.
 - **[Sonraíocht](spec.md)** — an coinbhinsiún t-string ↔ msgid mar chonradh
   cobhsaí le leagan air, agus sraith comhréireachta inléite ag meaisín leis.
 

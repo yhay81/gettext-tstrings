@@ -11,6 +11,18 @@ ailleurs et à son propre rythme, et un catalogue compilé accompagne chaque
 release. Cette page décrit cette pratique — ce qui reste dans le dépôt, ce qui
 voyage, ce que la CI doit verrouiller et où le runtime lie une langue.
 
+Tout cela se ramène à six contrôles ; les voici d'emblée, et chaque section
+ci-dessous en met un en place.
+
+- `pybabel update --check` passe — aucun message n'a changé sans que les
+  catalogues en aient été avertis.
+- `pybabel compile` conditionne le build à son statut de sortie.
+- Les entrées `fuzzy` restantes sont voulues — chacune se rend en texte source
+  jusqu'à ce qu'un traducteur la confirme.
+- La suite de tests rend une fois chaque langue livrée avec `strict=True`.
+- L'artefact de production contient les fichiers `.mo` et pas Babel.
+- Le logger `gettext_tstrings` est raccordé à la supervision.
+
 ## La forme d'un projet { #the-shape-of-a-project }
 
 ```text
@@ -34,7 +46,7 @@ qui est livré.
 
 Un fichier joue un rôle dans chaque direction : le `.pot` transporte vos
 messages *vers* les traducteurs, les fichiers `.po` rapportent les traductions
-*en retour*. Tout ce qui suit est le trafic entre ces deux-là.
+*en retour*. Le reste de cette page est ce qui circule entre les deux.
 
 ```mermaid
 flowchart LR
@@ -48,8 +60,8 @@ flowchart LR
 
 ## Le cycle après la première traduction { #the-cycle-after-the-first-translation }
 
-Le `pybabel init` du tutoriel ne s'exécute qu'une seule fois par langue,
-jamais plus. À partir de là, le cycle de travail est **extraire → mettre à
+Le `pybabel init` du tutoriel s'exécute normalement une seule fois, à l'ajout
+d'une langue. À partir de là, le cycle de travail est **extraire → mettre à
 jour → traduire → compiler**, et son centre est `pybabel update`, qui fusionne
 un modèle frais dans les catalogues existants sans jeter les traductions
 qu'ils contiennent déjà.
@@ -78,9 +90,9 @@ msgstr "こんにちは {name}"
 
 Babel a remarqué que le nouveau msgid ressemblait à un msgid supprimé et l'a
 apparié avec l'ancienne traduction — mais en marquant la paire **fuzzy** : la
-supposition d'une machine en attente d'un humain. Ce flag a des dents.
-`pybabel compile` **exclut les entrées fuzzy du `.mo`**, donc tant qu'un
-traducteur n'a pas confirmé la paire, l'application rend le nouveau texte
+supposition d'une machine en attente d'un humain. Ce flag change ce qui est
+compilé : `pybabel compile` **exclut les entrées fuzzy du `.mo`**, donc tant
+qu'un traducteur n'a pas confirmé la paire, l'application rend le nouveau texte
 anglais plutôt qu'un japonais périmé :
 
 ```console
@@ -129,33 +141,18 @@ contre la fusion d'un code dont personne n'a réextrait les messages.
 [checker enregistré](extraction.md#your-existing-toolchain-validates-these-catalogs)
 de ce paquet.
 
-!!! bug "`--check` ne peut pas verrouiller un catalogue qui utilise des contextes"
+!!! bug "Babel 2.18.0 : `--check` ne peut pas verrouiller un catalogue qui utilise des contextes"
 
     Sur Babel 2.18.0, `pybabel update --check` signale **chaque** catalogue
     contenant un `msgctxt` comme en retard, à chaque exécution, quel que soit
-    son degré d'actualité. La comparaison passe par `Catalog.is_identical`,
-    qui cherche chaque message sous la clé où il est rangé — et pour un
-    message contextuel, cette clé est le couple `(id, context)`, que
-    `Catalog.get` n'accepte pas. La recherche ne renvoie rien, et les
-    catalogues ne sont jamais égaux :
-
-    ```pycon
-    >>> from babel.messages.catalog import Catalog
-    >>> c = Catalog(locale="ja")
-    >>> c.add("Guide", "ガイド", context="navigation")
-    <Message 'Guide' (flags: [])>
-    >>> c.is_identical(c)
-    False
-    ```
-
-    Donc si vous utilisez ne serait-ce qu'une fois `pgettext` ou `npgettext` —
-    et lever l'ambiguïté d'un homonyme est leur raison d'être — cette étape
-    laisse tout passer de la pire des façons : toujours rouge, donc une équipe
-    la désactive, donc plus rien ne verrouille l'obsolescence. En attendant un
-    correctif en amont, comparez vous-même les ensembles de messages. Lire le
-    modèle et chaque catalogue avec `babel.messages.pofile.read_po` et comparer
+    son degré d'actualité. Une barrière définitivement rouge est pire que pas
+    de barrière, parce qu'une équipe finit par la désactiver — donc si vous
+    utilisez ne serait-ce qu'une fois `pgettext` ou `npgettext`, remplacez
+    cette étape plutôt que de vivre avec. Lire le modèle et chaque catalogue
+    avec `babel.messages.pofile.read_po` et comparer
     `{(m.context, m.id) for m in catalog if m.id}` est tout le contrôle, et
-    c'est ce que fait [le build de ce site](index.md).
+    c'est ce que fait [le build de ce site](index.md). La cause est
+    [détaillée sur Pièges](pitfalls.md#your-tools-have-bugs-too).
 
 !!! danger "Vérifiez le statut de sortie, pas le journal"
 

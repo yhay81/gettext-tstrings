@@ -92,3 +92,27 @@ msgstr[1] "Rendrwyd {n} dudalen mewn {seconds}s"
 msgstr[2] "Rendrwyd {n} dudalen mewn {seconds}s"
 msgstr[3] "Rendrwyd {n} tudalen mewn {seconds}s"
 msgstr[4] "Rendrwyd {n} thudalen mewn {seconds}s"
+
+#. gettext-tstrings
+msgid "Start here"
+msgstr "Dechreuwch yma"
+
+#. gettext-tstrings
+msgid "Use it"
+msgstr "Ei ddefnyddio"
+
+#. gettext-tstrings
+msgid "Migration"
+msgstr "Mudo"
+
+#. gettext-tstrings
+msgid "For translators"
+msgstr "I gyfieithwyr"
+
+#. gettext-tstrings
+msgid "Understand it"
+msgstr "Ei ddeall"
+
+#. gettext-tstrings
+msgid "Reference"
+msgstr "Cyfeirlyfr"

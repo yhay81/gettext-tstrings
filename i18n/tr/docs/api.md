@@ -51,9 +51,12 @@ altında güvenlidir.
 
 | Ad | Amaç |
 | --- | --- |
-| `lazy_gettext(template, /, *, strict=False)` | Bir çeviriyi ilk kullanıma ertele. |
+| `lazy_gettext(template, /, *, strict=False)` | Çeviriyi her render'a kadar ertele. |
 | `lazy_pgettext(context, template, /, *, strict=False)` | Bağlamlı biçimi. |
-| `LazyString` | İkisinin de döndürdüğü şey. `str()` ve `format()` üzerinden render edilir, metniyle eşit karşılaştırılır ve bilerek hash'lenemez. |
+| `LazyString` | İkisinin de döndürdüğü şey. `str()` ve `format()` üzerinden, o anda hangi dil bağlıysa o dilde render edilir, render edilmiş metniyle eşit karşılaştırılır ve bilerek hash'lenemez. |
+
+`strict`in neden tanımın yanına ait olduğu da dahil olmak üzere işlenmiş
+örnekler [Ertelenmiş çeviri](guide.md#deferred-translation) başlığı altındadır.
 
 ## Daha alt düzey { #lower-level }
 

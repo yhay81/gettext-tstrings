@@ -86,3 +86,27 @@ msgid "Rendered {n} page in {seconds}s"
 msgid_plural "Rendered {n} pages in {seconds}s"
 msgstr[0] "Birti {n} síðu á {seconds} s"
 msgstr[1] "Birti {n} síður á {seconds} s"
+
+#. gettext-tstrings
+msgid "Start here"
+msgstr "Byrjaðu hér"
+
+#. gettext-tstrings
+msgid "Use it"
+msgstr "Notaðu það"
+
+#. gettext-tstrings
+msgid "Migration"
+msgstr "Yfirfærsla"
+
+#. gettext-tstrings
+msgid "For translators"
+msgstr "Fyrir þýðendur"
+
+#. gettext-tstrings
+msgid "Understand it"
+msgstr "Skildu það"
+
+#. gettext-tstrings
+msgid "Reference"
+msgstr "Uppflettirit"

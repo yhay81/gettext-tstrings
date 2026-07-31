@@ -11,6 +11,18 @@ description: "팀이 굴리는 gettext 루프: 반복되는 업데이트 주기,
 저장소에 남고, 무엇이 오가며, CI가 무엇을 막아야 하고, 런타임이 어디서
 언어를 바인딩하는지.
 
+이것을 다 합치면 여섯 가지 검사가 되므로, 먼저 여기에 적어 둡니다. 아래의
+각 절이 그중 하나씩을 설정합니다.
+
+- `pybabel update --check`가 통과한다 — 카탈로그가 모르는 사이에 바뀐
+  메시지가 없다.
+- `pybabel compile`의 종료 상태로 빌드를 막는다.
+- 남아 있는 `fuzzy` 항목은 의도한 것이다 — 번역자가 확인할 때까지 각각
+  원본 텍스트로 렌더링된다.
+- 테스트 스위트가 배포하는 언어마다 한 번씩 `strict=True`로 렌더링한다.
+- 프로덕션 산출물에는 `.mo` 파일이 들어 있고 Babel은 들어 있지 않다.
+- `gettext_tstrings` 로거가 모니터링으로 연결되어 있다.
+
 ## 프로젝트의 형태 { #the-shape-of-a-project }
 
 ```text
@@ -31,8 +43,8 @@ myapp/
 `.po`와 그 `.mo`가 배포 내용에 대해 결코 어긋날 수 없습니다.
 
 한 파일씩 서로 반대 방향의 역할을 맡습니다. `.pot`은 여러분의 메시지를
-번역자에게 *내보내고*, `.po` 파일은 번역을 *돌려받습니다*. 아래의 모든
-내용은 이 둘 사이의 왕래입니다.
+번역자에게 *내보내고*, `.po` 파일은 번역을 *돌려받습니다*. 이 페이지의
+나머지는 그 둘 사이를 오가는 것에 대한 이야기입니다.
 
 ```mermaid
 flowchart LR
@@ -46,7 +58,7 @@ flowchart LR
 
 ## 첫 번역 이후의 주기 { #the-cycle-after-the-first-translation }
 
-튜토리얼의 `pybabel init`은 언어마다 단 한 번만 실행합니다. 그 뒤의 작업
+튜토리얼의 `pybabel init`은 보통 언어를 추가할 때 한 번만 실행합니다. 그 뒤의 작업
 주기는 **추출 → 업데이트 → 번역 → 컴파일**이며, 그 중심에는 기존
 카탈로그에 이미 들어 있는 번역을 버리지 않고 새 템플릿을 접어 넣는
 `pybabel update`가 있습니다.
@@ -74,7 +86,7 @@ msgstr "こんにちは {name}"
 
 Babel은 새 msgid가 제거된 msgid와 닮았다는 것을 알아채고 옛 번역과
 짝지었지만, 그 짝을 **fuzzy**로 표시했습니다. 사람의 확인을 기다리는
-기계의 추측이라는 뜻입니다. 이 플래그에는 실질적인 힘이 있습니다.
+기계의 추측이라는 뜻입니다. 이 플래그는 컴파일되는 내용을 바꿉니다.
 `pybabel compile`은 **fuzzy 항목을 `.mo`에서 제외**하므로, 번역자가 짝을
 확인할 때까지 애플리케이션은 낡은 일본어 텍스트가 아니라 새 영어
 텍스트를 렌더링합니다.
@@ -124,32 +136,17 @@ Welcome back, Ada
 [등록된 검사기](extraction.md#your-existing-toolchain-validates-these-catalogs)의
 플레이스홀더 검사를 모두 실행합니다.
 
-!!! bug "`--check`는 컨텍스트를 쓰는 카탈로그를 막지 못합니다"
+!!! bug "Babel 2.18.0: `--check`는 컨텍스트를 쓰는 카탈로그를 막지 못합니다"
 
     Babel 2.18.0에서 `pybabel update --check`는 `msgctxt`가 들어 있는
     카탈로그를 얼마나 최신이든 상관없이, 실행할 때마다 **전부** 뒤처졌다고
-    보고합니다. 비교는 `Catalog.is_identical`을 거치는데, 이 메서드는 각
-    메시지를 저장된 키로 조회합니다 — 그리고 컨텍스트가 있는 메시지의 키는
-    `(id, context)` 쌍이며, `Catalog.get`은 이를 받지 않습니다. 조회는
-    아무것도 반환하지 못하고, 카탈로그는 결코 같다고 비교되지 않습니다.
-
-    ```pycon
-    >>> from babel.messages.catalog import Catalog
-    >>> c = Catalog(locale="ja")
-    >>> c.add("Guide", "ガイド", context="navigation")
-    <Message 'Guide' (flags: [])>
-    >>> c.is_identical(c)
-    False
-    ```
-
-    그러므로 `pgettext`나 `npgettext`를 조금이라도 쓴다면 — 동음이의어를
-    구분하는 것이 바로 이들이 존재하는 이유입니다 — 이 단계는 최악의
-    방식으로 무력해집니다. 언제나 빨갛고, 그래서 팀은 이를 꺼버리고, 그래서
-    아무것도 뒤처짐을 막지 못합니다. 업스트림에서 고쳐지기 전까지는 메시지
-    집합을 직접 비교하세요. 템플릿과 각 카탈로그를
+    보고합니다. 영구히 실패하는 게이트는 게이트가 없는 것보다 나쁩니다.
+    팀이 꺼 버리기 때문입니다 — 그러니 `pgettext`나 `npgettext`를 조금이라도
+    쓴다면, 이 단계를 안고 가지 말고 대체하세요. 템플릿과 각 카탈로그를
     `babel.messages.pofile.read_po`로 읽어
     `{(m.context, m.id) for m in catalog if m.id}`를 비교하는 것이 검사의
-    전부이며, [이 사이트의 자체 빌드](index.md)가 바로 그렇게 합니다.
+    전부이며, [이 사이트의 자체 빌드](index.md)가 바로 그렇게 합니다. 원인은
+    [함정 페이지에 정리](pitfalls.md#your-tools-have-bugs-too)되어 있습니다.
 
 !!! danger "로그가 아니라 종료 상태를 확인하세요"
 

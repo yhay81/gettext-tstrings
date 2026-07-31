@@ -151,11 +151,25 @@ existen para llenar ese hueco.
 
 El paso de CI que recomienda esta documentación para detectar catálogos
 obsoletos, `pybabel update --check`, no puede hacer ese trabajo en ningún
-proyecto que use `pgettext` o `npgettext`: informa de que todos los catálogos
-con un `msgctxt` están desactualizados, en cada ejecución, por un error en cómo
-la comparación busca los mensajes. Se descubrió aquí al intentar usarlo, se
-comunicó aguas arriba y está
-[descrito por completo junto con su solución alternativa](workflow.md#what-ci-gates).
+proyecto que use `pgettext` o `npgettext`. En Babel 2.18.0 informa de que todos
+los catálogos con un `msgctxt` están desactualizados, en cada ejecución. La
+comparación pasa por `Catalog.is_identical`, que busca cada mensaje por la clave
+con la que está almacenado, y para un mensaje con contexto esa clave es el par
+`(id, context)`, que `Catalog.get` no acepta. La búsqueda no devuelve nada y los
+catálogos nunca resultan iguales:
+
+```pycon
+>>> from babel.messages.catalog import Catalog
+>>> c = Catalog(locale="ja")
+>>> c.add("Guide", "ガイド", context="navigation")
+<Message 'Guide' (flags: [])>
+>>> c.is_identical(c)
+False
+```
+
+Se descubrió aquí al intentar usarlo, se comunicó aguas arriba, y la
+comprobación de repuesto está
+[en la página de producción](workflow.md#what-ci-gates).
 
 La lección general es la incómoda: una puerta que siempre está en rojo es peor
 que no tener puerta, porque el equipo acaba desactivándola. Verifica que tu

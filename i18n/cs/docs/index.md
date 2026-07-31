@@ -1,5 +1,5 @@
 ---
-description: "Překládejte kompletní zprávy z t-stringů přes gettext a Babel, s formátováním drženým mimo katalog."
+description: "Překládejte kompletní zprávy z t-stringů přes gettext a Babel, s hodnotami i formátováním drženými mimo katalog."
 title: "gettext-tstrings"
 hide:
   - navigation
@@ -8,10 +8,12 @@ hide:
 
 <div class="home-hero" markdown>
 
-# Napište větu jednou.<br>Přeložte ji celou.
+# Překládejte celé zprávy,<br>ne útržky řetězců.
 
-Bezpečná integrace gettextu a Babelu pro t-stringy Pythonu 3.14+ — hodnota
-zůstává na svém místě a katalog vidí celou zprávu:
+`gettext-tstrings` propojuje t-stringy Pythonu 3.14+ se standardními
+katalogy gettextu a s nástroji Babelu. Hodnoty i formátování zůstávají
+v kódu aplikace; katalog drží kompletní zprávu s jednoduchými zástupnými
+symboly `{name}`:
 
 ```python
 import gettext
@@ -24,7 +26,10 @@ print(_(t"Hello {name}"))  # with a Japanese catalog: こんにちは Ada
 ```
 
 [Začněte tutoriálem :material-arrow-right:](tutorial.md){ .md-button .md-button--primary }
-[Proč t-stringy](comparison.md){ .md-button }
+[Porovnejte si alternativy](comparison.md){ .md-button }
+
+Alfa · Python 3.14+ · obyčejné katalogy PO/MO · žádné běhové závislosti
+{ .home-facts }
 
 Tento web praktikuje to, co dokumentuje: každá jazyková edice —
 navigace, popisky i sestavovací report zohledňující množné číslo — se
@@ -34,20 +39,43 @@ vykresluje z katalogů PO pomocí
 
 </div>
 
-Katalog dostává kompletní větu `Hello {name}`. Překlad smí `{name}`
-přeuspořádat nebo zopakovat; nesmí ho vypustit, vymyslet si nový ani k němu
-připojit vlastní formátování — tato knihovna to kontroluje a rozbitý katalog
-se vrátí ke zdrojovému textu, místo aby způsobil pád.
+## Je to pro vás? { #is-this-for-you }
+
+**Sedne vám to dnes, pokud** vaše aplikace běží na Pythonu 3.14 nebo novějším;
+už používáte gettext a Babel, nebo chcete jejich postup s PO/MO převzít; a
+chcete syntaxi t-stringů s pojmenovanými zástupnými symboly, které se
+kontrolují dřív, než se vykreslí.
+
+**Zatím vám to nesedne, pokud** potřebujete Python 3.13 nebo starší; vyžadujete
+stabilní pythonovské API — tohle je alfa a [specifikace](spec.md) je ta část,
+která se usadila —; nebo pokud téměř všechen váš přeložitelný text žije
+v šablonovacím jazyce, a ne v pythonovském zdroji.
+
+Už katalogy máte? Fungují dál. `_("Hello {name}").format(name=name)` a
+`tr(t"Hello {name}")` produkují týž msgid, takže stávající překlady přechod
+přežijí — [Migrace](migration.md) provází celým přesunem.
+
+## Co smí katalog říct { #what-the-catalog-may-say }
+
+Katalog dostává kompletní zprávu `Hello {name}`. Překlad smí `{name}`
+přeuspořádat nebo zopakovat a smí přepsat každé ostatní slovo kolem něj.
+Nesmí zástupný symbol vypustit, vymyslet si nový, sahat skrz něj do vašich
+objektů ani k němu připojit vlastní formátování.
+
+To je celý ten slib: **překlad nemůže změnit strukturu zprávy, kterou
+překládá.** Knihovna to kontroluje na vstupu — při kompilaci katalogů — a
+znovu při vykreslování; rozbitý záznam, který se přesto dostane do produkce,
+zaloguje varování a vykreslí zdrojovou zprávu, místo aby způsobil pád.
 
 !!! note "gettext je pro vás novinka? Celý pracovní postup ve čtyřech větách"
 
     **gettext** je standardní způsob, jakým se software překládá, v Pythonu i
-    daleko za ním. Váš kód označí přeložitelné řetězce; *extraktor* je posbírá
+    daleko za ním. Váš kód označí přeložitelné zprávy; *extraktor* je posbírá
     do souboru šablony (`.pot`); překladatel — obvykle nikoli programátor —
     vyplní jeden katalogový soubor (`.po`) na jazyk, který se zkompiluje do
     binárního `.mo`, jejž vaše aplikace načítá za běhu. Konvenční jméno
     překládací funkce je `_`, takže `_(t"Hello {name}")` se čte jako „přelož
-    tuto větu“. **[Tutoriál](tutorial.md)** projde celou cestu — označit,
+    tuto zprávu“. **[Tutoriál](tutorial.md)** projde celou cestu — označit,
     extrahovat, přeložit, zkompilovat, spustit — přibližně za pět minut.
 
 ## Problém, který řeší { #the-problem-it-solves }
@@ -64,14 +92,20 @@ Nic v gettextu ani v Babelu ovšem neříká, jak se t-string stane zprávou. Ta
 knihovna tu volbu činí, zapisuje ji jako [verzovanou specifikaci](spec.md) a
 dodává [sadu testů konformity](spec.md#conformance), která ji ověřuje.
 
-## Volba, kterou činí { #the-choice-it-makes }
+## Návrhová pravidla { #the-design-rules }
 
 - Překládat kompletní zprávy, nikdy útržky vět.
 - Přijímat jen jednoduchá jména proměnných, jako je `{name}`.
 - Držet `!r` a `:.2f` pod kontrolou aplikace, mimo katalog.
-- Nechat překladatele přeuspořádávat a opakovat známé zástupné symboly — ale
-  ne volat atributy a ne přidávat formátovací chování.
+- Nechat překlady přeuspořádávat a opakovat známé zástupné symboly, ale
+  zabránit jim v tom, aby sahaly na atributy nebo přidávaly formátování.
 - Používat obyčejné soubory POT, PO a MO a nástroje, které je už umějí číst.
+
+A k tomu odpovídající seznam toho, co záměrně nechává na pokoji: nelokalizuje
+čísla, měny ani data — [naformátujte je nejdřív](guide.md#locale-aware-values)
+Babelem; neescapuje vykreslený výstup pro HTML, shell ani terminál; a neumí
+posoudit, zda je překlad *správný*, jen zda jsou jeho zástupné symboly
+nedotčené.
 
 ## Instalace { #install }
 
@@ -92,44 +126,53 @@ python -m pip install "gettext-tstrings[babel]"
 
 ## Kam dál { #where-to-go-next }
 
-Přicházejí sem tři druhy čtenářů: někdo, kdo překládá svůj první program,
-někdo, kdo zapojuje překlady do skutečného projektu, a někdo, kdo chce přesně
-vědět, proč má tahle mašinerie právě takový tvar. Každý má svou cestu.
-
-**Učím se to** — bez předpokladu zkušeností s gettextem:
+**Začněte tady** — bez předpokladu zkušeností s gettextem:
 
 <div class="grid cards" markdown>
 
-- **[Tutoriál](tutorial.md)** — začněte tady: od prázdného adresáře k běžícímu
-  japonskému překladu v pěti krocích, každý příkaz ukázaný i s výstupem.
+- **[Tutoriál](tutorial.md)** — od prázdného adresáře k běžícímu japonskému
+  překladu v pěti krocích, každý příkaz ukázaný i s výstupem.
 - **[Proč t-stringy](comparison.md)** — tatáž zpráva zapsaná čtyřmi způsoby a
   to, co `%(name)s`, `.format()` a `$`-stringy každý předávají katalogu.
-- **[Pozadí](background.md)** — proč tato knihovna existuje: třicet let
-  gettextu, dva PEPy a diskuse o standardní knihovně uzavřená bez odpovědi.
 
 </div>
 
-**Používám to doopravdy** — pracovní reference:
+**Používejte to** — pracovní reference:
 
 <div class="grid cards" markdown>
 
-- **[Průvodce](guide.md)** — běhové API: množná čísla, jazyky per požadavek,
-  odložené řetězce a co se stane, když je katalog špatně.
+- **[Průvodce](guide.md)** — běhové API: který vstupní bod použít, množná
+  čísla, jazyky podle požadavku, odložené řetězce a co se stane, když je
+  katalog špatně.
 - **[Extrakce](extraction.md)** — reference `pybabel`: konfigurace, vlastní
   jména funkcí a to, jak existující nástroje validují tyto katalogy zdarma.
 - **[V produkci](workflow.md)** — smyčka tak, jak ji provozuje tým: cyklus
-  aktualizací, fuzzy záznamy, brány v CI, překladatelské platformy a jazyky
-  per požadavek ve webové aplikaci.
-- **[API](api.md)** — všechno, co balíček exportuje, na jedné stránce.
+  aktualizací, fuzzy záznamy, brány v CI, překladatelské platformy a nasazení.
+- **[Migrace](migration.md)** — zavádění v projektu, který už katalogy má,
+  jedno místo volání po druhém.
+- **[Pro překladatele](translators.md)** — jediná stránka, kterou předáte
+  tomu, kdo upravuje soubory `.po`.
 
 </div>
 
-**Chci tomu porozumět** — od principů k implementaci:
+**Porozumějte tomu** — od historie k implementaci:
 
 <div class="grid cards" markdown>
 
+- **[Pozadí](background.md)** — proč tato knihovna existuje: třicet let
+  gettextu, dva PEPy a diskuse o standardní knihovně uzavřená bez odpovědi.
+- **[Úskalí](pitfalls.md)** — co se při překladu tohoto webu do pětatřiceti
+  jazyků skutečně rozbilo a kterou půlku z toho nástroj zachytí.
 - **[Jak to funguje](internals.md)** — od objektu šablony z PEP 750 po
   vykreslený řetězec a keše, díky nimž je kontrola levná.
+
+</div>
+
+**Reference** — kontrakty:
+
+<div class="grid cards" markdown>
+
+- **[API](api.md)** — všechno, co balíček exportuje, na jedné stránce.
 - **[Specifikace](spec.md)** — konvence t-string ↔ msgid jako stabilní,
   verzovaný kontrakt se strojově čitelnou sadou testů konformity.
 

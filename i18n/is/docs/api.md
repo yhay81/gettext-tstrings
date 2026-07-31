@@ -51,9 +51,12 @@ keyrslu.
 
 | Nafn | Tilgangur |
 | --- | --- |
-| `lazy_gettext(template, /, *, strict=False)` | Frestar þýðingu fram að fyrstu notkun. |
+| `lazy_gettext(template, /, *, strict=False)` | Frestar þýðingu fram að hverri birtingu. |
 | `lazy_pgettext(context, template, /, *, strict=False)` | Myndin með samhengi. |
-| `LazyString` | Það sem bæði skila. Birtist gegnum `str()` og `format()`, telst jafnt texta sínum og er af ásettu ráði ekki tætanlegt. |
+| `LazyString` | Það sem bæði skila. Birtist gegnum `str()` og `format()` á því tungumáli sem bundið er á þeirri stundu, telst jafnt birtum texta sínum og er af ásettu ráði ekki tætanlegt. |
+
+Unnin dæmi, þar á meðal hvers vegna `strict` á heima við skilgreininguna, eru
+undir [Frestuð þýðing](guide.md#deferred-translation).
 
 ## Neðar í lögunum { #lower-level }
 

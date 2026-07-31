@@ -1,5 +1,5 @@
 ---
-description: "Veikimo metu naudojama API: katalogo susiejimas, kalbos pagal užklausą, atidėtos eilutės ir tai, kaip pranešama apie sugadintą vertimą."
+description: "Veikimo metu naudojama API: kurią įėjimo vietą rinktis, katalogo susiejimas, kalbos pagal užklausą, atidėtos eilutės, lokalę atitinkančios reikšmės ir tai, kaip pranešama apie sugadintą vertimą."
 ---
 
 # Vadovas
@@ -11,6 +11,22 @@ jį pereina vieną kartą per penkias minutes; katalogų kūrimas ir tikrinimas
 aprašytas [Ištraukime](extraction.md), o kaip komanda tą ciklą sukioja —
 atnaujinimo ciklai, CI, vertimo platformos — yra
 [Realioje aplinkoje](workflow.md).
+
+## Kurią įėjimo vietą rinktis? { #which-entry-point-should-i-use }
+
+Paketas siūlo kelis būdus pranešimui išversti, nes programos kalbą susieja
+keliais skirtingais būdais. Rinkitės pagal tai, kaip jūsų programa nusprendžia,
+kokia kalba ji kalba:
+
+| Jūsų padėtis | Naudokite |
+| --- | --- |
+| Viena kalba visam procesui — CLI, darbalaukio programa, scenarijus | `Translator`, kviečiamas kaip `_` |
+| Po kalbą kiekvienai užklausai ar asinchroninei užduočiai — žiniatinklio programa | `use_translations()` aplink darbą, tada `tr()` |
+| Pranešimas, apibrėžtas importo metu — formos etiketė, enum, konstanta | `lazy_gettext()` arba `lazy_pgettext()` |
+| Kiekis lemia formuluotę | `ngettext()` / `npgettext()` bet kuria iš aukščiau nurodytų formų |
+| Šablono atvaizdavimas visai be katalogo | `compile_template()` |
+
+Visa, kas žemiau, yra tie penki dalykai ta pačia tvarka.
 
 ## Katalogo susiejimas { #binding-a-catalog }
 
@@ -60,6 +76,7 @@ from gettext_tstrings import tr, use_translations
 
 
 def handle(request):
+    name = request.user.display_name
     translations = load_translations(request.locale)
     with use_translations(translations):
         return render(tr(t"Hello {name}"))
@@ -163,12 +180,51 @@ dalija kopijas, kurios naudoja tą patį perskaitytą katalogą.
 
     `asyncio.to_thread` tai už jus jau padaro.
 
+## Lokalę atitinkančios reikšmės { #locale-aware-values }
+
+Ši biblioteka sprendžia, *kur* reikšmė atsiranda išverstame pranešime. Pačios
+reikšmės ji nelokalizuoja. `{amount:,.2f}` yra Python formato specifikacija su
+fiksuota elgsena — kablelis kas tris skaitmenis ir taškas prieš dešimtaines —
+ir ji pagamina tuos pačius simbolius, kad ir kokia kalba būtų pranešimas:
+
+```pycon
+>>> f"{1234.5:,.2f}"  # the same in every locale
+'1,234.50'
+```
+
+Vokiečiai tą skaičių rašo `1.234,50`, prancūzai `1 234,50`, o hindi kalboje
+`1234567` grupuojamas kaip `12,34,567`, o ne `1,234,567`. Skaičiai, valiutos,
+datos, laikai ir matavimo vienetai priklauso [Babel][babel-numbers]. Pirma
+suformatuokite reikšmę, tada įdėkite jau baigtą eilutę:
+
+```python
+from babel.numbers import format_currency
+
+total = format_currency(amount, "EUR", locale=locale)
+tr(t"Your order comes to {total}")
+```
+
+Skaičiuojamame pranešime skaičius atlieka du darbus — parenka daugiskaitos formą
+ir pasirodo tekste — o lokalizuojamas tik antrasis. Atrankai palikite žalią
+kiekį, o rodymui perduokite suformatuotą eilutę:
+
+```python
+from babel.numbers import format_decimal
+
+shown = format_decimal(n, locale=locale)
+_.ngettext(t"One file", t"{shown} files", n)
+```
+
+Formatavimas prieš iškvietimą yra ir tai, kas laiko formato specifikaciją už
+katalogo ribų: vertėjas mato baigtą teksto gabalą, o ne skaičių su nurodymais,
+kaip jį atvaizduoti.
+
 ## Kas nutinka, kai katalogas klaidingas { #what-happens-when-a-catalog-is-wrong }
 
 Jei vertimo vietaženkliai neatitinka pirminių — trūkstamas, nežinomas ar
 performatuotas laukas, prasprūdęs pro patikrą iš ranka taisyto MO, tiekėjo
-katalogo ar konvejerio, praleidžiančio tikrintuvą — pagal nutylėjimą atkuriamas
-pirminis tekstas, o ne keliama klaida. Tai atkartoja paties gettext kontraktą,
+katalogo ar konvejerio, praleidžiančio tikrintuvą — pagal nutylėjimą
+atvaizduojamas pirminis pranešimas, o ne keliama klaida. Tai atkartoja paties gettext kontraktą,
 kad blogas katalogas niekada nesulaužo programos.
 
 Kai `Hello {name}` išverstas kaip `こんにちは {nombre}`, atvaizdavimas pavyksta,
@@ -206,43 +262,14 @@ gettext_tstrings.errors.InvalidTranslationError: translation does not match the
 source placeholders: {name} is missing; {nombre} is not in the source message
 ```
 
-## Kaip skaityti klaidos pranešimą { #reading-a-failure-message }
-
 Šie pranešimai parašyti tam, kas gali dėl jų ką nors padaryti, o katalogo
-atveju tai dažniau vertėjas nei programuotojas. Pranešti vien, kad `{name}`
-trūksta, yra aklavietė, kai skaitytojas mato tuos simbolius prieš save, todėl
-ten, kur vietaženklis atrodo esantis, bet jo nėra, pranešimas pasako kodėl.
-Prieš pirminį `Hello {name}` kiekvienas iš šių atvejų pranešamas po antrašte
-`translation does not match the source placeholders:`
-
-| Vertime parašyta | Nurodoma priežastis |
-| --- | --- |
-| `こんにちは ｛name｝` | `{name}` is missing (skliaustai aplink jį nėra ASCII `{` ir `}`) |
-| `こんにちは {{name}}` | `{name}` is missing (parašyta `{{name}}`, o taip užrašomas literalus riestinis skliaustas) |
-| `こんにちは name` | `{name}` is missing (vardas yra, bet ne skliaustuose) |
-| `こんにちは {名前}` | `{name}` is missing; `{名前}` is not in the source message |
-
-Simboliai, kurių pamatyti neįmanoma, sulaukia atskiro elgesio. Nedalus tarpas
-skliaustų viduje yra tai, ką pagamina įvesties metodas ir ko neparodo joks
-redaktorius, todėl pranešimas jį išspausdina kodo pozicija, užuot įvardijęs
-simbolį, kurio skaitytojas nerastų:
-
-```text
-placeholder {<U+00A0>name} has a space inside the braces; write {name}
-```
-
-Vardas, kurio raidės maišo skirtingas rašto sistemas — homoglifų atvejis, kai
-kirilicos `а` neatskiriama nuo lotyniškos — parodomas dukart: kartą skaitomai,
-kartą su kaitos sekomis, nes tik ši forma leidžia jas atskirti:
-
-```text
-translation does not match the source placeholders: {name} is missing;
-{nаme} (n\u0430me) is not in the source message
-```
-
-Tas pats atskyrimas taikomas, kai graikiškas ar kirilinis vardas, parašytas
-ištisai viena rašto sistema, konfliktuoja su ASCII pirminiu vardu — įskaitant
-vienos raidės atvejį: lotyniška `a` prieš kirilinę `а`.
+atveju tai dažniau vertėjas nei programuotojas — todėl ten, kur vietaženklis
+atrodo esantis, bet jo nėra, pranešimas paaiškina kodėl, o ne pakartoja, kad jo
+trūksta. Viso pločio skliaustai, padvigubintas `{{name}}`, nematomas nedalus
+tarpas, kirilicos raidė tarp lotyniškų: kiekvienas turi savo formuluotę, o
+sąrašas su pavyzdžiais yra puslapyje
+[Vertėjams](translators.md#reading-a-failure-message). Tas puslapis parašytas
+taip, kad jį būtų galima perduoti tam, kas redaguoja `.po`.
 
 ## Šablono atvaizdavimas be katalogo { #rendering-a-pattern-without-a-catalog }
 
@@ -299,3 +326,5 @@ lygiai kaip ir su standartinės bibliotekos gettext: atvaizduotos išvesties
 **katalogo vientisumas**, nes priešiškas katalogas gali kartoti vietaženklį,
 kad išpūstų išvesties dydį, o tai būdinga bet kokiam vietaženkliais grįstam
 i18n.
+
+  [babel-numbers]: https://babel.pocoo.org/en/latest/api/numbers.html

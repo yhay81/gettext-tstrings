@@ -208,7 +208,7 @@ Ugyanezen elv alapján a „hiányzó” helyőrző, amely jelen lévőnek *lát
 megkapja a hiánya magyarázatát — kelet-ázsiai beviteli módszerből származó
 teljes szélességű kapcsos zárójelek, escape-elési oda-vissza útból származó
 `{{name}}` megkettőzés, a kapcsos zárójeleken kívülre került név. A
-[kézikönyv hibaolvasási táblázata](guide.md#reading-a-failure-message)
+fordítóknak írt [hibaolvasási táblázat](translators.md#reading-a-failure-message)
 szó szerint mutatja mindegyik üzenetet.
 
 ## A forró útvonal { #the-hot-path }

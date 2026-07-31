@@ -11,7 +11,7 @@ mình có đang đi đúng hướng hay không.
 
 Bạn cần Python 3.14 trở lên, vì t-string là cú pháp mới trong 3.14. Tiếng
 Nhật là ngôn ngữ đích ví dụ của trang này, nhưng không có gì phụ thuộc vào
-lựa chọn đó — hãy thay bằng bất kỳ ngôn ngữ nào ở bước 4, nơi mã locale `ja`
+lựa chọn đó. Muốn dùng ngôn ngữ khác, hãy thay `ja` ở bước 4 — mã locale ấy
 là thứ duy nhất gọi tên nó.
 
 ## 1. Cài đặt { #1-install }
@@ -54,9 +54,9 @@ phương án dự phòng có sẵn.
 
 ## 3. Trích xuất các thông điệp { #3-extract-the-messages }
 
-Người dịch không đọc mã nguồn của bạn; một tệp nhỏ gọi là **catalog** sẽ qua
-lại giữa bạn và họ. Bước đầu tiên để có được nó là gom mọi thông điệp đã đánh
-dấu ra khỏi mã.
+Người dịch thường làm việc với catalog chứ không phải với mã nguồn, nên một
+tệp nhỏ gọi là **catalog** sẽ qua lại giữa bạn và họ. Bước đầu tiên để có được
+nó là gom mọi thông điệp đã đánh dấu ra khỏi mã.
 
 Cho Babel biết cách tìm các thông điệp của bạn bằng cách tạo `babel.cfg`:
 
@@ -128,7 +128,17 @@ source placeholders: {name} is missing; {nome} is not in the source message
 1 errors encountered.
 ```
 
+Có một điểm đáng biết ngay từ bây giờ: lệnh này báo lỗi và thoát với mã khác
+không, nhưng vẫn ghi tệp `.mo` ra. Trong một dự án thật, chính CI mới là thứ
+phải dừng lại trước mã thoát đó — [Vận hành thực
+tế](workflow.md#what-ci-gates) dựng sẵn phần ấy.
+
 ## 5. Chạy chương trình { #5-run-it }
+
+Các bước 2–4 dùng `tr()`, hàm này đi tìm một catalog và không thấy gì. Giờ đã
+có một catalog, hãy nạp nó và gắn một lần: `Translator` giữ một catalog để
+những nơi gọi không phải nêu tên nó nữa, còn `_` là tên gettext quy ước cho
+kết quả.
 
 Trỏ `app.py` vào catalog đã biên dịch. Nhấp vào các dấu chú thích để xem từng
 dòng đang làm gì:
@@ -147,7 +157,7 @@ print(_(t"Hello {name}"))  # (2)!
 1. Thư viện chuẩn nạp tệp `.mo` đã biên dịch, và `Translator` gắn nó vào một
    đối tượng gọi được. `_` là tên quy ước của gettext cho "hãy dịch cái
    này" — ngắn gọn vì nó xuất hiện trên mọi chuỗi hướng tới người dùng. Nó
-   chính là hàm `tr`, được gắn với một catalog.
+   thực hiện đúng phép dịch như `tr`, nhưng gắn với một catalog.
 2. Tại lời gọi: phần văn bản của t-string trở thành khóa tra cứu
    `Hello {name}`, catalog trả lời `こんにちは {name}`, câu trả lời được kiểm
    tra so với các placeholder nguồn, và chỉ sau đó giá trị mới được đưa vào.
@@ -182,5 +192,9 @@ trang web này đều là sự tinh chỉnh của một trong năm bước đó.
 - [Trích xuất](extraction.md) — tài liệu tham khảo `pybabel` đầy đủ: tên hàm
   tùy chỉnh, chế độ CI nghiêm ngặt, và các bước kiểm tra bảo vệ catalog của
   bạn.
+- [Chuyển đổi](migration.md) — nếu dự án bạn thực sự muốn làm điều này đã có
+  sẵn catalog gettext.
+- [Dành cho người dịch](translators.md) — một trang duy nhất để đưa cho ai đó
+  sẽ điền vào những dòng `msgstr` ấy.
 
   [Babel]: https://babel.pocoo.org/

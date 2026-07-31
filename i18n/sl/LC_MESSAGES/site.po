@@ -90,3 +90,27 @@ msgstr[0] "Izrisana {n} stran v {seconds} s"
 msgstr[1] "Izrisani {n} strani v {seconds} s"
 msgstr[2] "Izrisane {n} strani v {seconds} s"
 msgstr[3] "Izrisanih {n} strani v {seconds} s"
+
+#. gettext-tstrings
+msgid "Start here"
+msgstr "Začnite tukaj"
+
+#. gettext-tstrings
+msgid "Use it"
+msgstr "Uporaba"
+
+#. gettext-tstrings
+msgid "Migration"
+msgstr "Migracija"
+
+#. gettext-tstrings
+msgid "For translators"
+msgstr "Za prevajalce"
+
+#. gettext-tstrings
+msgid "Understand it"
+msgstr "Razumevanje"
+
+#. gettext-tstrings
+msgid "Reference"
+msgstr "Referenca"

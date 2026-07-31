@@ -74,6 +74,11 @@ Python:
 }
 ```
 
+El campo `"spec"` **no** es una versión de la especificación: todos los casos de
+`v1.json` pertenecen a la v1. Nombra la sección de `SPEC.md` que ejercita el
+caso, así que `"2.2"` se lee como §2.2, la regla para derivar el token de un
+marcador.
+
 La implementación de referencia ejecuta la suite como parte de sus propias
 pruebas, por lo que la documentación y el código no pueden divergir en silencio.
 

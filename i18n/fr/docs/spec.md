@@ -59,6 +59,11 @@ Ils ne dépendent ni des messages d'erreur ni des types d'exception.
 }
 ```
 
+Le champ `"spec"` n'est **pas** une version de spécification : tous les cas de
+`v1.json` relèvent de la spec v1. Il nomme la section de `SPEC.md` que le cas
+met à l'épreuve, si bien que `"2.2"` se lit § 2.2, la règle de dérivation d'un
+jeton de marqueur.
+
 L'implémentation de référence exécute cette suite dans ses propres tests.
 
 ## Versionnage { #versioning }

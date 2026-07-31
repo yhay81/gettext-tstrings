@@ -44,11 +44,14 @@ Felismeri a `_()` hívást, a négy szabványos gettext-nevet, a `tr()` / `ntr()
 aliasokat, valamint a késleltetett `lazy_gettext()` / `lazy_pgettext()`
 hívásokat.
 
-!!! warning "A `-c` nem elhagyható"
+!!! warning "Kapcsold be a fordítói megjegyzéseket a `-c` kapcsolóval"
 
     A `pybabel extract` csak akkor gyűjti be a fordítóknak szóló
     megjegyzéseket, ha megadod a `-c "Translators:"` kapcsolót — pontosan úgy,
-    ahogy a szokásos gettext-hívásoknál is teszi.
+    ahogy a szokásos gettext-hívásoknál is teszi. Ha elhagyod, a kinyerés
+    továbbra is működik — a megjegyzések egyszerűen soha nem jutnak el a
+    katalógusba, ahol pedig az egész folyamat [legolcsóbb
+    minőségi eszköze](workflow.md#working-with-translators-and-platforms).
 
 ## Saját függvénynevek regisztrálása { #registering-your-own-function-names }
 
@@ -90,9 +93,9 @@ A beállítások: `tr_functions`, `ntr_functions`, `gettext_functions`,
     `pgettext` esetén kontextus, majd üzenet; `npgettext` esetén kontextus,
     majd egyes szám, majd többes szám.
 
-## Alapból ellenálló { #robust-by-default }
+## Helyben elnéző, CI-ben szigorú { #lenient-locally-strict-in-ci }
 
-Egyetlen rossz fájl nem vet véget a futásnak:
+Alapértelmezés szerint egyetlen rossz fájl nem vet véget a futásnak:
 
 - Az olyan t-stringet, amelyet a kinyerő elutasít — attribútum-hozzáférés,
   kifejezés, hibás argumentum —, figyelmeztetésként jelenti és kihagyja.
@@ -100,8 +103,30 @@ Egyetlen rossz fájl nem vet véget a futásnak:
 - És ugyanígy azt is, amelyet csak a `tokenize` utasít el, míg az `ast`
   elfogadja — ezen a Babel saját menete egyébként megszakadna.
 
-Állítsd a leképezés beállításai közé a `strict = true` értéket, hogy ezek
-mindegyike kemény hibává váljon; CI-ben ezt akarod.
+Ez kényelmes, amíg szerkesztesz, és veszélyes, amikor nem: a kihagyott üzenet
+egyszerűen **hiányzik a POT-ból**, tehát soha nem fordítják le, és semmi nem
+szól róla. Állítsd a leképezés beállításai közé a `strict = true` értéket
+mindenütt, ahol a kinyerést nem figyeli ember:
+
+=== "babel.cfg"
+
+    ```ini
+    [gettext_tstrings: **.py]
+    encoding = utf-8
+    strict = true
+    ```
+
+=== "babel.toml"
+
+    ```toml
+    [[mappings]]
+    method = "gettext_tstrings"
+    pattern = "**.py"
+    strict = true
+    ```
+
+Ekkor a fenti figyelmeztetések mindegyike kemény hibává válik. Tekintsd ezt az
+éles beállításnak, az alapértelmezést pedig a helyinek.
 
 ## A meglévő eszközláncod validálja ezeket a katalógusokat { #your-existing-toolchain-validates-these-catalogs }
 
@@ -129,8 +154,8 @@ msgfmt: found 1 fatal error
 
 A Weblate ugyanezt az ellenőrzést [Python brace format][weblate-checks] néven
 dokumentálja, a kereskedelmi platformoknak pedig saját helyőrző-QA-juk van,
-ugyanerre a jelzőre kötve. Az ő viselkedésük az ő dolguk; az alábbi két eszköz
-az, amelyet itt ellenőriztünk.
+ugyanerre a jelzőre kötve. Minden platform viselkedése a sajátja; az alábbi
+két eszköz az, amelyet itt ellenőriztünk.
 
   [weblate-checks]: https://docs.weblate.org/en/latest/user/checks.html
 
@@ -160,8 +185,8 @@ match the source placeholders: {n} is missing
     kiszállítsa; a [Mit kapuz a CI](workflow.md#what-ci-gates) mutatja azt a
     build-lépést, amely ezt lehetővé teszi.
 
-A két ellenőrzés nem redundáns. A mellékelt ellenőrző legalább két helyen a
-szigorúbb fél:
+A két ellenőrzés nem redundáns. A csomag ellenőrzője legalább két esetben
+szigorúbb:
 
 - Az a msgid, amelyben csak escape-elt kapcsos zárójelek vannak
   (`Config {{raw}} only`), soha nem kapja meg a `python-brace-format` jelzőt,

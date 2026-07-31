@@ -1,23 +1,17 @@
 ---
-description: "Ujumbe uleule unaotafsirika ulioandikwa kwa %-format, .format(), $-strings za flufl.i18n, na t-string, pamoja na jinsi kila mmoja unavyofunga thamani na kushughulikia katalogi mbovu."
+description: "Ujumbe uleule unaotafsirika ulioandikwa kwa %-format, .format(), $-strings za flufl.i18n, na t-string, ukilinganishwa kwa makosa ya wafasiri, mamlaka ya katalogi, na gharama ya kuunganisha."
 ---
 
 # Kwa nini t-strings
 
 Njia nne za kuweka thamani ndani ya ujumbe unaotafsirika, zikilinganishwa
-kwenye sentensi ileile. Kwa ufupi:
+kwenye ujumbe uleule. Zote nne huyapa vishika nafasi vyake majina na humruhusu
+mfasiri kuvipanga upya; hutofautiana katika kinachotokea tafsiri
+inapokuwa na kasoro, katika kiasi cha programu yako ambacho katalogi inaweza
+kukifikia, na katika gharama ya kuzitumia.
 
-- Kwa **%-format**, mfasiri anayefuta herufi moja husababisha kuanguka kwa
-  programu katika uzalishaji.
-- Kwa **str.format**, tafsiri inaweza kusoma sifa za vitu ambavyo msimbo wako
-  hupitisha — pamoja na siri.
-- Kwa **$-strings** (flufl.i18n), thamani huvutwa kimyakimya kutoka vigezo vya
-  kitendakazi kinachoita, na vishika nafasi vyenye vitone hufikia sifa pia.
-- Kwa **t-strings**, uumbizaji hubaki ndani ya msimbo wako, tafsiri hukaguliwa
-  wakati wa utekelezaji, na katalogi mbovu hurejea kwenye maandishi chanzo
-  badala ya kuanguka.
-
-Sehemu iliyobaki ya ukurasa huu ni ushahidi, njia moja baada ya nyingine.
+Majedwali huja kwanza, ili uweze kupata safu inayokuhusu na kusoma sehemu
+iliyo nyuma yake pekee.
 
 !!! note "Pande tatu hugusa kila ujumbe uliotafsiriwa"
 
@@ -30,6 +24,72 @@ Sehemu iliyobaki ya ukurasa huu ni ushahidi, njia moja baada ya nyingine.
     chini hujibu swali lilelile kwa njia tofauti: *ni kiasi gani cha lugha ya
     umbizo ambacho katalogi hupewa kudhibiti?* Katika mifano, `_` ni jina la
     kawaida la kitendakazi cha kutafsiri, na `tr` ni la maktaba hii.
+
+## Ubavu kwa ubavu { #side-by-side }
+
+**Mfasiri anapofanya kosa.** Katalogi husafiri kupitia mikono mingi, na mengi
+ya yanayoharibika ndani yake ni ya bahati mbaya:
+
+| | `%(name)s` | `.format()` | `flufl.i18n` `$name` | `t"…"` |
+| --- | --- | --- | --- | --- |
+| Tafsiri *huondoa* kishika nafasi — nini huonyeshwa? | thamani hutoweka kimyakimya | thamani hutoweka kimyakimya | thamani hutoweka kimyakimya | ujumbe chanzo, pamoja na onyo ([kwa chaguo-msingi](guide.md#what-happens-when-a-catalog-is-wrong)) |
+| Tafsiri *huongeza* kishika nafasi kisichojulikana — nini huonyeshwa? | hitilafu | hitilafu | kishika nafasi hubaki kikionekana kama maandishi | ujumbe chanzo, pamoja na onyo ([kwa chaguo-msingi](guide.md#what-happens-when-a-catalog-is-wrong)) |
+| Tafsiri *huumbiza upya* kishika nafasi — nini huonyeshwa? | kile katalogi ilichoomba, au hitilafu ikiwa herufi ya aina haiendani tena na thamani | kile katalogi ilichoomba | hakielezeki katika `$`-strings | ujumbe chanzo, pamoja na onyo |
+| Je, vishika nafasi hukaguliwa wakati wa kuonyesha? | hapana | hapana | hapana | ndiyo (ona hapa chini) |
+
+**Mamlaka ambayo katalogi inayo.** Tafsiri ni data inayotoka nje ya hazina
+yako, nao kila mtindo hupewa kiasi tofauti cha nguvu:
+
+| | `%(name)s` | `.format()` | `flufl.i18n` `$name` | `t"…"` |
+| --- | --- | --- | --- | --- |
+| Thamani hutoka wapi? | ramani iliyo wazi | hoja zilizo wazi | vigezo vya ndani na vya jumla vya kinachoita, pamoja na `extras` ya hiari | thamani zilizonaswa ndani ya t-string |
+| Je, katalogi inaweza kubadilisha jinsi thamani inavyoumbizwa? | ndiyo | ndiyo | hapana | hapana |
+| Je, katalogi inaweza kufikia ndani ya vitu (ufikiaji wa sifa)? | hapana | ndiyo | ndiyo, kwa majina yenye vitone | hapana |
+| "Lugha ya sasa" hukaa wapi? | popote programu inapoiweka | popote programu inapoiweka | rundo la misimbo ya lugha kwenye kitu cha programu kinachoshirikiwa | `ContextVar`, kwa kila kazi au ombi |
+
+**Gharama ya kuunganisha.** Kila kilicho hapo juu ni bure ikiwa zana zinafaa;
+hapa ndipo huenda zisifae:
+
+| | `%(name)s` | `.format()` | `flufl.i18n` `$name` | `t"…"` |
+| --- | --- | --- | --- | --- |
+| Python ya chini kabisa | yoyote | yoyote | 3.10 | **3.14** |
+| Ukomavu | maktaba sanifu | maktaba sanifu | toleo thabiti | **alpha** |
+| Je, hutumia katalogi za kawaida za PO/MO? | ndiyo | ndiyo | ndiyo | ndiyo |
+| Je, huhitaji kitoaji maalum cha chanzo? | hapana | hapana | hapana | ndiyo, kwa sasa |
+| Ni bendera gani ya PO ambayo Babel huidokeza, ili zana zilizopo zithibitishe? | `python-format` | `python-brace-format` | hakuna | `python-brace-format` |
+
+Kuhusu ukaguzi wa wakati wa kuonyesha: jumbe za umoja hukaguliwa kwa
+ulinganifu kamili wa vishika nafasi. Jumbe za wingi hukaguliwa pia, dhidi ya
+[kanuni ya muungano/mwingiliano](spec.md) inayoruhusu maumbo ya wingi ya lugha
+lengwa kutofautiana na ya chanzo; ukaguzi mkali zaidi wa kila umbo huendeshwa
+katalogi zinapokusanywa ([Utoaji](extraction.md)).
+
+Safu ya bendera ya umbizo inahusu uthibitishaji unaotambua vishika nafasi, si
+uoanifu wa katalogi. `hakuna` humaanisha zana sanifu za gettext bado husoma na
+kukusanya ujumbe, lakini `msgfmt --check-format` haina sarufi ya kishika nafasi
+cha `$` ya kuitumia.
+
+## Uoanifu na ukomavu { #compatibility-and-maturity }
+
+Safu mbili za kwanza za jedwali la mwisho ndizo huamua matumizi, hivyo
+zinastahili kusemwa waziwazi badala ya kama visanduku.
+
+`%`-format na `.format()` zimejengwa ndani ya Python nazo hazihitaji utegemezi
+wowote. [`flufl.i18n`][flufl-i18n] ni kifurushi kilichokomaa, kilichotolewa na
+kinachotumika katika uzalishaji, kinachoendeshwa kwenye Python 3.10 na baadaye.
+`gettext-tstrings` ni **alpha** nayo huhitaji **Python 3.14 au mpya zaidi**, kwa
+sababu t-strings ni sintaksia mpya katika 3.14 — hakuna urudishaji nyuma wala
+hauwezi kuwepo. [Ainisho](spec.md) lake ndiyo sehemu yake thabiti; API ya
+Python bado inaweza kuhama kabla ya 1.0.
+
+Kile ambacho hakuna hata mmoja wao anakigharimu ni uoanifu wa katalogi. Zote
+nne huzalisha mafaili ya kawaida ya POT/PO/MO ambayo kila kihariri cha PO, kila
+jukwaa la tafsiri, na kila zana ya GNU gettext tayari husoma, hivyo chaguo lililo
+hapa chini linaweza kurudishwa nyuma kwa namna ambayo kubadilisha *miundo* ya
+katalogi lisingeweza. [Uhamiaji](migration.md) hufafanua kuhamisha mradi uliopo.
+
+Sehemu zilizo hapa chini huonyesha kila muamala kwa kina, njia moja baada ya
+nyingine.
 
 ## %-format { #-format }
 
@@ -51,10 +111,11 @@ Traceback (most recent call last):
 ValueError: incomplete format
 ```
 
-Uhariri wa herufi moja katika kihariri cha PO huwa traceback katika uzalishaji.
-GNU `msgfmt --check-format` huikamata kweli, lakini kwa jumbe zilizowekwa
-alama ya `python-format` tu, na tu ikiwa katalogi hupita kwelikweli kwenye
-msgfmt njiani kuelekea programu yako.
+Uhariri wa herufi moja katika kihariri cha PO huwa hitilafu ya wakati wa
+utekelezaji isipokuwa uthibitishaji wa katalogi uinase kwanza. GNU
+`msgfmt --check-format` huikamata hii kweli, lakini kwa jumbe zilizowekwa alama
+ya `python-format` tu, na tu ikiwa katalogi hupita kwelikweli kwenye msgfmt
+njiani kuelekea programu yako.
 
 ## str.format { #strformat }
 
@@ -121,8 +182,8 @@ njia hizo dhidi ya thamani za kinachoita. Kishika nafasi kilichotafsiriwa
 kinaweza kutaja kigezo chochote cha ndani au cha jumla kinachopatikana kwa
 kinachoita na, kwa sintaksia ya vitone, kupitia sifa zake. Hilo ni jambo la
 urahisi wakati ujumbe unahitaji sifa, huku pia likifanya fremu ya kinachoita
-kuwa sehemu ya nafasi ya majina ya ubadilishaji ya katalogi. Ulinganisho hapa
-chini unaelezea `flufl.i18n` 6.0.0, si kila matumizi yanayowezekana ya
+kuwa sehemu ya nafasi ya majina ya ubadilishaji ya katalogi. Ulinganisho wa hapa
+unaelezea `flufl.i18n` 6.0.0, si kila matumizi yanayowezekana ya
 `string.Template`.
 
 Pia hujibu swali ambalo mitindo mingine miwili ya kuumbiza huliachia programu
@@ -186,7 +247,7 @@ kabla ya kuonyesha, nayo hukubali majina matupu na hakuna kingine. Dhidi ya
 | `{nombre}` | translation does not match the source placeholders: `{name}` is missing; `{nombre}` is not in the source message |
 
 Kukataliwa hakumaanishi kuanguka: kwa chaguo-msingi maktaba huandika onyo na
-kuonyesha maandishi chanzo, hivyo katalogi mbaya kamwe haiiangushi programu —
+kuonyesha ujumbe chanzo, hivyo katalogi mbaya kamwe haiiangushi programu —
 [mkataba uleule ambao gettext yenyewe huutunza](guide.md#what-happens-when-a-catalog-is-wrong).
 
 Uumbizaji hubaki pale ulipoandikwa, ndani ya msimbo:
@@ -197,53 +258,18 @@ tr(t"Total: {amount:,.2f}")  # msgid is "Total: {amount}"
 ```
 
 `:,.2f` haifiki kamwe kwenye katalogi, hivyo hakuna tafsiri inayoweza kuibadili,
-na hakuna mfasiri anayelazimika kuiangalia.
+na hakuna mfasiri anayelazimika kuiangalia. Hata hivyo ni umbizo *lisilobadilika*,
+si lililotafsiriwa kwa eneo — kuchagua tarakimu na vitenganishi kwa kila lugha
+ni [kazi ya Babel, kabla ya wito](guide.md#locale-aware-values).
 
 Tofauti nyingine ni zana: t-strings ni sintaksia mpya, hivyo kuzitoa ndani ya
 `.pot` kwa sasa kunahitaji kitoaji kinachotambua t-string, kama kile ambacho
 kifurushi hiki [hukitoa kwa Babel](extraction.md).
 
-## Ubavu kwa ubavu { #side-by-side }
+## Gharama ya kizuizi { #the-cost-of-the-restriction }
 
-| | `%(name)s` | `.format()` | `flufl.i18n` `$name` | `t"…"` |
-| --- | --- | --- | --- | --- |
-| Je, kishika nafasi kina jina? | ndiyo | ndiyo | ndiyo | ndiyo |
-| Je, mfasiri anaweza kupanga upya vishika nafasi? | ndiyo | ndiyo | ndiyo | ndiyo |
-| Thamani hutoka wapi? | ramani iliyo wazi | hoja zilizo wazi | vigezo vya ndani na vya jumla vya kinachoita, pamoja na `extras` ya hiari | thamani zilizonaswa ndani ya t-string |
-| Je, katalogi inaweza kubadilisha jinsi thamani inavyoumbizwa? | ndiyo | ndiyo | hapana | hapana |
-| Je, katalogi inaweza kufikia ndani ya vitu (ufikiaji wa sifa)? | hapana | ndiyo | ndiyo, kwa majina yenye vitone | hapana |
-| Tafsiri *huondoa* kishika nafasi — nini huonyeshwa? | thamani hutoweka kimyakimya | thamani hutoweka kimyakimya | thamani hutoweka kimyakimya | maandishi chanzo, pamoja na onyo ([kwa chaguo-msingi](guide.md#what-happens-when-a-catalog-is-wrong)) |
-| Tafsiri *huongeza* kishika nafasi kisichojulikana — nini huonyeshwa? | hitilafu | hitilafu | kishika nafasi hubaki kikionekana kama maandishi | maandishi chanzo, pamoja na onyo ([kwa chaguo-msingi](guide.md#what-happens-when-a-catalog-is-wrong)) |
-| Je, vishika nafasi hukaguliwa wakati wa kuonyesha? | hapana | hapana | hapana | ndiyo (ona hapa chini) |
-| Ni bendera gani ya PO ambayo Babel huidokeza, ili zana zilizopo zithibitishe? | `python-format` | `python-brace-format` | hakuna | `python-brace-format` |
-| Je, hutumia katalogi za kawaida za PO/MO? | ndiyo | ndiyo | ndiyo | ndiyo |
-| Je, huhitaji kitoaji maalum cha chanzo? | hapana | hapana | hapana | ndiyo, kwa sasa |
-| "Lugha ya sasa" hukaa wapi? | popote programu inapoiweka | popote programu inapoiweka | rundo la misimbo ya lugha kwenye kitu cha programu kinachoshirikiwa | `ContextVar`, kwa kila kazi au ombi |
-
-Kuhusu ukaguzi wa wakati wa kuonyesha: jumbe za umoja hukaguliwa kwa
-ulinganifu kamili wa vishika nafasi. Jumbe za wingi hukaguliwa pia, dhidi ya
-[kanuni ya muungano/mwingiliano](spec.md) inayoruhusu maumbo ya wingi ya lugha
-lengwa kutofautiana na ya chanzo; ukaguzi mkali zaidi wa kila umbo huendeshwa
-katalogi zinapokusanywa ([Utoaji](extraction.md)).
-
-Safu ya bendera ya umbizo inahusu uthibitishaji unaotambua vishika nafasi, si
-uoanifu wa katalogi. `hakuna` humaanisha zana sanifu za gettext bado husoma na
-kukusanya ujumbe, lakini `msgfmt --check-format` haina sarufi ya kishika nafasi
-cha `$` ya kuitumia.
-
-## Gharama yake { #what-it-costs }
-
-f-string haiwezi kutumika hivi hata kidogo — kufikia wakati maktaba yoyote
-inaiona tayari ni mfuatano uliokamilika, hivyo kuitafsiri kunamaanisha
-kutafsiri kipande. t-strings ([PEP 750]) hutenganisha maandishi tuli na
-thamani huku zikihifadhi sintaksia inayofanana na ya f-string na ufungaji wa
-thamani ulio wazi. `$`-strings tayari hutoa mbadala mfupi wenye mfumo tofauti
-wa kufunga na wa kushindwa. `flufl.i18n` ni kifurushi kilichokomaa
-kinachoendeshwa kwenye Python 3.10 na baadaye; `gettext-tstrings` kwa sasa ni
-alpha, na kwa kuwa t-strings ni sintaksia mpya inahitaji Python 3.14 au mpya
-zaidi.
-
-Gharama nyingine ni kizuizi chenyewe: uingizaji lazima uwe jina tupu.
+Zaidi ya sharti la Python, bei ya haya yote ni kanuni moja: uingizaji lazima
+uwe jina tupu.
 
 ```python
 tr(t"Hello {user.name}")  # raises InvalidTemplateError at the call site
@@ -254,9 +280,17 @@ name = user.name  # compute it first
 tr(t"Hello {name}")
 ```
 
-Hilo ni kizuizi halisi. Pamoja na ufungaji wa thamani upande wa chanzo na
-ukaguzi wa vishika nafasi wakati wa utekelezaji, huzuia mifuatano ya katalogi
-kutathmini misemo na huyafanya majina ya vishika nafasi yaendelee kuwa na maana.
+Hilo ni kizuizi halisi, nacho ndicho kizuizi kilekile kinachozalisha dhamana
+zilizo hapo juu. Pamoja na ufungaji wa thamani upande wa chanzo na ukaguzi wa
+vishika nafasi wakati wa utekelezaji, huzuia mifuatano ya katalogi kutathmini
+misemo na huyafanya majina ya vishika nafasi yaendelee kuwa na maana kwa mtu
+anayeyatafsiri.
+
+f-string haiwezi kutumika hivi hata kidogo — kufikia wakati maktaba yoyote
+inaiona tayari ni mfuatano uliokamilika, hivyo kuitafsiri kunamaanisha
+kutafsiri kipande. t-strings ([PEP 750]) hutenganisha maandishi tuli na
+thamani huku zikihifadhi sintaksia inayofanana na ya f-string na ufungaji wa
+thamani ulio wazi.
 
 Jinsi Python ilivyofika kwenye njia panda hii — PEP mbili zenye tofauti ya
 miaka kumi, na mjadala wa stdlib uliofungwa bila jibu — imesimuliwa pamoja na

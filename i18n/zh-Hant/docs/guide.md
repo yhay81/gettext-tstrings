@@ -1,5 +1,5 @@
 ---
-description: "執行階段 API：繫結目錄、逐請求切換語言、延遲字串，以及損壞的翻譯如何被回報。"
+description: "執行階段 API：該用哪個入口點、繫結目錄、逐請求切換語言、延遲字串、隨語言而異的值，以及損壞的翻譯如何被回報。"
 ---
 
 # 指南
@@ -8,6 +8,21 @@ description: "執行階段 API：繫結目錄、逐請求切換語言、延遲�
 如果你還沒看過完整的循環——標記、擷取、翻譯、編譯、執行——[教學](tutorial.md)
 會用五分鐘走過一遍；目錄的建立與驗證請見[擷取](extraction.md)；團隊如何讓這個
 循環持續轉動——更新週期、CI、翻譯平台——則在[正式環境實務](workflow.md)。
+
+## 我該用哪個入口點？ { #which-entry-point-should-i-use }
+
+本套件之所以匯出好幾種翻譯訊息的方式，是因為應用程式繫結語言的方式本來就有好幾種。
+請依照你的程式如何決定當前語言來挑選：
+
+| 你的情況 | 使用 |
+| --- | --- |
+| 整個行程只有一種語言——CLI、桌面應用程式、腳本 | `Translator`，當作 `_` 呼叫 |
+| 每個請求或每個非同步工作各一種語言——Web 應用程式 | 用 `use_translations()` 包住這段工作，再呼叫 `tr()` |
+| 在 import 時就定義好的訊息——表單標籤、列舉、常數 | `lazy_gettext()` 或 `lazy_pgettext()` |
+| 由數量決定措辭 | `ngettext()` / `npgettext()`，以上述任一形式 |
+| 不牽涉目錄，只渲染一個 pattern | `compile_template()` |
+
+以下講的就是這五種，順序也一樣。
 
 ## 繫結目錄 { #binding-a-catalog }
 
@@ -55,6 +70,7 @@ from gettext_tstrings import tr, use_translations
 
 
 def handle(request):
+    name = request.user.display_name
     translations = load_translations(request.locale)
     with use_translations(translations):
         return render(tr(t"Hello {name}"))
@@ -145,11 +161,46 @@ for user in users:
 
     `asyncio.to_thread` 已經替你做好這件事了。
 
+## 隨語言而異的值 { #locale-aware-values }
+
+本函式庫決定的是一個值出現在譯文訊息中的*位置*，而不是這個值本身的在地化。
+`{amount:,.2f}` 是行為固定的 Python 格式規格——每三位一個逗號，小數點前是一個
+點——不論訊息是哪種語言，它產生的字元都一樣：
+
+```pycon
+>>> f"{1234.5:,.2f}"  # the same in every locale
+'1,234.50'
+```
+
+德語把這個數字寫成 `1.234,50`，法語寫成 `1 234,50`，而印地語把 `1234567` 分組成
+`12,34,567` 而不是 `1,234,567`。數字、貨幣、日期、時間與單位，都是
+[Babel][babel-numbers] 的職責。請先把值格式化好，再把完成的字串放進去：
+
+```python
+from babel.numbers import format_currency
+
+total = format_currency(amount, "EUR", locale=locale)
+tr(t"Your order comes to {total}")
+```
+
+對於帶計數的訊息，這個數字身兼兩職——它選出複數形式，同時也出現在文字裡——而只有
+後者需要在地化。請保留原始數量用於挑選形式，另外傳入格式化好的字串用於顯示：
+
+```python
+from babel.numbers import format_decimal
+
+shown = format_decimal(n, locale=locale)
+_.ngettext(t"One file", t"{shown} files", n)
+```
+
+在呼叫之前先格式化，也正是讓格式規格不會跑進目錄的做法：譯者看到的是一段完成的
+文字，而不是一個數字外加一串渲染指示。
+
 ## 目錄出錯時會發生什麼事 { #what-happens-when-a-catalog-is-wrong }
 
 如果翻譯的佔位符與原文不符——缺漏、未知，或被改寫格式的欄位躲過了驗證，來自手動
-編輯的 MO、外部廠商的目錄，或是略過檢查器的流程——預設行為是重現原文，而不是拋出
-例外。這與 gettext 自身的契約一致：損壞的目錄絕不該弄壞應用程式。
+編輯的 MO、外部廠商的目錄，或是略過檢查器的流程——預設行為是渲染原始訊息，而不是
+拋出例外。這與 gettext 自身的契約一致：損壞的目錄絕不該弄壞應用程式。
 
 當 `Hello {name}` 被翻譯成 `こんにちは {nombre}`，渲染仍會成功，並向
 `gettext_tstrings` logger 送出一則警告：
@@ -185,39 +236,12 @@ gettext_tstrings.errors.InvalidTranslationError: translation does not match the
 source placeholders: {name} is missing; {nombre} is not in the source message
 ```
 
-## 讀懂錯誤訊息 { #reading-a-failure-message }
-
 這些訊息是寫給有能力處理它們的人看的，而目錄的問題落在譯者身上的機會，遠多於
-程式設計師。當那幾個字就明明白白攤在讀者眼前時，只回報 `{name}` 不見了等於死路
-一條；因此只要佔位符看起來存在、實際上卻不是，訊息就會說明原因。對照原文
-`Hello {name}`，下列每一種情況都會在
-`translation does not match the source placeholders:` 之後回報：
-
-| 翻譯寫成 | 訊息給出的原因 |
-| --- | --- |
-| `こんにちは ｛name｝` | `{name}` is missing (the braces around it are not the ASCII `{` and `}`) |
-| `こんにちは {{name}}` | `{name}` is missing (it is written `{{name}}`, which is how a literal brace is escaped) |
-| `こんにちは name` | `{name}` is missing (the name appears, but not inside braces) |
-| `こんにちは {名前}` | `{name}` is missing; `{名前}` is not in the source message |
-
-看不見的字元有專屬的處理方式。花括號裡的 no-break space 是輸入法的產物，任何編輯器
-都不會顯示它，所以訊息會以碼位印出它，而不是要讀者去找一個根本找不到的字元：
-
-```text
-placeholder {<U+00A0>name} has a space inside the braces; write {name}
-```
-
-字母混用了不同書寫系統的名稱——也就是 homoglyph 的情況，西里爾字母 `а` 和拉丁
-字母根本無從分辨——會被顯示兩次，一次可讀、一次跳脫，而後者是唯一能分辨兩者的
-形式：
-
-```text
-translation does not match the source placeholders: {name} is missing;
-{nаme} (n\u0430me) is not in the source message
-```
-
-當一個完全以希臘字母或西里爾字母寫成的名稱與 ASCII 原始名稱衝突時，也會做同樣的
-消歧，包括只有單一字母的拉丁 `a` 與西里爾 `а` 那種情況。
+程式設計師——因此只要佔位符看起來存在、實際上卻不是，訊息就會說明原因，而不是
+一再重複它不見了。全形花括號、寫成兩重的 `{{name}}`、看不見的 no-break space、
+混在拉丁字母之中的西里爾字母：每一種都有各自的措辭，並附上範例列在
+[給譯者](translators.md#reading-a-failure-message)那一頁。那一頁就是為了交給
+編輯 `.po` 的人而寫的。
 
 ## 不透過目錄渲染 pattern { #rendering-a-pattern-without-a-catalog }
 
@@ -269,3 +293,5 @@ tr(t"Hello {name}")
 一樣——依輸出去向（HTML、shell、終端機）對渲染結果進行**跳脫**，以及維護**目錄
 完整性**，因為惡意的目錄可以重複佔位符來放大輸出量，而這是任何以佔位符為基礎的
 i18n 都固有的性質。
+
+  [babel-numbers]: https://babel.pocoo.org/en/latest/api/numbers.html

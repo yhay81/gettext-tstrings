@@ -145,10 +145,24 @@ robu.
 
 CI solis, ko šī dokumentācija iesaka novecojušu katalogu noķeršanai,
 `pybabel update --check`, šo darbu nespēj paveikt nevienam projektam, kas lieto
-`pgettext` vai `npgettext` — tas katrā izpildē ziņo, ka katrs katalogs ar
-`msgctxt` ir novecojis, jo tajā, kā salīdzināšana uzmeklē ziņojumus, ir kļūda.
-Tā tika atrasta šeit, mēģinot to lietot, paziņota augšup, un ir
-[aprakstīta pilnībā kopā ar apiešanas ceļu](workflow.md#what-ci-gates).
+`pgettext` vai `npgettext`. Babel 2.18.0 versijā tas katrā izpildē ziņo, ka
+katrs katalogs ar `msgctxt` ir novecojis. Salīdzināšana notiek caur
+`Catalog.is_identical`, kas katru ziņojumu uzmeklē pēc atslēgas, ar kādu tas ir
+saglabāts — un kontekstuālam ziņojumam šī atslēga ir pāris `(id, context)`, ko
+`Catalog.get` nepieņem. Uzmeklēšana neatgriež neko, un katalogi nekad nav
+vienādi:
+
+```pycon
+>>> from babel.messages.catalog import Catalog
+>>> c = Catalog(locale="ja")
+>>> c.add("Guide", "ガイド", context="navigation")
+<Message 'Guide' (flags: [])>
+>>> c.is_identical(c)
+False
+```
+
+Tā tika atrasta šeit, mēģinot to lietot, paziņota augšup, un aizstājošā
+pārbaude ir [produkcijas lapā](workflow.md#what-ci-gates).
 
 Vispārīgā mācība ir tā neērtā: vārti, kas vienmēr ir sarkani, ir sliktāki nekā
 nekādi vārti, jo komanda tos izslēdz. Pārliecinieties, ka jūsu CI pārbaude

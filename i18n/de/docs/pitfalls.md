@@ -155,11 +155,25 @@ Dateien dieses Repositorys existieren, um diese Lücke zu füllen.
 
 Der CI-Schritt, den diese Dokumentation zum Aufspüren veralteter Kataloge
 empfiehlt, `pybabel update --check`, kann diese Aufgabe für kein Projekt
-erfüllen, das `pgettext` oder `npgettext` verwendet — er meldet jeden Katalog
-mit einem `msgctxt` bei jedem Lauf als veraltet, wegen eines Fehlers darin,
-wie der Vergleich Nachrichten nachschlägt. Er wurde hier beim Versuch, ihn zu
-benutzen, gefunden, upstream gemeldet und ist
-[vollständig samt Umgehung beschrieben](workflow.md#what-ci-gates).
+erfüllen, das `pgettext` oder `npgettext` verwendet. Auf Babel 2.18.0 meldet er
+jeden Katalog mit einem `msgctxt` bei jedem Lauf als veraltet. Der Vergleich
+läuft über `Catalog.is_identical`, das jede Nachricht unter dem Schlüssel
+nachschlägt, unter dem sie gespeichert ist — und bei einer kontextbehafteten
+Nachricht ist dieser Schlüssel das Paar `(id, context)`, das `Catalog.get`
+nicht annimmt. Die Suche liefert nichts, und die Kataloge sind nie gleich:
+
+```pycon
+>>> from babel.messages.catalog import Catalog
+>>> c = Catalog(locale="ja")
+>>> c.add("Guide", "ガイド", context="navigation")
+<Message 'Guide' (flags: [])>
+>>> c.is_identical(c)
+False
+```
+
+Er wurde hier beim Versuch, ihn zu benutzen, gefunden, upstream gemeldet, und
+die Ersatzprüfung steht
+[auf der Produktivbetrieb-Seite](workflow.md#what-ci-gates).
 
 Die allgemeine Lehre ist die unbequeme: Eine Schranke, die immer rot ist, ist
 schlimmer als gar keine, weil ein Team sie abschaltet. Prüfe, dass deine

@@ -11,8 +11,8 @@ na pravi poti.
 
 Potrebujete Python 3.14 ali novejši, ker so t-nizi nova sintaksa v 3.14.
 Japonščina je ciljni jezik primera na tej strani, vendar od te izbire nič ne
-visi — v koraku 4 vstavite poljuben jezik; koda locale `ja` je edino mesto,
-ki ga poimenuje.
+visi. Če želite drug jezik, zamenjajte `ja` v koraku 4 — ta koda locale je
+edino mesto, ki ga poimenuje.
 
 ## 1. Namestitev { #1-install }
 
@@ -53,9 +53,9 @@ angleščina (ali kar koli je vaš izvorni jezik) je vgrajeni zasilni izpis.
 
 ## 3. Izvlecite sporočila { #3-extract-the-messages }
 
-Prevajalci ne berejo vaše izvorne kode; med vami in njimi potuje majhna
-datoteka, imenovana **katalog**. Prvi korak do nje je, da iz kode zberete
-vsako označeno sporočilo.
+Prevajalci navadno delajo iz katalogov in ne iz izvorne kode, zato med vami in
+njimi potuje majhna datoteka, imenovana **katalog**. Prvi korak do nje je, da
+iz kode zberete vsako označeno sporočilo.
 
 Povejte Babelu, kako naj najde vaša sporočila, tako da ustvarite `babel.cfg`:
 
@@ -127,7 +127,17 @@ source placeholders: {name} is missing; {nome} is not in the source message
 1 errors encountered.
 ```
 
+Eno opozorilo je vredno poznati že zdaj: napako sporoči in konča z neničelnim
+izhodnim statusom, `.mo` pa vseeno zapiše. V resničnem projektu se mora na
+tem izhodnem statusu ustaviti CI — [V produkciji](workflow.md#what-ci-gates)
+to nastavi.
+
 ## 5. Zaženite ga { #5-run-it }
+
+Koraki 2–4 so uporabljali `tr()`, ki katalog išče in ga ne najde. Zdaj, ko
+katalog obstaja, ga naložite in vežite enkrat: `Translator` hrani katalog, da
+ga klicnim mestom ni treba imenovati, `_` pa je običajno gettextovo ime za
+rezultat.
 
 Usmerite `app.py` na kompiliran katalog. Kliknite oznake in videli boste, kaj
 počne posamezna vrstica:
@@ -145,8 +155,8 @@ print(_(t"Hello {name}"))  # (2)!
 
 1. Standardna knjižnica naloži kompiliran `.mo`, `Translator` pa ga veže na
    klicljiv objekt. `_` je običajno gettextovo ime za „prevedi to“ — kratko,
-   ker se pojavi pri vsakem nizu, ki ga vidi uporabnik. To je ista funkcija
-   kot `tr`, vezana na en katalog.
+   ker se pojavi pri vsakem nizu, ki ga vidi uporabnik. Opravi isti prevod
+   kot `tr`, vezan na en katalog.
 2. Ob klicu: besedilo t-niza postane iskalni ključ `Hello {name}`, katalog
    odgovori `こんにちは {name}`, odgovor se preveri glede na izvorne ograde in
    šele nato se vstavi vrednost.
@@ -179,5 +189,9 @@ spletišču je le izpopolnitev enega od teh petih korakov.
   ekipa: posodabljanje katalogov, zaščite v CI in prevajalske platforme.
 - [Ekstrakcija](extraction.md) — celotna referenca `pybabel`: lastna imena
   funkcij, strogi način za CI in preverjanja, ki varujejo vaše kataloge.
+- [Migracija](migration.md) — če projekt, v katerem to v resnici želite
+  početi, že ima gettextove kataloge.
+- [Za prevajalce](translators.md) — ena sama stran, ki jo izročite tistemu,
+  ki izpolnjuje vrstice `msgstr`.
 
   [Babel]: https://babel.pocoo.org/

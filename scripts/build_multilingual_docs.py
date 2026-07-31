@@ -75,20 +75,44 @@ COPYRIGHT = lazy_gettext(t"Copyright © 2026 {author} · MIT License", strict=Tr
 DARK_MODE = lazy_gettext(t"Switch to dark mode", strict=True)
 LIGHT_MODE = lazy_gettext(t"Switch to light mode", strict=True)
 
-# Nav label, page. "Guide" carries a context because the word is a homonym:
-# the sidebar entry and the noun in prose need not translate alike.
-NAV: tuple[tuple[LazyString, str], ...] = (
-    (lazy_gettext(t"Home", strict=True), "index.md"),
-    (lazy_gettext(t"Tutorial", strict=True), "tutorial.md"),
-    (lazy_gettext(t"Why t-strings", strict=True), "comparison.md"),
-    (lazy_gettext(t"Background", strict=True), "background.md"),
-    (lazy_pgettext("navigation", t"Guide", strict=True), "guide.md"),
-    (lazy_gettext(t"Extraction", strict=True), "extraction.md"),
-    (lazy_gettext(t"In production", strict=True), "workflow.md"),
-    (lazy_gettext(t"Pitfalls", strict=True), "pitfalls.md"),
-    (lazy_gettext(t"How it works", strict=True), "internals.md"),
-    (lazy_gettext(t"Specification", strict=True), "spec.md"),
-    (lazy_gettext(t"API", strict=True), "api.md"),
+# Section label, then the pages under it. The grouping is what a reader arrives
+# needing: where to start, what to use, what to understand, what to look up.
+# "Guide" carries a context because the word is a homonym: the sidebar entry and
+# the noun in prose need not translate alike.
+NAV: tuple[tuple[LazyString, tuple[tuple[LazyString, str], ...]], ...] = (
+    (
+        lazy_gettext(t"Start here", strict=True),
+        (
+            (lazy_gettext(t"Home", strict=True), "index.md"),
+            (lazy_gettext(t"Tutorial", strict=True), "tutorial.md"),
+            (lazy_gettext(t"Why t-strings", strict=True), "comparison.md"),
+        ),
+    ),
+    (
+        lazy_gettext(t"Use it", strict=True),
+        (
+            (lazy_pgettext("navigation", t"Guide", strict=True), "guide.md"),
+            (lazy_gettext(t"Extraction", strict=True), "extraction.md"),
+            (lazy_gettext(t"In production", strict=True), "workflow.md"),
+            (lazy_gettext(t"Migration", strict=True), "migration.md"),
+            (lazy_gettext(t"For translators", strict=True), "translators.md"),
+        ),
+    ),
+    (
+        lazy_gettext(t"Understand it", strict=True),
+        (
+            (lazy_gettext(t"Background", strict=True), "background.md"),
+            (lazy_gettext(t"Pitfalls", strict=True), "pitfalls.md"),
+            (lazy_gettext(t"How it works", strict=True), "internals.md"),
+        ),
+    ),
+    (
+        lazy_gettext(t"Reference", strict=True),
+        (
+            (lazy_gettext(t"API", strict=True), "api.md"),
+            (lazy_gettext(t"Specification", strict=True), "spec.md"),
+        ),
+    ),
 )
 
 
@@ -485,7 +509,10 @@ def _nav() -> str:
     # str() on each label is what renders it, through whichever translations
     # the caller bound to the context.
     lines = ["nav = ["]
-    lines.extend(f"  {{ {_quote(str(label))} = {_quote(path)} }}," for label, path in NAV)
+    for section, pages in NAV:
+        lines.append(f"  {{ {_quote(str(section))} = [")
+        lines.extend(f"    {{ {_quote(str(label))} = {_quote(path)} }}," for label, path in pages)
+        lines.append("  ] },")
     lines.append("]\n")
     return "\n".join(lines)
 

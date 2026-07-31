@@ -11,8 +11,8 @@ jó úton jársz-e.
 
 Python 3.14 vagy újabb kell hozzá, mert a t-string a 3.14 új szintaxisa. A
 japán csak ennek az oldalnak a példacélnyelve, semmi sem múlik ezen a
-választáson — a 4. lépésben bármelyik nyelvre lecserélheted, ott a `ja`
-területi kód az egyetlen dolog, amely megnevezi.
+választáson. Ha másik nyelvet szeretnél, cseréld ki a `ja` kódot a 4.
+lépésben — az a területi kód az egyetlen dolog, amely megnevezi.
 
 ## 1. Telepítés { #1-install }
 
@@ -55,9 +55,9 @@ tartalék.
 
 ## 3. Nyerd ki az üzeneteket { #3-extract-the-messages }
 
-A fordítók nem olvassák a forráskódodat; helyette egy **katalógusnak**
-nevezett kis fájl jár közted és köztük. Az első lépés efelé az, hogy
-összegyűjtsük a kódból az összes megjelölt üzenetet.
+A fordítók rendszerint katalógusokból dolgoznak, nem forráskódból, ezért egy
+**katalógusnak** nevezett kis fájl jár közted és köztük. Az első lépés efelé
+az, hogy összegyűjtsük a kódból az összes megjelölt üzenetet.
 
 Mondd meg a Babelnek, hol találja az üzeneteidet: hozd létre a `babel.cfg`
 fájlt:
@@ -131,7 +131,17 @@ source placeholders: {name} is missing; {nome} is not in the source message
 1 errors encountered.
 ```
 
+Egy fenntartást érdemes már most tudni: jelenti a hibát és nem nulla
+kilépési kóddal áll le, de a `.mo` fájlt attól még kiírja. Valódi projekten a
+CI-nak kell megállnia ezen a kilépési kódon — az [Éles
+üzemben](workflow.md#what-ci-gates) ezt állítja be.
+
 ## 5. Futtasd { #5-run-it }
+
+A 2–4. lépés a `tr()` függvényt használta, amely katalógust keres, és nem
+talál egyet sem. Most, hogy van, töltsd be és kösd be egyszer: a `Translator`
+tartja a katalógust, hogy a hívási helyeknek ne kelljen megnevezniük, a `_`
+pedig az eredmény szokásos gettext-neve.
 
 Irányítsd az `app.py` fájlt a lefordított katalógusra. Kattints a jelölőkre,
 hogy lásd, melyik sor mit csinál:
@@ -150,8 +160,8 @@ print(_(t"Hello {name}"))  # (2)!
 1. A standard könyvtár betölti a lefordított `.mo` fájlt, a `Translator` pedig
    egy hívható objektumhoz köti. A `_` a gettext szokásos neve arra, hogy
    „fordítsd le ezt” — azért rövid, mert minden felhasználónak szánt szövegnél
-   megjelenik. Ugyanaz a függvény, mint a `tr`, csak egyetlen katalógushoz
-   kötve.
+   megjelenik. Ugyanazt a fordítást végzi, mint a `tr`, csak egyetlen
+   katalógushoz kötve.
 2. A híváskor: a t-string szövegéből lesz a `Hello {name}` keresőkulcs, a
    katalógus a `こんにちは {name}` választ adja, a választ összeveti a
    rendszer a forrás helyőrzőivel, és csak ezután kerül be az érték.
@@ -185,5 +195,9 @@ webhelyen minden más ennek az öt lépésnek valamelyikét finomítja.
   platformok.
 - [Kinyerés](extraction.md) — a teljes `pybabel`-referencia: saját
   függvénynevek, szigorú CI-mód, és a katalógusaidat őrző ellenőrzések.
+- [Migráció](migration.md) — ha abban a projektben, amelyben valójában
+  csinálni szeretnéd, már vannak gettext-katalógusok.
+- [Fordítóknak](translators.md) — az az egy oldal, amelyet oda kell adni
+  annak, aki azokat a `msgstr` sorokat kitölti.
 
   [Babel]: https://babel.pocoo.org/

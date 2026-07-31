@@ -1,22 +1,17 @@
 ---
-description: "Isto prevedljivo sporočilo, zapisano z %-oblikovanjem, z .format(), z $-nizi iz flufl.i18n in s t-nizom — vključno s tem, kako vsak veže vrednosti in kako ravna s poškodovanim katalogom."
+description: "Isto prevedljivo sporočilo, zapisano z %-oblikovanjem, z .format(), z $-nizi iz flufl.i18n in s t-nizom — primerjano po napakah prevajalcev, po oblasti kataloga in po ceni vpeljave."
 ---
 
 # Zakaj t-nizi
 
 Štirje načini, kako vrednost postaviti v prevedljivo sporočilo, primerjani na
-isti povedi. Na kratko:
+istem sporočilu. Vsi štirje svoje ograde poimenujejo in prevajalcu dovolijo,
+da jih prerazporedi; razlikujejo se v tem, kaj se zgodi, kadar je prevod
+napačen, koliko vašega programa lahko doseže katalog in koliko stane njihova
+vpeljava.
 
-- Pri **%-oblikovanju** en sam izbrisan znak v prevodu postane sesutje v
-  produkciji.
-- Pri **str.format** lahko prevod bere atribute z objektov, ki jih izroči vaša
-  koda — tudi skrivnosti.
-- Pri **$-nizih** (flufl.i18n) se vrednosti implicitno poberejo iz spremenljivk
-  klicoče funkcije, ograde s piko pa sežejo tudi do atributov.
-- Pri **t-nizih** oblikovanje ostane v vaši kodi, prevodi se preverijo med
-  izvajanjem, pokvarjen katalog pa se namesto sesutja vrne na izvorno besedilo.
-
-Preostanek te strani je dokazno gradivo, en način za drugim.
+Tabele so na začetku, da lahko poiščete vrstico, ki vas zanima, in preberete
+le razdelek za njo.
 
 !!! note "Vsakega prevedenega sporočila se dotaknejo trije"
 
@@ -28,6 +23,72 @@ Preostanek te strani je dokazno gradivo, en način za drugim.
     skupaj. Vsak spodnji slog oblikovanja na isto vprašanje odgovori drugače:
     *kolikšen del formatnega jezika sme nadzorovati katalog?* V primerih je `_`
     običajno ime prevajalne funkcije, `tr` pa je ime iz te knjižnice.
+
+## Drug ob drugem { #side-by-side }
+
+**Kadar prevajalec naredi napako.** Katalog gre skozi mnogo rok in večina
+tega, kar se v njem zalomi, je nenamerna:
+
+| | `%(name)s` | `.format()` | `flufl.i18n` `$name` | `t"…"` |
+| --- | --- | --- | --- | --- |
+| Prevod ogrado *izpusti* — kaj se izriše? | vrednost tiho izgine | vrednost tiho izgine | vrednost tiho izgine | izvorno sporočilo z opozorilom ([privzeto](guide.md#what-happens-when-a-catalog-is-wrong)) |
+| Prevod *doda* neznano ogrado — kaj se izriše? | izjema | izjema | ograda ostane vidna kot besedilo | izvorno sporočilo z opozorilom ([privzeto](guide.md#what-happens-when-a-catalog-is-wrong)) |
+| Prevod ogrado *preoblikuje* — kaj se izriše? | to, kar je zahteval katalog, ali izjema, če črka za tip vrednosti ne ustreza več | to, kar je zahteval katalog | v `$`-nizih ni izrazljivo | izvorno sporočilo z opozorilom |
+| So ograde preverjene ob izrisu? | ne | ne | ne | da (glejte spodaj) |
+
+**Kolikšno oblast ima katalog.** Prevod so podatki od zunaj vašega
+repozitorija in vsak slog mu izroči drugačno mero moči:
+
+| | `%(name)s` | `.format()` | `flufl.i18n` `$name` | `t"…"` |
+| --- | --- | --- | --- | --- |
+| Od kod pridejo vrednosti? | iz izrecne preslikave | iz izrecnih argumentov | iz lokalnih in globalnih spremenljivk klicatelja, poleg neobveznega `extras` | iz vrednosti, ujetih znotraj t-niza |
+| Sme katalog spremeniti oblikovanje vrednosti? | da | da | ne | ne |
+| Sme katalog seči v objekte (dostop do atributov)? | ne | da | da, z imeni s piko | ne |
+| Kje živi »trenutni jezik«? | kamor ga postavi aplikacija | kamor ga postavi aplikacija | v skladu jezikovnih oznak na deljenem aplikacijskem objektu | v `ContextVar`, za vsako opravilo ali zahtevo posebej |
+
+**Koliko stane vpeljava.** Vse zgornje je zastonj, če se orodje ujame; tu se
+morda ne:
+
+| | `%(name)s` | `.format()` | `flufl.i18n` `$name` | `t"…"` |
+| --- | --- | --- | --- | --- |
+| Najmanjši Python | kateri koli | kateri koli | 3.10 | **3.14** |
+| Zrelost | standardna knjižnica | standardna knjižnica | stabilna izdaja | **alfa** |
+| Uporablja običajne kataloge PO/MO? | da | da | da | da |
+| Potrebuje lasten ekstraktor izvorne kode? | ne | ne | ne | da, zaenkrat |
+| Katero zastavico PO izpelje Babel, da jo obstoječa orodja preverijo? | `python-format` | `python-brace-format` | nobene | `python-brace-format` |
+
+O preverjanju ob izrisu: pri ednini se zahteva natančno ujemanje ograd.
+Preverjajo se tudi množinska sporočila, in sicer po
+[pravilu unije in preseka](spec.md), ki dovoli, da se množinske oblike ciljnega
+jezika razlikujejo od izvornih; strožje preverjanje posamezne oblike steče ob
+kompilaciji katalogov ([Ekstrakcija](extraction.md)).
+
+Vrstica o formatni zastavici govori o preverjanju, ki pozna ograde, ne o
+združljivosti kataloga. `nobene` pomeni, da standardna orodja gettext sporočilo
+še vedno berejo in kompilirajo, le da `msgfmt --check-format` nima slovnice
+`$`-ograd, ki bi jo lahko uporabil.
+
+## Združljivost in zrelost { #compatibility-and-maturity }
+
+Prvi dve vrstici zadnje tabele sta tisti, ki odločata o prevzemu, zato ju je
+vredno povedati naravnost in ne kot celici v tabeli.
+
+`%`-oblikovanje in `.format()` sta vgrajena v Python in ne potrebujeta nobene
+odvisnosti. [`flufl.i18n`][flufl-i18n] je zrel paket, izdan in v produkcijski
+rabi, ki teče na Pythonu 3.10 in novejšem. `gettext-tstrings` je **alfa** in
+zahteva **Python 3.14 ali novejši**, ker so t-nizi nova sintaksa v 3.14 —
+vzvratne prenosljivke ni in je ne more biti. Njegova
+[specifikacija](spec.md) je njen stabilni del; pythonski API se pred 1.0 še
+lahko premakne.
+
+Česar ne stane nobeden od njih, je združljivost katalogov. Vsi štirje
+proizvedejo običajne datoteke POT/PO/MO, ki jih vsak urejevalnik PO, vsaka
+prevajalska platforma in vsako orodje GNU gettext že berejo, zato je spodnja
+izbira povratna na način, kot menjava *formata* katalogov ne bi bila.
+[Migracija](migration.md) pokriva selitev obstoječega projekta.
+
+Spodnji razdelki vsako izmed teh tehtanj prikažejo podrobno, en način za
+drugim.
 
 ## %-oblikovanje { #-format }
 
@@ -47,10 +108,10 @@ Traceback (most recent call last):
 ValueError: incomplete format
 ```
 
-Popravek enega znaka v urejevalniku PO postane sledenje napake v produkciji.
-GNU-jev `msgfmt --check-format` ga sicer ujame, a le pri sporočilih z zastavico
-`python-format` in le, če katalog na poti do vaše aplikacije res gre skozi
-msgfmt.
+Popravek enega znaka v urejevalniku PO postane izjema med izvajanjem, razen če
+ga prej ujame preverjanje katalogov. GNU-jev `msgfmt --check-format` tega
+sicer ujame, a le pri sporočilih z zastavico `python-format` in le, če katalog
+na poti do vaše aplikacije res gre skozi msgfmt.
 
 ## str.format { #strformat }
 
@@ -114,7 +175,7 @@ njegov [prevajalnik] pa te poti razreši glede na vrednosti klicatelja. Preveden
 razpoložljivo lokalno ali globalno spremenljivko klicatelja in s piko prehodi
 njene atribute. To je priročno, kadar sporočilo potrebuje atribut, hkrati pa
 naredi klicateljev okvir za del imenskega prostora zamenjav, ki ga vidi
-katalog. Spodnja primerjava opisuje `flufl.i18n` 6.0.0, ne pa vsake možne rabe
+katalog. Primerjava tukaj opisuje `flufl.i18n` 6.0.0, ne pa vsake možne rabe
 `string.Template`.
 
 Odgovarja tudi na vprašanje, ki ga druga dva sloga oblikovanja v celoti
@@ -174,7 +235,7 @@ sporočila in sprejme gola imena in nič drugega. Za `t"Hello {name}"`:
 | `{nombre}` | translation does not match the source placeholders: `{name}` is missing; `{nombre}` is not in the source message |
 
 Zavrnjeno ne pomeni sesuto: knjižnica privzeto zabeleži opozorilo in izriše
-izvorno besedilo, tako da slab katalog nikoli ne podre aplikacije —
+izvorno sporočilo, tako da slab katalog nikoli ne podre aplikacije —
 [isti dogovor, kot ga drži gettext sam](guide.md#what-happens-when-a-catalog-is-wrong).
 
 Oblikovanje ostane tam, kjer je bilo zapisano, v kodi:
@@ -185,52 +246,18 @@ tr(t"Total: {amount:,.2f}")  # msgid is "Total: {amount}"
 ```
 
 `:,.2f` nikoli ne pride do kataloga, zato ga noben prevod ne more spremeniti in
-nobenemu prevajalcu ga ni treba gledati.
+nobenemu prevajalcu ga ni treba gledati. Vendar je to *nespremenljivo*
+oblikovanje, ne lokalizirano — izbira števk in ločil za vsak jezik je
+[Babelova naloga, pred klicem](guide.md#locale-aware-values).
 
 Še ena razlika je orodje: t-nizi so nova sintaksa, zato njihova ekstrakcija v
 `.pot` trenutno potrebuje ekstraktor, ki t-nize pozna — na primer tistega, ki
 ga ta paket [ponuja za Babel](extraction.md).
 
-## Drug ob drugem { #side-by-side }
+## Cena omejitve { #the-cost-of-the-restriction }
 
-| | `%(name)s` | `.format()` | `flufl.i18n` `$name` | `t"…"` |
-| --- | --- | --- | --- | --- |
-| Je ograda imenovana? | da | da | da | da |
-| Sme prevajalec prerazporediti ograde? | da | da | da | da |
-| Od kod pridejo vrednosti? | iz izrecne preslikave | iz izrecnih argumentov | iz lokalnih in globalnih spremenljivk klicatelja, poleg neobveznega `extras` | iz vrednosti, ujetih znotraj t-niza |
-| Sme katalog spremeniti oblikovanje vrednosti? | da | da | ne | ne |
-| Sme katalog seči v objekte (dostop do atributov)? | ne | da | da, z imeni s piko | ne |
-| Prevod ogrado *izpusti* — kaj se izriše? | vrednost tiho izgine | vrednost tiho izgine | vrednost tiho izgine | izvorno besedilo z opozorilom ([privzeto](guide.md#what-happens-when-a-catalog-is-wrong)) |
-| Prevod *doda* neznano ogrado — kaj se izriše? | izjema | izjema | ograda ostane vidna kot besedilo | izvorno besedilo z opozorilom ([privzeto](guide.md#what-happens-when-a-catalog-is-wrong)) |
-| So ograde preverjene ob izrisu? | ne | ne | ne | da (glejte spodaj) |
-| Katero zastavico PO izpelje Babel, da jo obstoječa orodja preverijo? | `python-format` | `python-brace-format` | nobene | `python-brace-format` |
-| Uporablja običajne kataloge PO/MO? | da | da | da | da |
-| Potrebuje lasten ekstraktor izvorne kode? | ne | ne | ne | da, zaenkrat |
-| Kje živi »trenutni jezik«? | kamor ga postavi aplikacija | kamor ga postavi aplikacija | v skladu jezikovnih oznak na deljenem aplikacijskem objektu | v `ContextVar`, za vsako opravilo ali zahtevo posebej |
-
-O preverjanju ob izrisu: pri ednini se zahteva natančno ujemanje ograd.
-Preverjajo se tudi množinska sporočila, in sicer po
-[pravilu unije in preseka](spec.md), ki dovoli, da se množinske oblike ciljnega
-jezika razlikujejo od izvornih; strožje preverjanje posamezne oblike steče ob
-kompilaciji katalogov ([Ekstrakcija](extraction.md)).
-
-Vrstica o formatni zastavici govori o preverjanju, ki pozna ograde, ne o
-združljivosti kataloga. `nobene` pomeni, da standardna orodja gettext sporočilo
-še vedno berejo in kompilirajo, le da `msgfmt --check-format` nima slovnice
-`$`-ograd, ki bi jo lahko uporabil.
-
-## Kaj to stane { #what-it-costs }
-
-F-niza na ta način sploh ni mogoče uporabiti — ko ga zagleda katera koli
-knjižnica, je že dokončan niz, zato bi njegovo prevajanje pomenilo prevajanje
-drobca. T-nizi ([PEP 750]) hranijo statično besedilo in vrednosti ločeno, pri
-tem pa ohranjajo f-nizom podobno sintakso in izrecno vezavo vrednosti.
-`$`-nizi že ponujajo jedrnato alternativo z drugačnim modelom vezave in
-odpovedi. `flufl.i18n` je zrel paket, ki teče na Pythonu 3.10 in novejšem;
-`gettext-tstrings` je zaenkrat alfa in ker so t-nizi nova sintaksa, zahteva
-Python 3.14 ali novejši.
-
-Druga cena je omejitev sama: interpolacija mora biti preprosto ime.
+Poleg zahteve po Pythonu je cena vsega tega eno samo pravilo: interpolacija
+mora biti preprosto ime.
 
 ```python
 tr(t"Hello {user.name}")  # raises InvalidTemplateError at the call site
@@ -241,9 +268,15 @@ name = user.name  # compute it first
 tr(t"Hello {name}")
 ```
 
-To je resnična omejitev. Skupaj z vezavo vrednosti na izvorni strani in
-preverjanjem ograd med izvajanjem prepreči, da bi nizi iz kataloga vrednotili
-izraze, in ohrani smiselnost imen ograd.
+To je resnična omejitev in prav ista omejitev proizvede zgornja jamstva.
+Skupaj z vezavo vrednosti na izvorni strani in preverjanjem ograd med
+izvajanjem prepreči, da bi nizi iz kataloga vrednotili izraze, in ohrani imena
+ograd smiselna za osebo, ki jih prevaja.
+
+F-niza na ta način sploh ni mogoče uporabiti — ko ga zagleda katera koli
+knjižnica, je že dokončan niz, zato bi njegovo prevajanje pomenilo prevajanje
+drobca. T-nizi ([PEP 750]) hranijo statično besedilo in vrednosti ločeno, pri
+tem pa ohranjajo f-nizom podobno sintakso in izrecno vezavo vrednosti.
 
 Kako je Python prišel na to razpotje — dva PEP-a z desetletjem vmes in razprava
 o standardni knjižnici, ki se je zaključila brez odgovora — je z viri

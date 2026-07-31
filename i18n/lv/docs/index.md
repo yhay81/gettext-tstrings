@@ -1,5 +1,5 @@
 ---
-description: "Tulkojiet pilnus t-virkņu ziņojumus caur gettext un Babel, formatējumu paturot ārpus kataloga."
+description: "Tulkojiet pilnus t-virkņu ziņojumus caur gettext un Babel, vērtības un formatējumu paturot ārpus kataloga."
 title: "gettext-tstrings"
 hide:
   - navigation
@@ -8,10 +8,11 @@ hide:
 
 <div class="home-hero" markdown>
 
-# Uzrakstiet teikumu vienreiz.<br>Tulkojiet to veselu.
+# Tulkojiet veselus ziņojumus,<br>nevis virkņu fragmentus.
 
-Droša gettext un Babel integrācija Python 3.14+ t-virknēm — vērtība paliek
-savā vietā, un katalogs redz visu ziņojumu:
+`gettext-tstrings` savieno Python 3.14+ t-virknes ar standarta gettext
+katalogiem un Babel rīkiem. Vērtības un formatējums paliek lietotnes kodā;
+katalogs tur pilnu ziņojumu ar vienkāršiem `{name}` vietturiem:
 
 ```python
 import gettext
@@ -24,7 +25,10 @@ print(_(t"Hello {name}"))  # with a Japanese catalog: こんにちは Ada
 ```
 
 [Sākt pamācību :material-arrow-right:](tutorial.md){ .md-button .md-button--primary }
-[Kāpēc t-virknes](comparison.md){ .md-button }
+[Salīdziniet alternatīvas](comparison.md){ .md-button }
+
+Alfa · Python 3.14+ · parasti PO/MO katalogi · nav izpildlaika atkarību
+{ .home-facts }
 
 Šī vietne praktizē to, ko dokumentē: katrs valodas izdevums — navigācija,
 uzraksti un daudzskaitli ievērojošā būvējuma atskaite — tiek renderēts no PO
@@ -34,20 +38,43 @@ katalogiem ar
 
 </div>
 
-Katalogs saņem pilnu teikumu `Hello {name}`. Tulkojums drīkst `{name}`
-pārkārtot vai atkārtot; tas nedrīkst to nomest, izdomāt jaunu vai pievienot
-tam savu formatējumu — šī bibliotēka to pārbauda, un sabojāts katalogs
-atkāpjas uz avota tekstu, nevis avarē.
+## Vai tas ir domāts jums? { #is-this-for-you }
+
+**Piemērots jau šodien, ja** jūsu lietotne darbojas uz Python 3.14 vai
+jaunāka; jūs jau lietojat gettext un Babel vai gribat pārņemt to PO/MO
+darbplūsmu; un jūs gribat t-virkņu sintaksi ar nosauktiem vietturiem, kas tiek
+pārbaudīti pirms renderēšanas.
+
+**Vēl nav piemērots, ja** jums vajadzīgs Python 3.13 vai vecāks; jums
+nepieciešams stabils Python API — šī ir alfa versija, un
+[specifikācija](spec.md) ir tā daļa, kas ir nostabilizējusies; vai gandrīz viss
+jūsu tulkojamais teksts atrodas veidņu valodā, nevis Python pirmkodā.
+
+Jums jau ir katalogi? Tie turpina strādāt. `_("Hello {name}").format(name=name)`
+un `tr(t"Hello {name}")` rada vienu un to pašu msgid, tāpēc esošie tulkojumi
+pārmaiņu pārdzīvo — [Migrācija](migration.md) izstaigā visu pāreju.
+
+## Ko katalogs drīkst pateikt { #what-the-catalog-may-say }
+
+Katalogs saņem pilnu ziņojumu `Hello {name}`. Tulkojums drīkst `{name}`
+pārkārtot vai atkārtot un drīkst pārrakstīt katru citu vārdu tam apkārt. Tas
+nedrīkst vietturi nomest, izdomāt jaunu, caur to sniegties jūsu objektos vai
+pievienot tam savu formatējumu.
+
+Tāds ir viss solījums: **tulkojums nespēj mainīt tā ziņojuma struktūru, kuru
+tas tulko.** Bibliotēka to pārbauda ceļā iekšā — kad katalogi tiek kompilēti —
+un vēlreiz renderēšanas brīdī; sabojāts ieraksts, kas tomēr nonāk produkcijā,
+ieraksta brīdinājumu un renderē avota ziņojumu, nevis avarē.
 
 !!! note "Vai gettext jums ir jaunums? Visa darbplūsma četros teikumos"
 
     **gettext** ir standarta veids, kā programmatūra tiek tulkota — gan
-    Python, gan tālu aiz tā. Jūsu kods atzīmē tulkojamās virknes;
+    Python, gan tālu aiz tā. Jūsu kods atzīmē tulkojamos ziņojumus;
     *ekstraktors* savāc tās veidnes failā (`.pot`); tulkotājs — parasti nevis
     programmētājs — aizpilda vienu kataloga failu (`.po`) katrai valodai, kas
     tiek kompilēts binārā `.mo` failā, ko jūsu lietotne ielādē izpildlaikā.
     Tulkošanas funkcijas ierastais nosaukums ir `_`, tāpēc `_(t"Hello {name}")`
-    lasās kā “iztulko šo teikumu”. **[Pamācība](tutorial.md)** izstaigā visu
+    lasās kā “iztulko šo ziņojumu”. **[Pamācība](tutorial.md)** izstaigā visu
     ceļu — atzīmēt, ekstrahēt, iztulkot, kompilēt, palaist — aptuveni piecās
     minūtēs.
 
@@ -66,14 +93,20 @@ Tomēr ne gettext, ne Babel nepasaka, kā t-virkne kļūst par ziņojumu. Šī
 bibliotēka izdara šo izvēli, pieraksta to kā [versionētu specifikāciju](spec.md)
 un piegādā [atbilstības komplektu](spec.md#conformance), lai to pārbaudītu.
 
-## Izvēle, ko tas izdara { #the-choice-it-makes }
+## Dizaina noteikumi { #the-design-rules }
 
 - Tulkot pilnus ziņojumus, nekad ne teikumu fragmentus.
 - Pieņemt tikai vienkāršus mainīgo nosaukumus, tādus kā `{name}`.
 - Paturēt `!r` un `:.2f` lietotnes kontrolē, ārpus kataloga.
-- Ļaut tulkotājiem pārkārtot un atkārtot zināmos vietturus — bet ne izsaukt
-  atribūtus un ne pievienot formatēšanas uzvedību.
+- Ļaut tulkojumiem pārkārtot un atkārtot zināmos vietturus, vienlaikus liedzot
+  tiem sniegties pie atribūtiem vai pievienot formatējumu.
 - Izmantot parastos POT, PO un MO failus un rīkus, kas tos jau lasa.
+
+Un tam atbilstošais saraksts ar to, ko tas apzināti atstāj mierā: tas
+nelokalizē skaitļus, valūtas vai datumus — [noformatējiet tos vispirms](guide.md#locale-aware-values)
+ar Babel; tas neekranē renderēto izvadi HTML, čaulai vai terminālim; un tas
+nespēj spriest, vai tulkojums ir *pareizs*, tikai to, vai tā vietturi ir
+neskarti.
 
 ## Instalēšana { #install }
 
@@ -94,48 +127,58 @@ python -m pip install "gettext-tstrings[babel]"
 
 ## Kurp doties tālāk { #where-to-go-next }
 
-Šeit nonāk trīs veidu lasītāji: tas, kurš tulko savu pirmo programmu; tas,
-kurš iebūvē tulkošanu īstā projektā; un tas, kurš grib precīzi zināt, kāpēc
-mehānismam ir tieši šāda forma. Katram ir sava taka.
-
-**Mācīties to** — pieredze ar gettext netiek prasīta:
+**Sāciet šeit** — pieredze ar gettext netiek prasīta:
 
 <div class="grid cards" markdown>
 
-- **[Pamācība](tutorial.md)** — sāciet šeit: no tukša direktorija līdz
-  strādājošam tulkojumam japāņu valodā piecos soļos, katra komanda parādīta
-  kopā ar tās izvadi.
+- **[Pamācība](tutorial.md)** — no tukša direktorija līdz strādājošam
+  tulkojumam japāņu valodā piecos soļos, katra komanda parādīta kopā ar tās
+  izvadi.
 - **[Kāpēc t-virknes](comparison.md)** — viens un tas pats ziņojums, uzrakstīts
   četros veidos, un tas, ko katalogam pasniedz `%(name)s`, `.format()` un
   `$`-virknes.
-- **[Priekšvēsture](background.md)** — kāpēc šī bibliotēka pastāv: trīsdesmit
-  gadi gettext, divi PEP un standarta bibliotēkas diskusija, kas noslēdzās bez
-  atbildes.
 
 </div>
 
-**Lietot to nopietni** — darba uzziņas:
+**Lietojiet** — darba uzziņas:
 
 <div class="grid cards" markdown>
 
-- **[Ceļvedis](guide.md)** — izpildlaika API: daudzskaitļi, valodas katram
-  pieprasījumam, atliktās virknes un tas, kas notiek, kad katalogs ir kļūdains.
+- **[Ceļvedis](guide.md)** — izpildlaika API: kuru ieejas punktu lietot,
+  daudzskaitļi, valodas katram pieprasījumam, atliktās virknes un tas, kas
+  notiek, kad katalogs ir kļūdains.
 - **[Ekstrakcija](extraction.md)** — `pybabel` uzziņa: konfigurācija, pielāgoti
   funkciju nosaukumi un tas, kā jau esošie rīki validē šos katalogus bez
   papildu pūlēm.
 - **[Produkcijā](workflow.md)** — cikls tā, kā to izpilda komanda:
   atjaunināšanas cikls, fuzzy ieraksti, CI vārti, tulkošanas platformas un
-  valodas katram pieprasījumam tīmekļa lietotnē.
-- **[API](api.md)** — viss, ko pakotne eksportē, vienā lapā.
+  piegāde.
+- **[Migrācija](migration.md)** — šī pārņemšana projektā, kuram jau ir
+  katalogi, pa vienai izsaukuma vietai.
+- **[Tulkotājiem](translators.md)** — viena lapa, ko iedot tam, kurš rediģē
+  `.po` failus.
 
 </div>
 
-**Saprast to** — no principiem līdz implementācijai:
+**Izprotiet** — no vēstures līdz implementācijai:
 
 <div class="grid cards" markdown>
 
+- **[Priekšvēsture](background.md)** — kāpēc šī bibliotēka pastāv: trīsdesmit
+  gadi gettext, divi PEP un standarta bibliotēkas diskusija, kas noslēdzās bez
+  atbildes.
+- **[Kļūmes](pitfalls.md)** — ko šīs vietnes tulkošana trīsdesmit piecās
+  valodās patiešām salauza un kuru pusi no tā rīks spēj noķert.
 - **[Kā tas darbojas](internals.md)** — no PEP 750 šablona objekta līdz
   renderētai virknei un kešatmiņām, kas padara pārbaudi lētu.
+
+</div>
+
+**Atsauce** — kontrakti:
+
+<div class="grid cards" markdown>
+
+- **[API](api.md)** — viss, ko pakotne eksportē, vienā lapā.
 - **[Specifikācija](spec.md)** — konvencija t-virkne ↔ msgid kā stabils,
   versionēts kontrakts ar mašīnlasāmu atbilstības komplektu.
 

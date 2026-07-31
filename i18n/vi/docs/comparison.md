@@ -1,22 +1,17 @@
 ---
-description: "Cùng một thông điệp cần dịch được viết bằng %-format, .format(), chuỗi $ của flufl.i18n và t-string, kèm cách mỗi kiểu gắn giá trị và xử lý một catalog bị hỏng."
+description: "Cùng một thông điệp cần dịch được viết bằng %-format, .format(), chuỗi $ của flufl.i18n và t-string, so sánh trên lỗi của người dịch, quyền hạn của catalog và chi phí tích hợp."
 ---
 
 # Vì sao chọn t-string
 
 Bốn cách đưa một giá trị vào thông điệp cần dịch, được so sánh trên cùng một
-câu. Phiên bản tóm tắt:
+thông điệp. Cả bốn đều đặt tên cho placeholder và cho phép người dịch sắp xếp
+lại chúng; chúng khác nhau ở điều xảy ra khi một bản dịch bị sai, ở mức độ
+catalog với tới được bao nhiêu phần chương trình của bạn, và ở cái giá phải
+trả khi áp dụng.
 
-- Với **%-format**, người dịch xóa một chữ cái là thành sự cố sập trong
-  production.
-- Với **str.format**, một bản dịch có thể đọc thuộc tính từ các đối tượng mà
-  mã của bạn truyền vào — kể cả bí mật.
-- Với **chuỗi $** (flufl.i18n), giá trị được lấy ngầm từ các biến của hàm
-  gọi, và placeholder dạng chấm còn với tới được cả thuộc tính.
-- Với **t-string**, việc định dạng ở lại trong mã của bạn, bản dịch được kiểm
-  tra lúc chạy, và một catalog hỏng sẽ quay về văn bản nguồn thay vì gây sập.
-
-Phần còn lại của trang này là bằng chứng, lần lượt từng phương pháp một.
+Các bảng được đặt lên trước, để bạn tìm được hàng mình quan tâm rồi chỉ đọc
+phần nằm sau nó.
 
 !!! note "Ba bên chạm vào mỗi thông điệp được dịch"
 
@@ -29,6 +24,73 @@ Phần còn lại của trang này là bằng chứng, lần lượt từng phư
     đây trả lời cùng một câu hỏi theo cách khác nhau: *catalog được quyền
     kiểm soát bao nhiêu phần của ngôn ngữ định dạng?* Trong các ví dụ, `_` là
     tên quy ước của hàm dịch, còn `tr` là hàm của thư viện này.
+
+## So sánh cạnh nhau { #side-by-side }
+
+**Khi người dịch mắc lỗi.** Một catalog đi qua rất nhiều bàn tay, và phần lớn
+những gì hỏng trong đó đều là vô tình:
+
+| | `%(name)s` | `.format()` | `flufl.i18n` `$name` | `t"…"` |
+| --- | --- | --- | --- | --- |
+| Một bản dịch *bỏ rơi* một placeholder — cái gì được kết xuất? | giá trị lặng lẽ biến mất | giá trị lặng lẽ biến mất | giá trị lặng lẽ biến mất | thông điệp nguồn, kèm một cảnh báo ([theo mặc định](guide.md#what-happens-when-a-catalog-is-wrong)) |
+| Một bản dịch *thêm* một placeholder lạ — cái gì được kết xuất? | một ngoại lệ | một ngoại lệ | placeholder vẫn hiển thị dưới dạng văn bản | thông điệp nguồn, kèm một cảnh báo ([theo mặc định](guide.md#what-happens-when-a-catalog-is-wrong)) |
+| Một bản dịch *đổi định dạng* một placeholder — cái gì được kết xuất? | thứ mà catalog yêu cầu, hoặc một ngoại lệ nếu chữ cái kiểu không còn hợp với giá trị | thứ mà catalog yêu cầu | không diễn đạt được trong chuỗi `$` | thông điệp nguồn, kèm một cảnh báo |
+| Placeholder có được kiểm tra lúc kết xuất không? | không | không | không | có (xem bên dưới) |
+
+**Catalog có quyền hạn gì.** Một bản dịch là dữ liệu đến từ bên ngoài kho mã
+của bạn, và mỗi kiểu trao cho nó một mức quyền lực khác nhau:
+
+| | `%(name)s` | `.format()` | `flufl.i18n` `$name` | `t"…"` |
+| --- | --- | --- | --- | --- |
+| Giá trị đến từ đâu? | một ánh xạ tường minh | các đối số tường minh | biến cục bộ và toàn cục của bên gọi, cộng thêm `extras` tùy chọn | các giá trị được bắt giữ bên trong t-string |
+| Catalog có thể thay đổi cách định dạng một giá trị không? | có | có | không | không |
+| Catalog có thể với vào đối tượng (truy cập thuộc tính) không? | không | có | có, với tên dạng chấm | không |
+| "Ngôn ngữ hiện tại" nằm ở đâu? | ở bất cứ đâu ứng dụng đặt nó | ở bất cứ đâu ứng dụng đặt nó | một ngăn xếp các mã ngôn ngữ trên đối tượng ứng dụng dùng chung | một `ContextVar`, theo từng task hoặc request |
+
+**Cái giá của việc tích hợp.** Mọi thứ ở trên đều miễn phí nếu công cụ vừa
+vặn; đây là chỗ có thể không vừa:
+
+| | `%(name)s` | `.format()` | `flufl.i18n` `$name` | `t"…"` |
+| --- | --- | --- | --- | --- |
+| Python tối thiểu | bất kỳ | bất kỳ | 3.10 | **3.14** |
+| Độ trưởng thành | thư viện chuẩn | thư viện chuẩn | bản phát hành ổn định | **alpha** |
+| Dùng catalog PO/MO thông thường? | có | có | có | có |
+| Cần bộ trích xuất nguồn tùy chỉnh? | không | không | không | có, hiện tại |
+| Babel suy ra cờ PO nào, để các công cụ hiện có xác thực? | `python-format` | `python-brace-format` | không có | `python-brace-format` |
+
+Về bước kiểm tra lúc kết xuất: thông điệp số ít được kiểm tra khớp
+placeholder một cách chính xác. Thông điệp số nhiều cũng được kiểm tra, theo
+[quy tắc hợp/giao](spec.md) cho phép các dạng số nhiều của ngôn ngữ đích
+khác với ngôn ngữ nguồn; bước kiểm tra chặt hơn theo từng dạng chạy khi
+catalog được biên dịch ([Trích xuất](extraction.md)).
+
+Hàng về cờ định dạng nói về việc xác thực có hiểu placeholder, không phải về
+tính tương thích của catalog. "Không có" nghĩa là các công cụ gettext chuẩn
+vẫn đọc và biên dịch được thông điệp, nhưng `msgfmt --check-format` không có
+ngữ pháp placeholder `$` nào để áp dụng.
+
+## Tương thích và độ trưởng thành { #compatibility-and-maturity }
+
+Hai hàng đầu của bảng cuối cùng là những hàng quyết định việc áp dụng, nên
+chúng đáng được nói thẳng ra thay vì nằm trong ô bảng.
+
+`%`-format và `.format()` được dựng sẵn trong Python và không cần phụ thuộc
+nào cả. [`flufl.i18n`][flufl-i18n] là một gói trưởng thành, đã phát hành và
+đang được dùng trong production, chạy trên Python 3.10 trở lên.
+`gettext-tstrings` đang ở giai đoạn **alpha** và yêu cầu **Python 3.14 trở
+lên**, vì t-string là cú pháp mới trong 3.14 — không có bản back-port và cũng
+không thể có. [Đặc tả](spec.md) của nó là phần ổn định; API Python có thể còn
+thay đổi trước 1.0.
+
+Thứ mà không cái nào trong số chúng bắt bạn trả giá là tính tương thích của
+catalog. Cả bốn đều sinh ra các tệp POT/PO/MO thông thường mà mọi trình soạn
+PO, mọi nền tảng dịch thuật và mọi công cụ GNU gettext đều đã đọc được, nên
+lựa chọn dưới đây là đảo ngược được, theo cách mà việc đổi *định dạng*
+catalog thì không. [Di chuyển](migration.md) nói về việc chuyển một dự án sẵn
+có.
+
+Các phần dưới đây trình bày chi tiết từng đánh đổi, lần lượt từng phương pháp
+một.
 
 ## Định dạng % { #-format }
 
@@ -49,10 +111,11 @@ Traceback (most recent call last):
 ValueError: incomplete format
 ```
 
-Một chỉnh sửa đúng một ký tự trong trình soạn PO trở thành một traceback
-trong production. GNU `msgfmt --check-format` có bắt được lỗi này, nhưng chỉ
-với các thông điệp được gắn cờ `python-format`, và chỉ khi catalog thực sự đi
-qua msgfmt trên đường đến ứng dụng của bạn.
+Một chỉnh sửa đúng một ký tự trong trình soạn PO trở thành một ngoại lệ lúc
+chạy, trừ khi bước xác thực catalog bắt được nó trước. GNU
+`msgfmt --check-format` có bắt được lỗi này, nhưng chỉ với các thông điệp
+được gắn cờ `python-format`, và chỉ khi catalog thực sự đi qua msgfmt trên
+đường đến ứng dụng của bạn.
 
 ## str.format { #strformat }
 
@@ -120,8 +183,8 @@ chấm như `$settings.api_key`, và [bộ dịch][translator] của nó phân g
 thể gọi tên bất kỳ biến cục bộ hay toàn cục nào sẵn có của bên gọi và, với
 cú pháp chấm, duyệt qua các thuộc tính của biến đó. Điều đó tiện lợi khi một
 thông điệp cần một thuộc tính, nhưng đồng thời cũng biến frame của bên gọi
-thành một phần trong không gian tên thay thế của catalog. Phần so sánh dưới
-đây mô tả `flufl.i18n` 6.0.0, không phải mọi cách dùng có thể của
+thành một phần trong không gian tên thay thế của catalog. Phần so sánh ở đây
+mô tả `flufl.i18n` 6.0.0, không phải mọi cách dùng có thể của
 `string.Template`.
 
 Nó còn trả lời một câu hỏi mà hai kiểu định dạng kia phó mặc hoàn toàn cho
@@ -185,7 +248,7 @@ chiếu với `t"Hello {name}"`:
 | `{nombre}` | translation does not match the source placeholders: `{name}` is missing; `{nombre}` is not in the source message |
 
 Bị từ chối không có nghĩa là sập: theo mặc định, thư viện ghi một cảnh báo
-và kết xuất văn bản nguồn, nên một catalog hỏng không bao giờ kéo sập ứng
+và kết xuất thông điệp nguồn, nên một catalog hỏng không bao giờ kéo sập ứng
 dụng — [chính hợp đồng mà bản thân gettext vẫn
 giữ](guide.md#what-happens-when-a-catalog-is-wrong).
 
@@ -197,54 +260,19 @@ tr(t"Total: {amount:,.2f}")  # msgid is "Total: {amount}"
 ```
 
 `:,.2f` không bao giờ tới được catalog, nên không bản dịch nào thay đổi được
-nó, và không người dịch nào phải nhìn thấy nó.
+nó, và không người dịch nào phải nhìn thấy nó. Tuy vậy đó là một định dạng
+*cố định*, không phải một định dạng bản địa hóa — việc chọn chữ số và dấu
+phân cách theo từng ngôn ngữ là
+[việc của Babel, trước lời gọi](guide.md#locale-aware-values).
 
 Một khác biệt nữa là công cụ: t-string là cú pháp mới, nên việc trích xuất
 chúng vào một tệp `.pot` hiện cần một bộ trích xuất hiểu t-string, chẳng hạn
 bộ mà gói này [cung cấp cho Babel](extraction.md).
 
-## So sánh cạnh nhau { #side-by-side }
+## Cái giá của ràng buộc { #the-cost-of-the-restriction }
 
-| | `%(name)s` | `.format()` | `flufl.i18n` `$name` | `t"…"` |
-| --- | --- | --- | --- | --- |
-| Placeholder có tên không? | có | có | có | có |
-| Người dịch có thể sắp xếp lại placeholder không? | có | có | có | có |
-| Giá trị đến từ đâu? | một ánh xạ tường minh | các đối số tường minh | biến cục bộ và toàn cục của bên gọi, cộng thêm `extras` tùy chọn | các giá trị được bắt giữ bên trong t-string |
-| Catalog có thể thay đổi cách định dạng một giá trị không? | có | có | không | không |
-| Catalog có thể với vào đối tượng (truy cập thuộc tính) không? | không | có | có, với tên dạng chấm | không |
-| Một bản dịch *bỏ rơi* một placeholder — cái gì được kết xuất? | giá trị lặng lẽ biến mất | giá trị lặng lẽ biến mất | giá trị lặng lẽ biến mất | văn bản nguồn, kèm một cảnh báo ([theo mặc định](guide.md#what-happens-when-a-catalog-is-wrong)) |
-| Một bản dịch *thêm* một placeholder lạ — cái gì được kết xuất? | một ngoại lệ | một ngoại lệ | placeholder vẫn hiển thị dưới dạng văn bản | văn bản nguồn, kèm một cảnh báo ([theo mặc định](guide.md#what-happens-when-a-catalog-is-wrong)) |
-| Placeholder có được kiểm tra lúc kết xuất không? | không | không | không | có (xem bên dưới) |
-| Babel suy ra cờ PO nào, để các công cụ hiện có xác thực? | `python-format` | `python-brace-format` | không có | `python-brace-format` |
-| Dùng catalog PO/MO thông thường? | có | có | có | có |
-| Cần bộ trích xuất nguồn tùy chỉnh? | không | không | không | có, hiện tại |
-| "Ngôn ngữ hiện tại" nằm ở đâu? | ở bất cứ đâu ứng dụng đặt nó | ở bất cứ đâu ứng dụng đặt nó | một ngăn xếp các mã ngôn ngữ trên đối tượng ứng dụng dùng chung | một `ContextVar`, theo từng task hoặc request |
-
-Về bước kiểm tra lúc kết xuất: thông điệp số ít được kiểm tra khớp
-placeholder một cách chính xác. Thông điệp số nhiều cũng được kiểm tra, theo
-[quy tắc hợp/giao](spec.md) cho phép các dạng số nhiều của ngôn ngữ đích
-khác với ngôn ngữ nguồn; bước kiểm tra chặt hơn theo từng dạng chạy khi
-catalog được biên dịch ([Trích xuất](extraction.md)).
-
-Hàng về cờ định dạng nói về việc xác thực có hiểu placeholder, không phải về
-tính tương thích của catalog. "Không có" nghĩa là các công cụ gettext chuẩn
-vẫn đọc và biên dịch được thông điệp, nhưng `msgfmt --check-format` không có
-ngữ pháp placeholder `$` nào để áp dụng.
-
-## Cái giá phải trả { #what-it-costs }
-
-Một f-string hoàn toàn không thể dùng theo cách này — đến lúc bất kỳ thư
-viện nào nhìn thấy nó thì nó đã là một chuỗi hoàn chỉnh, nên dịch nó đồng
-nghĩa với dịch một mảnh rời. t-string ([PEP 750]) giữ phần văn bản tĩnh và
-các giá trị tách rời nhau trong khi vẫn giữ cú pháp giống f-string và cách
-gắn giá trị tường minh. Chuỗi `$` vốn đã cung cấp một lựa chọn gọn gàng với
-mô hình gắn giá trị và mô hình lỗi khác. `flufl.i18n` là một gói trưởng
-thành chạy trên Python 3.10 trở lên; `gettext-tstrings` hiện đang ở giai
-đoạn alpha, và vì t-string là cú pháp mới nên nó yêu cầu Python 3.14 trở
-lên.
-
-Cái giá còn lại là chính sự ràng buộc: một phép nội suy phải là một tên
-trần.
+Ngoài yêu cầu về phiên bản Python, cái giá của tất cả những điều trên là một
+quy tắc duy nhất: một phép nội suy phải là một tên trần.
 
 ```python
 tr(t"Hello {user.name}")  # raises InvalidTemplateError at the call site
@@ -255,9 +283,16 @@ name = user.name  # compute it first
 tr(t"Hello {name}")
 ```
 
-Đó là một ràng buộc thực sự. Cùng với việc gắn giá trị ở phía nguồn và kiểm
-tra placeholder lúc chạy, nó ngăn các chuỗi trong catalog thực thi biểu thức
-và giữ cho tên placeholder luôn có ý nghĩa.
+Đó là một ràng buộc thực sự, và nó chính là ràng buộc sinh ra những bảo đảm ở
+trên. Cùng với việc gắn giá trị ở phía nguồn và kiểm tra placeholder lúc
+chạy, nó ngăn các chuỗi trong catalog thực thi biểu thức và giữ cho tên
+placeholder luôn có ý nghĩa với người đang dịch chúng.
+
+Một f-string hoàn toàn không thể dùng theo cách này — đến lúc bất kỳ thư viện
+nào nhìn thấy nó thì nó đã là một chuỗi hoàn chỉnh, nên dịch nó đồng nghĩa
+với dịch một mảnh rời. t-string ([PEP 750]) giữ phần văn bản tĩnh và các giá
+trị tách rời nhau trong khi vẫn giữ cú pháp giống f-string và cách gắn giá
+trị tường minh.
 
 Python đã đi đến ngã rẽ này như thế nào — hai bản PEP cách nhau mười năm, và
 cuộc thảo luận về thư viện chuẩn khép lại mà không có câu trả lời — được kể

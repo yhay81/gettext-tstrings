@@ -12,6 +12,18 @@ gyda phob rhyddhad. Yr arfer hwnnw yw'r dudalen hon — beth sy'n aros yn y
 storfa, beth sy'n teithio, beth sy'n rhaid i CI ei gatio, a lle mae'r rhedeg yn
 rhwymo iaith.
 
+Chwe gwiriad yw'r cyfanswm, felly dyma nhw'n gyntaf; mae pob adran isod yn
+gosod un ohonynt.
+
+- Mae `pybabel update --check` yn pasio — ni newidiodd yr un neges heb i'r
+  catalogau glywed amdani.
+- Mae `pybabel compile` yn gatio'r adeiladwaith ar ei statws ymadael.
+- Mae'r cofnodion `fuzzy` sy'n weddill yn fwriadol — mae pob un yn rendro fel
+  testun ffynhonnell hyd nes y bydd cyfieithydd yn ei gadarnhau.
+- Mae'r gyfres brofi yn rendro pob iaith a gludir unwaith gyda `strict=True`.
+- Mae'r arteffact cynhyrchu'n cynnwys ffeiliau `.mo` a dim Babel.
+- Caiff cofnodydd `gettext_tstrings` ei gyfeirio at fonitro.
+
 ## Siâp prosiect { #the-shape-of-a-project }
 
 ```text
@@ -33,8 +45,8 @@ neu adeg pecynnu yn hytrach na'u hymrwymo, fel na all `.po` a'i `.mo` byth
 anghytuno ynghylch beth sy'n cludo.
 
 Mae gan un ffeil rôl i bob cyfeiriad: mae'r `.pot` yn cario eich negeseuon
-*allan* at gyfieithwyr, mae'r ffeiliau `.po` yn cario cyfieithiadau *yn ôl*. Y
-traffig rhwng y ddwy honno yw popeth isod.
+*allan* at gyfieithwyr, mae'r ffeiliau `.po` yn cario cyfieithiadau *yn ôl*.
+Gweddill y dudalen hon yw'r hyn sy'n symud rhyngddynt.
 
 ```mermaid
 flowchart LR
@@ -48,8 +60,8 @@ flowchart LR
 
 ## Y cylch ar ôl y cyfieithiad cyntaf { #the-cycle-after-the-first-translation }
 
-Mae `pybabel init` y tiwtorial yn rhedeg unwaith fesul iaith, byth. O hynny
-ymlaen y cylch gwaith yw **echdynnu → diweddaru → cyfieithu → crynhoi**, a'i
+Fel arfer mae `pybabel init` y tiwtorial yn rhedeg unwaith, pan ychwanegir
+iaith. O hynny ymlaen y cylch gwaith yw **echdynnu → diweddaru → cyfieithu → crynhoi**, a'i
 ganol yw `pybabel update`, sy'n plygu templed ffres i mewn i'r catalogau sy'n
 bodoli heb daflu'r cyfieithiadau sydd ynddynt eisoes.
 
@@ -77,7 +89,7 @@ msgstr "こんにちは {name}"
 
 Sylwodd Babel fod y msgid newydd yn debyg i un a dynnwyd a'i baru â'r hen
 gyfieithiad — ond baneriodd y pâr yn **fuzzy**: dyfaliad peiriant yn aros am
-berson. Mae dannedd i'r faner. Mae `pybabel compile` yn **eithrio cofnodion
+berson. Mae'r faner yn newid yr hyn a grynhoir. Mae `pybabel compile` yn **eithrio cofnodion
 fuzzy o'r `.mo`**, felly hyd nes y bydd cyfieithydd yn cadarnhau'r pâr, mae'r
 rhaglen yn rendro'r testun Saesneg newydd yn hytrach nag un Japaneg hen:
 
@@ -126,33 +138,17 @@ ffres — y gwarchodwr rhag uno cod nad ailechdynnodd neb ei negeseuon. Mae
 [gwiriwr cofrestredig](extraction.md#your-existing-toolchain-validates-these-catalogs)
 y pecyn hwn fel ei gilydd.
 
-!!! bug "Ni all `--check` gatio catalog sy'n defnyddio cyd-destunau"
+!!! bug "Babel 2.18.0: ni all `--check` gatio catalog sy'n defnyddio cyd-destunau"
 
     Ar Babel 2.18.0, mae `pybabel update --check` yn adrodd bod **pob** catalog
-    sy'n cynnwys `msgctxt` yn hen ffasiwn, ar bob rhediad, waeth pa mor gyfredol
-    ydyw. Mae'r gymhariaeth yn rhedeg drwy `Catalog.is_identical`, sy'n chwilio
-    am bob neges wrth yr allwedd y'i storir oddi tani — ac ar gyfer neges
-    gyd-destunol y pâr `(id, context)` yw'r allwedd honno, nad yw `Catalog.get`
-    yn ei derbyn. Nid yw'r chwiliad yn dychwelyd dim, ac nid yw'r catalogau byth
-    yn cymharu'n gyfartal:
-
-    ```pycon
-    >>> from babel.messages.catalog import Catalog
-    >>> c = Catalog(locale="ja")
-    >>> c.add("Guide", "ガイド", context="navigation")
-    <Message 'Guide' (flags: [])>
-    >>> c.is_identical(c)
-    False
-    ```
-
-    Felly os ydych yn defnyddio `pgettext` neu `npgettext` o gwbl — a
-    gwahaniaethu rhwng homonymau yw'r rheswm y maent yn bodoli — mae'r cam hwn
-    yn methu'n agored yn y ffordd waethaf: bob amser yn goch, felly mae tîm yn
-    ei ddiffodd, felly nid oes dim yn gatio bod pethau'n hen. Hyd nes y caiff ei
-    drwsio i fyny'r afon, cymharwch y setiau negeseuon eich hun. Darllen y
+    sy'n cynnwys `msgctxt` yn hen ffasiwn, ar bob rhediad, pa mor gyfredol
+    bynnag ydyw. Mae gât sy'n methu'n barhaol yn waeth na dim gât, oherwydd bod
+    tîm yn ei diffodd — felly os ydych yn defnyddio `pgettext` neu `npgettext` o
+    gwbl, rhowch rywbeth yn lle'r cam hwn yn hytrach na byw gydag ef. Darllen y
     templed a phob catalog gyda `babel.messages.pofile.read_po` a chymharu
     `{(m.context, m.id) for m in catalog if m.id}` yw'r gwiriad cyfan, a dyna
-    mae [adeiladu'r wefan hon ei hun](index.md) yn ei wneud.
+    mae [adeiladu'r wefan hon ei hun](index.md) yn ei wneud. Mae'r achos
+    [wedi'i ysgrifennu ar Beryglon](pitfalls.md#your-tools-have-bugs-too).
 
 !!! danger "Gwiriwch y statws ymadael, nid y log"
 

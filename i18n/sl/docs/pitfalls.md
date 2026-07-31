@@ -145,10 +145,23 @@ Dve datoteki v tem repozitoriju obstajata prav zato, da to vrzel zapolnita.
 
 Korak CI, ki ga ta dokumentacija priporoča za odkrivanje zastarelih katalogov,
 `pybabel update --check`, tega dela ne zmore za noben projekt, ki uporablja
-`pgettext` ali `npgettext` — vsak katalog z `msgctxt` javi kot zastarel, ob
-vsakem teku, in to zaradi hrošča v tem, kako si primerjava išče sporočila.
-Odkrit je bil tu, ob poskusu njegove uporabe, prijavljen pri viru in je
-[v celoti opisan skupaj z obhodno rešitvijo](workflow.md#what-ci-gates).
+`pgettext` ali `npgettext`. Na Babelu 2.18.0 vsak katalog z `msgctxt` javi kot
+zastarel, ob vsakem teku. Primerjava teče skozi `Catalog.is_identical`, ki
+vsako sporočilo poišče po ključu, pod katerim je shranjeno — pri kontekstnem
+sporočilu pa je ta ključ par `(id, context)`, ki ga `Catalog.get` ne sprejme.
+Iskanje ne vrne ničesar in kataloga se nikoli ne izenačita:
+
+```pycon
+>>> from babel.messages.catalog import Catalog
+>>> c = Catalog(locale="ja")
+>>> c.add("Guide", "ガイド", context="navigation")
+<Message 'Guide' (flags: [])>
+>>> c.is_identical(c)
+False
+```
+
+Odkrit je bil tu, ob poskusu njegove uporabe, prijavljen pri viru,
+nadomestno preverjanje pa je [na strani o produkciji](workflow.md#what-ci-gates).
 
 Splošni nauk je tisti neprijetni: zaščita, ki je vedno rdeča, je slabša od
 nobene zaščite, ker jo ekipa izklopi. Preverite, da vaše preverjanje v CI sploh

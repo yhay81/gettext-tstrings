@@ -1,5 +1,5 @@
 ---
-description: "An API ag am rite: catalóg a cheangal, teangacha in aghaidh an iarratais, teaghráin iarchurtha, agus an chaoi a dtuairiscítear aistriúchán lochtach."
+description: "An API ag am rite: cén pointe iontrála le húsáid, catalóg a cheangal, teangacha in aghaidh an iarratais, teaghráin iarchurtha, luachanna a thuigeann an logán, agus an chaoi a dtuairiscítear aistriúchán lochtach."
 ---
 
 # Treoir
@@ -11,6 +11,22 @@ siúlann an [rang teagaisc](tutorial.md) uair amháin í i gcúig nóiméad;
 pléitear catalóga a chruthú agus a bhailíochtú in [Eastóscadh](extraction.md),
 agus tá an chaoi a gcoinníonn foireann an lúb ag casadh — timthriallta
 nuashonraithe, CI, ardáin aistriúcháin — in [I dtáirgeadh](workflow.md).
+
+## Cén pointe iontrála ba chóir dom a úsáid? { #which-entry-point-should-i-use }
+
+Easpórtálann an pacáiste roinnt bealaí chun teachtaireacht a aistriú toisc go
+gceanglaíonn feidhmchláir teanga ar roinnt bealaí éagsúla. Roghnaigh de réir
+mar a shocraíonn do chlár cén teanga ina bhfuil sé:
+
+| Do chás | Úsáid |
+| --- | --- |
+| Teanga amháin don phróiseas ar fad — CLI, feidhmchlár deisce, script | `Translator`, á ghairm mar `_` |
+| Teanga amháin in aghaidh an iarratais nó in aghaidh an tasc aisioncrónaigh — feidhmchlár gréasáin | `use_translations()` timpeall na hoibre, ansin `tr()` |
+| Teachtaireacht a shainítear ag am iompórtála — lipéad foirme, áireamh, tairiseach | `lazy_gettext()` nó `lazy_pgettext()` |
+| Socraíonn comhaireamh an fhoclaíocht | `ngettext()` / `npgettext()`, i cibé foirm thuas |
+| Patrún á rindreáil gan chatalóg ar bith i gceist | `compile_template()` |
+
+Is iad an cúigear sin, san ord sin, atá thíos ar fad.
 
 ## Catalóg a cheangal { #binding-a-catalog }
 
@@ -62,6 +78,7 @@ from gettext_tstrings import tr, use_translations
 
 
 def handle(request):
+    name = request.user.display_name
     translations = load_translations(request.locale)
     with use_translations(translations):
         return render(tr(t"Hello {name}"))
@@ -171,13 +188,55 @@ cóipeanna a roinneann an chatalóg pharsáilte.
 
     Déanann `asyncio.to_thread` é seo duit cheana féin.
 
+## Luachanna a thuigeann an logán { #locale-aware-values }
+
+Socraíonn an leabharlann seo *cén áit* a bhfeictear luach i dteachtaireacht
+aistrithe. Ní logánaíonn sí an luach féin. Is sonrú formáide Python é
+`{amount:,.2f}` a bhfuil iompar seasta aige — camóg gach trí dhigit agus ponc
+roimh na deachúlacha — agus táirgeann sé na carachtair chéanna cibé teanga ina
+bhfuil an teachtaireacht:
+
+```pycon
+>>> f"{1234.5:,.2f}"  # the same in every locale
+'1,234.50'
+```
+
+Scríobhann an Ghearmáinis an uimhir sin mar `1.234,50`, an Fhraincis mar
+`1 234,50`, agus grúpálann an Hiondúis `1234567` mar `12,34,567` seachas
+`1,234,567`. Baineann uimhreacha, airgeadraí, dátaí, amanna agus aonaid le
+[Babel][babel-numbers]. Formáidigh an luach ar dtús, ansin cuir an teaghrán
+críochnaithe san áit:
+
+```python
+from babel.numbers import format_currency
+
+total = format_currency(amount, "EUR", locale=locale)
+tr(t"Your order comes to {total}")
+```
+
+I gcás teachtaireachta a bhfuil comhaireamh ann déanann an uimhir dhá phost —
+roghnaíonn sí an fhoirm iolra agus feictear sa téacs í — agus ní logánaítear
+ach an dara ceann. Coinnigh an comhaireamh amh don roghnú agus seachaid an
+teaghrán formáidithe le taispeáint:
+
+```python
+from babel.numbers import format_decimal
+
+shown = format_decimal(n, locale=locale)
+_.ngettext(t"One file", t"{shown} files", n)
+```
+
+Is é an formáidiú roimh an nglao a choinníonn sonrú formáide amuigh as an
+gcatalóg freisin: is píosa téacs críochnaithe a fheiceann aistritheoir, ní
+uimhir móide treoracha lena rindreáil.
+
 ## A tharlaíonn nuair a bhíonn catalóg mícheart { #what-happens-when-a-catalog-is-wrong }
 
 Mura meaitseálann sealbhóirí ionaid aistriúcháin leis an bhfoinse — réimse atá
 ar iarraidh, anaithnid nó athfhormáidithe a shleamhnaigh thar an mbailíochtú,
 ó MO a cuireadh in eagar de láimh, ó chatalóg díoltóra, nó ó phíblíne a
-scipeálann an seiceálaí — is é an réamhshocrú an téacs foinseach a atáirgeadh
-seachas eisceacht a ardú. Déanann sé sin aithris ar chonradh gettext féin nach
+scipeálann an seiceálaí — is é an réamhshocrú an teachtaireacht fhoinseach a
+rindreáil seachas eisceacht a ardú. Déanann sé sin aithris ar chonradh gettext féin nach
 mbriseann drochchatalóg an feidhmchlár riamh.
 
 Nuair a aistrítear `Hello {name}` mar `こんにちは {nombre}`, éiríonn leis an
@@ -216,48 +275,15 @@ gettext_tstrings.errors.InvalidTranslationError: translation does not match the
 source placeholders: {name} is missing; {nombre} is not in the source message
 ```
 
-## Teachtaireacht teipe a léamh { #reading-a-failure-message }
-
 Scríobhtar na teachtaireachtaí seo do cibé duine ar féidir leis gníomhú orthu,
-agus i gcás faidhbe catalóige is aistritheoir é sin níos minice ná programmer.
-Is bóthar caoch é a thuairisciú nach bhfuil ann ach go bhfuil `{name}` ar
-iarraidh nuair a fheiceann an léitheoir na carachtair sin os a chomhair, mar
-sin nuair a bhíonn cuma ar shealbhóir ionaid go bhfuil sé ann ach nach bhfuil,
-insíonn an teachtaireacht cén fáth. I gcoinne na foinse `Hello {name}`,
-tuairiscítear gach ceann díobh seo faoi
-`translation does not match the source placeholders:`
-
-| A deir an t-aistriúchán | An chúis a thugtar |
-| --- | --- |
-| `こんにちは ｛name｝` | `{name}` is missing (the braces around it are not the ASCII `{` and `}`) |
-| `こんにちは {{name}}` | `{name}` is missing (it is written `{{name}}`, which is how a literal brace is escaped) |
-| `こんにちは name` | `{name}` is missing (the name appears, but not inside braces) |
-| `こんにちは {名前}` | `{name}` is missing; `{名前}` is not in the source message |
-
-Faigheann carachtair nach féidir a fheiceáil a gcóireáil féin. Is rud é spás
-gan bhriseadh laistigh de na lúibíní slabhracha a chruthaíonn modh ionchuir
-agus nach dtaispeánann aon eagarthóir, mar sin priontálann an teachtaireacht
-de réir a phointe cóid é seachas carachtar a ainmniú nach féidir leis an
-léitheoir a aimsiú:
-
-```text
-placeholder {<U+00A0>name} has a space inside the braces; write {name}
-```
-
-Ainm a bhfuil córais scríbhneoireachta measctha ina litreacha — cás na
-homaghlifeanna, nuair nach féidir `а` Coireallach a idirdhealú ó cheann
-Laidineach — taispeántar faoi dhó é, uair amháin go hinléite agus uair amháin
-éalaithe, agus is í sin an t-aon fhoirm a aithníonn an dá cheann óna chéile:
-
-```text
-translation does not match the source placeholders: {name} is missing;
-{nаme} (n\u0430me) is not in the source message
-```
-
-Baineann an t-idirdhealú céanna leis nuair a bhíonn ainm Gréagach nó
-Coireallach atá scríofa go hiomlán in aon script amháin ag teacht salach ar
-ainm foinseach ASCII, cás an aon litir amháin `a` Laidineach / `а`
-Coireallach san áireamh.
+agus i gcás faidhbe catalóige is aistritheoir é sin níos minice ná programmer —
+mar sin nuair a bhíonn cuma ar shealbhóir ionaid go bhfuil sé ann ach nach
+bhfuil, míníonn an teachtaireacht cén fáth seachas a rá arís go bhfuil sé ar
+iarraidh. Lúibíní lánleithid, `{{name}}` dúblaithe, spás gan bhriseadh
+dofheicthe, litir Choireallach i measc litreacha Laidineacha: tá a fhoclaíocht
+féin ag gach ceann acu, liostaithe le samplaí ar
+[D'aistritheoirí](translators.md#reading-a-failure-message). Scríobhadh an
+leathanach sin le tabhairt don duine a chuireann an `.po` in eagar.
 
 ## Patrún a rindreáil gan chatalóg { #rendering-a-pattern-without-a-catalog }
 
@@ -316,3 +342,5 @@ an ghlaoiteora, díreach mar atá le gettext na leabharlainne caighdeánaí —
 agus **iomláine na catalóige**, mar go bhféadfadh catalóg naimhdeach sealbhóir
 ionaid a athdhéanamh chun méid an aschuir a mhéadú, rud atá dúchasach in aon
 i18n atá bunaithe ar shealbhóirí ionaid.
+
+  [babel-numbers]: https://babel.pocoo.org/en/latest/api/numbers.html

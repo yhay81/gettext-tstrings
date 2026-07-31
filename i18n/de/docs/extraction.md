@@ -43,10 +43,13 @@ Der Extraktor verarbeitet auch `_()`, `gettext()` und `ngettext()`. Ein Mapping
 deckt daher gemischten Code einschließlich `tr()`, `ntr()`, `lazy_gettext()` und
 `lazy_pgettext()` ab.
 
-!!! warning "`-c` ist nicht optional"
+!!! warning "Hinweise für Übersetzende mit `-c` aktivieren"
 
     Mit `-c "Translators:"` werden Hinweise für Übersetzende wie bei normalem
-    gettext eingesammelt.
+    gettext eingesammelt. Lässt du die Option weg, funktioniert die Extraktion
+    weiterhin — die Hinweise erreichen den Katalog dann nur nie, wo sie
+    [der billigste Qualitätshebel](workflow.md#working-with-translators-and-platforms)
+    des ganzen Arbeitsablaufs sind.
 
 ## Eigene Funktionsnamen { #registering-your-own-function-names }
 
@@ -79,13 +82,39 @@ Listen an. Die Optionen decken alle sechs gettext-Funktionsfamilien ab.
 
     Nur die Standardreihenfolge der Argumente wird unterstützt.
 
-## Standardmäßig robust { #robust-by-default }
+## Lokal nachsichtig, in CI strikt { #lenient-locally-strict-in-ci }
+
+Standardmäßig beendet eine fehlerhafte Datei den Lauf nicht:
 
 - Eine abgelehnte t-string wird gemeldet und übersprungen.
 - Eine nicht parsbare Datei wird genauso isoliert.
 - Auch eine nur von `tokenize` abgelehnte Datei wird isoliert.
 
-Mit `strict = true` werden diese Warnungen in CI zu Fehlern.
+Das ist bequem, solange du gerade editierst, und gefährlich, sobald du es
+nicht tust: Eine übersprungene Nachricht **fehlt schlicht in der POT**, wird
+also nie übersetzt, und nichts weist darauf hin. Setze `strict = true` in den
+Mapping-Optionen überall dort, wo niemand die Extraktion beobachtet:
+
+=== "babel.cfg"
+
+    ```ini
+    [gettext_tstrings: **.py]
+    encoding = utf-8
+    strict = true
+    ```
+
+=== "babel.toml"
+
+    ```toml
+    [[mappings]]
+    method = "gettext_tstrings"
+    pattern = "**.py"
+    strict = true
+    ```
+
+Jede der obigen Warnungen wird damit zum harten Fehler. Behandle das als die
+Einstellung für den Produktivbetrieb und die Voreinstellung als die für die
+lokale Arbeit.
 
 ## Validierung mit vorhandenen Werkzeugen { #your-existing-toolchain-validates-these-catalogs }
 
@@ -110,8 +139,9 @@ msgfmt: found 1 fatal error
 ```
 
 Weblate dokumentiert diese Prüfung als
-[Python brace format][weblate-checks]. Verifiziert sind msgfmt und der
-mitgelieferte Babel-Checker.
+[Python brace format][weblate-checks]. Jede Plattform verhält sich dabei nach
+ihren eigenen Regeln; verifiziert sind hier msgfmt und der mitgelieferte
+Babel-Checker.
 
   [weblate-checks]: https://docs.weblate.org/en/latest/user/checks.html
 
@@ -139,10 +169,18 @@ match the source placeholders: {n} is missing
     [Was CI absichert](workflow.md#what-ci-gates) zeigt den Build-Schritt,
     der das leistet.
 
-Die Prüfungen sind nicht redundant: Der mitgelieferte Checker validiert
-maskierte Klammern und jede Pluralform einzeln, auch wenn msgfmt die Datei
-akzeptiert. ASCII-Namen lassen alle Werkzeuge mitprüfen; die Bibliothek selbst
-akzeptiert jedes `str.isidentifier()`.
+Die Prüfungen sind nicht redundant: Der Checker des Pakets ist in mindestens
+zwei Fällen strenger. Er validiert maskierte Klammern und jede Pluralform
+einzeln, auch wenn msgfmt die Datei akzeptiert. ASCII-Namen lassen alle
+Werkzeuge mitprüfen; die Bibliothek selbst akzeptiert jedes
+`str.isidentifier()`.
+
+In einer Ausnahme sind sich beide Checker einig: Ein `fuzzy`-Eintrag wird nicht
+geprüft. Er ist eine unbestätigte Vermutung, die `pybabel compile` aus der `.mo`
+heraushält, kann also gar nicht bis zu einem Rendern gelangen — und den Build an
+ihm scheitern zu lassen hieße, eine Schranke so lange rot zu halten, wie eine
+umformulierte Nachricht auf eine übersetzende Person wartet. Das Flag zu löschen
+ist das, was den Eintrag zur Prüfung anmeldet — und zur Auslieferung.
 
 ## Templates und andere Werkzeuge { #templates-and-other-tools }
 

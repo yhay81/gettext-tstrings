@@ -215,8 +215,9 @@ Ar an bprionsabal céanna, mínítear easpa sealbhóra ionaid atá "ar iarraidh"
 ach a bhfuil an *chuma* air go bhfuil sé ann — lúibíní lánleithid ó mhodh
 ionchuir Oirthear na hÁise, `{{name}}` dúblaithe ó thuras éalaithe, an t-ainm
 lasmuigh d'aon lúibíní. Taispeánann
-[tábla léite na dteipeanna sa treoir](guide.md#reading-a-failure-message) gach
-ceann de na teachtaireachtaí seo focal ar fhocal.
+[tábla léite na dteipeanna](translators.md#reading-a-failure-message) a
+scríobhadh d'aistritheoirí gach ceann de na teachtaireachtaí seo focal ar
+fhocal.
 
 ## An cosán te { #the-hot-path }
 

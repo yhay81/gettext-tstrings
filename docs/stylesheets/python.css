@@ -110,6 +110,18 @@
   margin: 0.4rem 0.25rem 0;
 }
 
+/*
+ * The facts a reader needs before deciding whether to keep reading: maturity,
+ * Python requirement, what it interoperates with. Sits directly under the
+ * buttons, quieter than the pitch and louder than the footnote below it.
+ */
+.home-hero .home-facts {
+  color: var(--md-default-fg-color--light);
+  font-size: 0.75rem;
+  margin-top: 1.2rem;
+  max-width: 32rem;
+}
+
 .home-hero .home-hero-note {
   color: var(--md-default-fg-color--light);
   font-size: 0.7rem;

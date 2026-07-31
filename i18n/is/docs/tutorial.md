@@ -9,9 +9,9 @@ engrar gettext-reynslu krafist, og hver skipun er sýnd með því úttaki sem h
 skilar í raun — svo að í hverju skrefi veistu hvort þú ert á réttri leið.
 
 Þú þarft Python 3.14 eða nýrri, því t-strengir eru ný málskipan í 3.14.
-Japanska er markmál dæmisins á þessari síðu, en ekkert veltur á því vali —
-settu hvaða tungumál sem er í staðinn í skrefi 4, þar sem staðfærslukóðinn
-`ja` er það eina sem nefnir það.
+Japanska er markmál dæmisins á þessari síðu, en ekkert veltur á því vali. Til
+að nota annað tungumál skaltu skipta `ja` út í skrefi 4 — sá staðfærslukóði er
+það eina sem nefnir það.
 
 ## 1. Uppsetning { #1-install }
 
@@ -52,9 +52,9 @@ hvert það mál sem frumtextinn þinn er á) er innbyggða vararleiðin.
 
 ## 3. Dragðu skilaboðin út { #3-extract-the-messages }
 
-Þýðendur lesa ekki frumkóðann þinn; lítil skrá sem kallast **þýðingaskrá**
-ferðast milli ykkar. Fyrsta skrefið að slíkri skrá er að safna hverjum
-merktum skilaboðum út úr kóðanum.
+Þýðendur vinna yfirleitt út frá þýðingaskrám fremur en frumkóða, svo lítil
+skrá sem kallast **þýðingaskrá** ferðast milli ykkar. Fyrsta skrefið að
+slíkri skrá er að safna hverjum merktum skilaboðum út úr kóðanum.
 
 Segðu Babel hvernig eigi að finna skilaboðin þín með því að búa til
 `babel.cfg`:
@@ -128,7 +128,17 @@ source placeholders: {name} is missing; {nome} is not in the source message
 1 errors encountered.
 ```
 
+Einn fyrirvari sem vert er að þekkja strax: það tilkynnir villuna og hættir
+með stöðu sem er ekki núll, en skrifar `.mo`-skrána samt sem áður. Í raunverulegu
+verkefni er það CI sem verður að stöðvast á þeirri stöðu —
+[Í rekstri](workflow.md#what-ci-gates) setur það upp.
+
 ## 5. Keyrðu það { #5-run-it }
+
+Skref 2–4 notuðu `tr()`, sem leitar að þýðingaskrá og finnur enga. Nú þegar
+slík skrá er til skaltu lesa hana inn og binda hana einu sinni: `Translator`
+heldur utan um þýðingaskrá svo að köllunarstaðirnir þurfi ekki að nefna hana,
+og `_` er hefðbundna gettext-heitið á niðurstöðunni.
 
 Beindu `app.py` að vistþýddu þýðingaskránni. Smelltu á merkin til að sjá hvað
 hver lína er að gera:
@@ -147,7 +157,7 @@ print(_(t"Hello {name}"))  # (2)!
 1. Staðalsafnið les inn vistþýddu `.mo`-skrána og `Translator` bindur hana
    við kallanlegt fall. `_` er venjubundna gettext-nafnið fyrir „þýddu
    þetta“ — stutt af því að það kemur fyrir við hvern einasta streng sem
-   notandi sér. Það er sama fall og `tr`, bundið einni þýðingaskrá.
+   notandi sér. Það framkvæmir sömu þýðingu og `tr`, bundið einni þýðingaskrá.
 2. Við kallið: texti t-strengsins verður uppflettilykillinn `Hello {name}`,
    þýðingaskráin svarar `こんにちは {name}`, svarið er borið saman við
    staðgengla frumtextans, og fyrst þá er gildinu skotið inn.
@@ -181,5 +191,9 @@ flowchart LR
 - [Útdráttur](extraction.md) — heildarheimildin um `pybabel`: eigin
   fallanöfn, strangur CI-hamur og athuganirnar sem gæta þýðingaskránna
   þinna.
+- [Yfirfærsla](migration.md) — ef verkefnið sem þú vilt í raun gera þetta í
+  hefur nú þegar gettext-þýðingaskrár.
+- [Fyrir þýðendur](translators.md) — eina síðan til að rétta þeim sem fyllir
+  út þessar `msgstr`-línur.
 
   [Babel]: https://babel.pocoo.org/

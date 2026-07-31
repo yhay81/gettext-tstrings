@@ -11,8 +11,8 @@ jste na správné cestě.
 
 Potřebujete Python 3.14 nebo novější, protože t-stringy jsou nová syntaxe
 ve 3.14. Cílovým jazykem příkladu je na této stránce japonština, ale na té
-volbě nic nezávisí — dosaďte v kroku 4 libovolný jazyk; kód locale `ja` je
-jediné místo, které ho jmenuje.
+volbě nic nezávisí. Chcete-li jiný jazyk, nahraďte v kroku 4 `ja` — tento kód
+locale je jediné místo, které jazyk jmenuje.
 
 ## 1. Nainstalujte { #1-install }
 
@@ -53,9 +53,9 @@ záloha.
 
 ## 3. Extrahujte zprávy { #3-extract-the-messages }
 
-Překladatelé váš zdrojový kód nečtou; mezi vámi a jimi putuje malý soubor
-zvaný **katalog**. Prvním krokem k němu je posbírat z kódu každou označenou
-zprávu.
+Překladatelé obvykle pracují s katalogy, a ne se zdrojovým kódem, takže mezi
+vámi a jimi putuje malý soubor zvaný **katalog**. Prvním krokem k němu je
+posbírat z kódu každou označenou zprávu.
 
 Řekněte Babelu, jak vaše zprávy najít, vytvořením `babel.cfg`:
 
@@ -127,7 +127,17 @@ source placeholders: {name} is missing; {nome} is not in the source message
 1 errors encountered.
 ```
 
+Jedna výhrada, o níž je dobré vědět už teď: chybu sice nahlásí a skončí
+s nenulovým kódem, ale `.mo` přesto zapíše. Na skutečném projektu je to CI,
+co se musí na tomto návratovém kódu zastavit — [V produkci](workflow.md#what-ci-gates)
+to nastavuje.
+
 ## 5. Spusťte to { #5-run-it }
+
+Kroky 2–4 používaly `tr()`, které katalog hledá a žádný nenajde. Teď už
+jeden existuje, takže jej načtěte a jednou navažte: `Translator` drží
+katalog, aby jej místa volání nemusela jmenovat, a `_` je konvenční
+gettextové jméno pro výsledek.
 
 Nasměrujte `app.py` na zkompilovaný katalog. Klikněte na značky a uvidíte, co
 který řádek dělá:
@@ -145,8 +155,8 @@ print(_(t"Hello {name}"))  # (2)!
 
 1. Standardní knihovna načte zkompilovaný `.mo` a `Translator` ho naváže na
    volatelný objekt. `_` je konvenční gettextové jméno pro „přelož tohle" —
-   krátké, protože se objevuje u každého řetězce viditelného uživateli. Je to
-   tatáž funkce jako `tr`, navázaná na jeden katalog.
+   krátké, protože se objevuje u každého řetězce viditelného uživateli.
+   Provádí tentýž překlad jako `tr`, jen navázaný na jeden katalog.
 2. V místě volání: text t-stringu se stane vyhledávacím klíčem `Hello {name}`,
    katalog odpoví `こんにちは {name}`, odpověď se zkontroluje proti zdrojovým
    zástupným symbolům a teprve potom se vloží hodnota.
@@ -179,5 +189,9 @@ na tomto webu je zjemněním jednoho z těchto pěti kroků.
   tým: aktualizace katalogů, brány v CI a překladatelské platformy.
 - [Extrakce](extraction.md) — úplná reference `pybabel`: vlastní jména
   funkcí, striktní režim pro CI a kontroly, které hlídají vaše katalogy.
+- [Migrace](migration.md) — pokud projekt, ve kterém to opravdu chcete
+  dělat, už gettextové katalogy má.
+- [Pro překladatele](translators.md) — jediná stránka, kterou předáte tomu,
+  kdo vyplňuje řádky `msgstr`.
 
   [Babel]: https://babel.pocoo.org/

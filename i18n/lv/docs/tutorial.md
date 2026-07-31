@@ -11,8 +11,8 @@ pareizā ceļa.
 
 Vajadzīgs Python 3.14 vai jaunāks, jo t-virknes ir jauna sintakse 3.14
 versijā. Japāņu valoda ir šīs lapas piemēra mērķis, taču nekas no šīs izvēles
-nav atkarīgs — 4. solī ielieciet jebkuru citu valodu; lokāles kods `ja` ir
-vienīgais, kas to nosauc.
+nav atkarīgs. Lai lietotu citu valodu, 4. solī aizstājiet `ja` — šis lokāles
+kods ir vienīgais, kas to nosauc.
 
 ## 1. Instalēšana { #1-install }
 
@@ -54,9 +54,9 @@ atkāpšanās.
 
 ## 3. Ekstrahējiet ziņojumus { #3-extract-the-messages }
 
-Tulkotāji nelasa jūsu pirmkodu; starp jums un viņiem ceļo neliels fails, ko
-sauc par **katalogu**. Pirmais solis ceļā uz to ir savākt no koda katru
-atzīmēto ziņojumu.
+Tulkotāji parasti strādā ar katalogiem, nevis ar pirmkodu, tāpēc starp jums un
+viņiem ceļo neliels fails, ko sauc par **katalogu**. Pirmais solis ceļā uz to
+ir savākt no koda katru atzīmēto ziņojumu.
 
 Pastāstiet Babel, kur meklēt jūsu ziņojumus, izveidojot `babel.cfg`:
 
@@ -128,7 +128,17 @@ source placeholders: {name} is missing; {nome} is not in the source message
 1 errors encountered.
 ```
 
+Viena atruna, ko vērts zināt jau tagad: tā ziņo par kļūdu un beidz darbu ar
+nenulles statusu, bet `.mo` tomēr uzraksta. Īstā projektā tieši CI ir tas, kam
+jāapstājas pie šī izejas statusa — [Produkcijā](workflow.md#what-ci-gates) to
+iestata.
+
 ## 5. Palaidiet to { #5-run-it }
+
+2.–4. solī tika lietots `tr()`, kas meklē katalogu un neatrod nevienu. Tagad,
+kad tāds ir, ielādējiet to un piesaistiet vienu reizi: `Translator` tur
+katalogu, lai izsaukuma vietām tas nebūtu jānosauc, un `_` ir ierastais
+gettext nosaukums rezultātam.
 
 Pavērsiet `app.py` uz kompilēto katalogu. Uzklikšķiniet uz marķieriem, lai
 redzētu, ko dara katra rinda:
@@ -147,7 +157,7 @@ print(_(t"Hello {name}"))  # (2)!
 1. Standarta bibliotēka ielādē kompilēto `.mo`, un `Translator` piesaista to
    izsaucamam objektam. `_` ir ierastais gettext nosaukums nozīmei “iztulko
    šo” — īss tāpēc, ka tas parādās pie katras lietotājam redzamās virknes. Tā
-   ir tā pati funkcija, kas `tr`, piesaistīta vienam katalogam.
+   veic to pašu tulkošanu, ko `tr`, piesaistīta vienam katalogam.
 2. Izsaukuma brīdī: t-virknes teksts kļūst par meklēšanas atslēgu
    `Hello {name}`, katalogs atbild `こんにちは {name}`, atbilde tiek pārbaudīta
    pret avota vietturiem, un tikai tad tiek ielikta vērtība.
@@ -180,5 +190,9 @@ vietnē ir kāda no šiem pieciem soļiem pilnveidojums.
   izpilda komanda: katalogu atjaunināšana, CI vārti un tulkošanas platformas.
 - [Ekstrakcija](extraction.md) — pilnā `pybabel` uzziņa: pielāgoti funkciju
   nosaukumi, stingrais CI režīms un pārbaudes, kas sargā jūsu katalogus.
+- [Migrācija](migration.md) — ja projektā, kurā jūs patiesībā gribat to darīt,
+  jau ir gettext katalogi.
+- [Tulkotājiem](translators.md) — vienīgā lapa, ko iedot tam, kurš aizpilda
+  šīs `msgstr` rindas.
 
   [Babel]: https://babel.pocoo.org/

@@ -1,5 +1,5 @@
 ---
-description: "Teljes t-string üzenetek fordítása gettexten és Babelen keresztül, a formázást a katalóguson kívül tartva."
+description: "Teljes t-string üzenetek fordítása gettexten és Babelen keresztül, az értékeket és a formázást a katalóguson kívül tartva."
 title: "gettext-tstrings"
 hide:
   - navigation
@@ -8,10 +8,12 @@ hide:
 
 <div class="home-hero" markdown>
 
-# Írd meg egyszer a mondatot.<br>Fordítsd le egészben.
+# Teljes üzeneteket fordíts,<br>ne szövegtöredékeket.
 
-Biztonságos gettext- és Babel-integráció a Python 3.14+ t-stringjeihez — az
-érték a helyén marad, a katalógus pedig a teljes üzenetet látja:
+A `gettext-tstrings` összeköti a Python 3.14+ t-stringjeit a szokásos
+gettext-katalógusokkal és a Babel eszközkészletével. Az értékek és a formázás
+az alkalmazáskódban maradnak; a katalógus egy teljes üzenetet kap, egyszerű
+`{name}` helyőrzőkkel:
 
 ```python
 import gettext
@@ -24,7 +26,10 @@ print(_(t"Hello {name}"))  # with a Japanese catalog: こんにちは Ada
 ```
 
 [Irány az oktatóanyag :material-arrow-right:](tutorial.md){ .md-button .md-button--primary }
-[Miért t-string?](comparison.md){ .md-button }
+[Hasonlítsd össze az alternatívákat](comparison.md){ .md-button }
+
+Alfa · Python 3.14+ · szokványos PO-/MO-katalógusok · nincs futásidejű függőség
+{ .home-facts }
 
 Ez a webhely maga is azt gyakorolja, amit dokumentál: minden nyelvi kiadását —
 a navigációt, a feliratokat és a többes számot kezelő build-jelentést —
@@ -34,21 +39,45 @@ PO-katalógusokból rendereli maga a
 
 </div>
 
-A katalógus a teljes `Hello {name}` mondatot kapja meg. Egy fordítás
-átrendezheti vagy megismételheti a `{name}` helyőrzőt; de nem hagyhatja el,
-nem találhat ki újat, és nem aggathat rá saját formázást — ezt a könyvtár
-ellenőrzi, a hibás katalógus pedig összeomlás helyett a forrásszövegre esik
-vissza.
+## Neked való ez? { #is-this-for-you }
+
+**Ma illik hozzád, ha** az alkalmazásod Python 3.14-en vagy újabbon fut; már
+használsz gettextet és Babelt, vagy szeretnéd bevezetni a PO-/MO-alapú
+munkafolyamatukat; és olyan t-string-szintaxist szeretnél, amelynek nevesített
+helyőrzőit renderelés előtt ellenőrzik.
+
+**Még nem illik hozzád, ha** Python 3.13-ra vagy régebbire van szükséged; ha
+stabil Python API-t követelsz meg — ez alfa, és a [specifikáció](spec.md) az a
+része, amely megállapodott —; vagy ha a fordítandó szövegeid szinte mind egy
+sablonnyelvben élnek, nem Python-forrásban.
+
+Már vannak katalógusaid? Továbbra is működnek. A
+`_("Hello {name}").format(name=name)` és a `tr(t"Hello {name}")` ugyanazt a
+msgidet állítja elő, tehát a meglévő fordítások túlélik a váltást — a
+[Migráció](migration.md) végigjárja az egész átállást.
+
+## Mit mondhat a katalógus { #what-the-catalog-may-say }
+
+A katalógus a teljes `Hello {name}` üzenetet kapja meg. Egy fordítás
+átrendezheti vagy megismételheti a `{name}` helyőrzőt, és átírhat körülötte
+minden más szót. Nem hagyhatja el a helyőrzőt, nem találhat ki újat, nem
+nyúlhat rajta keresztül az objektumaidba, és nem aggathat rá saját formázást.
+
+Ez az egész ígéret: **egy fordítás nem változtathatja meg annak az üzenetnek a
+szerkezetét, amelyet fordít.** A könyvtár beérkezéskor ellenőrzi — a
+katalógusok bináris fordításakor —, majd rendereléskor újra; az a hibás
+bejegyzés, amely mégis eljut az éles üzembe, figyelmeztetést naplóz, és
+összeomlás helyett a forrásüzenetet rendereli.
 
 !!! note "Most ismerkedsz a gettexttel? Az egész munkafolyamat négy mondatban"
 
     A **gettext** a szoftverek fordításának bevett módja, Pythonban és jóval
-    azon túl is. A kódod megjelöli a fordítandó szövegeket; egy *kinyerő*
+    azon túl is. A kódod megjelöli a fordítandó üzeneteket; egy *kinyerő*
     összegyűjti őket egy sablonfájlba (`.pot`); egy fordító — aki rendszerint
     nem programozó — nyelvenként kitölt egy katalógusfájlt (`.po`), amelyből
     bináris `.mo` fordul, és ezt tölti be az alkalmazásod futás közben. A
     fordítófüggvény szokásos neve `_`, így a `_(t"Hello {name}")` úgy
-    olvasható: „fordítsd le ezt a mondatot”. Az **[oktatóanyag](tutorial.md)**
+    olvasható: „fordítsd le ezt az üzenetet”. Az **[oktatóanyag](tutorial.md)**
     végigjárja a teljes utat — megjelölés, kinyerés, fordítás, bináris
     fordítás, futtatás — nagyjából öt perc alatt.
 
@@ -68,15 +97,22 @@ t-stringből üzenet. Ez a könyvtár meghozza ezt a döntést, leírja
 [verziózott specifikációként](spec.md), és mellékeli az ellenőrzésére szolgáló
 [konformitási készletet](spec.md#conformance).
 
-## Milyen döntést hoz { #the-choice-it-makes }
+## A tervezési szabályok { #the-design-rules }
 
 - Teljes üzeneteket fordítunk, sosem mondattöredékeket.
 - Csak egyszerű változóneveket fogadunk el, amilyen a `{name}`.
 - A `!r` és a `:.2f` az alkalmazás kezében marad, a katalóguson kívül.
-- A fordítók átrendezhetik és megismételhetik az ismert helyőrzőket — de nem
-  hívhatnak attribútumokat, és nem adhatnak hozzá formázási viselkedést.
+- Megengedjük, hogy a fordítások átrendezzék és megismételjék az ismert
+  helyőrzőket, miközben megakadályozzuk, hogy attribútumokhoz nyúljanak vagy
+  formázást adjanak hozzá.
 - Újrahasznosítjuk a szokásos POT-, PO- és MO-fájlokat, és az őket már
   olvasó eszközöket.
+
+És a hozzá tartozó lista arról, amihez szándékosan nem nyúl: nem honosítja a
+számokat, a pénznemeket és a dátumokat — [azokat előbb formázd
+meg](guide.md#locale-aware-values), Babellel; nem escape-eli a renderelt
+kimenetet HTML-hez, shellhez vagy terminálhoz; és nem tudja megítélni, hogy
+egy fordítás *helyes*-e, csak azt, hogy a helyőrzői épek-e.
 
 ## Telepítés { #install }
 
@@ -97,47 +133,57 @@ python -m pip install "gettext-tstrings[babel]"
 
 ## Merre tovább { #where-to-go-next }
 
-Háromféle olvasó érkezik ide: aki az első programját fordítja, aki egy valódi
-projektbe köti be a fordítást, és aki pontosan tudni akarja, miért ilyen a
-gépezet felépítése. Mindegyiknek van útja.
-
-**Megtanulni** — gettext-tapasztalat nélkül is:
+**Kezdd itt** — gettext-tapasztalat nélkül is:
 
 <div class="grid cards" markdown>
 
-- **[Oktatóanyag](tutorial.md)** — kezdd itt: üres könyvtártól a működő
-  japán fordításig öt lépésben, minden parancs a kimenetével együtt.
+- **[Oktatóanyag](tutorial.md)** — üres könyvtártól a működő japán fordításig
+  öt lépésben, minden parancs a kimenetével együtt.
 - **[Miért t-string?](comparison.md)** — ugyanaz az üzenet négyféleképpen
   megírva, és hogy a `%(name)s`, a `.format()` és a `$`-stringek külön-külön
   mit adnak a katalógus kezébe.
-- **[Háttér](background.md)** — miért létezik ez a könyvtár: harminc év
-  gettext, két PEP, és a stdlib-vita, amely válasz nélkül zárult.
 
 </div>
 
-**Komolyan használni** — a munkareferenciák:
+**Használd** — a munkareferenciák:
 
 <div class="grid cards" markdown>
 
-- **[Kézikönyv](guide.md)** — a futásidejű API: többes számok, kérésenkénti
-  nyelvek, késleltetett szövegek, és mi történik, ha egy katalógus hibás.
+- **[Kézikönyv](guide.md)** — a futásidejű API: melyik belépési pontot
+  használd, többes számok, kérésenkénti nyelvek, késleltetett szövegek, és mi
+  történik, ha egy katalógus hibás.
 - **[Kinyerés](extraction.md)** — a `pybabel`-referencia: konfiguráció, saját
   függvénynevek, és hogy a meglévő eszközök hogyan validálják ingyen ezeket a
   katalógusokat.
 - **[Éles üzemben](workflow.md)** — a ciklus úgy, ahogy egy csapat működteti:
-  a frissítési kör, a fuzzy bejegyzések, a CI-kapuk, a fordítási platformok
-  és a kérésenkénti nyelvek egy webalkalmazásban.
-- **[API](api.md)** — minden, amit a csomag exportál, egyetlen oldalon.
+  a frissítési kör, a fuzzy bejegyzések, a CI-kapuk, a fordítási platformok és
+  a kiszállítás.
+- **[Migráció](migration.md)** — a bevezetés olyan projektben, amelynek már
+  vannak katalógusai, egyszerre egy hívási hely.
+- **[Fordítóknak](translators.md)** — egyetlen oldal annak, aki a `.po`
+  fájlokat szerkeszti.
 
 </div>
 
-**Megérteni** — az elvektől a megvalósításig:
+**Értsd meg** — a történettől a megvalósításig:
 
 <div class="grid cards" markdown>
 
+- **[Háttér](background.md)** — miért létezik ez a könyvtár: harminc év
+  gettext, két PEP, és a stdlib-vita, amely válasz nélkül zárult.
+- **[Buktatók](pitfalls.md)** — mi romlott el ténylegesen attól, hogy ezt a
+  webhelyet harmincöt nyelvre fordítottuk, és melyik felét kapja el egy eszköz.
 - **[Hogyan működik](internals.md)** — a PEP 750 sablonobjektumától a
   renderelt szövegig, és a gyorsítótárak, amelyek olcsóvá teszik az
   ellenőrzést.
+
+</div>
+
+**Referencia** — a szerződések:
+
+<div class="grid cards" markdown>
+
+- **[API](api.md)** — minden, amit a csomag exportál, egyetlen oldalon.
 - **[Specifikáció](spec.md)** — a t-string ↔ msgid konvenció stabil,
   verziózott szerződésként, géppel olvasható konformitási készlettel.
 

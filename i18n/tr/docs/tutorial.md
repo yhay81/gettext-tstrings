@@ -10,8 +10,8 @@ gösterilir — böylece her adımda doğru yolda olup olmadığınızı bilirsi
 
 Python 3.14 veya daha yenisine ihtiyacınız var, çünkü t-string'ler 3.14'te
 gelen yeni bir sözdizimidir. Japonca bu sayfanın örnek hedefidir, ama hiçbir
-şey bu seçime bağlı değildir — 4. adımda yerine dilediğiniz dili koyun; onu
-adlandıran tek şey oradaki `ja` yerel ayar kodudur.
+şey bu seçime bağlı değildir. Başka bir dil kullanmak için 4. adımdaki `ja`
+kodunu değiştirin — o dili adlandıran tek şey o yerel ayar kodudur.
 
 ## 1. Kurulum { #1-install }
 
@@ -53,9 +53,9 @@ düşüştür.
 
 ## 3. Mesajları çıkarın { #3-extract-the-messages }
 
-Çevirmenler kaynak kodunuzu okumaz; sizinle onlar arasında **katalog** denen
-küçük bir dosya gidip gelir. Ona giden ilk adım, işaretlenmiş her mesajı kodun
-içinden toplamaktır.
+Çevirmenler genellikle kaynak koddan değil kataloglardan çalışır; bu yüzden
+sizinle onlar arasında **katalog** denen küçük bir dosya gidip gelir. Ona
+giden ilk adım, işaretlenmiş her mesajı kodun içinden toplamaktır.
 
 `babel.cfg` dosyasını oluşturarak Babel'e mesajlarınızı nasıl bulacağını
 söyleyin:
@@ -130,7 +130,17 @@ source placeholders: {name} is missing; {nome} is not in the source message
 1 errors encountered.
 ```
 
+Şimdiden bilmeye değer bir uyarı: hatayı raporlar ve sıfırdan farklı bir
+durumla çıkar, ama `.mo` dosyasını yine de yazar. Gerçek bir projede o çıkış
+durumunda durması gereken CI'dır — [Üretimde](workflow.md#what-ci-gates) bunu
+kurar.
+
 ## 5. Çalıştırın { #5-run-it }
+
+2–4. adımlar bir katalog arayıp bulamayan `tr()` kullandı. Artık bir katalog
+var; onu yükleyin ve bir kez bağlayın: `Translator` bir kataloğu tutar, böylece
+çağrı yerlerinin onu adlandırması gerekmez; `_` ise sonucun geleneksel gettext
+adıdır.
 
 `app.py` dosyasını derlenmiş kataloğa yöneltin. Her satırın ne yaptığını
 görmek için işaretlere tıklayın:
@@ -148,8 +158,8 @@ print(_(t"Hello {name}"))  # (2)!
 
 1. Standart kütüphane derlenmiş `.mo` dosyasını yükler ve `Translator` onu
    çağrılabilir bir nesneye bağlar. `_`, "bunu çevir" için geleneksel gettext
-   adıdır — kullanıcıya görünen her dizgide geçtiği için kısadır. `tr` ile
-   aynı işlevdir; tek bir kataloğa bağlanmıştır.
+   adıdır — kullanıcıya görünen her dizgide geçtiği için kısadır. Tek bir
+   kataloğa bağlanmış olarak `tr` ile aynı çeviriyi yapar.
 2. Çağrı anında: t-string'in metni `Hello {name}` arama anahtarına dönüşür,
    katalog `こんにちは {name}` yanıtını verir, yanıt kaynak yer tutucularla
    karşılaştırılarak denetlenir ve değer ancak ondan sonra yerine konur.
@@ -182,5 +192,9 @@ beş adımdan birinin inceltilmesidir.
   işletilişi: katalog güncellemeleri, CI kapıları ve çeviri platformları.
 - [Çıkarma](extraction.md) — tam `pybabel` referansı: özel işlev adları, katı
   CI kipi ve kataloglarınızı koruyan denetimler.
+- [Geçiş](migration.md) — bunu asıl yapmak istediğiniz projede zaten gettext
+  katalogları varsa.
+- [Çevirmenler için](translators.md) — o `msgstr` satırlarını dolduran kişiye
+  verilecek tek sayfa.
 
   [Babel]: https://babel.pocoo.org/

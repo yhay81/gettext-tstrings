@@ -50,9 +50,12 @@ Legarea este o `ContextVar`, deci este per context și sigură sub concurență.
 
 | Nume | Scop |
 | --- | --- |
-| `lazy_gettext(template, /, *, strict=False)` | Amână o traducere până la prima utilizare. |
+| `lazy_gettext(template, /, *, strict=False)` | Amână traducerea până la fiecare randare. |
 | `lazy_pgettext(context, template, /, *, strict=False)` | Forma cu context. |
-| `LazyString` | Ce returnează amândouă. Se randează prin `str()` și `format()`, se compară egal cu textul său și este intenționat nehashabil. |
+| `LazyString` | Ce returnează amândouă. Se randează prin `str()` și `format()` în oricare limbă este legată în acel moment, se compară egal cu textul său randat și este intenționat nehashabil. |
+
+Exemple lucrate, inclusiv de ce `strict` își are locul la definiție, se află sub
+[Traducere amânată](guide.md#deferred-translation).
 
 ## Nivel mai jos { #lower-level }
 

@@ -11,8 +11,8 @@ wiesz, czy jesteś na dobrej drodze.
 
 Potrzebujesz Pythona 3.14 lub nowszego, bo t-stringi to nowa składnia w 3.14.
 Japoński jest przykładowym językiem docelowym tej strony, ale nic nie zależy
-od tego wyboru — podstaw dowolny język w kroku 4, gdzie kod locale `ja` jest
-jedynym miejscem, które go wskazuje.
+od tego wyboru. Aby użyć innego języka, zamień `ja` w kroku 4 — ten kod locale
+jest jedynym miejscem, które go wskazuje.
 
 ## 1. Zainstaluj { #1-install }
 
@@ -54,9 +54,9 @@ wbudowanym zabezpieczeniem.
 
 ## 3. Wyodrębnij komunikaty { #3-extract-the-messages }
 
-Tłumacze nie czytają Twojego kodu źródłowego; między Wami krąży mały plik
-zwany **katalogiem**. Pierwszym krokiem w jego stronę jest zebranie z kodu
-każdego oznaczonego komunikatu.
+Tłumacze zwykle pracują na katalogach, a nie na kodzie źródłowym, więc między
+Wami krąży mały plik zwany **katalogiem**. Pierwszym krokiem w jego stronę jest
+zebranie z kodu każdego oznaczonego komunikatu.
 
 Powiedz Babel, jak znaleźć Twoje komunikaty, tworząc `babel.cfg`:
 
@@ -128,7 +128,17 @@ source placeholders: {name} is missing; {nome} is not in the source message
 1 errors encountered.
 ```
 
+Jedno zastrzeżenie, o którym warto wiedzieć od razu: polecenie zgłasza błąd i
+kończy się niezerowym kodem wyjścia, ale mimo to zapisuje `.mo`. W prawdziwym
+projekcie to CI musi zatrzymać się na tym kodzie wyjścia — [W
+produkcji](workflow.md#what-ci-gates) pokazuje, jak to ustawić.
+
 ## 5. Uruchom { #5-run-it }
+
+Kroki 2–4 korzystały z `tr()`, które szuka katalogu i żadnego nie znajduje.
+Teraz, gdy katalog istnieje, wczytaj go i zwiąż raz: `Translator` przechowuje
+katalog, żeby miejsca wywołań nie musiały go nazywać, a `_` to konwencjonalna
+gettextowa nazwa dla wyniku.
 
 Skieruj `app.py` na skompilowany katalog. Kliknij znaczniki, żeby zobaczyć,
 co robi każda linia:
@@ -147,7 +157,8 @@ print(_(t"Hello {name}"))  # (2)!
 1. Biblioteka standardowa wczytuje skompilowany `.mo`, a `Translator` wiąże
    go z obiektem wywoływalnym. `_` to konwencjonalna gettextowa nazwa dla
    „przetłumacz to" — krótka, bo pojawia się przy każdym łańcuchu widocznym
-   dla użytkownika. To ta sama funkcja co `tr`, związana z jednym katalogiem.
+   dla użytkownika. Wykonuje to samo tłumaczenie co `tr`, związane z jednym
+   katalogiem.
 2. W miejscu wywołania: tekst t-stringa staje się kluczem wyszukiwania
    `Hello {name}`, katalog odpowiada `こんにちは {name}`, odpowiedź jest
    sprawdzana względem źródłowych symboli zastępczych i dopiero wtedy
@@ -183,5 +194,9 @@ tej stronie jest doprecyzowaniem jednego z tych pięciu kroków.
   tłumaczeniowe.
 - [Ekstrakcja](extraction.md) — pełna dokumentacja `pybabel`: własne nazwy
   funkcji, ścisły tryb CI i kontrole, które strzegą Twoich katalogów.
+- [Migracja](migration.md) — jeśli projekt, w którym naprawdę chcesz tego
+  użyć, ma już katalogi gettext.
+- [Dla tłumaczy](translators.md) — jedna strona do przekazania osobie, która
+  wypełnia linie `msgstr`.
 
   [Babel]: https://babel.pocoo.org/

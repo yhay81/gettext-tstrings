@@ -211,8 +211,8 @@ Por el mismo principio, un marcador «ausente» que *parece* presente recibe una
 explicación de su ausencia: llaves de ancho completo de un método de entrada
 de Asia oriental, la duplicación `{{name}}` de una ronda de escapado, el
 nombre fuera de cualquier llave. La
-[tabla de lectura de fallos de la guía](guide.md#reading-a-failure-message)
-muestra cada uno de estos mensajes literalmente.
+[tabla de lectura de fallos](translators.md#reading-a-failure-message) escrita
+para traductores muestra cada uno de estos mensajes literalmente.
 
 ## La ruta caliente { #the-hot-path }
 

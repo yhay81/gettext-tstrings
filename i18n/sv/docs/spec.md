@@ -72,6 +72,10 @@ Interpolationer beskrivs strukturellt, aldrig som Python-källkod:
 }
 ```
 
+Fältet `"spec"` är **inte** en specifikationsversion — varje fall i `v1.json`
+hör till spec v1. Det namnger det avsnitt i `SPEC.md` som fallet prövar, så
+`"2.2"` läses som §2.2, regeln för att härleda ett platshållartoken.
+
 Referensimplementationen kör sviten som en del av sin egen testsvit, så att
 prosan och koden inte kan glida isär i tysthet.
 

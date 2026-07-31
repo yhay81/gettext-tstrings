@@ -1,5 +1,5 @@
 ---
-description: "L'API a runtime: legare un catalogo, lingue per richiesta, stringhe differite e come viene segnalata una traduzione danneggiata."
+description: "L'API a runtime: quale entry point usare, legare un catalogo, lingue per richiesta, stringhe differite, valori sensibili al locale e come viene segnalata una traduzione danneggiata."
 ---
 
 # Guida
@@ -11,6 +11,22 @@ compilare, eseguire — il [tutorial](tutorial.md) lo percorre una volta in
 cinque minuti; la creazione e la validazione dei cataloghi sono coperte in
 [Estrazione](extraction.md), e come un team tiene in moto il ciclo — cicli di
 aggiornamento, CI, piattaforme di traduzione — è [In produzione](workflow.md).
+
+## Quale entry point dovrei usare? { #which-entry-point-should-i-use }
+
+Il pacchetto esporta diversi modi di tradurre un messaggio perché le
+applicazioni legano una lingua in diversi modi. Scegli in base a come il tuo
+programma decide in che lingua si trova:
+
+| La tua situazione | Usa |
+| --- | --- |
+| Una lingua per l'intero processo — una CLI, un'app desktop, uno script | `Translator`, chiamato come `_` |
+| Una lingua per richiesta o per task asincrono — un'applicazione web | `use_translations()` attorno al lavoro, poi `tr()` |
+| Un messaggio definito al momento dell'import — l'etichetta di un form, un enum, una costante | `lazy_gettext()` o `lazy_pgettext()` |
+| Un conteggio decide la formulazione | `ngettext()` / `npgettext()`, in una qualunque delle forme sopra |
+| Rendere un pattern senza coinvolgere nessun catalogo | `compile_template()` |
+
+Tutto quel che segue sono quei cinque casi, in quest'ordine.
 
 ## Legare un catalogo { #binding-a-catalog }
 
@@ -60,6 +76,7 @@ from gettext_tstrings import tr, use_translations
 
 
 def handle(request):
+    name = request.user.display_name
     translations = load_translations(request.locale)
     with use_translations(translations):
         return render(tr(t"Hello {name}"))
@@ -166,12 +183,52 @@ catalogo già analizzato.
 
     `asyncio.to_thread` lo fa già per te.
 
+## Valori sensibili al locale { #locale-aware-values }
+
+Questa libreria decide *dove* un valore compare in un messaggio tradotto. Non
+localizza il valore in sé. `{amount:,.2f}` è una specifica di formato Python
+dal comportamento fisso — una virgola ogni tre cifre e un punto prima dei
+decimali — e produce gli stessi caratteri in qualunque lingua sia il messaggio:
+
+```pycon
+>>> f"{1234.5:,.2f}"  # the same in every locale
+'1,234.50'
+```
+
+Il tedesco scrive quel numero `1.234,50`, il francese `1 234,50`, e l'hindi
+raggruppa `1234567` come `12,34,567` anziché `1,234,567`. Numeri, valute,
+date, orari e unità di misura appartengono a [Babel][babel-numbers]. Formatta
+prima il valore, poi colloca la stringa già pronta:
+
+```python
+from babel.numbers import format_currency
+
+total = format_currency(amount, "EUR", locale=locale)
+tr(t"Your order comes to {total}")
+```
+
+In un messaggio con conteggio il numero svolge due compiti — seleziona la
+forma plurale e compare nel testo — e solo il secondo viene localizzato. Tieni
+il conteggio grezzo per la selezione e passa la stringa formattata per la
+visualizzazione:
+
+```python
+from babel.numbers import format_decimal
+
+shown = format_decimal(n, locale=locale)
+_.ngettext(t"One file", t"{shown} files", n)
+```
+
+Formattare prima della chiamata è anche ciò che tiene una specifica di formato
+fuori dal catalogo: quello che un traduttore vede è un pezzo di testo già
+pronto, non un numero più le istruzioni per renderlo.
+
 ## Che cosa succede quando un catalogo è sbagliato { #what-happens-when-a-catalog-is-wrong }
 
 Se i segnaposto di una traduzione non corrispondono alla sorgente — un campo
 mancante, sconosciuto o riformattato che è sfuggito alla validazione, da un
 MO modificato a mano, un catalogo di terze parti o una pipeline che salta il
-checker — il comportamento predefinito è riprodurre il testo sorgente invece
+checker — il comportamento predefinito è rendere il messaggio sorgente invece
 di sollevare un'eccezione. Questo rispecchia il contratto di gettext stesso:
 un catalogo danneggiato non rompe mai l'applicazione.
 
@@ -209,46 +266,6 @@ Traceback (most recent call last):
 gettext_tstrings.errors.InvalidTranslationError: translation does not match the
 source placeholders: {name} is missing; {nombre} is not in the source message
 ```
-
-## Leggere un messaggio di errore { #reading-a-failure-message }
-
-Questi messaggi sono scritti per chi può agire su di essi, che per un
-problema di catalogo è più spesso un traduttore che un programmatore.
-Riferire soltanto che `{name}` manca è un vicolo cieco quando il lettore può
-vedere quei caratteri davanti a sé, quindi dove un segnaposto sembra presente
-ma non lo è, il messaggio dice perché. Contro la sorgente `Hello {name}`,
-ciascuno di questi è riportato sotto
-`translation does not match the source placeholders:`
-
-| La traduzione dice | La ragione che riporta |
-| --- | --- |
-| `こんにちは ｛name｝` | `{name}` is missing (the braces around it are not the ASCII `{` and `}`) |
-| `こんにちは {{name}}` | `{name}` is missing (it is written `{{name}}`, which is how a literal brace is escaped) |
-| `こんにちは name` | `{name}` is missing (the name appears, but not inside braces) |
-| `こんにちは {名前}` | `{name}` is missing; `{名前}` is not in the source message |
-
-I caratteri che non si possono vedere ricevono un trattamento a parte. Uno
-spazio unificatore dentro le graffe è qualcosa che un metodo di input produce
-e nessun editor mostra, quindi il messaggio lo stampa per punto di codice
-invece di nominare un carattere che il lettore non può trovare:
-
-```text
-placeholder {<U+00A0>name} has a space inside the braces; write {name}
-```
-
-Un nome le cui lettere mescolano sistemi di scrittura — il caso degli
-omoglifi, dove una `а` cirillica è indistinguibile da una latina — viene
-mostrato due volte, una in forma leggibile e una in forma escapata, che è
-l'unica forma che distingue le due:
-
-```text
-translation does not match the source placeholders: {name} is missing;
-{nаme} (n\u0430me) is not in the source message
-```
-
-La stessa disambiguazione si applica quando un nome greco o cirillico scritto
-interamente in un solo alfabeto entra in conflitto con un nome sorgente
-ASCII, incluso il caso a una lettera `a` latina / `а` cirillica.
 
 ## Rendere un pattern senza un catalogo { #rendering-a-pattern-without-a-catalog }
 
@@ -306,3 +323,5 @@ l'**escaping** dell'output reso per la sua destinazione (HTML, shell,
 terminale), e l'**integrità del catalogo**, dato che un catalogo ostile può
 ripetere un segnaposto per amplificare la dimensione dell'output, cosa
 inerente a qualunque i18n basata su segnaposto.
+
+  [babel-numbers]: https://babel.pocoo.org/en/latest/api/numbers.html

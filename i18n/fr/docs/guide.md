@@ -1,5 +1,5 @@
 ---
-description: "L'API d'exécution : liaison d'un catalogue, langue par requête, chaînes différées et signalement des traductions incorrectes."
+description: "L'API d'exécution : quel point d'entrée choisir, la liaison d'un catalogue, la langue par requête, les chaînes différées, les valeurs dépendant de la locale et le signalement des traductions incorrectes."
 ---
 
 # Guide
@@ -12,6 +12,22 @@ minutes ; la création et la validation des catalogues sont couvertes dans
 [Extraction](extraction.md), et la façon dont une équipe fait tourner la
 boucle — cycles de mise à jour, CI, plateformes de traduction — est
 [En production](workflow.md).
+
+## Quel point d'entrée choisir ? { #which-entry-point-should-i-use }
+
+Le paquet exporte plusieurs façons de traduire un message parce que les
+applications lient une langue de plusieurs façons différentes. Choisissez selon
+la manière dont votre programme décide de la langue dans laquelle il se trouve :
+
+| Votre situation | À utiliser |
+| --- | --- |
+| Une seule langue pour tout le processus — une CLI, une application de bureau, un script | `Translator`, appelé `_` |
+| Une langue par requête ou par tâche asynchrone — une application web | `use_translations()` autour du travail, puis `tr()` |
+| Un message défini à l'import — un libellé de formulaire, une enum, une constante | `lazy_gettext()` ou `lazy_pgettext()` |
+| Un nombre décide de la formulation | `ngettext()` / `npgettext()`, sous l'une des formes ci-dessus |
+| Rendre un pattern sans aucun catalogue | `compile_template()` |
+
+Tout ce qui suit reprend ces cinq entrées, dans cet ordre.
 
 ## Lier un catalogue { #binding-a-catalog }
 
@@ -61,6 +77,7 @@ from gettext_tstrings import tr, use_translations
 
 
 def handle(request):
+    name = request.user.display_name
     translations = load_translations(request.locale)
     with use_translations(translations):
         return render(tr(t"Hello {name}"))
@@ -163,11 +180,56 @@ catalogue analysé.
 
     `asyncio.to_thread` le fait déjà pour vous.
 
+## Valeurs dépendant de la locale { #locale-aware-values }
+
+Cette bibliothèque décide *où* une valeur apparaît dans un message traduit.
+Elle ne localise pas la valeur elle-même. `{amount:,.2f}` est une spécification
+de format Python au comportement fixe — une virgule tous les trois chiffres et
+un point avant les décimales — et elle produit les mêmes caractères quelle que
+soit la langue du message :
+
+```pycon
+>>> f"{1234.5:,.2f}"  # the same in every locale
+'1,234.50'
+```
+
+L'allemand écrit ce nombre `1.234,50`, le français `1 234,50`, et le hindi
+groupe `1234567` en `12,34,567` plutôt qu'en `1,234,567`. Les nombres, les
+devises, les dates, les heures et les unités relèvent de
+[Babel][babel-numbers]. Formatez la valeur d'abord, puis placez la chaîne
+terminée :
+
+```python
+from babel.numbers import format_currency
+
+total = format_currency(amount, "EUR", locale=locale)
+tr(t"Your order comes to {total}")
+```
+
+Dans un message avec compte, le nombre fait deux métiers — il sélectionne la
+forme plurielle et il apparaît dans le texte — et seul le second est localisé.
+Gardez le compte brut pour la sélection et passez la chaîne formatée pour
+l'affichage :
+
+```python
+from babel.numbers import format_decimal
+
+shown = format_decimal(n, locale=locale)
+_.ngettext(t"One file", t"{shown} files", n)
+```
+
+Formater avant l'appel est aussi ce qui garde une spécification de format hors
+du catalogue : ce qu'un traducteur voit est un morceau de texte terminé, pas un
+nombre accompagné d'instructions de rendu.
+
 ## Si un catalogue est incorrect { #what-happens-when-a-catalog-is-wrong }
 
-Si les marqueurs d'une traduction ne correspondent pas à la source, le
-comportement par défaut rend le texte source au lieu de lever. Cela suit le
-contrat de gettext : un mauvais catalogue ne doit pas casser l'application.
+Si les marqueurs d'une traduction ne correspondent pas à la source — un champ
+manquant, inconnu ou reformaté qui a échappé à la validation, venu d'un MO
+édité à la main, d'un catalogue tiers ou d'une pipeline qui saute le contrôle —
+le comportement par défaut rend le message source au lieu de lever. Cela suit
+le contrat de gettext lui-même : un mauvais catalogue ne casse jamais
+l'application.
 
 Avec `Hello {name}` traduit en `こんにちは {nombre}`, le rendu réussit et un
 avertissement est envoyé au logger `gettext_tstrings` :
@@ -202,32 +264,14 @@ gettext_tstrings.errors.InvalidTranslationError: translation does not match the
 source placeholders: {name} is missing; {nombre} is not in the source message
 ```
 
-## Lire un message d'erreur { #reading-a-failure-message }
-
-Les messages expliquent aussi pourquoi un marqueur visible n'est pas valide :
-
-| La traduction contient | La raison |
-| --- | --- |
-| `こんにちは ｛name｝` | `{name}` is missing (the braces around it are not the ASCII `{` and `}`) |
-| `こんにちは {{name}}` | `{name}` is missing (it is written `{{name}}`, which is how a literal brace is escaped) |
-| `こんにちは name` | `{name}` is missing (the name appears, but not inside braces) |
-| `こんにちは {名前}` | `{name}` is missing; `{名前}` is not in the source message |
-
-Un espace insécable invisible est affiché par code point :
-
-```text
-placeholder {<U+00A0>name} has a space inside the braces; write {name}
-```
-
-Un homoglyph mélangeant les alphabets est affiché lisiblement puis échappé :
-
-```text
-translation does not match the source placeholders: {name} is missing;
-{nаme} (n\u0430me) is not in the source message
-```
-
-Cela couvre aussi les conflits entre noms entièrement grecs ou cyrilliques et
-leurs équivalents ASCII.
+Ces messages sont écrits pour qui peut agir dessus, c'est-à-dire, pour un
+problème de catalogue, un traducteur plus souvent qu'un programmeur — donc
+lorsqu'un marqueur *semble* présent sans l'être, le message explique pourquoi
+au lieu de répéter qu'il manque. Accolades pleine chasse, `{{name}}` doublé,
+espace insécable invisible, lettre cyrillique au milieu de lettres latines :
+chaque cas a sa propre formulation, listée avec des exemples sur
+[Pour les traducteurs](translators.md#reading-a-failure-message). Cette
+page-là est écrite pour être remise à la personne qui édite le `.po`.
 
 ## Rendre un pattern sans catalogue { #rendering-a-pattern-without-a-catalog }
 
@@ -273,3 +317,5 @@ Une traduction n'est jamais évaluée et ne peut ajouter ni accès aux attributs
 ni appel, ni conversion, ni format. L'appelant reste responsable de
 l'**échappement** pour la destination et de l'**intégrité du catalogue**, comme
 avec gettext standard.
+
+  [babel-numbers]: https://babel.pocoo.org/en/latest/api/numbers.html

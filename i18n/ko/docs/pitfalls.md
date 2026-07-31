@@ -143,10 +143,23 @@ msgid를 msgstr에 그대로 복사해 넣어 스캐폴딩한 카탈로그는 �
 
 이 문서가 오래된 카탈로그를 잡기 위해 권장하는 CI 단계인
 `pybabel update --check`는, `pgettext`나 `npgettext`를 쓰는 프로젝트에서는
-그 일을 할 수 없습니다 — 비교가 메시지를 조회하는 방식의 버그 때문에,
-`msgctxt`가 있는 카탈로그를 실행할 때마다 매번 오래되었다고 보고합니다.
-여기서 실제로 써 보다가 발견해 상류에 보고했고,
-[해결 방법과 함께 자세히 설명](workflow.md#what-ci-gates)해 두었습니다.
+그 일을 할 수 없습니다. Babel 2.18.0에서는 `msgctxt`가 있는 카탈로그를
+실행할 때마다 매번 오래되었다고 보고합니다. 비교는 `Catalog.is_identical`을
+거치는데, 이 메서드는 각 메시지를 저장된 키로 조회합니다 — 그리고 컨텍스트가
+있는 메시지의 키는 `(id, context)` 쌍이라, `Catalog.get`이 받지 못합니다.
+조회는 아무것도 반환하지 않고, 카탈로그는 결코 같다고 비교되지 않습니다.
+
+```pycon
+>>> from babel.messages.catalog import Catalog
+>>> c = Catalog(locale="ja")
+>>> c.add("Guide", "ガイド", context="navigation")
+<Message 'Guide' (flags: [])>
+>>> c.is_identical(c)
+False
+```
+
+여기서 실제로 써 보다가 발견해 상류에 보고했으며, 대체 검사는
+[프로덕션 페이지](workflow.md#what-ci-gates)에 있습니다.
 
 일반적인 교훈은 불편한 쪽입니다. 항상 빨간 게이트는 게이트가 없는 것보다
 나쁩니다. 팀이 꺼 버리기 때문입니다. CI 검사가 실패를 알려 주리라 믿기

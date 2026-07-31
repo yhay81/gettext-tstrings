@@ -1,5 +1,5 @@
 ---
-description: "API-ul de rulare: legarea unui catalog, limbi per cerere, șiruri amânate și felul în care este raportată o traducere stricată."
+description: "API-ul de rulare: ce punct de intrare să folosești, legarea unui catalog, limbi per cerere, șiruri amânate, valori conștiente de locale și felul în care este raportată o traducere stricată."
 ---
 
 # Ghid
@@ -11,6 +11,22 @@ completă — marchează, extrage, tradu, compilează, rulează —
 validarea cataloagelor sunt acoperite în [Extragere](extraction.md), iar felul
 în care o echipă ține bucla în mișcare — cicluri de actualizare, CI, platforme
 de traducere — este [În producție](workflow.md).
+
+## Ce punct de intrare ar trebui să folosesc? { #which-entry-point-should-i-use }
+
+Pachetul exportă mai multe feluri de a traduce un mesaj pentru că aplicațiile
+leagă o limbă în mai multe feluri diferite. Alege după cum decide programul tău
+în ce limbă se află:
+
+| Situația ta | Folosește |
+| --- | --- |
+| O singură limbă pentru tot procesul — un CLI, o aplicație desktop, un script | `Translator`, apelat ca `_` |
+| Câte o limbă pe cerere sau pe sarcină async — o aplicație web | `use_translations()` în jurul lucrului, apoi `tr()` |
+| Un mesaj definit la momentul importului — o etichetă de formular, un enum, o constantă | `lazy_gettext()` sau `lazy_pgettext()` |
+| Un număr decide formularea | `ngettext()` / `npgettext()`, în oricare dintre formele de mai sus |
+| Randarea unui tipar fără niciun catalog implicat | `compile_template()` |
+
+Tot ce urmează este acestea cinci, în această ordine.
 
 ## Legarea unui catalog { #binding-a-catalog }
 
@@ -60,6 +76,7 @@ from gettext_tstrings import tr, use_translations
 
 
 def handle(request):
+    name = request.user.display_name
     translations = load_translations(request.locale)
     with use_translations(translations):
         return render(tr(t"Hello {name}"))
@@ -163,12 +180,52 @@ singură dată și dă mai departe copii care împart catalogul parsat.
 
     `asyncio.to_thread` face deja asta pentru tine.
 
+## Valori conștiente de locale { #locale-aware-values }
+
+Această bibliotecă decide *unde* apare o valoare într-un mesaj tradus. Ea nu
+localizează valoarea însăși. `{amount:,.2f}` este o specificație de format
+Python cu comportament fix — o virgulă la fiecare trei cifre și un punct
+înaintea zecimalelor — și produce aceleași caractere indiferent de limba
+mesajului:
+
+```pycon
+>>> f"{1234.5:,.2f}"  # the same in every locale
+'1,234.50'
+```
+
+Germana scrie acel număr `1.234,50`, franceza `1 234,50`, iar hindi grupează
+`1234567` ca `12,34,567`, nu ca `1,234,567`. Numerele, monedele, datele, orele
+și unitățile țin de [Babel][babel-numbers]. Formatează întâi valoarea, apoi
+așază șirul gata făcut:
+
+```python
+from babel.numbers import format_currency
+
+total = format_currency(amount, "EUR", locale=locale)
+tr(t"Your order comes to {total}")
+```
+
+Pentru un mesaj cu numărare, numărul face două treburi — selectează forma de
+plural și apare în text — iar numai a doua este localizată. Păstrează numărul
+brut pentru selecție și transmite șirul formatat pentru afișare:
+
+```python
+from babel.numbers import format_decimal
+
+shown = format_decimal(n, locale=locale)
+_.ngettext(t"One file", t"{shown} files", n)
+```
+
+Formatarea dinaintea apelului este și ceea ce ține o specificație de format în
+afara catalogului: ce vede un traducător este o bucată de text gata făcută, nu
+un număr plus instrucțiuni de randare a lui.
+
 ## Ce se întâmplă când un catalog este greșit { #what-happens-when-a-catalog-is-wrong }
 
 Dacă substituenții unei traduceri nu se potrivesc cu sursa — un câmp lipsă,
 necunoscut sau reformatat, care a scăpat de validare, venind dintr-un MO editat
 manual, dintr-un catalog de la un furnizor sau dintr-o conductă care sare peste
-verificator — comportamentul implicit este de a reproduce textul sursă în loc de
+verificator — comportamentul implicit este de a randa mesajul sursă în loc de
 a ridica o excepție. Asta oglindește contractul propriu al lui gettext, potrivit
 căruia un catalog prost nu strică niciodată aplicația.
 
@@ -207,45 +264,14 @@ gettext_tstrings.errors.InvalidTranslationError: translation does not match the
 source placeholders: {name} is missing; {nombre} is not in the source message
 ```
 
-## Citirea unui mesaj de eșec { #reading-a-failure-message }
-
 Aceste mesaje sunt scrise pentru cine poate acționa pe baza lor, iar în cazul
-unei probleme de catalog acela este mai des un traducător decât un programator.
-A raporta doar că `{name}` lipsește este o fundătură atunci când cititorul vede
-acele caractere chiar în fața lui, așa că acolo unde un substituent pare
-prezent, dar nu este, mesajul spune de ce. Față de sursa `Hello {name}`, fiecare
-dintre acestea este raportat sub
-`translation does not match the source placeholders:`
-
-| Ce spune traducerea | Motivul pe care îl dă |
-| --- | --- |
-| `こんにちは ｛name｝` | `{name}` lipsește (acoladele din jurul lui nu sunt `{` și `}` din ASCII) |
-| `こんにちは {{name}}` | `{name}` lipsește (este scris `{{name}}`, ceea ce este modul de a escapa o acoladă literală) |
-| `こんにちは name` | `{name}` lipsește (numele apare, dar nu între acolade) |
-| `こんにちは {名前}` | `{name}` lipsește; `{名前}` nu se află în mesajul sursă |
-
-Caracterele care nu se pot vedea au parte de un tratament propriu. Un spațiu
-neîntreruptor între acolade este ceva ce produce o metodă de introducere și nu
-arată niciun editor, așa că mesajul îl tipărește după punctul de cod, în loc să
-numească un caracter pe care cititorul nu îl poate găsi:
-
-```text
-placeholder {<U+00A0>name} has a space inside the braces; write {name}
-```
-
-Un nume ale cărui litere amestecă sisteme de scriere — cazul homoglifelor, în
-care un `а` chirilic nu se deosebește de unul latin — este arătat de două ori, o
-dată lizibil și o dată escapat, ceea ce este singura formă care le distinge una
-de alta:
-
-```text
-translation does not match the source placeholders: {name} is missing;
-{nаme} (n\u0430me) is not in the source message
-```
-
-Aceeași dezambiguizare se aplică atunci când un nume grecesc sau chirilic scris
-în întregime într-un singur alfabet intră în conflict cu un nume sursă ASCII,
-inclusiv cazul cu o singură literă `a` latin / `а` chirilic.
+unei probleme de catalog acela este mai des un traducător decât un programator —
+așa că acolo unde un substituent pare prezent, dar nu este, mesajul explică de
+ce, în loc să repete că lipsește. Acolade cu lățime întreagă, un `{{name}}`
+dublat, un spațiu neîntreruptor invizibil, o literă chirilică printre cele
+latine: fiecare are formularea lui, listată cu exemple pe
+[Pentru traducători](translators.md#reading-a-failure-message). Acea pagină este
+scrisă ca să fie dată în mână persoanei care editează `.po`-ul.
 
 ## Randarea unui tipar fără catalog { #rendering-a-pattern-without-a-catalog }
 
@@ -302,3 +328,5 @@ randate pentru destinația ei (HTML, shell, terminal) și **integritatea
 catalogului**, de vreme ce un catalog ostil poate repeta un substituent pentru a
 amplifica dimensiunea ieșirii, ceea ce este inerent oricărui i18n bazat pe
 substituenți.
+
+  [babel-numbers]: https://babel.pocoo.org/en/latest/api/numbers.html

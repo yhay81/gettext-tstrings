@@ -159,12 +159,26 @@ chomhaid na stórlainne seo féin ann chun an bhearna sin a líonadh.
 
 An chéim CI a mholann an doiciméadú seo chun catalóga atá as dáta a cheapadh,
 `pybabel update --check`, ní féidir léi an obair sin a dhéanamh d'aon
-tionscadal a úsáideann `pgettext` ná `npgettext` — tuairiscíonn sí gach
-catalóg a bhfuil `msgctxt` inti mar cheann atá as dáta, ar gach rith, mar
-gheall ar fhabht sa chaoi a gcuardaíonn an chomparáid na teachtaireachtaí.
+tionscadal a úsáideann `pgettext` ná `npgettext`. Ar Babel 2.18.0
+tuairiscíonn sí gach catalóg a bhfuil `msgctxt` inti mar cheann atá as dáta,
+ar gach rith. Ritheann an chomparáid trí `Catalog.is_identical`, a
+chuardaíonn gach teachtaireacht de réir na heochrach faoina stóráiltear í —
+agus i gcás teachtaireachta comhthéacsúla is í an eochair sin an péire
+`(id, context)`, rud nach nglacann `Catalog.get` leis. Ní fhilleann an
+cuardach faic, agus ní bhíonn na catalóga cothrom lena chéile riamh:
+
+```pycon
+>>> from babel.messages.catalog import Catalog
+>>> c = Catalog(locale="ja")
+>>> c.add("Guide", "ガイド", context="navigation")
+<Message 'Guide' (flags: [])>
+>>> c.is_identical(c)
+False
+```
+
 Fuarthas anseo é trí iarracht a dhéanamh é a úsáid, tuairiscíodh in aghaidh an
-tsrutha é, agus tá sé
-[tuairiscithe ina iomláine mar aon leis an seachbhóthar](workflow.md#what-ci-gates).
+tsrutha é, agus tá an tseiceáil ionaid
+[ar an leathanach táirgthe](workflow.md#what-ci-gates).
 
 Is é an ceacht ginearálta an ceann míchompordach: is measa geata atá dearg i
 gcónaí ná gan geata ar bith, mar múchann foireann é. Deimhnigh gur féidir le

@@ -1,5 +1,5 @@
 ---
-description: "Keyrslutíma-API-ið: að binda þýðingaskrá, tungumál eftir beiðni, frestaðir strengir og hvernig biluð þýðing er tilkynnt."
+description: "Keyrslutíma-API-ið: hvaða aðgangsstað skal nota, að binda þýðingaskrá, tungumál eftir beiðni, frestaðir strengir, staðfærð gildi og hvernig biluð þýðing er tilkynnt."
 ---
 
 # Handbók
@@ -11,6 +11,22 @@ hringrásina — merkja, draga út, þýða, vistþýða, keyra — þá gengur
 staðfesta þýðingaskrár er tekið fyrir í [Útdrætti](extraction.md), og hvernig
 teymi heldur hringrásinni gangandi — uppfærsluferli, CI, þýðingavettvangar —
 er [Í rekstri](workflow.md).
+
+## Hvaða aðgangsstað ætti ég að nota? { #which-entry-point-should-i-use }
+
+Pakkinn flytur út nokkrar leiðir til að þýða skilaboð af því að forrit binda
+tungumál á nokkra ólíka vegu. Veldu eftir því hvernig forritið þitt ákveður á
+hvaða tungumáli það er:
+
+| Aðstæður þínar | Notaðu |
+| --- | --- |
+| Eitt tungumál fyrir allt ferlið — skipanalínutól, skjáborðsforrit, skrifta | `Translator`, kallað sem `_` |
+| Eitt tungumál fyrir hverja beiðni eða hvert ósamstillt verk — vefforrit | `use_translations()` utan um verkið, síðan `tr()` |
+| Skilaboð skilgreind við innflutning — merking á reit, talnaruna, fasti | `lazy_gettext()` eða `lazy_pgettext()` |
+| Fjöldi ræður orðalaginu | `ngettext()` / `npgettext()`, í hvaða mynd sem er hér að ofan |
+| Mynstur birt án þess að þýðingaskrá komi við sögu | `compile_template()` |
+
+Allt hér að neðan eru þessi fimm, í þessari röð.
 
 ## Að binda þýðingaskrá { #binding-a-catalog }
 
@@ -60,6 +76,7 @@ from gettext_tstrings import tr, use_translations
 
 
 def handle(request):
+    name = request.user.display_name
     translations = load_translations(request.locale)
     with use_translations(translations):
         return render(tr(t"Hello {name}"))
@@ -164,12 +181,52 @@ hverja `.mo`-skrá einu sinni og réttir út afrit sem deila þáttuðu skránni
 
     `asyncio.to_thread` gerir þetta þegar fyrir þig.
 
+## Staðfærð gildi { #locale-aware-values }
+
+Þetta safn ákveður *hvar* gildi birtist í þýddum skilaboðum. Það staðfærir
+ekki gildið sjálft. `{amount:,.2f}` er Python-sniðlýsing með fastri hegðun —
+komma á hverja þrjá tölustafi og punktur á undan aukastöfunum — og hún
+framleiðir sömu stafina á hvaða tungumáli sem skilaboðin eru:
+
+```pycon
+>>> f"{1234.5:,.2f}"  # the same in every locale
+'1,234.50'
+```
+
+Þýska ritar þá tölu `1.234,50`, franska `1 234,50`, og hindí flokkar
+`1234567` sem `12,34,567` fremur en `1,234,567`. Tölur, gjaldmiðlar,
+dagsetningar, tímar og einingar heyra undir [Babel][babel-numbers]. Sníddu
+gildið fyrst, settu svo fullgerða strenginn á sinn stað:
+
+```python
+from babel.numbers import format_currency
+
+total = format_currency(amount, "EUR", locale=locale)
+tr(t"Your order comes to {total}")
+```
+
+Í skilaboðum sem telja gegnir talan tveimur hlutverkum — hún velur
+fleirtölumyndina og hún birtist í textanum — og aðeins hið síðara er staðfært.
+Haltu hráa fjöldanum fyrir valið og réttu sniðna strenginn til birtingar:
+
+```python
+from babel.numbers import format_decimal
+
+shown = format_decimal(n, locale=locale)
+_.ngettext(t"One file", t"{shown} files", n)
+```
+
+Að sníða á undan kallinu er líka það sem heldur sniðlýsingu utan
+þýðingaskrárinnar: það sem þýðandi sér er fullgerður textabútur, ekki tala
+ásamt fyrirmælum um hvernig eigi að birta hana.
+
 ## Hvað gerist þegar þýðingaskrá er röng { #what-happens-when-a-catalog-is-wrong }
 
 Ef staðgenglar þýðingar stemma ekki við frumtextann — reitur sem vantar, er
 óþekktur eða hefur fengið nýtt snið og slapp gegnum athugunina, úr
 handritaðri MO-skrá, þýðingaskrá frá þriðja aðila eða keðju sem sleppir
-athuguninni — þá er sjálfgefið að endurgera frumtextann fremur en að varpa.
+athuguninni — þá er sjálfgefið að birta frumtextaskilaboðin fremur en að
+varpa.
 Þetta speglar samning gettext sjálfs um að léleg þýðingaskrá brjóti aldrei
 forritið.
 
@@ -209,44 +266,14 @@ gettext_tstrings.errors.InvalidTranslationError: translation does not match the
 source placeholders: {name} is missing; {nombre} is not in the source message
 ```
 
-## Að lesa villuboð { #reading-a-failure-message }
-
 Þessi skilaboð eru skrifuð fyrir þann sem getur brugðist við þeim, og þegar
-þýðingaskrá á í hlut er það oftar þýðandi en forritari. Að tilkynna aðeins að
-`{name}` vanti er blindgata þegar lesandinn sér þá stafi fyrir framan sig, svo
-að þar sem staðgengill sýnist vera til staðar en er það ekki, segja skilaboðin
-hvers vegna. Gagnvart frumtextanum `Hello {name}` er hvert eftirfarandi
-tilkynnt undir `translation does not match the source placeholders:`
-
-| Þýðingin segir | Ástæðan sem hún gefur |
-| --- | --- |
-| `こんにちは ｛name｝` | `{name}` is missing (the braces around it are not the ASCII `{` and `}`) |
-| `こんにちは {{name}}` | `{name}` is missing (it is written `{{name}}`, which is how a literal brace is escaped) |
-| `こんにちは name` | `{name}` is missing (the name appears, but not inside braces) |
-| `こんにちは {名前}` | `{name}` is missing; `{名前}` is not in the source message |
-
-Stafir sem ekki sjást fá sína eigin meðferð. Fast bil inni í slaufusvigunum er
-eitthvað sem innsláttaraðferð framleiðir og enginn ritill sýnir, svo að
-skilaboðin prenta það eftir kóðapunkti fremur en að nefna staf sem lesandinn
-finnur ekki:
-
-```text
-placeholder {<U+00A0>name} has a space inside the braces; write {name}
-```
-
-Nafn þar sem stafirnir blanda ritkerfum — samstöfunartilvikið, þar sem
-kýrillískt `а` er ógreinanlegt frá því latneska — er sýnt tvisvar, einu sinni
-læsilega og einu sinni með escape-ritun, sem er eina myndin sem greinir þau
-tvö að:
-
-```text
-translation does not match the source placeholders: {name} is missing;
-{nаme} (n\u0430me) is not in the source message
-```
-
-Sama aðgreining á við þegar grískt eða kýrillískt nafn, ritað alfarið í einu
-letri, rekst á ASCII-nafn í frumtextanum, þar með talið tilvikið með
-latneska `a` og kýrillíska `а` í einum staf.
+þýðingaskrá á í hlut er það oftar þýðandi en forritari — svo að þar sem
+staðgengill sýnist vera til staðar en er það ekki útskýra skilaboðin hvers
+vegna fremur en að endurtaka að hann vanti. Breiðir slaufusvigar, tvöfaldað
+`{{name}}`, ósýnilegt óskiptanlegt bil, kýrillískur stafur innan um latneska:
+hvert um sig hefur sitt eigið orðalag, talið upp með dæmum á
+[Fyrir þýðendur](translators.md#reading-a-failure-message). Sú síða er skrifuð
+til að rétta þeim sem ritstýrir `.po`-skránni.
 
 ## Að birta mynstur án þýðingaskrár { #rendering-a-pattern-without-a-catalog }
 
@@ -302,3 +329,5 @@ staðalsafninu — **escape-ritun** á birtu úttaki fyrir viðtakanda þess (HT
 skel, skjáhermi) og **heilleiki þýðingaskrárinnar**, því fjandsamleg
 þýðingaskrá getur endurtekið staðgengil til að magna upp stærð úttaksins, sem
 er innbyggt í hverja i18n-aðferð sem byggir á staðgenglum.
+
+  [babel-numbers]: https://babel.pocoo.org/en/latest/api/numbers.html
