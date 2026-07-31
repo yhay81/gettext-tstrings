@@ -122,7 +122,8 @@ escrito, cada una en su propia página:
 La discusión no ha terminado, y este proyecto es un participante en ella, no
 un veredicto sobre ella. Si tienes experiencia con gettext en producción que
 sea relevante para estas decisiones, el [mismo hilo][discuss-thread] y las
-[Discussions][gh-discussions] de este repositorio son donde se debate.
+[Discussions][gh-discussions] de este repositorio son donde continúa la
+discusión.
 
 ## Cronología { #timeline }
 

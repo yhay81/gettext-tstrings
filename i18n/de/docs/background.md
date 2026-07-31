@@ -125,7 +125,7 @@ Die Diskussion ist nicht beendet, und dieses Projekt ist ein Teilnehmer an
 ihr, kein Urteil über sie. Wer Produktionserfahrung mit gettext hat, die
 diese Entscheidungen berührt, findet im [selben Thread][discuss-thread] und
 in den [Discussions][gh-discussions] dieses Repositorys den Ort, an dem
-darüber gestritten wird.
+die Diskussion weitergeht.
 
 ## Zeitleiste { #timeline }
 

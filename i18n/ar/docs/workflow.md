@@ -216,9 +216,9 @@ msgstr ""
 
 ## ربط لغة وقت التشغيل { #binding-a-language-at-runtime }
 
-كل ما سبق ينتج كتالوجات. القرار المتبقي هو أين يختار التطبيق واحداً منها،
-وله جواب أمين واحد: اربط مرة واحدة لكل *نطاق للغة* — العملية في أداة سطر
-الأوامر، والطلب في خدمة الويب.
+كل ما سبق ينتج كتالوجات. القرار المتبقي هو أين يختار التطبيق واحداً منها.
+اربط مرة واحدة لكل *نطاق للغة* — العملية في أداة سطر الأوامر، والطلب في
+خدمة الويب.
 
 === "عملية واحدة، لغة واحدة"
 
@@ -326,6 +326,52 @@ msgstr ""
 المجردة؛ فالعرض يعمل بالمكتبة القياسية وحدها. جمّع الكتالوجات في البناء
 نفسه الذي ينتج الناتج الذي تنشره، فتكون ملفات `.mo` داخله هي بالضبط ملفات
 `.po` المراجعة، ولا يُشحن أبداً شيء جُمّع على حاسوب أحدهم المحمول.
+
+أما كيفية سفرها فتتوقف على ما تنشره. العجلة (wheel) تحملها بوصفها بيانات
+حزمة، ما يعني أن على الكتالوجات أن تعيش *داخل* دليل الحزمة —
+`src/myapp/locales/` لا `locales/` في الجذر — وأن يُبلَّغ الواجهةَ الخلفيةَ
+للبناء بتضمين ملفات يخفيها `.gitignore` عادةً:
+
+=== "Hatchling"
+
+    ```toml
+    [tool.hatch.build]
+    # .mo files are build output, so they are gitignored; name them or the
+    # wheel ships without a single translation.
+    artifacts = ["src/myapp/locales/**/*.mo"]
+    ```
+
+=== "setuptools"
+
+    ```toml
+    [tool.setuptools.package-data]
+    myapp = ["locales/*/LC_MESSAGES/*.mo"]
+    ```
+
+واقرأها عبر الحزمة لا عبر مسار نسبي إلى شجرة المصدر، فذلك المسار يزول لحظة
+تثبيت العجلة:
+
+```python
+import gettext
+from importlib.resources import as_file, files
+
+with as_file(files("myapp") / "locales") as localedir:
+    translations = gettext.translation("messages", localedir=localedir, languages=["ja"])
+```
+
+ومهمة صورة الحاوية أيسر: جمّع أثناء مرحلة البناء وانسخ الناتج، تاركاً Babel
+خلفك في تلك المرحلة.
+
+```dockerfile
+FROM python:3.14-slim AS build
+COPY . /src
+RUN cd /src && python -m pip install ".[babel]" \
+    && pybabel compile -d src/myapp/locales
+
+FROM python:3.14-slim
+COPY --from=build /src /src
+RUN python -m pip install /src   # no [babel]: rendering needs the stdlib only
+```
 
 قبل الإصدار، هذه هي قائمة التحقق التي تُختزل إليها هذه الصفحة:
 

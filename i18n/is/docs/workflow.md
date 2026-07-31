@@ -228,9 +228,8 @@ hér að ofan eru það sem breytir „vettvangurinn athugaði þetta líklega�
 ## Að binda tungumál á keyrslutíma { #binding-a-language-at-runtime }
 
 Allt hingað til framleiðir þýðingaskrár. Ákvörðunin sem eftir stendur er hvar
-forritið velur eina, og hún á sér eitt heiðarlegt svar: bittu einu sinni fyrir
-hvert *gildissvið tungumáls* — ferlið fyrir skipanalínutól, beiðnina fyrir
-vefþjónustu.
+forritið velur eina. Bittu einu sinni fyrir hvert *gildissvið tungumáls* —
+ferlið fyrir skipanalínutól, beiðnina fyrir vefþjónustu.
 
 === "Eitt ferli, eitt tungumál"
 
@@ -344,6 +343,52 @@ Vistþýddu þýðingaskrár í sömu byggingu og framleiðir afurðina sem þú
 upp, svo að `.mo`-skrárnar inni í henni séu nákvæmlega þær `.po`-skrár sem
 lesnar voru yfir, og ekkert sem vistþýtt var á fartölvu einhvers fari nokkurn
 tíma út.
+
+Hvernig þær ferðast fer eftir því hverju þú dreifir. Hjól ber þær sem
+pakkagögn, sem þýðir að þýðingaskrárnar verða að liggja *inni* í
+pakkamöppunni — `src/myapp/locales/`, ekki `locales/` á efsta stigi — og segja
+þarf byggingarbakendanum að taka með skrár sem `.gitignore` felur að jafnaði:
+
+=== "Hatchling"
+
+    ```toml
+    [tool.hatch.build]
+    # .mo files are build output, so they are gitignored; name them or the
+    # wheel ships without a single translation.
+    artifacts = ["src/myapp/locales/**/*.mo"]
+    ```
+
+=== "setuptools"
+
+    ```toml
+    [tool.setuptools.package-data]
+    myapp = ["locales/*/LC_MESSAGES/*.mo"]
+    ```
+
+Lestu þær til baka gegnum pakkann fremur en gegnum slóð sem er afstæð við
+frumtrjáið, en hún hættir að vera til um leið og hjólið er sett upp:
+
+```python
+import gettext
+from importlib.resources import as_file, files
+
+with as_file(files("myapp") / "locales") as localedir:
+    translations = gettext.translation("messages", localedir=localedir, languages=["ja"])
+```
+
+Ílagsímynd á auðveldara verk: vistþýddu í byggingarþrepinu og afritaðu
+niðurstöðuna, og skildu Babel eftir í því þrepi.
+
+```dockerfile
+FROM python:3.14-slim AS build
+COPY . /src
+RUN cd /src && python -m pip install ".[babel]" \
+    && pybabel compile -d src/myapp/locales
+
+FROM python:3.14-slim
+COPY --from=build /src /src
+RUN python -m pip install /src   # no [babel]: rendering needs the stdlib only
+```
 
 Fyrir útgáfu er gátlistinn sem þessi síða þjappast í:
 

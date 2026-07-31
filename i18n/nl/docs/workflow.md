@@ -236,9 +236,8 @@ gecontroleerd" verandert in "dit kan niet kapot uitgeleverd worden".
 ## Een taal binden tijdens runtime { #binding-a-language-at-runtime }
 
 Alles tot nu toe produceert catalogi. De resterende beslissing is waar de
-applicatie er een selecteert, en die heeft één eerlijk antwoord: bind één
-keer per *reikwijdte van een taal* — het proces voor een CLI, het request
-voor een webservice.
+applicatie er een selecteert. Bind één keer per *reikwijdte van een taal* —
+het proces voor een CLI, het request voor een webservice.
 
 === "Eén proces, één taal"
 
@@ -352,6 +351,53 @@ de standaardbibliotheek alleen. Compileer catalogi in dezelfde build die het
 artefact produceert dat je deployt, zodat de `.mo`-bestanden erin exact de
 gereviewde `.po`-bestanden zijn, en er nooit iets uitgeleverd wordt dat op
 iemands laptop gecompileerd is.
+
+Hoe ze meereizen hangt af van wat je deployt. Een wheel draagt ze als
+package-data, wat betekent dat de catalogi *binnen* de packagemap moeten
+staan — `src/myapp/locales/`, niet een `locales/` op het hoogste niveau — en
+dat de build-backend verteld moet worden om bestanden op te nemen die
+`.gitignore` normaal verbergt:
+
+=== "Hatchling"
+
+    ```toml
+    [tool.hatch.build]
+    # .mo files are build output, so they are gitignored; name them or the
+    # wheel ships without a single translation.
+    artifacts = ["src/myapp/locales/**/*.mo"]
+    ```
+
+=== "setuptools"
+
+    ```toml
+    [tool.setuptools.package-data]
+    myapp = ["locales/*/LC_MESSAGES/*.mo"]
+    ```
+
+Lees ze terug via het package in plaats van via een pad relatief aan de
+broncode-boom, dat ophoudt te bestaan zodra het wheel geïnstalleerd is:
+
+```python
+import gettext
+from importlib.resources import as_file, files
+
+with as_file(files("myapp") / "locales") as localedir:
+    translations = gettext.translation("messages", localedir=localedir, languages=["ja"])
+```
+
+Een container-image heeft het makkelijker: compileer tijdens de buildfase en
+kopieer het resultaat, en laat Babel in die fase achter.
+
+```dockerfile
+FROM python:3.14-slim AS build
+COPY . /src
+RUN cd /src && python -m pip install ".[babel]" \
+    && pybabel compile -d src/myapp/locales
+
+FROM python:3.14-slim
+COPY --from=build /src /src
+RUN python -m pip install /src   # no [babel]: rendering needs the stdlib only
+```
 
 Vóór een release, de checklist waartoe deze pagina zich laat samenvatten:
 

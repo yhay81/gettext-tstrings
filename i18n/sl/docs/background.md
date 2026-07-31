@@ -111,8 +111,8 @@ svoji strani:
   sodelovala.
 
 Razprava se ni končala in ta projekt je v njej udeleženec, ne razsodba o njej.
-Če imate produkcijske izkušnje z gettextom, ki zadevajo te izbire, se o njih
-prereka v [isti niti][discuss-thread] in v
+Če imate produkcijske izkušnje z gettextom, ki zadevajo te izbire, se razprava
+nadaljuje v [isti niti][discuss-thread] in v
 [razpravah][gh-discussions] tega repozitorija.
 
 ## Časovnica { #timeline }

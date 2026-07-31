@@ -178,6 +178,17 @@ python -m pip install "gettext-tstrings[babel]"
 
 ## 開発状況 { #status }
 
+| | |
+| --- | --- |
+| パッケージ版数 | 0.1.0a7 |
+| APIの安定性 | alpha — Python APIは今後変更される可能性があります |
+| [仕様](spec.md) | v1、[適合性テスト](spec.md#conformance)付き |
+| Python | 3.14以降。3.14、3.14t（free-threaded）、3.15でテスト済み |
+| Babel | 2.18以降。`pybabel`を動かす場所でのみ必要 |
+| 実行時依存 | なし — 標準ライブラリの`gettext`のみ |
+| カタログ形式 | 通常のPOT、PO、MO |
+| 変更履歴 | [CHANGELOG](https://github.com/yhay81/gettext-tstrings/blob/main/CHANGELOG.md) |
+
 現在はalpha版です。契約は意図的に小さく保たれ、
 [仕様](spec.md)が安定部分です。Python APIは今後変更される可能性があります。
 安定版までには、より多くの言語のfixture、継続的な性能計測、gettextとBabelの

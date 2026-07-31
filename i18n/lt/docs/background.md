@@ -111,7 +111,7 @@ kiekvienas savo puslapyje:
 Diskusija nesibaigė, o šis projektas yra jos dalyvis, o ne nuosprendis joje.
 Jei turite produkcinės gettext patirties, susijusios su šiais pasirinkimais,
 [ta pati gija][discuss-thread] ir šios saugyklos
-[Discussions][gh-discussions] yra ten, kur apie tai ginčijamasi.
+[Discussions][gh-discussions] yra ten, kur diskusija tęsiasi.
 
 ## Laiko juosta { #timeline }
 

@@ -132,24 +132,26 @@ braucht `{n}` womöglich in einer Form, wo Englisch keine hat.
 Nichts davon ist hypothetisch: Der Katalog für das Seitengerüst dieser
 Website führt selbst die Plural-Nachricht `Built {n} localized page` /
 `Built {n} localized pages` — zwei englische Zweige — und die Sprachausgaben
-der Website übersetzen diese eine Nachricht in eine bis sechs Formen:
+der Website übersetzen diese eine Nachricht in eine bis sechs Formen.
 
-| Katalog | Formen | Die Übersetzungen, in der Reihenfolge der Formen |
-| --- | --- | --- |
-| Japanisch | 1 | `ローカライズ済みページを{n}件ビルドしました` |
-| Türkisch | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` — zweimal, identisch: türkische Substantive bleiben nach einem Zahlwort im Singular |
-| Italienisch | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` — das Partizip kongruiert in Genus und Numerus |
-| Lettisch | 3 | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` — die dritte Form gilt **allein der Null** |
-| Russisch | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
-| Polnisch | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
-| Slowenisch | 4 | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` — die zweite ist ein **Dual**, für genau zwei |
-| Irisch | 5 | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` — eins, zwei, 3–6, 7–10 und der Rest; der Stamm wechselt, doch *leathanach* beginnt mit `l`, das keine irische Mutation schreibt, sodass mehrere Formen zusammenfallen |
-| Arabisch | 6 | darunter `تم إنشاء صفحة مترجمة واحدة ({n})` für genau eins und `تم إنشاء {n} صفحات مترجمة` für wenige |
+??? example "Neun dieser Ausgaben, in der Reihenfolge der Formen"
 
-Jede Zeile ist ein echter Eintrag in `i18n/*/LC_MESSAGES/site.po` dieses
-Repositorys, gerendert vom [mehrsprachigen Build](index.md) bei jedem
-Release — und ein Test heftet diese Tabelle an jene Kataloge, sodass beide
-nicht auseinanderdriften können.
+    | Katalog | Formen | Die Übersetzungen, in der Reihenfolge der Formen |
+    | --- | --- | --- |
+    | Japanisch | 1 | `ローカライズ済みページを{n}件ビルドしました` |
+    | Türkisch | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` — zweimal, identisch: türkische Substantive bleiben nach einem Zahlwort im Singular |
+    | Italienisch | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` — das Partizip kongruiert in Genus und Numerus |
+    | Lettisch | 3 | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` — die dritte Form gilt **allein der Null** |
+    | Russisch | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
+    | Polnisch | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
+    | Slowenisch | 4 | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` — die zweite ist ein **Dual**, für genau zwei |
+    | Irisch | 5 | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` — eins, zwei, 3–6, 7–10 und der Rest; der Stamm wechselt, doch *leathanach* beginnt mit `l`, das keine irische Mutation schreibt, sodass mehrere Formen zusammenfallen |
+    | Arabisch | 6 | darunter `تم إنشاء صفحة مترجمة واحدة ({n})` für genau eins und `تم إنشاء {n} صفحات مترجمة` für wenige |
+
+    Jede Zeile ist ein echter Eintrag in `i18n/*/LC_MESSAGES/site.po` dieses
+    Repositorys, gerendert vom [mehrsprachigen Build](index.md) bei jedem
+    Release — und ein Test heftet diese Tabelle an jene Kataloge, sodass beide
+    nicht auseinanderdriften können.
 
 Innerhalb dieser Grenzen sind Umstellung und Wiederholung bewusst
 unbeschränkt. Beides ist in echten Sprachen grammatisch notwendig, und ein
@@ -257,16 +259,20 @@ Drei Caches, einer pro Stufe:
 
 Jeder Cache ist begrenzt, und keiner behält interpolierte *Werte* — nur
 statische Struktur und Patterntext. Das Ergebnis, gemessen von
-[`benchmarks/runtime.py`](https://github.com/yhay81/gettext-tstrings/blob/main/benchmarks/runtime.py):
-rund 0,4 µs für eine Nachricht mit einem Feld, den Bau der t-string selbst
-eingeschlossen — etwa das 2,5-Fache eines schlichten
-`gettext(...).format(...)`, das nichts prüft. Der Kommentar am Kopf von
+[`benchmarks/runtime.py`](https://github.com/yhay81/gettext-tstrings/blob/main/benchmarks/runtime.py)
+auf CPython 3.14.6, macOS 26 auf einem arm64-Laptop: rund 0,4 µs für eine
+Nachricht mit einem Feld, den Bau der t-string selbst eingeschlossen — etwa
+das 2,7-Fache eines schlichten `gettext(...).format(...)`, das nichts prüft.
+Das sind die Zahlen einer einzigen Maschine — das Skript gibt seinen
+Interpreter und seine Plattform im Kopf seiner Ausgabe aus, also lass es auf
+der Hardware laufen, auf der du tatsächlich deployst, bevor du irgendein
+Verhältnis für deines hältst. Der Kommentar am Kopf von
 [`core.py`](https://github.com/yhay81/gettext-tstrings/blob/main/src/gettext_tstrings/core.py)
 hält die Einzelmessungen hinter dieser Gestalt fest.
 
 ## Selbst implementieren { #reimplementing-it }
 
-Nichts davon ist Geheimwissen: Die Konvention ist als
+Nichts davon ist dieser Implementierung eigen: Die Konvention ist als
 [Spezifikation v1](spec.md) niedergeschrieben, und ihre maschinenlesbare
 [Konformitätssuite](spec.md#conformance) lässt einen Extraktor, ein
 IDE-Plugin oder eine Implementierung in einer anderen Sprache sich gegen

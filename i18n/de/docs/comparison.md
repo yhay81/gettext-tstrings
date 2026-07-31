@@ -102,8 +102,8 @@ der anderen.
 _("Hello %(name)s") % {"name": name}
 ```
 
-Was schiefgehen kann: Ein gelöschter Buchstabe in einer Übersetzung lässt das
-Rendern abstürzen.
+Was schiefgehen kann: Ein beschädigter Platzhalter wird zu einer
+Laufzeit-Exception, sofern ihn die Katalogvalidierung nicht vorher abfängt.
 
 Der Katalogstring enthält printf-Syntax, darunter einen abschließenden
 Typbuchstaben — das `s` in `%(name)s` —, der leicht zu übersehen und leicht zu
@@ -302,7 +302,7 @@ Bibliothek ihn sieht, ist er bereits eine fertige Zeichenkette, sodass eine
 statischen Text und Werte getrennt, bei f-String-ähnlicher Syntax und
 expliziter Wertebindung.
 
-Wie Python an diese Weggabelung gelangt ist — zwei PEPs im Abstand von zehn
+Wie Python hierher gelangt ist — zwei PEPs im Abstand von zehn
 Jahren und die stdlib-Diskussion, die ohne Antwort geschlossen wurde —
 erzählt, mit Quellen, die Seite [Hintergrund](background.md).
 

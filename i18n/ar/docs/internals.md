@@ -114,23 +114,25 @@ msgid           'Total: {amount}'
 لا شيء من ذلك افتراضي: فكتالوج واجهة هذا الموقع نفسه يحمل رسالة الجمع
 `Built {n} localized page` / `Built {n} localized pages` — فرعين
 إنجليزيين — وتترجم إصدارات الموقع هذه الرسالة الواحدة إلى ما يتراوح بين
-صيغة واحدة وست صيغ:
+صيغة واحدة وست صيغ.
 
-| الكتالوج | الصيغ | الترجمات بترتيب الصيغ |
-| --- | --- | --- |
-| اليابانية | 1 | `ローカライズ済みページを{n}件ビルドしました` |
-| التركية | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` — مرتين بالصيغة نفسها: فالأسماء في التركية تبقى مفردة بعد العدد |
-| الإيطالية | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` — يتطابق اسم المفعول في الجنس والعدد |
-| اللاتفية | 3 | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` — الصيغة الثالثة **للصفر وحده** |
-| الروسية | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
-| البولندية | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
-| السلوفينية | 4 | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` — الثانية **مثنّى**، للاثنين بالضبط |
-| الأيرلندية | 5 | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` — للواحد، وللاثنين، ولـ3–6، ولـ7–10، وللبقية؛ يتناوب الجذع لكن *leathanach* تبدأ بحرف `l`، ولا يُكتب على `l` أيٌّ من التغيّرات الاستهلالية في الأيرلندية، فتتطابق عدة صيغ |
-| العربية | 6 | من بينها `تم إنشاء صفحة مترجمة واحدة ({n})` عندما يكون العدد واحداً بالضبط و`تم إنشاء {n} صفحات مترجمة` للعدد القليل |
+??? example "تسعة من تلك الإصدارات، بترتيب الصيغ"
 
-كل صف هو مُدخل حي في `i18n/*/LC_MESSAGES/site.po` في هذا المستودع، يعرضه
-[البناء متعدد اللغات](index.md) مع كل إصدار — ويثبّت اختبارٌ هذا الجدول
-على تلك الكتالوجات، فلا يمكن أن ينحرف أحدهما عن الآخر.
+    | الكتالوج | الصيغ | الترجمات بترتيب الصيغ |
+    | --- | --- | --- |
+    | اليابانية | 1 | `ローカライズ済みページを{n}件ビルドしました` |
+    | التركية | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` — مرتين بالصيغة نفسها: فالأسماء في التركية تبقى مفردة بعد العدد |
+    | الإيطالية | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` — يتطابق اسم المفعول في الجنس والعدد |
+    | اللاتفية | 3 | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` — الصيغة الثالثة **للصفر وحده** |
+    | الروسية | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
+    | البولندية | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
+    | السلوفينية | 4 | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` — الثانية **مثنّى**، للاثنين بالضبط |
+    | الأيرلندية | 5 | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` — للواحد، وللاثنين، ولـ3–6، ولـ7–10، وللبقية؛ يتناوب الجذع لكن *leathanach* تبدأ بحرف `l`، ولا يُكتب على `l` أيٌّ من التغيّرات الاستهلالية في الأيرلندية، فتتطابق عدة صيغ |
+    | العربية | 6 | من بينها `تم إنشاء صفحة مترجمة واحدة ({n})` عندما يكون العدد واحداً بالضبط و`تم إنشاء {n} صفحات مترجمة` للعدد القليل |
+
+    كل صف هو مُدخل حي في `i18n/*/LC_MESSAGES/site.po` في هذا المستودع، يعرضه
+    [البناء متعدد اللغات](index.md) مع كل إصدار — ويثبّت اختبارٌ هذا الجدول
+    على تلك الكتالوجات، فلا يمكن أن ينحرف أحدهما عن الآخر.
 
 وضمن تلك الحدود، إعادة الترتيب والتكرار غير مقيدين عمداً. فكلاهما ضرورة
 نحوية في لغات حقيقية، وتقييد عدد مرات الظهور كان سيرفض ترجمات صحيحة من
@@ -219,16 +221,19 @@ flowchart LR
 
 كل ذاكرة مؤقتة محدودة الحجم، ولا تحتفظ أي منها *بالقيم* المستوفاة — بنية
 ثابتة ونص أنماط لا غير. والنتيجة، مقيسةً بواسطة
-[`benchmarks/runtime.py`](https://github.com/yhay81/gettext-tstrings/blob/main/benchmarks/runtime.py):
+[`benchmarks/runtime.py`](https://github.com/yhay81/gettext-tstrings/blob/main/benchmarks/runtime.py)
+على CPython 3.14.6 وmacOS 26 على حاسوب محمول بمعمارية arm64:
 نحو 0.4 ميكروثانية لرسالة بحقل واحد شاملةً إنشاء t-string نفسها، أي نحو
-2.5 ضعف `gettext(...).format(...)` مجردة لا تفحص شيئاً. وتسجّل الشروح في
+2.7 ضعف `gettext(...).format(...)` مجردة لا تفحص شيئاً. وهذه أرقام آلة
+واحدة — يطبع السكربت المفسّر والمنصة في ترويسته، فشغّله على العتاد الذي
+تنشر عليه فعلاً قبل أن تعدّ أي نسبة نسبتك أنت. وتسجّل الشروح في
 أعلى
 [`core.py`](https://github.com/yhay81/gettext-tstrings/blob/main/src/gettext_tstrings/core.py)
 القياسات الفردية الكامنة وراء هذا الشكل.
 
 ## إعادة تنفيذها { #reimplementing-it }
 
-لا شيء مما سبق معرفةٌ خاصة: فالاتفاقية مدوّنة بوصفها
+لا شيء مما سبق خاص بهذا التنفيذ: فالاتفاقية مدوّنة بوصفها
 [المواصفة v1](spec.md)، وتتيح
 [حزمة التوافق](spec.md#conformance) القابلة للقراءة آلياً لمستخرجٍ أو ملحق
 IDE أو تنفيذٍ بلغة أخرى أن يتحقق من نفسه أمام كل قاعدة شرحتها هذه الصفحة.

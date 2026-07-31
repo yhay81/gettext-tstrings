@@ -227,9 +227,8 @@ msgstr ""
 ## 런타임에 언어 바인딩 { #binding-a-language-at-runtime }
 
 지금까지의 모든 것은 카탈로그를 만듭니다. 남은 결정은 애플리케이션이
-카탈로그를 어디서 고르느냐이며, 정직한 답은 하나뿐입니다. *언어의
-스코프*마다 한 번 바인딩하세요 — CLI라면 프로세스, 웹 서비스라면
-요청입니다.
+카탈로그를 어디서 고르느냐입니다. *언어의 스코프*마다 한 번
+바인딩하세요 — CLI라면 프로세스, 웹 서비스라면 요청입니다.
 
 === "프로세스 하나, 언어 하나"
 
@@ -340,6 +339,53 @@ msgstr ""
 동작합니다. 배포할 산출물을 만드는 바로 그 빌드에서 카탈로그를
 컴파일하면, 그 안의 `.mo` 파일은 정확히 리뷰된 `.po` 파일이며, 누군가의
 노트북에서 컴파일된 것이 배포되는 일은 결코 없습니다.
+
+카탈로그가 어떻게 실려 가는지는 무엇을 배포하느냐에 달려 있습니다.
+휠은 카탈로그를 패키지 데이터로 나릅니다. 즉 카탈로그가 패키지 디렉터리
+*안에* 있어야 하며 — 최상위 `locales/`가 아니라 `src/myapp/locales/` —
+`.gitignore`가 평소에 감추는 파일을 포함하도록 빌드 백엔드에 일러
+주어야 합니다.
+
+=== "Hatchling"
+
+    ```toml
+    [tool.hatch.build]
+    # .mo files are build output, so they are gitignored; name them or the
+    # wheel ships without a single translation.
+    artifacts = ["src/myapp/locales/**/*.mo"]
+    ```
+
+=== "setuptools"
+
+    ```toml
+    [tool.setuptools.package-data]
+    myapp = ["locales/*/LC_MESSAGES/*.mo"]
+    ```
+
+읽어 들일 때는 소스 트리 기준 상대 경로가 아니라 패키지를 통해 읽으세요.
+그 경로는 휠이 설치되는 순간 존재하지 않게 됩니다.
+
+```python
+import gettext
+from importlib.resources import as_file, files
+
+with as_file(files("myapp") / "locales") as localedir:
+    translations = gettext.translation("messages", localedir=localedir, languages=["ja"])
+```
+
+컨테이너 이미지는 더 쉽습니다. 빌드 스테이지에서 컴파일하고 결과만
+복사하여, Babel은 그 스테이지에 남겨 두세요.
+
+```dockerfile
+FROM python:3.14-slim AS build
+COPY . /src
+RUN cd /src && python -m pip install ".[babel]" \
+    && pybabel compile -d src/myapp/locales
+
+FROM python:3.14-slim
+COPY --from=build /src /src
+RUN python -m pip install /src   # no [babel]: rendering needs the stdlib only
+```
 
 릴리스 전에, 이 페이지를 요약한 체크리스트입니다.
 

@@ -191,6 +191,17 @@ python -m pip install "gettext-tstrings[babel]"
 
 ## Hali { #status }
 
+| | |
+| --- | --- |
+| Toleo la kifurushi | 0.1.0a7 |
+| Uthabiti wa API | alpha — API ya Python bado inaweza kubadilika |
+| [Ainisho](spec.md) | v1, pamoja na [seti ya utiifu](spec.md#conformance) |
+| Python | 3.14 na mpya zaidi; imejaribiwa kwenye 3.14, 3.14t (nyuzi huru), na 3.15 |
+| Babel | 2.18 au mpya zaidi, na pale tu ambapo `pybabel` huendeshwa |
+| Vitegemezi vya wakati wa utekelezaji | hakuna — `gettext` ya maktaba sanifu |
+| Muundo wa katalogi | POT, PO, na MO za kawaida |
+| Mabadiliko | [CHANGELOG](https://github.com/yhay81/gettext-tstrings/blob/main/CHANGELOG.md) |
+
 Ni alpha. Mkataba ni mdogo kwa makusudi na [ainisho](spec.md) ndilo sehemu yake
 thabiti; API ya Python bado inaweza kubadilika. Kabla ya toleo thabiti, hii
 inahitaji vifaa vya majaribio vya lugha nyingi zaidi, ufuatiliaji endelevu wa

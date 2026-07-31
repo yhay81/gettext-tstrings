@@ -97,8 +97,8 @@ Secțiunile de mai jos arată fiecare compromis în detaliu, metodă cu metodă.
 _("Hello %(name)s") % {"name": name}
 ```
 
-Ce poate merge prost: o singură literă ștearsă dintr-o traducere face
-randarea să cadă.
+Ce poate merge prost: un substituent stricat devine o excepție la rulare, dacă
+validarea catalogului nu îl prinde mai întâi.
 
 Șirul din catalog poartă sintaxă printf, inclusiv o literă de tip la final —
 `s`-ul din `%(name)s` — ușor de trecut cu vederea și ușor de stricat:
@@ -288,7 +288,7 @@ traduce un fragment. T-stringurile ([PEP 750]) țin separate textul static și
 valorile, păstrând totodată o sintaxă asemănătoare f-stringurilor și legarea
 explicită a valorilor.
 
-Cum a ajuns Python la această răscruce — două PEP-uri la zece ani distanță și
+Cum a ajuns Python aici — două PEP-uri la zece ani distanță și
 discuția din biblioteca standard care s-a închis fără un răspuns — este
 povestit, cu surse, în [Context](background.md).
 

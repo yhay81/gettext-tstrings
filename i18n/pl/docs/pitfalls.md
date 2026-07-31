@@ -127,8 +127,19 @@ godzin. Podobnie osiem stron innego wydania, które były kopiami angielskiego
 nimi, bo to ten sam plik.
 
 Żadnej z tych rzeczy biblioteka tłumaczeń nie jest w stanie zobaczyć. Obie są
-tanie do przetestowania, kiedy już się wie, że trzeba: porównaj ze źródłem i
-wymagaj różnicy.
+tanie do przetestowania — ale nie przez wymaganie, żeby każdy wpis różnił się
+od swojego źródła: `OK`, nazwy produktów, imiona i nazwiska, akronimy oraz
+identyfikatory z kodu tłumaczą się same na siebie, a sprawdzenie, które tego
+zabrania, produkuje fałszywe alarmy na zawsze.
+
+Mierz zamiast tego *odsetek*, na całym katalogu albo całej stronie, i wysyłaj
+przypadki odstające do człowieka. Test tej strony robi dokładnie to —
+porównuje linie prozy każdego wydania z angielskim źródłem i nie przechodzi
+powyżej 25% identycznych. Sfałszowane wydanie miało 87%; każde autentyczne
+tłumaczenie mieści się między 4% a 8%, co jest tym małym ogonem linii, które
+zbiegają się zgodnie z prawem — takich jak URL-e i cytowane wyjście programu.
+Te dwie populacje są od siebie na tyle daleko, że próg nie musi być
+precyzyjny.
 
 ## Katalog to nie jedyna przetłumaczona rzecz { #the-catalog-is-not-the-only-translated-thing }
 

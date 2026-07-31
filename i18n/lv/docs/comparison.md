@@ -96,7 +96,8 @@ Sadaļas zemāk parāda katru kompromisu detalizēti, pa vienai metodei.
 _("Hello %(name)s") % {"name": name}
 ```
 
-Kas var noiet greizi: viens nodzēsts burts tulkojumā liek renderēšanai avarēt.
+Kas var noiet greizi: sabojāts vietturis kļūst par izpildlaika izņēmumu, ja vien
+kataloga validācija to nenoķer agrāk.
 
 Kataloga virkne nes printf sintaksi, ieskaitot beigu tipa burtu — to `s`
 virknē `%(name)s` —, ko ir viegli nepamanīt un viegli sabojāt:
@@ -282,7 +283,7 @@ ierauga, tā jau ir pabeigta virkne, tāpēc tās tulkošana nozīmē fragmenta
 tulkošanu. T-virknes ([PEP 750]) tur statisko tekstu un vērtības atsevišķi,
 vienlaikus saglabājot f-virknei līdzīgu sintaksi un skaidru vērtību piesaisti.
 
-Kā Python nonāca pie šī krustceļa — divi PEP ar desmit gadu starpību un
+Kā Python šeit nonāca — divi PEP ar desmit gadu starpību un
 standarta bibliotēkas diskusija, kas noslēdzās bez atbildes — ir izstāstīts ar
 avotiem [Priekšvēsturē](background.md).
 

@@ -26,6 +26,7 @@ from babel.messages.pofile import read_po
 
 from gettext_tstrings import (
     InvalidTranslationError,
+    __version__,
     compile_template,
     lazy_gettext,
     use_translations,
@@ -455,6 +456,21 @@ def test_every_edition_is_registered_everywhere() -> None:
 
     assert {code.lower() for code in built} == tested, "builder and tests disagree"
     assert switcher == tested, "language switcher and tests disagree"
+
+
+def test_every_edition_states_the_current_version() -> None:
+    """The compatibility table is the first thing an adopter reads. Pin it.
+
+    A version quoted in prose is a version that goes stale the release after
+    someone writes it, and this one sits in the table that answers "is this
+    safe to depend on" — the worst place to be wrong. Every edition repeats
+    the number, so a release that forgets the table fails here rather than
+    shipping thirty-six pages that disagree with the package.
+    """
+    pages = [DOCS / "index.md"]
+    pages += [I18N / language / "docs" / "index.md" for language in LANGUAGES]
+    for page in pages:
+        assert __version__ in page.read_text(encoding="utf-8"), page
 
 
 def _prose_lines(text: str) -> list[str]:

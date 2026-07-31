@@ -126,24 +126,26 @@ một dạng mà tiếng Anh không có.
 Tất cả những điều đó không hề là giả thuyết: chính catalog giao diện của trang
 này mang thông điệp số nhiều `Built {n} localized page` / `Built {n} localized
 pages` — hai nhánh tiếng Anh — và các ấn bản của trang dịch một thông điệp đó
-thành từ một cho đến sáu dạng:
+thành từ một cho đến sáu dạng.
 
-| Catalog | Số dạng | Các bản dịch, theo thứ tự dạng |
-| --- | --- | --- |
-| Tiếng Nhật | 1 | `ローカライズ済みページを{n}件ビルドしました` |
-| Tiếng Thổ Nhĩ Kỳ | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` — hai lần, giống hệt nhau: danh từ tiếng Thổ Nhĩ Kỳ giữ nguyên số ít sau một số từ |
-| Tiếng Ý | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` — phân từ hòa hợp theo giống và số |
-| Tiếng Latvia | 3 | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` — dạng thứ ba dành riêng cho **số không** |
-| Tiếng Nga | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
-| Tiếng Ba Lan | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
-| Tiếng Slovenia | 4 | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` — dạng thứ hai là **số đôi**, dành cho đúng hai |
-| Tiếng Ireland | 5 | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` — một, hai, 3–6, 7–10, và phần còn lại; thân từ có biến đổi nhưng *leathanach* bắt đầu bằng `l`, chữ cái mà không phép biến âm nào của tiếng Ireland thể hiện trên chữ viết, nên vài dạng trùng nhau |
-| Tiếng Ả Rập | 6 | trong đó có `تم إنشاء صفحة مترجمة واحدة ({n})` cho đúng một và `تم إنشاء {n} صفحات مترجمة` cho một vài |
+??? example "Chín ấn bản trong số đó, theo thứ tự dạng"
 
-Mỗi hàng đều là một mục thực sự trong `i18n/*/LC_MESSAGES/site.po` của kho mã
-này, được kết xuất bởi [bản dựng đa ngôn ngữ](index.md) ở mỗi lần phát hành —
-và một bài kiểm thử ghim bảng này vào chính các catalog đó, nên hai bên không
-thể trôi dạt khỏi nhau.
+    | Catalog | Số dạng | Các bản dịch, theo thứ tự dạng |
+    | --- | --- | --- |
+    | Tiếng Nhật | 1 | `ローカライズ済みページを{n}件ビルドしました` |
+    | Tiếng Thổ Nhĩ Kỳ | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` — hai lần, giống hệt nhau: danh từ tiếng Thổ Nhĩ Kỳ giữ nguyên số ít sau một số từ |
+    | Tiếng Ý | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` — phân từ hòa hợp theo giống và số |
+    | Tiếng Latvia | 3 | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` — dạng thứ ba dành riêng cho **số không** |
+    | Tiếng Nga | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
+    | Tiếng Ba Lan | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
+    | Tiếng Slovenia | 4 | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` — dạng thứ hai là **số đôi**, dành cho đúng hai |
+    | Tiếng Ireland | 5 | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` — một, hai, 3–6, 7–10, và phần còn lại; thân từ có biến đổi nhưng *leathanach* bắt đầu bằng `l`, chữ cái mà không phép biến âm nào của tiếng Ireland thể hiện trên chữ viết, nên vài dạng trùng nhau |
+    | Tiếng Ả Rập | 6 | trong đó có `تم إنشاء صفحة مترجمة واحدة ({n})` cho đúng một và `تم إنشاء {n} صفحات مترجمة` cho một vài |
+
+    Mỗi hàng đều là một mục thực sự trong `i18n/*/LC_MESSAGES/site.po` của kho mã
+    này, được kết xuất bởi [bản dựng đa ngôn ngữ](index.md) ở mỗi lần phát hành —
+    và một bài kiểm thử ghim bảng này vào chính các catalog đó, nên hai bên không
+    thể trôi dạt khỏi nhau.
 
 Trong những giới hạn đó, việc đảo thứ tự và lặp lại được cố ý để tự do. Cả
 hai đều cần thiết về mặt ngữ pháp trong các ngôn ngữ thực, và hạn chế số lần
@@ -248,16 +250,19 @@ Ba cache, mỗi giai đoạn một:
 
 Mọi cache đều có giới hạn, và không cache nào giữ lại các *giá trị* đã nội
 suy — chỉ cấu trúc tĩnh và văn bản pattern. Kết quả, đo bằng
-[`benchmarks/runtime.py`](https://github.com/yhay81/gettext-tstrings/blob/main/benchmarks/runtime.py):
-xấp xỉ 0.4 µs cho một thông điệp một trường, tính cả việc dựng chính
-t-string, khoảng 2.5× một lời gọi `gettext(...).format(...)` trơn không kiểm
-tra gì. Phần bình luận ở đầu
+[`benchmarks/runtime.py`](https://github.com/yhay81/gettext-tstrings/blob/main/benchmarks/runtime.py)
+trên CPython 3.14.6, macOS 26 trên một laptop arm64: xấp xỉ 0.4 µs cho một
+thông điệp một trường, tính cả việc dựng chính t-string, khoảng 2.7× một lời
+gọi `gettext(...).format(...)` trơn không kiểm tra gì. Đó là những con số của
+một cỗ máy — script in ra trình thông dịch và nền tảng của nó ngay ở phần đầu,
+nên hãy chạy nó trên chính phần cứng bạn triển khai trước khi coi bất kỳ tỷ lệ
+nào là của mình. Phần bình luận ở đầu
 [`core.py`](https://github.com/yhay81/gettext-tstrings/blob/main/src/gettext_tstrings/core.py)
 ghi lại các phép đo riêng lẻ đứng sau hình dạng đó.
 
 ## Tự hiện thực lại { #reimplementing-it }
 
-Không điều gì ở trên là bí truyền: quy ước đã được viết thành
+Không điều gì ở trên là riêng của hiện thực này: quy ước đã được viết thành
 [spec v1](spec.md), và [bộ kiểm thử tuân thủ](spec.md#conformance) máy đọc
 được của nó cho phép một bộ trích xuất, một plugin IDE, hay một hiện thực
 bằng ngôn ngữ khác tự kiểm mình trước từng quy tắc mà trang này đã giải

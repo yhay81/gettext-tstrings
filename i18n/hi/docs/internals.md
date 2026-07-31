@@ -123,24 +123,26 @@ msgid           'Total: {amount}'
 इनमें से कुछ भी काल्पनिक नहीं: इस साइट का अपना chrome कैटलॉग बहुवचन संदेश
 `Built {n} localized page` / `Built {n} localized pages` — दो अंग्रेज़ी
 शाखाएँ — रखता है, और साइट के संस्करण उसी एक संदेश का अनुवाद एक से लेकर छह
-रूपों तक में करते हैं:
+रूपों तक में करते हैं।
 
-| कैटलॉग | रूप | अनुवाद, रूप-क्रम में |
-| --- | --- | --- |
-| जापानी | 1 | `ローカライズ済みページを{n}件ビルドしました` |
-| तुर्की | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` — दो बार, बिल्कुल एक जैसा: संख्यावाचक के बाद तुर्की संज्ञाएँ एकवचन ही रहती हैं |
-| इतालवी | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` — कृदंत लिंग और वचन में मेल खाता है |
-| लातवियाई | 3 | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` — तीसरा रूप **केवल शून्य** के लिए है |
-| रूसी | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
-| पोलिश | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
-| स्लोवेनियाई | 4 | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` — दूसरा **द्विवचन** है, ठीक दो के लिए |
-| आयरिश | 5 | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` — एक, दो, 3–6, 7–10, और शेष; धातु बदलती है पर *leathanach* `l` से शुरू होता है, जिस पर आयरिश का कोई भी आदि-विकार लिखा नहीं जाता, इसलिए कई रूप आपस में मिल जाते हैं |
-| अरबी | 6 | जिनमें ठीक एक के लिए `تم إنشاء صفحة مترجمة واحدة ({n})` और कुछेक के लिए `تم إنشاء {n} صفحات مترجمة` शामिल हैं |
+??? example "उनमें से नौ संस्करण, रूप-क्रम में"
 
-हर पंक्ति इस रिपॉज़िटरी की `i18n/*/LC_MESSAGES/site.po` में एक जीवित
-प्रविष्टि है, जिसे [बहुभाषी बिल्ड](index.md) हर रिलीज़ पर रेंडर करता है —
-और एक टेस्ट इस तालिका को उन कैटलॉगों से बाँधे रखता है, ताकि दोनों कभी अलग
-न हो सकें।
+    | कैटलॉग | रूप | अनुवाद, रूप-क्रम में |
+    | --- | --- | --- |
+    | जापानी | 1 | `ローカライズ済みページを{n}件ビルドしました` |
+    | तुर्की | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` — दो बार, बिल्कुल एक जैसा: संख्यावाचक के बाद तुर्की संज्ञाएँ एकवचन ही रहती हैं |
+    | इतालवी | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` — कृदंत लिंग और वचन में मेल खाता है |
+    | लातवियाई | 3 | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` — तीसरा रूप **केवल शून्य** के लिए है |
+    | रूसी | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
+    | पोलिश | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
+    | स्लोवेनियाई | 4 | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` — दूसरा **द्विवचन** है, ठीक दो के लिए |
+    | आयरिश | 5 | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` — एक, दो, 3–6, 7–10, और शेष; धातु बदलती है पर *leathanach* `l` से शुरू होता है, जिस पर आयरिश का कोई भी आदि-विकार लिखा नहीं जाता, इसलिए कई रूप आपस में मिल जाते हैं |
+    | अरबी | 6 | जिनमें ठीक एक के लिए `تم إنشاء صفحة مترجمة واحدة ({n})` और कुछेक के लिए `تم إنشاء {n} صفحات مترجمة` शामिल हैं |
+
+    हर पंक्ति इस रिपॉज़िटरी की `i18n/*/LC_MESSAGES/site.po` में एक जीवित
+    प्रविष्टि है, जिसे [बहुभाषी बिल्ड](index.md) हर रिलीज़ पर रेंडर करता है —
+    और एक टेस्ट इस तालिका को उन कैटलॉगों से बाँधे रखता है, ताकि दोनों कभी अलग
+    न हो सकें।
 
 इन सीमाओं के भीतर, पुनर्क्रमण और दोहराव जान-बूझकर अनियंत्रित हैं। दोनों
 वास्तविक भाषाओं में व्याकरण की दृष्टि से आवश्यक हैं, और उपस्थिति की गिनती
@@ -238,14 +240,18 @@ flowchart LR
 हर कैश सीमाबद्ध है, और कोई भी इंटरपोलेट की गई *values* नहीं रखता — केवल
 स्थिर संरचना और pattern का टेक्स्ट। परिणाम, जिसे
 [`benchmarks/runtime.py`](https://github.com/yhay81/gettext-tstrings/blob/main/benchmarks/runtime.py)
-से मापा गया: एक-field वाले संदेश के लिए लगभग 0.4 µs, t-string के निर्माण
-समेत — कुछ न जाँचने वाले सादे `gettext(...).format(...)` का लगभग 2.5×।
+ने CPython 3.14.6, macOS 26, arm64 लैपटॉप पर मापा: एक-field वाले संदेश के
+लिए लगभग 0.4 µs, t-string के निर्माण समेत — कुछ न जाँचने वाले सादे
+`gettext(...).format(...)` का लगभग 2.7×। ये एक मशीन के आँकड़े हैं — स्क्रिप्ट
+अपने header में अपना interpreter और platform छापती है, इसलिए किसी भी अनुपात
+को अपना मानने से पहले उसे उसी हार्डवेयर पर चलाइए जिस पर आप असल में deploy
+करते हैं।
 [`core.py`](https://github.com/yhay81/gettext-tstrings/blob/main/src/gettext_tstrings/core.py)
 के शीर्ष की टिप्पणी उस आकार के पीछे के अलग-अलग माप दर्ज करती है।
 
 ## इसे फिर से लागू करना { #reimplementing-it }
 
-ऊपर का कुछ भी गुप्त विद्या नहीं है: परिपाटी [spec v1](spec.md) के रूप में
+ऊपर का कुछ भी इस क्रियान्वयन तक सीमित नहीं है: परिपाटी [spec v1](spec.md) के रूप में
 लिखी हुई है, और उसका मशीन-पठनीय [कन्फ़ॉर्मन्स सुइट](spec.md#conformance)
 किसी एक्सट्रैक्टर, IDE plugin, या किसी और भाषा के क्रियान्वयन को इस पेज पर
 समझाए हर नियम के विरुद्ध स्वयं को जाँचने देता है। यह क्रियान्वयन उस सुइट को

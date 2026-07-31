@@ -124,24 +124,26 @@ myndir en enskan gæti þurft `{n}` í mynd þar sem enskan hefur enga.
 Ekkert af þessu er tilgáta: viðmótsþýðingaskrá þessa vefs sjálfs ber
 fleirtöluskilaboðin `Built {n} localized page` / `Built {n} localized pages`
 — tvær enskar greinar — og útgáfur vefsins þýða þau einu skilaboð yfir í allt
-frá einni mynd upp í sex:
+frá einni mynd upp í sex.
 
-| Þýðingaskrá | Myndir | Þýðingarnar, í röð myndanna |
-| --- | --- | --- |
-| Japanska | 1 | `ローカライズ済みページを{n}件ビルドしました` |
-| Tyrkneska | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` — tvisvar, alveg eins: tyrknesk nafnorð standa í eintölu á eftir töluorði |
-| Ítalska | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` — lýsingarhátturinn samræmist í kyni og tölu |
-| Lettneska | 3 | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` — þriðja myndin er **fyrir núllið eitt** |
-| Rússneska | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
-| Pólska | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
-| Slóvenska | 4 | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` — önnur myndin er **tvítala**, fyrir nákvæmlega tvö |
-| Írska | 5 | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` — einn, tveir, 3–6, 7–10 og afgangurinn; stofninn víxlast, en *leathanach* byrjar á `l`, sem engin írsk framstöðubreyting ritar, svo nokkrar myndir falla saman |
-| Arabíska | 6 | meðal þeirra `تم إنشاء صفحة مترجمة واحدة ({n})` fyrir nákvæmlega einn og `تم إنشاء {n} صفحات مترجمة` fyrir fáeina |
+??? example "Níu þessara útgáfa, í röð myndanna"
 
-Hver einasta lína er lifandi færsla í `i18n/*/LC_MESSAGES/site.po` þessarar
-geymslu, birt af [fjöltyngdu byggingunni](index.md) við hverja útgáfu — og
-próf festir þessa töflu við þær þýðingaskrár, svo að þær tvær geta ekki rekið
-í sundur.
+    | Þýðingaskrá | Myndir | Þýðingarnar, í röð myndanna |
+    | --- | --- | --- |
+    | Japanska | 1 | `ローカライズ済みページを{n}件ビルドしました` |
+    | Tyrkneska | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` — tvisvar, alveg eins: tyrknesk nafnorð standa í eintölu á eftir töluorði |
+    | Ítalska | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` — lýsingarhátturinn samræmist í kyni og tölu |
+    | Lettneska | 3 | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` — þriðja myndin er **fyrir núllið eitt** |
+    | Rússneska | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
+    | Pólska | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
+    | Slóvenska | 4 | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` — önnur myndin er **tvítala**, fyrir nákvæmlega tvö |
+    | Írska | 5 | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` — einn, tveir, 3–6, 7–10 og afgangurinn; stofninn víxlast, en *leathanach* byrjar á `l`, sem engin írsk framstöðubreyting ritar, svo nokkrar myndir falla saman |
+    | Arabíska | 6 | meðal þeirra `تم إنشاء صفحة مترجمة واحدة ({n})` fyrir nákvæmlega einn og `تم إنشاء {n} صفحات مترجمة` fyrir fáeina |
+
+    Hver einasta lína er lifandi færsla í `i18n/*/LC_MESSAGES/site.po` þessarar
+    geymslu, birt af [fjöltyngdu byggingunni](index.md) við hverja útgáfu — og
+    próf festir þessa töflu við þær þýðingaskrár, svo að þær tvær geta ekki rekið
+    í sundur.
 
 Innan þeirra marka eru víxlun og endurtekning óheftar af ásettu ráði. Hvort
 tveggja er málfræðilega nauðsynlegt í raunverulegum tungumálum, og að takmarka
@@ -239,16 +241,19 @@ flowchart LR
 
 Sérhvert skyndiminni er takmarkað, og ekkert þeirra heldur eftir innskeyttum
 *gildum* — aðeins fastri byggingu og texta mynstra. Niðurstaðan, mæld af
-[`benchmarks/runtime.py`](https://github.com/yhay81/gettext-tstrings/blob/main/benchmarks/runtime.py):
-um það bil 0,4 µs fyrir skilaboð með einum reit, að meðtalinni smíði
-t-strengsins sjálfs, eða um 2,5× á við bert `gettext(...).format(...)` sem
-athugar ekkert. Athugasemdirnar efst í
+[`benchmarks/runtime.py`](https://github.com/yhay81/gettext-tstrings/blob/main/benchmarks/runtime.py)
+á CPython 3.14.6, macOS 26 á arm64-fartölvu: um það bil 0,4 µs fyrir skilaboð
+með einum reit, að meðtalinni smíði t-strengsins sjálfs, eða um 2,7× á við bert
+`gettext(...).format(...)` sem athugar ekkert. Þetta eru tölur einnar vélar —
+skriftan prentar túlk sinn og vettvang í hausnum sínum, svo keyrðu hana á
+þeim vélbúnaði sem þú dreifir raunverulega á áður en þú lítur á nokkurt
+hlutfall sem þitt. Athugasemdirnar efst í
 [`core.py`](https://github.com/yhay81/gettext-tstrings/blob/main/src/gettext_tstrings/core.py)
 skrá einstöku mælingarnar að baki þessari mynd.
 
 ## Að útfæra það upp á nýtt { #reimplementing-it }
 
-Ekkert af ofangreindu er leynileg vitneskja: venjan er skrifuð niður sem
+Ekkert af ofangreindu er bundið þessari útfærslu: venjan er skrifuð niður sem
 [forskrift v1](spec.md), og vélleseinlegu [samræmisprófin](spec.md#conformance)
 gera útdráttartóli, viðbót við þróunarumhverfi eða útfærslu í öðru
 forritunarmáli kleift að athuga sjálft sig gagnvart hverri þeirri reglu sem

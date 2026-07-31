@@ -126,24 +126,26 @@ membutuhkan `{n}` di bentuk yang tidak dimiliki bahasa Inggris.
 Tidak ada satu pun dari itu yang hipotetis: katalog chrome situs ini sendiri
 membawa pesan jamak `Built {n} localized page` / `Built {n} localized pages` —
 dua cabang bahasa Inggris — dan edisi-edisi situs ini menerjemahkan satu pesan
-itu menjadi mulai dari satu bentuk hingga enam:
+itu menjadi mulai dari satu bentuk hingga enam.
 
-| Katalog | Bentuk | Terjemahannya, dalam urutan bentuk |
-| --- | --- | --- |
-| Jepang | 1 | `ローカライズ済みページを{n}件ビルドしました` |
-| Turki | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` — dua kali, identik: nomina bahasa Turki tetap tunggal setelah kata bilangan |
-| Italia | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` — partisipnya menyesuaikan gender dan jumlah |
-| Latvia | 3 | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` — bentuk ketiganya khusus untuk **nol saja** |
-| Rusia | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
-| Polandia | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
-| Slovenia | 4 | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` — yang kedua adalah **dual**, untuk tepat dua |
-| Irlandia | 5 | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` — satu, dua, 3–6, 7–10, dan sisanya; batang katanya berganti-ganti tetapi *leathanach* diawali `l`, yang tidak ditulis oleh mutasi bahasa Irlandia mana pun, sehingga beberapa bentuknya berimpit |
-| Arab | 6 | di antaranya `تم إنشاء صفحة مترجمة واحدة ({n})` untuk tepat satu dan `تم إنشاء {n} صفحات مترجمة` untuk beberapa |
+??? example "Sembilan dari edisi-edisi itu, dalam urutan bentuk"
 
-Setiap baris adalah entri hidup di `i18n/*/LC_MESSAGES/site.po` repositori ini,
-dirender oleh [build multibahasa](index.md) pada setiap rilis — dan sebuah
-pengujian memaku tabel ini ke katalog-katalog itu, sehingga keduanya tidak
-dapat saling menjauh.
+    | Katalog | Bentuk | Terjemahannya, dalam urutan bentuk |
+    | --- | --- | --- |
+    | Jepang | 1 | `ローカライズ済みページを{n}件ビルドしました` |
+    | Turki | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` — dua kali, identik: nomina bahasa Turki tetap tunggal setelah kata bilangan |
+    | Italia | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` — partisipnya menyesuaikan gender dan jumlah |
+    | Latvia | 3 | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` — bentuk ketiganya khusus untuk **nol saja** |
+    | Rusia | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
+    | Polandia | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
+    | Slovenia | 4 | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` — yang kedua adalah **dual**, untuk tepat dua |
+    | Irlandia | 5 | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` — satu, dua, 3–6, 7–10, dan sisanya; batang katanya berganti-ganti tetapi *leathanach* diawali `l`, yang tidak ditulis oleh mutasi bahasa Irlandia mana pun, sehingga beberapa bentuknya berimpit |
+    | Arab | 6 | di antaranya `تم إنشاء صفحة مترجمة واحدة ({n})` untuk tepat satu dan `تم إنشاء {n} صفحات مترجمة` untuk beberapa |
+
+    Setiap baris adalah entri hidup di `i18n/*/LC_MESSAGES/site.po` repositori
+    ini, dirender oleh [build multibahasa](index.md) pada setiap rilis — dan
+    sebuah pengujian memaku tabel ini ke katalog-katalog itu, sehingga keduanya
+    tidak dapat saling menjauh.
 
 Dalam batas-batas itu, pengurutan ulang dan pengulangan sengaja dibiarkan
 bebas. Keduanya secara tata bahasa diperlukan di bahasa-bahasa nyata, dan
@@ -247,16 +249,20 @@ Tiga cache, satu per tahap:
 
 Setiap cache dibatasi, dan tak satu pun menahan *nilai* interpolasi — hanya
 struktur statis dan teks pattern. Hasilnya, diukur oleh
-[`benchmarks/runtime.py`](https://github.com/yhay81/gettext-tstrings/blob/main/benchmarks/runtime.py):
-kira-kira 0.4 µs untuk pesan satu field termasuk konstruksi t-string-nya
-sendiri, sekitar 2.5× dari `gettext(...).format(...)` polos yang tidak
-memeriksa apa pun. Komentar di bagian atas
+[`benchmarks/runtime.py`](https://github.com/yhay81/gettext-tstrings/blob/main/benchmarks/runtime.py)
+pada CPython 3.14.6, macOS 26 di laptop arm64: kira-kira 0.4 µs untuk pesan
+satu field termasuk konstruksi t-string-nya sendiri, sekitar 2.7× dari
+`gettext(...).format(...)` polos yang tidak memeriksa apa pun. Itu adalah
+angka-angka satu mesin — skripnya mencetak interpreter dan platformnya di
+headernya, jadi jalankan di perangkat keras yang benar-benar Anda pakai untuk
+deploy sebelum memperlakukan rasio mana pun sebagai milik Anda. Komentar di
+bagian atas
 [`core.py`](https://github.com/yhay81/gettext-tstrings/blob/main/src/gettext_tstrings/core.py)
 mencatat pengukuran-pengukuran individual di balik bentuk itu.
 
 ## Mengimplementasikannya kembali { #reimplementing-it }
 
-Tidak ada di atas yang menjadi pengetahuan tersembunyi: konvensinya dituliskan
+Tidak ada di atas yang khusus untuk implementasi ini: konvensinya dituliskan
 sebagai [spec v1](spec.md), dan
 [suite konformans](spec.md#conformance) terbaca mesinnya membiarkan sebuah
 ekstraktor, plugin IDE, atau implementasi di bahasa lain memeriksa dirinya

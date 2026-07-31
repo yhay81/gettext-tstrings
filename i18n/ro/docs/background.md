@@ -120,7 +120,8 @@ scris, fiecare pe pagina lui:
 Discuția nu s-a încheiat, iar acest proiect este un participant la ea, nu un
 verdict asupra ei. Dacă ai experiență de producție cu gettext care are legătură
 cu aceste alegeri, [același fir][discuss-thread] și
-[Discuțiile][gh-discussions] acestui depozit sunt locurile unde se dezbate.
+[Discuțiile][gh-discussions] acestui depozit sunt locurile unde discuția
+continuă.
 
 ## Cronologie { #timeline }
 

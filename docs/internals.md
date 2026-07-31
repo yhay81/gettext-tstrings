@@ -122,23 +122,25 @@ with more forms than English may need `{n}` in a form where English has none.
 None of that is hypothetical: this site's own chrome catalog carries the
 plural message `Built {n} localized page` / `Built {n} localized pages` — two
 English branches — and the site's editions translate that one message into
-anywhere from one form to six:
+anywhere from one form to six.
 
-| Catalog | Forms | The translations, in form order |
-| --- | --- | --- |
-| Japanese | 1 | `ローカライズ済みページを{n}件ビルドしました` |
-| Turkish | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` — twice, identically: Turkish nouns stay singular after a numeral |
-| Italian | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` — the participle agrees in gender and number |
-| Latvian | 3 | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` — the third form is for **zero alone** |
-| Russian | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
-| Polish | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
-| Slovenian | 4 | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` — the second is a **dual**, for exactly two |
-| Irish | 5 | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` — one, two, 3–6, 7–10, and the rest; the stem alternates but *leathanach* begins with `l`, which no Irish mutation writes, so several forms coincide |
-| Arabic | 6 | among them `تم إنشاء صفحة مترجمة واحدة ({n})` for exactly one and `تم إنشاء {n} صفحات مترجمة` for a few |
+??? example "Nine of those editions, in form order"
 
-Every row is a live entry in this repository's `i18n/*/LC_MESSAGES/site.po`,
-rendered by the [multilingual build](index.md) on every release — and a test
-pins this table to those catalogs, so the two cannot drift apart.
+    | Catalog | Forms | The translations, in form order |
+    | --- | --- | --- |
+    | Japanese | 1 | `ローカライズ済みページを{n}件ビルドしました` |
+    | Turkish | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` — twice, identically: Turkish nouns stay singular after a numeral |
+    | Italian | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` — the participle agrees in gender and number |
+    | Latvian | 3 | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` — the third form is for **zero alone** |
+    | Russian | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
+    | Polish | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
+    | Slovenian | 4 | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` — the second is a **dual**, for exactly two |
+    | Irish | 5 | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` — one, two, 3–6, 7–10, and the rest; the stem alternates but *leathanach* begins with `l`, which no Irish mutation writes, so several forms coincide |
+    | Arabic | 6 | among them `تم إنشاء صفحة مترجمة واحدة ({n})` for exactly one and `تم إنشاء {n} صفحات مترجمة` for a few |
+
+    Every row is a live entry in this repository's `i18n/*/LC_MESSAGES/site.po`,
+    rendered by the [multilingual build](index.md) on every release — and a test
+    pins this table to those catalogs, so the two cannot drift apart.
 
 Within those bounds, reordering and repetition are deliberately
 unconstrained. Both are grammatically necessary in real languages, and
@@ -232,16 +234,19 @@ Three caches, one per stage:
 
 Every cache is bounded, and none retains interpolated *values* — only static
 structure and pattern text. The result, measured by
-[`benchmarks/runtime.py`](https://github.com/yhay81/gettext-tstrings/blob/main/benchmarks/runtime.py):
-roughly 0.4 µs for a one-field message including the construction of the
-t-string itself, about 2.5× a plain `gettext(...).format(...)` that checks
-nothing. The commentary at the top of
+[`benchmarks/runtime.py`](https://github.com/yhay81/gettext-tstrings/blob/main/benchmarks/runtime.py)
+on CPython 3.14.6, macOS 26 on an arm64 laptop: roughly 0.4 µs for a one-field
+message including the construction of the t-string itself, about 2.7× a plain
+`gettext(...).format(...)` that checks nothing. Those are the numbers of one
+machine — the script prints its interpreter and platform in its header, so run
+it on the hardware you actually deploy to before treating any ratio as yours.
+The commentary at the top of
 [`core.py`](https://github.com/yhay81/gettext-tstrings/blob/main/src/gettext_tstrings/core.py)
 records the individual measurements behind that shape.
 
 ## Reimplementing it
 
-None of the above is private lore: the convention is written down as
+None of the above is specific to this implementation: the convention is written down as
 [spec v1](spec.md), and its machine-readable
 [conformance suite](spec.md#conformance) lets an extractor, an IDE plugin, or
 an implementation in another language check itself against every rule this

@@ -116,7 +116,8 @@ tertulis di sini, masing-masing di halamannya sendiri:
 Diskusinya belum berakhir, dan proyek ini adalah peserta di dalamnya, bukan
 vonis atasnya. Jika Anda punya pengalaman gettext produksi yang relevan dengan
 pilihan-pilihan ini, [utas yang sama][discuss-thread] dan
-[Discussions][gh-discussions] repositori ini adalah tempat memperdebatkannya.
+[Discussions][gh-discussions] repositori ini adalah tempat diskusinya
+berlanjut.
 
 ## Linimasa { #timeline }
 

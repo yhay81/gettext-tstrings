@@ -86,7 +86,7 @@ PEP 750 所列的動機之中。這份 PEP 把機制一般化了——一種任�
 
 討論還沒結束，而本專案是其中的參與者，不是它的判決。如果你有正式環境的 gettext 經驗
 足以左右這些選擇，[那串討論][discuss-thread]與本儲存庫的
-[Discussions][gh-discussions] 就是它們被辯論的地方。
+[Discussions][gh-discussions] 就是討論持續進行的地方。
 
 ## 時間線 { #timeline }
 

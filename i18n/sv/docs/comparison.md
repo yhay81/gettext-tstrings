@@ -96,7 +96,8 @@ Avsnitten nedan visar varje avvägning i detalj, en metod i taget.
 _("Hello %(name)s") % {"name": name}
 ```
 
-Vad som kan gå fel: en raderad bokstav i en översättning kraschar renderingen.
+Vad som kan gå fel: en skadad platshållare blir ett körtidsundantag, om inte
+katalogvalidering fångar den först.
 
 Katalogsträngen bär printf-syntax, inklusive en avslutande typbokstav —
 `s`:et i `%(name)s` — som är lätt att förbise och lätt att skada:
@@ -285,7 +286,7 @@ redan en färdig sträng, så att översätta den innebär att översätta ett
 fragment. t-strings ([PEP 750]) håller den statiska texten och värdena
 åtskilda med bibehållen f-string-lik syntax och explicit värdebindning.
 
-Hur Python hamnade vid detta vägskäl — två PEP:ar med tio års mellanrum, och
+Hur Python hamnade hit — två PEP:ar med tio års mellanrum, och
 stdlib-diskussionen som stängdes utan svar — berättas med källor på
 [Bakgrund](background.md).
 

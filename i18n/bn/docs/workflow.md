@@ -228,8 +228,8 @@ msgstr ""
 ## রানটাইমে একটি ভাষা বাঁধা { #binding-a-language-at-runtime }
 
 এতক্ষণের সবটাই ক্যাটালগ তৈরি করে। বাকি সিদ্ধান্তটি হল অ্যাপ্লিকেশন কোথায়
-একটি ক্যাটালগ বাছবে, আর তার একটিই সৎ উত্তর: প্রতি *ভাষার পরিসরে* একবার করে
-বাঁধুন — CLI-এর জন্য প্রসেস, ওয়েব সার্ভিসের জন্য request।
+একটি ক্যাটালগ বাছবে। প্রতি *ভাষার পরিসরে* একবার করে বাঁধুন — CLI-এর জন্য
+প্রসেস, ওয়েব সার্ভিসের জন্য request।
 
 === "এক প্রসেস, এক ভাষা"
 
@@ -341,6 +341,53 @@ msgstr ""
 তৈরি করে সেখানেই ক্যাটালগ কম্পাইল করুন, যাতে তার ভিতরের `.mo` ফাইলগুলি হুবহু
 সেই রিভিউ করা `.po` ফাইলই হয়, আর কারও ল্যাপটপে কম্পাইল করা কিছু কখনও পাঠানো
 না হয়।
+
+এগুলি কীভাবে যাত্রা করে তা নির্ভর করে আপনি কী ডিপ্লয় করছেন তার উপর। একটি
+wheel এগুলিকে প্যাকেজ ডেটা হিসেবে বয়ে নেয়, অর্থাৎ ক্যাটালগগুলিকে প্যাকেজ
+ডিরেক্টরির *ভিতরে* থাকতে হবে — `src/myapp/locales/`, উপরের স্তরের
+`locales/` নয় — আর বিল্ড ব্যাকএন্ডকে বলে দিতে হবে যে `.gitignore` সচরাচর যে
+ফাইলগুলি আড়াল করে সেগুলিও অন্তর্ভুক্ত করতে হবে:
+
+=== "Hatchling"
+
+    ```toml
+    [tool.hatch.build]
+    # .mo files are build output, so they are gitignored; name them or the
+    # wheel ships without a single translation.
+    artifacts = ["src/myapp/locales/**/*.mo"]
+    ```
+
+=== "setuptools"
+
+    ```toml
+    [tool.setuptools.package-data]
+    myapp = ["locales/*/LC_MESSAGES/*.mo"]
+    ```
+
+সোর্স ট্রি-সাপেক্ষ কোনও পথ দিয়ে নয়, প্যাকেজটির মধ্য দিয়েই এগুলি ফিরে পড়ুন —
+wheel ইনস্টল হওয়ার মুহূর্তেই সেই পথটির আর অস্তিত্ব থাকে না:
+
+```python
+import gettext
+from importlib.resources import as_file, files
+
+with as_file(files("myapp") / "locales") as localedir:
+    translations = gettext.translation("messages", localedir=localedir, languages=["ja"])
+```
+
+কন্টেইনার ইমেজের কাজটি সহজতর: বিল্ড স্টেজে কম্পাইল করুন আর ফলাফলটি কপি করুন,
+Babel-কে সেই স্টেজেই ফেলে রেখে।
+
+```dockerfile
+FROM python:3.14-slim AS build
+COPY . /src
+RUN cd /src && python -m pip install ".[babel]" \
+    && pybabel compile -d src/myapp/locales
+
+FROM python:3.14-slim
+COPY --from=build /src /src
+RUN python -m pip install /src   # no [babel]: rendering needs the stdlib only
+```
 
 রিলিজের আগে এই পৃষ্ঠাটি যে চেকলিস্টে দাঁড়ায়:
 

@@ -125,7 +125,18 @@ engelska källan — vilket klarar en kontroll som jämför kodblock mellan dem,
 eftersom de är samma fil.
 
 Inget av det är något ett översättningsbibliotek kan se. Båda är billiga att
-testa för när man väl vet att man ska: jämför mot källan och kräv en skillnad.
+testa för, men inte genom att kräva att varje post skiljer sig från sin källa:
+`OK`, produktnamn, personnamn, akronymer och kodidentifierare översätts alla
+till sig själva, och en kontroll som förbjuder det ger falsklarm för all
+framtid.
+
+Mät *andelen* i stället, över en hel katalog eller en hel sida, och skicka
+avvikarna till en människa. Den här webbplatsens eget test gör precis det — det
+jämför prosaraderna i varje utgåva mot den engelska källan och fallerar över
+25 % identiska. Den förfalskade utgåvan låg på 87 %; varje äkta översättning
+ligger mellan 4 % och 8 %, vilket är den lilla svansen av rader som med rätta
+sammanfaller, såsom URL:er och citerad programutdata. De två populationerna
+ligger tillräckligt långt isär för att tröskeln inte ska behöva vara exakt.
 
 ## Katalogen är inte det enda som översätts { #the-catalog-is-not-the-only-translated-thing }
 

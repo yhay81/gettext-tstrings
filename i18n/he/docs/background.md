@@ -105,8 +105,8 @@ Everitt, Koudai Aono, Lysandros Nikolaou ו-Dave Peck — החייה את הרע
 
 הדיון לא הסתיים, והפרויקט הזה הוא משתתף בו, לא פסק דין עליו. אם יש לכם
 ניסיון ייצור עם gettext שנוגע לבחירות האלה, [אותו שרשור][discuss-thread]
-וה-[Discussions][gh-discussions] של המאגר הזה הם המקום שבו הדברים
-נידונים.
+וה-[Discussions][gh-discussions] של המאגר הזה הם המקום שבו הדיון
+נמשך.
 
 ## ציר זמן { #timeline }
 

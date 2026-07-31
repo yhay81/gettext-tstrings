@@ -125,24 +125,26 @@ umbo ambalo Kiingereza halina.
 Hakuna kati ya hayo ni dhahania: katalogi ya kiolesura ya tovuti hii yenyewe
 hubeba ujumbe wa wingi `Built {n} localized page` / `Built {n} localized pages`
 — matawi mawili ya Kiingereza — nayo matoleo ya tovuti hutafsiri ujumbe huo
-mmoja katika kuanzia umbo moja hadi sita:
+mmoja katika kuanzia umbo moja hadi sita.
 
-| Katalogi | Maumbo | Tafsiri, kwa mpangilio wa maumbo |
-| --- | --- | --- |
-| Kijapani | 1 | `ローカライズ済みページを{n}件ビルドしました` |
-| Kituruki | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` — mara mbili, ikiwa ileile: nomino za Kituruki hubaki katika umoja baada ya nambari |
-| Kiitaliano | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` — shirikishi hukubaliana katika jinsia na idadi |
-| Kilatvia | 3 | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` — umbo la tatu ni kwa ajili ya **sifuri pekee** |
-| Kirusi | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
-| Kipolandi | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
-| Kislovenia | 4 | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` — la pili ni umbo la **uwili**, kwa mbili hasa |
-| Kiayalandi | 5 | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` — moja, mbili, 3–6, 7–10, na zilizosalia; shina hubadilikabadilika lakini *leathanach* huanza na `l`, herufi ambayo hakuna ubadilikaji wa Kiayalandi unaoiandika, hivyo maumbo kadhaa hufanana |
-| Kiarabu | 6 | miongoni mwayo `تم إنشاء صفحة مترجمة واحدة ({n})` kwa moja hasa na `تم إنشاء {n} صفحات مترجمة` kwa chache |
+??? example "Matoleo tisa kati ya hayo, kwa mpangilio wa maumbo"
 
-Kila safu ni ingizo hai ndani ya `i18n/*/LC_MESSAGES/site.po` ya hazina hii,
-linaloonyeshwa na [ujenzi wa lugha nyingi](index.md) katika kila toleo — na
-jaribio hulibandika jedwali hili kwenye katalogi hizo, ili hivyo viwili
-visiweze kutengana.
+    | Katalogi | Maumbo | Tafsiri, kwa mpangilio wa maumbo |
+    | --- | --- | --- |
+    | Kijapani | 1 | `ローカライズ済みページを{n}件ビルドしました` |
+    | Kituruki | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` — mara mbili, ikiwa ileile: nomino za Kituruki hubaki katika umoja baada ya nambari |
+    | Kiitaliano | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` — shirikishi hukubaliana katika jinsia na idadi |
+    | Kilatvia | 3 | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` — umbo la tatu ni kwa ajili ya **sifuri pekee** |
+    | Kirusi | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
+    | Kipolandi | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
+    | Kislovenia | 4 | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` — la pili ni umbo la **uwili**, kwa mbili hasa |
+    | Kiayalandi | 5 | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` — moja, mbili, 3–6, 7–10, na zilizosalia; shina hubadilikabadilika lakini *leathanach* huanza na `l`, herufi ambayo hakuna ubadilikaji wa Kiayalandi unaoiandika, hivyo maumbo kadhaa hufanana |
+    | Kiarabu | 6 | miongoni mwayo `تم إنشاء صفحة مترجمة واحدة ({n})` kwa moja hasa na `تم إنشاء {n} صفحات مترجمة` kwa chache |
+
+    Kila safu ni ingizo hai ndani ya `i18n/*/LC_MESSAGES/site.po` ya hazina hii,
+    linaloonyeshwa na [ujenzi wa lugha nyingi](index.md) katika kila toleo — na
+    jaribio hulibandika jedwali hili kwenye katalogi hizo, ili hivyo viwili
+    visiweze kutengana.
 
 Ndani ya mipaka hiyo, kupanga upya na kurudia hakuna vizuizi kwa makusudi.
 Vyote viwili ni vya lazima kisarufi katika lugha halisi, na kuzuia idadi ya
@@ -243,16 +245,20 @@ Akiba tatu, moja kwa kila hatua:
 
 Kila akiba ina mipaka, na hakuna inayohifadhi *thamani* zilizoingizwa — muundo
 tuli na maandishi ya muundo tu. Matokeo, yaliyopimwa na
-[`benchmarks/runtime.py`](https://github.com/yhay81/gettext-tstrings/blob/main/benchmarks/runtime.py):
-takribani mikrosekunde 0.4 kwa ujumbe wenye uga mmoja ikijumuisha ujenzi wa
-t-string yenyewe, karibu mara 2.5 ya `gettext(...).format(...)` tupu isiyokagua
-chochote. Maelezo yaliyo juu ya
+[`benchmarks/runtime.py`](https://github.com/yhay81/gettext-tstrings/blob/main/benchmarks/runtime.py)
+kwenye CPython 3.14.6, macOS 26 juu ya kompyuta pakatwa ya arm64: takribani
+mikrosekunde 0.4 kwa ujumbe wenye uga mmoja ikijumuisha ujenzi wa t-string
+yenyewe, karibu mara 2.7 ya `gettext(...).format(...)` tupu isiyokagua chochote.
+Hizo ni nambari za mashine moja — hati hiyo huchapisha mkalimani na jukwaa lake
+kwenye kichwa chake, hivyo iendeshe kwenye maunzi unayosambaza kwayo kwa kweli
+kabla ya kuchukulia uwiano wowote kuwa wako. Maelezo yaliyo juu ya
 [`core.py`](https://github.com/yhay81/gettext-tstrings/blob/main/src/gettext_tstrings/core.py)
 hurekodi vipimo mahususi vilivyo nyuma ya umbo hilo.
 
 ## Kuitekeleza upya { #reimplementing-it }
 
-Hakuna kati ya yaliyo hapo juu ni siri ya ndani: makubaliano yameandikwa kama
+Hakuna kati ya yaliyo hapo juu ni mahususi kwa utekelezaji huu: makubaliano
+yameandikwa kama
 [ainisho v1](spec.md), na [seti yake ya utiifu](spec.md#conformance)
 inayosomeka na mashine huruhusu kitoaji, programu-jalizi ya IDE, au utekelezaji
 katika lugha nyingine kujikagua dhidi ya kila kanuni ambayo ukurasa huu

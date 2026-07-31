@@ -98,8 +98,8 @@ Mae'r adrannau isod yn dangos pob cyfaddawd yn fanwl, un dull ar y tro.
 _("Hello %(name)s") % {"name": name}
 ```
 
-Beth all fynd o'i le: mae un llythyren wedi'i dileu mewn cyfieithiad yn chwalu'r
-rendro.
+Beth all fynd o'i le: daw daliwr lle wedi'i niweidio'n eithriad rhedeg, oni bai
+bod dilysu catalogau'n ei ddal yn gyntaf.
 
 Mae llinyn y catalog yn cario cystrawen printf, gan gynnwys llythyren math ar y
 diwedd — yr `s` yn `%(name)s` — sy'n hawdd ei hanwybyddu ac yn hawdd ei
@@ -291,7 +291,7 @@ mae eisoes yn llinyn gorffenedig, felly mae ei gyfieithu'n golygu cyfieithu
 darn. Mae llinynnau-t ([PEP 750]) yn cadw'r testun statig a'r gwerthoedd ar
 wahân tra'n cadw cystrawen debyg i linyn-f a rhwymo gwerthoedd penodol.
 
-Adroddir sut y cyrhaeddodd Python y groesffordd hon — dau PEP ddeng mlynedd ar
+Adroddir sut y cyrhaeddodd Python yma — dau PEP ddeng mlynedd ar
 wahân, a'r drafodaeth am y llyfrgell safonol a gaeodd heb ateb — gyda
 ffynonellau ar [Gefndir](background.md).
 

@@ -226,8 +226,8 @@ odpremiti pokvarjeno«.
 ## Vezava jezika med izvajanjem { #binding-a-language-at-runtime }
 
 Vse doslej proizvaja kataloge. Preostala odločitev je, kje aplikacija enega
-izbere, in ima en sam pošten odgovor: vežite enkrat na *obseg enega jezika* —
-na proces pri orodju ukazne vrstice, na zahtevo pri spletni storitvi.
+izbere. Vežite enkrat na *obseg enega jezika* — na proces pri orodju ukazne
+vrstice, na zahtevo pri spletni storitvi.
 
 === "En proces, en jezik"
 
@@ -338,6 +338,52 @@ tam namestite goli paket; izris teče izključno na standardni knjižnici.
 Kataloge kompilirajte v isti gradnji, ki proizvede izdelek, ki ga razmestite,
 tako da so datoteke `.mo` v njem natanko pregledane datoteke `.po` in da se ne
 odpremi nič, kar je bilo kompilirano na nekem prenosniku.
+
+Kako potujejo, je odvisno od tega, kaj razmeščate. Datoteka wheel jih nosi kot
+podatke paketa, kar pomeni, da morajo katalogi živeti *znotraj* imenika paketa
+— `src/myapp/locales/`, ne v vrhnjem `locales/` — gradbenemu zaledju pa je
+treba povedati, naj vključi datoteke, ki jih `.gitignore` sicer skriva:
+
+=== "Hatchling"
+
+    ```toml
+    [tool.hatch.build]
+    # .mo files are build output, so they are gitignored; name them or the
+    # wheel ships without a single translation.
+    artifacts = ["src/myapp/locales/**/*.mo"]
+    ```
+
+=== "setuptools"
+
+    ```toml
+    [tool.setuptools.package-data]
+    myapp = ["locales/*/LC_MESSAGES/*.mo"]
+    ```
+
+Berite jih nazaj skozi paket in ne po poti, ki je relativna na izvorno drevo:
+ta neha obstajati v trenutku, ko je wheel nameščen:
+
+```python
+import gettext
+from importlib.resources import as_file, files
+
+with as_file(files("myapp") / "locales") as localedir:
+    translations = gettext.translation("messages", localedir=localedir, languages=["ja"])
+```
+
+Slika vsebnika ima lažje delo: kompilirajte med gradbeno stopnjo in prekopirajte
+rezultat, Babel pa pustite v tisti stopnji.
+
+```dockerfile
+FROM python:3.14-slim AS build
+COPY . /src
+RUN cd /src && python -m pip install ".[babel]" \
+    && pybabel compile -d src/myapp/locales
+
+FROM python:3.14-slim
+COPY --from=build /src /src
+RUN python -m pip install /src   # no [babel]: rendering needs the stdlib only
+```
 
 Pred izdajo je kontrolni seznam, na katerega se ta stran skrči:
 

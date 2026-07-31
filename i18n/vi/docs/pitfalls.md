@@ -125,8 +125,19 @@ của nguồn tiếng Anh, và điều đó qua được cả phép kiểm đố
 giữa hai bên, bởi chúng vốn là cùng một tệp.
 
 Không trường hợp nào là thứ một thư viện dịch thuật có thể thấy. Cả hai đều rẻ
-để kiểm thử một khi bạn biết là phải kiểm: hãy đối chiếu với nguồn và đòi hỏi
-phải có khác biệt.
+để kiểm thử, nhưng không phải bằng cách đòi mọi mục phải khác với nguồn của
+nó: `OK`, tên sản phẩm, tên người, từ viết tắt và định danh trong mã đều dịch
+thành chính chúng, và một phép kiểm cấm điều đó sẽ sinh ra dương tính giả mãi
+mãi.
+
+Thay vào đó, hãy đo *tỷ lệ*, trên cả một catalog hoặc cả một trang, rồi đưa
+những trường hợp ngoại lai cho con người xem. Bài kiểm thử của chính trang này
+làm đúng như vậy — nó đối chiếu các dòng văn xuôi của mỗi ấn bản với nguồn
+tiếng Anh và báo hỏng khi vượt quá 25% giống hệt. Ấn bản giả mạo nằm ở 87%;
+mọi bản dịch thật đều nằm trong khoảng 4% đến 8%, tức là cái đuôi nhỏ gồm
+những dòng trùng nhau một cách chính đáng, chẳng hạn URL và kết xuất chương
+trình được trích dẫn. Hai quần thể đó cách nhau đủ xa để ngưỡng không cần phải
+chính xác.
 
 ## Catalog không phải là thứ duy nhất được dịch { #the-catalog-is-not-the-only-translated-thing }
 

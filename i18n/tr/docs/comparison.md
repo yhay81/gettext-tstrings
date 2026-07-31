@@ -97,7 +97,8 @@ Aşağıdaki bölümler her ödünleşmeyi, yöntem yöntem, ayrıntısıyla gö
 _("Hello %(name)s") % {"name": name}
 ```
 
-Ne ters gidebilir: bir çeviride silinen tek bir harf render'ı çökertir.
+Ne ters gidebilir: bozulmuş bir yer tutucu, katalog doğrulaması onu önce
+yakalamazsa çalışma zamanı istisnasına dönüşür.
 
 Katalog dizgisi, printf sözdizimini taşır; buna gözden kaçırması ve zarar
 vermesi kolay olan sondaki tür harfi — `%(name)s` içindeki `s` — da dahildir:
@@ -289,7 +290,7 @@ gördüğünde çoktan bitmiş bir dizgidir; dolayısıyla onu çevirmek bir par
 çevirmek demektir. t-string'ler ([PEP 750]) f-string benzeri sözdizimini ve
 açık değer bağlamayı korurken statik metinle değerleri ayrı tutar.
 
-Python'un bu yol ayrımına nasıl geldiği — on yıl arayla iki PEP ve yanıtsız
+Python'un buraya nasıl geldiği — on yıl arayla iki PEP ve yanıtsız
 kapanan stdlib tartışması — kaynaklarıyla birlikte
 [Arka Plan](background.md) sayfasında anlatılıyor.
 

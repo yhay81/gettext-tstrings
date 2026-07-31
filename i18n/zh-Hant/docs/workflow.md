@@ -200,8 +200,8 @@ msgstr ""
 
 ## 在執行階段繫結語言 { #binding-a-language-at-runtime }
 
-到此為止的一切產出的都是目錄。剩下的決定是應用程式在哪裡挑選其中一份，而它只有一個
-誠實的答案：每一個*語言的作用範圍*繫結一次——CLI 是整個行程，Web 服務則是每個請求。
+到此為止的一切產出的都是目錄。剩下的決定是應用程式在哪裡挑選其中一份。每一個*語言的
+作用範圍*繫結一次——CLI 是整個行程，Web 服務則是每個請求。
 
 === "一個行程，一種語言"
 
@@ -304,6 +304,51 @@ msgstr ""
 請把 `gettext-tstrings[babel]` 留在正式環境映像檔之外，在那裡只裝裸的套件；渲染只靠
 標準函式庫就能跑。請在產生你所部署的那份產物的同一次建置裡編譯目錄，這樣裡面的 `.mo`
 檔就恰好是被審查過的那些 `.po` 檔，而在誰的筆電上編譯出來的東西都不會出貨。
+
+它們怎麼跟著走，取決於你部署的是什麼。wheel 是以套件資料的形式攜帶它們，這表示目錄
+必須放在套件目錄*裡面*——是 `src/myapp/locales/`，不是頂層的 `locales/`——而且還得
+告訴建置後端把那些平常被 `.gitignore` 藏起來的檔案一併收進去：
+
+=== "Hatchling"
+
+    ```toml
+    [tool.hatch.build]
+    # .mo files are build output, so they are gitignored; name them or the
+    # wheel ships without a single translation.
+    artifacts = ["src/myapp/locales/**/*.mo"]
+    ```
+
+=== "setuptools"
+
+    ```toml
+    [tool.setuptools.package-data]
+    myapp = ["locales/*/LC_MESSAGES/*.mo"]
+    ```
+
+讀取時請透過套件本身，而不是透過相對於原始碼樹的路徑——wheel 一裝好，那條路徑就不
+存在了：
+
+```python
+import gettext
+from importlib.resources import as_file, files
+
+with as_file(files("myapp") / "locales") as localedir:
+    translations = gettext.translation("messages", localedir=localedir, languages=["ja"])
+```
+
+容器映像檔的工作比較簡單：在建置階段編譯，然後把結果複製過去，把 Babel 留在那個階段
+裡就好。
+
+```dockerfile
+FROM python:3.14-slim AS build
+COPY . /src
+RUN cd /src && python -m pip install ".[babel]" \
+    && pybabel compile -d src/myapp/locales
+
+FROM python:3.14-slim
+COPY --from=build /src /src
+RUN python -m pip install /src   # no [babel]: rendering needs the stdlib only
+```
 
 發行之前，本頁可以收斂成這份檢查清單：
 

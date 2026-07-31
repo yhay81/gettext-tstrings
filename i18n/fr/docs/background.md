@@ -124,7 +124,7 @@ chacune sur sa propre page :
 La discussion n'est pas terminée, et ce projet y participe ; il n'en est pas
 le verdict. Si vous avez une expérience de gettext en production qui éclaire
 ces choix, le [même fil][discuss-thread] et les [Discussions][gh-discussions]
-de ce dépôt sont les lieux où elle se débat.
+de ce dépôt sont les lieux où la discussion se poursuit.
 
 ## Chronologie { #timeline }
 

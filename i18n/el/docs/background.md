@@ -123,7 +123,7 @@ Paul Everitt, Koudai Aono, Lysandros Nikolaou και Dave Peck — αναβίω�
 όχι ετυμηγορία πάνω της. Αν έχετε εμπειρία gettext από την παραγωγή που
 αφορά αυτές τις επιλογές, το [ίδιο νήμα][discuss-thread] και τα
 [Discussions][gh-discussions] αυτού του αποθετηρίου είναι τα μέρη όπου
-συζητιέται.
+συνεχίζεται η συζήτηση.
 
 ## Χρονολόγιο { #timeline }
 

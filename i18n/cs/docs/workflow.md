@@ -228,8 +228,8 @@ nemůže odejít rozbité“.
 ## Vázání jazyka za běhu { #binding-a-language-at-runtime }
 
 Vše dosud vytváří katalogy. Zbývá rozhodnout, kde si aplikace jeden z nich
-vybere, a to má jedinou poctivou odpověď: važte jednou na *rozsah jazyka*
-— proces u CLI, požadavek u webové služby.
+vybere. Važte jednou na *rozsah jazyka* — proces u CLI, požadavek u webové
+služby.
 
 === "Jeden proces, jeden jazyk"
 
@@ -343,6 +343,52 @@ instalujte tam holý balíček; vykreslování běží jen na standardní knihov
 Kompilujte katalogy v tomtéž buildu, který vytváří nasazovaný artefakt,
 aby soubory `.mo` uvnitř byly přesně těmi zrevidovanými soubory `.po` a
 nic zkompilovaného na něčím laptopu nikdy neodešlo.
+
+Jak katalogy cestují, závisí na tom, co nasazujete. Wheel je nese jako data
+balíčku, což znamená, že musí ležet *uvnitř* adresáře balíčku —
+`src/myapp/locales/`, ne v `locales/` na nejvyšší úrovni — a build backendu
+je třeba říct, aby zahrnul soubory, které `.gitignore` běžně skrývá:
+
+=== "Hatchling"
+
+    ```toml
+    [tool.hatch.build]
+    # .mo files are build output, so they are gitignored; name them or the
+    # wheel ships without a single translation.
+    artifacts = ["src/myapp/locales/**/*.mo"]
+    ```
+
+=== "setuptools"
+
+    ```toml
+    [tool.setuptools.package-data]
+    myapp = ["locales/*/LC_MESSAGES/*.mo"]
+    ```
+
+Čtěte je zpátky skrze balíček, ne skrze cestu relativní ke zdrojovému
+stromu, která přestane existovat ve chvíli, kdy je wheel nainstalován:
+
+```python
+import gettext
+from importlib.resources import as_file, files
+
+with as_file(files("myapp") / "locales") as localedir:
+    translations = gettext.translation("messages", localedir=localedir, languages=["ja"])
+```
+
+Kontejnerový image to má snazší: zkompilujte během build fáze a výsledek
+zkopírujte, přičemž Babel v té fázi zůstane.
+
+```dockerfile
+FROM python:3.14-slim AS build
+COPY . /src
+RUN cd /src && python -m pip install ".[babel]" \
+    && pybabel compile -d src/myapp/locales
+
+FROM python:3.14-slim
+COPY --from=build /src /src
+RUN python -m pip install /src   # no [babel]: rendering needs the stdlib only
+```
 
 Před vydáním — kontrolní seznam, na který se tato stránka redukuje:
 

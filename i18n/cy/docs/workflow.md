@@ -228,8 +228,8 @@ hyn" yn "ni all hyn gludo'n doredig".
 ## Rhwymo iaith wrth redeg { #binding-a-language-at-runtime }
 
 Mae popeth hyd yma'n cynhyrchu catalogau. Y penderfyniad sy'n weddill yw ble mae'r
-rhaglen yn dewis un, ac mae ganddo un ateb gonest: rhwymwch unwaith fesul
-*cwmpas iaith* — y broses ar gyfer CLI, y cais ar gyfer gwasanaeth gwe.
+rhaglen yn dewis un. Rhwymwch unwaith fesul *cwmpas iaith* — y broses ar gyfer
+CLI, y cais ar gyfer gwasanaeth gwe.
 
 === "Un broses, un iaith"
 
@@ -343,6 +343,53 @@ safonol yn unig. Crynhowch gatalogau yn yr un adeiladwaith sy'n cynhyrchu'r
 arteffact a ddefnyddiwch, fel mai'r ffeiliau `.mo` y tu mewn iddo yw'n union y
 ffeiliau `.po` a adolygwyd, ac na chludir byth ddim a grynhowyd ar liniadur
 rhywun.
+
+Mae'r modd y maent yn teithio'n dibynnu ar yr hyn a ddefnyddiwch. Mae olwyn yn
+eu cario fel data pecyn, sy'n golygu bod yn rhaid i'r catalogau fyw *y tu mewn*
+i gyfeiriadur y pecyn — `src/myapp/locales/`, nid `locales/` ar y lefel uchaf —
+ac mae'n rhaid dweud wrth gefnwr yr adeiladwaith am gynnwys ffeiliau y mae
+`.gitignore` fel arfer yn eu cuddio:
+
+=== "Hatchling"
+
+    ```toml
+    [tool.hatch.build]
+    # .mo files are build output, so they are gitignored; name them or the
+    # wheel ships without a single translation.
+    artifacts = ["src/myapp/locales/**/*.mo"]
+    ```
+
+=== "setuptools"
+
+    ```toml
+    [tool.setuptools.package-data]
+    myapp = ["locales/*/LC_MESSAGES/*.mo"]
+    ```
+
+Darllenwch nhw'n ôl drwy'r pecyn yn hytrach na thrwy lwybr sy'n gymharol i'r
+goeden ffynhonnell, sy'n peidio â bodoli'r eiliad y gosodir yr olwyn:
+
+```python
+import gettext
+from importlib.resources import as_file, files
+
+with as_file(files("myapp") / "locales") as localedir:
+    translations = gettext.translation("messages", localedir=localedir, languages=["ja"])
+```
+
+Mae gan ddelwedd gynhwysydd y dasg haws: crynhowch yn ystod y cam adeiladu a
+chopïwch y canlyniad, gan adael Babel ar ôl yn y cam hwnnw.
+
+```dockerfile
+FROM python:3.14-slim AS build
+COPY . /src
+RUN cd /src && python -m pip install ".[babel]" \
+    && pybabel compile -d src/myapp/locales
+
+FROM python:3.14-slim
+COPY --from=build /src /src
+RUN python -m pip install /src   # no [babel]: rendering needs the stdlib only
+```
 
 Cyn rhyddhad, y rhestr wirio y mae'r dudalen hon yn crebachu iddi:
 

@@ -124,24 +124,26 @@ neturi.
 Nieko hipotetiško čia nėra: šios svetainės apvalkalo katalogas neša
 daugiskaitos pranešimą `Built {n} localized page` / `Built {n} localized pages`
 — dvi angliškas šakas — o svetainės leidimai tą vieną pranešimą verčia į nuo
-vienos iki šešių formų:
+vienos iki šešių formų.
 
-| Katalogas | Formos | Vertimai formų tvarka |
-| --- | --- | --- |
-| Japonų | 1 | `ローカライズ済みページを{n}件ビルドしました` |
-| Turkų | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` — du kartus, identiškai: turkiški daiktavardžiai po skaitvardžio lieka vienaskaitos |
-| Italų | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` — dalyvis derinamas gimine ir skaičiumi |
-| Latvių | 3 | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` — trečioji forma skirta **vien tik nuliui** |
-| Rusų | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
-| Lenkų | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
-| Slovėnų | 4 | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` — antroji yra **dviskaita**, lygiai dviem |
-| Airių | 5 | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` — vienam, dviem, 3–6, 7–10 ir likusiems; kamienas kaitaliojasi, bet *leathanach* prasideda `l`, kurios jokia airiška mutacija nerašo, tad kelios formos sutampa |
-| Arabų | 6 | tarp jų `تم إنشاء صفحة مترجمة واحدة ({n})` lygiai vienam ir `تم إنشاء {n} صفحات مترجمة` keliems |
+??? example "Devyni iš tų leidimų, formų tvarka"
 
-Kiekviena eilutė yra gyvas įrašas šios saugyklos
-`i18n/*/LC_MESSAGES/site.po` faile, atvaizduojamas
-[daugiakalbio kūrimo](index.md) kiekvieno leidimo metu — o testas šią lentelę
-prisega prie tų katalogų, tad juodu negali išsiskirti.
+    | Katalogas | Formos | Vertimai formų tvarka |
+    | --- | --- | --- |
+    | Japonų | 1 | `ローカライズ済みページを{n}件ビルドしました` |
+    | Turkų | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` — du kartus, identiškai: turkiški daiktavardžiai po skaitvardžio lieka vienaskaitos |
+    | Italų | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` — dalyvis derinamas gimine ir skaičiumi |
+    | Latvių | 3 | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` — trečioji forma skirta **vien tik nuliui** |
+    | Rusų | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
+    | Lenkų | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
+    | Slovėnų | 4 | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` — antroji yra **dviskaita**, lygiai dviem |
+    | Airių | 5 | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` — vienam, dviem, 3–6, 7–10 ir likusiems; kamienas kaitaliojasi, bet *leathanach* prasideda `l`, kurios jokia airiška mutacija nerašo, tad kelios formos sutampa |
+    | Arabų | 6 | tarp jų `تم إنشاء صفحة مترجمة واحدة ({n})` lygiai vienam ir `تم إنشاء {n} صفحات مترجمة` keliems |
+
+    Kiekviena eilutė yra gyvas įrašas šios saugyklos
+    `i18n/*/LC_MESSAGES/site.po` faile, atvaizduojamas
+    [daugiakalbio kūrimo](index.md) kiekvieno leidimo metu — o testas šią lentelę
+    prisega prie tų katalogų, tad juodu negali išsiskirti.
 
 Šiose ribose perstatymas ir kartojimas tyčia neribojami. Abu tikrose kalbose
 gramatiškai būtini, o pasitaikymų skaičiaus ribojimas atmestų teisingus
@@ -242,16 +244,19 @@ Trys podėliai, po vieną kiekvienam etapui:
 
 Kiekvienas podėlis yra ribotas, ir nė vienas nesaugo interpoliuotų *reikšmių* —
 tik statinę struktūrą ir šablonų tekstą. Rezultatas, išmatuotas
-[`benchmarks/runtime.py`](https://github.com/yhay81/gettext-tstrings/blob/main/benchmarks/runtime.py):
-maždaug 0,4 µs vieno lauko pranešimui, įskaitant pačios t-eilutės sukūrimą,
-apie 2,5 karto daugiau nei paprastas, nieko netikrinantis
-`gettext(...).format(...)`. Komentarai
+[`benchmarks/runtime.py`](https://github.com/yhay81/gettext-tstrings/blob/main/benchmarks/runtime.py)
+su CPython 3.14.6, macOS 26 arm64 nešiojamajame: maždaug 0,4 µs vieno lauko
+pranešimui, įskaitant pačios t-eilutės sukūrimą, apie 2,7 karto daugiau nei
+paprastas, nieko netikrinantis `gettext(...).format(...)`. Tai vienos mašinos
+skaičiai — skriptas savo antraštėje išspausdina interpretatorių ir platformą,
+tad paleiskite jį toje aparatinėje įrangoje, į kurią iš tikrųjų diegiate,
+prieš laikydami kurį nors santykį savu. Komentarai
 [`core.py`](https://github.com/yhay81/gettext-tstrings/blob/main/src/gettext_tstrings/core.py)
 viršuje užrašo pavienius matavimus, iš kurių ta forma susideda.
 
 ## Įgyvendinant iš naujo { #reimplementing-it }
 
-Niekas iš to, kas aukščiau, nėra slapta išmintis: susitarimas surašytas kaip
+Niekas iš to, kas aukščiau, nėra būdinga vien šiai realizacijai: susitarimas surašytas kaip
 [spec v1](spec.md), o jo mašininiu būdu skaitomas
 [atitikties rinkinys](spec.md#conformance) leidžia ištraukikliui, IDE įskiepiui
 ar realizacijai kita kalba pačiam pasitikrinti pagal kiekvieną šio puslapio

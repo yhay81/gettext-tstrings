@@ -125,8 +125,18 @@ anglického zdroje — což projde kontrolou porovnávající mezi nimi bloky
 kódu, protože jde o tentýž soubor.
 
 Ani jedno není něco, co by překladová knihovna mohla vidět. Obojí se dá
-levně otestovat, jakmile víte, že máte: porovnat se zdrojem a vyžadovat
-rozdíl.
+levně otestovat — ale ne tak, že po každém záznamu budete vyžadovat rozdíl
+oproti zdroji: `OK`, názvy produktů, jména osob, zkratky a identifikátory
+z kódu se překládají samy na sebe a kontrola, která to zakáže, bude
+navždy vyrábět falešné poplachy.
+
+Měřte místo toho *poměr*, přes celý katalog nebo celou stránku, a odchylky
+posílejte člověku. Test tohoto webu dělá přesně to — porovnává řádky prózy
+každé edice s anglickým zdrojem a selže nad 25 % shodných. Zfalšovaná edice
+seděla na 87 %; každý poctivý překlad se drží mezi 4 % a 8 %, což je ten
+malý zbytek řádků, které se legitimně shodují, jako URL a citovaný výstup
+programu. Ty dvě populace jsou od sebe dost daleko na to, aby práh nemusel
+být přesný.
 
 ## Katalog není jediná přeložená věc { #the-catalog-is-not-the-only-translated-thing }
 

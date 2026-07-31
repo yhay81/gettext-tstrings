@@ -94,8 +94,8 @@ Kaflarnir hér að neðan sýna hverja málamiðlun í smáatriðum, eina aðfer
 _("Hello %(name)s") % {"name": name}
 ```
 
-Hvað getur farið úrskeiðis: einn stafur sem er eytt úr þýðingu felldi
-birtinguna.
+Hvað getur farið úrskeiðis: skemmdur staðgengill verður að undantekningu við
+keyrslu, nema staðfesting þýðingaskránna grípi hann fyrst.
 
 Strengurinn í þýðingaskránni ber printf-málskipan, þar með talinn
 tegundarstaf í enda — `s`-ið í `%(name)s` — sem er auðvelt að yfirsjást og
@@ -285,7 +285,7 @@ hann þegar fullgerður strengur, svo að þýða hann þýðir að þýða brot
 T-strengir ([PEP 750]) halda föstum textanum og gildunum aðskildum en halda um
 leið málskipan sem líkist f-strengjum og skýrri bindingu gilda.
 
-Hvernig Python rataði á þessi vegamót — tveir PEP-ar með tíu ára millibili,
+Hvernig Python rataði hingað — tveir PEP-ar með tíu ára millibili,
 og umræðan í staðalsafninu sem lokaðist án svars — er sagt með heimildum á
 [Bakgrunnur](background.md).
 

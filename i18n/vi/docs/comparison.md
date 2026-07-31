@@ -98,8 +98,8 @@ một.
 _("Hello %(name)s") % {"name": name}
 ```
 
-Điều có thể hỏng: một chữ cái bị xóa trong bản dịch làm sập quá trình kết
-xuất.
+Điều có thể hỏng: một placeholder bị hỏng sẽ trở thành ngoại lệ lúc chạy, trừ
+khi việc kiểm tra catalog bắt được nó trước.
 
 Chuỗi trong catalog mang cú pháp printf, bao gồm cả chữ cái kiểu ở cuối —
 chữ `s` trong `%(name)s` — thứ dễ bị bỏ sót và dễ bị làm hỏng:
@@ -294,7 +294,7 @@ với dịch một mảnh rời. t-string ([PEP 750]) giữ phần văn bản t�
 trị tách rời nhau trong khi vẫn giữ cú pháp giống f-string và cách gắn giá
 trị tường minh.
 
-Python đã đi đến ngã rẽ này như thế nào — hai bản PEP cách nhau mười năm, và
+Python đã đi đến đây như thế nào — hai bản PEP cách nhau mười năm, và
 cuộc thảo luận về thư viện chuẩn khép lại mà không có câu trả lời — được kể
 kèm nguồn dẫn tại [Bối cảnh](background.md).
 

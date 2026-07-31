@@ -117,7 +117,7 @@ escrita, cada uma em sua própria página:
 A discussão não terminou, e este projeto é um participante dela, não um
 veredicto sobre ela. Se você tem experiência de produção com gettext que diga
 respeito a essas escolhas, a [mesma thread][discuss-thread] e as
-[Discussions][gh-discussions] deste repositório são onde ela é debatida.
+[Discussions][gh-discussions] deste repositório são onde a discussão continua.
 
 ## Linha do tempo { #timeline }
 

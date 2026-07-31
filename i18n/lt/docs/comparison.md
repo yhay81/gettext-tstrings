@@ -96,7 +96,8 @@ eilės.
 _("Hello %(name)s") % {"name": name}
 ```
 
-Kas gali nutikti: viena ištrinta raidė vertime nulaužia atvaizdavimą.
+Kas gali nutikti: sugadintas vietaženklis virsta veikimo meto išimtimi,
+nebent katalogo tikrinimas pagauna jį anksčiau.
 
 Katalogo eilutė neša printf sintaksę, įskaitant pabaigoje esančią tipo raidę —
 tą `s` viduje `%(name)s` — kurią lengva pražiūrėti ir lengva sugadinti:
@@ -284,7 +285,7 @@ biblioteka, ji jau yra baigta eilutė, tad jos vertimas reiškia nuotrupos
 vertimą. T-eilutės ([PEP 750]) laiko statinį tekstą ir reikšmes atskirai,
 išlaikydamos į f-eilutes panašią sintaksę ir aiškų reikšmių susiejimą.
 
-Kaip Python priėjo šią sankryžą — du PEP'ai, parašyti su dešimties metų
+Kaip Python čia atsidūrė — du PEP'ai, parašyti su dešimties metų
 tarpu, ir standartinės bibliotekos diskusija, užsibaigusi be atsakymo —
 papasakota su šaltiniais puslapyje [Ištakos](background.md).
 

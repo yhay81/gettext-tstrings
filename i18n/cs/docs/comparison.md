@@ -97,7 +97,8 @@ Oddíly níže ukazují každý kompromis podrobně, metodu po metodě.
 _("Hello %(name)s") % {"name": name}
 ```
 
-Co se může pokazit: jedno smazané písmeno v překladu shodí vykreslení.
+Co se může pokazit: poškozený zástupný symbol se za běhu změní ve výjimku,
+pokud jej dřív nezachytí validace katalogu.
 
 Řetězec v katalogu nese syntaxi printf, včetně koncového písmene typu —
 `s` v `%(name)s` — které lze snadno přehlédnout a snadno poškodit:
@@ -287,7 +288,7 @@ už hotovým řetězcem, takže jeho překlad znamená překládat fragment.
 T-stringy ([PEP 750]) drží statický text a hodnoty odděleně a přitom
 zachovávají syntaxi podobnou f-stringům a explicitní vázání hodnot.
 
-Jak Python dospěl k této křižovatce — dva PEPy s odstupem deseti let a
+Jak sem Python dospěl — dva PEPy s odstupem deseti let a
 diskuse o standardní knihovně uzavřená bez odpovědi — vypráví s prameny
 stránka [Pozadí](background.md).
 

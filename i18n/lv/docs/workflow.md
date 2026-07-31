@@ -227,9 +227,8 @@ pārbaudīja” par “tas nevar tikt piegādāts sabojāts”.
 ## Valodas piesaiste izpildlaikā { #binding-a-language-at-runtime }
 
 Viss līdz šim rada katalogus. Atlikušais lēmums ir par to, kur lietotne kādu
-no tiem izvēlas, un tam ir viena godīga atbilde: piesaistiet vienreiz katrā
-*valodas tvērumā* — procesā CLI gadījumā, pieprasījumā tīmekļa servisa
-gadījumā.
+no tiem izvēlas. Piesaistiet vienreiz katrā *valodas tvērumā* — procesā CLI
+gadījumā, pieprasījumā tīmekļa servisa gadījumā.
 
 === "Viens process, viena valoda"
 
@@ -343,6 +342,53 @@ instalējiet tur kailo pakotni; renderēšana darbojas ar standarta bibliotēku
 vien. Kompilējiet katalogus tajā pašā būvējumā, kas rada izvietojamo artefaktu,
 lai `.mo` faili tajā būtu tieši tie pārskatītie `.po` faili un lai nekas
 kompilēts uz kāda klēpjdatora nekad netiktu piegādāts.
+
+Kā tie ceļo, ir atkarīgs no tā, ko jūs izvietojat. Wheel tos nes kā pakotnes
+datus, kas nozīmē, ka katalogiem jādzīvo pakotnes direktorijas *iekšienē* —
+`src/myapp/locales/`, nevis augšējā līmeņa `locales/` —, un būvējuma
+aizmugursistēmai jāpasaka, ka jāiekļauj faili, kurus `.gitignore` parasti
+noslēpj:
+
+=== "Hatchling"
+
+    ```toml
+    [tool.hatch.build]
+    # .mo files are build output, so they are gitignored; name them or the
+    # wheel ships without a single translation.
+    artifacts = ["src/myapp/locales/**/*.mo"]
+    ```
+
+=== "setuptools"
+
+    ```toml
+    [tool.setuptools.package-data]
+    myapp = ["locales/*/LC_MESSAGES/*.mo"]
+    ```
+
+Lasiet tos atpakaļ caur pakotni, nevis caur ceļu attiecībā pret avota koku, kas
+beidz pastāvēt brīdī, kad wheel ir uzinstalēts:
+
+```python
+import gettext
+from importlib.resources import as_file, files
+
+with as_file(files("myapp") / "locales") as localedir:
+    translations = gettext.translation("messages", localedir=localedir, languages=["ja"])
+```
+
+Konteinera attēlam uzdevums ir vieglāks: kompilējiet būvējuma stadijā un
+nokopējiet rezultātu, atstājot Babel tajā stadijā.
+
+```dockerfile
+FROM python:3.14-slim AS build
+COPY . /src
+RUN cd /src && python -m pip install ".[babel]" \
+    && pybabel compile -d src/myapp/locales
+
+FROM python:3.14-slim
+COPY --from=build /src /src
+RUN python -m pip install /src   # no [babel]: rendering needs the stdlib only
+```
 
 Pirms laidiena kontrolsaraksts, uz ko šī lapa sarūk:
 

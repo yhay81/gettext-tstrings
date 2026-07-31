@@ -123,8 +123,18 @@ klukkustundir. Sömuleiðis átta síður í annarri útgáfu sem voru bætaeins
 af enska frumtextanum — sem stenst athugun sem ber saman kóðablokkir milli
 þeirra, því þær eru sama skráin.
 
-Hvorugt er eitthvað sem þýðingasafn getur séð. Hvort tveggja er ódýrt að prófa
-þegar maður veit að þess þarf: berðu saman við frumtextann og krefstu munar.
+Hvorugt er eitthvað sem þýðingasafn getur séð. Hvort tveggja er ódýrt að
+prófa, en ekki með því að krefjast þess að hver færsla sé frábrugðin
+frumtextanum: `OK`, vöruheiti, mannanöfn, skammstafanir og kóðaauðkenni þýðast
+öll á sjálf sig, og athugun sem bannar það skilar falskjákvæðum að eilífu.
+
+Mældu *hlutfallið* í staðinn, yfir heila þýðingaskrá eða heila síðu, og sendu
+frávikin til manneskju. Próf þessa vefs gerir einmitt það — það ber saman
+textalínur hverrar útgáfu við enska frumtextann og fellur yfir 25% eins. Falsaða
+útgáfan sat í 87%; hver ekta þýðing situr á milli 4% og 8%, sem er litli halinn
+af línum sem falla réttilega saman, svo sem vefslóðir og tilvitnað úttak
+forrita. Þýðin tvö eru nógu langt hvort frá öðru til að þröskuldurinn þurfi
+ekki að vera nákvæmur.
 
 ## Þýðingaskráin er ekki það eina sem er þýtt { #the-catalog-is-not-the-only-translated-thing }
 

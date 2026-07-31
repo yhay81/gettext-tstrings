@@ -184,6 +184,17 @@ python -m pip install "gettext-tstrings[babel]"
 
 ## অবস্থা { #status }
 
+| | |
+| --- | --- |
+| প্যাকেজ সংস্করণ | 0.1.0a7 |
+| API স্থিতিশীলতা | alpha — Python API এখনও বদলাতে পারে |
+| [স্পেসিফিকেশন](spec.md) | v1, সঙ্গে একটি [কনফরম্যান্স সুইট](spec.md#conformance) |
+| Python | 3.14 ও নতুনতর; 3.14, 3.14t (free-threaded) ও 3.15-এ পরীক্ষিত |
+| Babel | 2.18 বা নতুনতর, এবং কেবল সেখানেই যেখানে `pybabel` চলে |
+| রানটাইম নির্ভরতা | কোনওটিই নয় — স্ট্যান্ডার্ড লাইব্রেরির `gettext` |
+| ক্যাটালগ ফরম্যাট | সাধারণ POT, PO ও MO |
+| পরিবর্তন | [CHANGELOG](https://github.com/yhay81/gettext-tstrings/blob/main/CHANGELOG.md) |
+
 এটি একটি alpha। চুক্তিটি ইচ্ছে করেই ছোট রাখা হয়েছে এবং
 [স্পেসিফিকেশন](spec.md) তার স্থিতিশীল অংশ; Python API এখনও বদলাতে পারে।
 স্থিতিশীল রিলিজের আগে এর দরকার আরও বেশি ভাষার fixtures, ধারাবাহিক পারফরম্যান্স

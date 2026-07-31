@@ -191,6 +191,17 @@ python -m pip install "gettext-tstrings[babel]"
 
 ## Állapot { #status }
 
+| | |
+| --- | --- |
+| Csomagverzió | 0.1.0a7 |
+| API-stabilitás | alfa — a Python API még változhat |
+| [Specifikáció](spec.md) | v1, [konformitási készlettel](spec.md#conformance) |
+| Python | 3.14 és újabb; tesztelve 3.14, 3.14t (szabad szálú) és 3.15 alatt |
+| Babel | 2.18 vagy újabb, és csak ott, ahol a `pybabel` fut |
+| Futásidejű függőségek | nincsenek — a standard könyvtár `gettext` modulja |
+| Katalógusformátum | közönséges POT, PO és MO |
+| Változások | [CHANGELOG](https://github.com/yhay81/gettext-tstrings/blob/main/CHANGELOG.md) |
+
 Alfa. A szerződés szándékosan kicsi, és a [specifikáció](spec.md) a stabil
 része; a Python API még mozoghat. Egy stabil kiadás előtt szükség van szélesebb
 nyelvi fixtúrákra, folyamatos teljesítménykövetésre, olyanok API-átnézésére,

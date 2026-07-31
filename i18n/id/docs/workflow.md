@@ -238,8 +238,8 @@ menjadi "ini tidak mungkin dikirim dalam keadaan rusak".
 ## Mengikat bahasa saat runtime { #binding-a-language-at-runtime }
 
 Semua sejauh ini menghasilkan katalog. Keputusan yang tersisa adalah di mana
-aplikasi memilih satu, dan itu punya satu jawaban jujur: ikat sekali per
-*lingkup sebuah bahasa* — proses untuk CLI, permintaan untuk layanan web.
+aplikasi memilih satu. Ikat sekali per *lingkup sebuah bahasa* — proses untuk
+CLI, permintaan untuk layanan web.
 
 === "Satu proses, satu bahasa"
 
@@ -354,6 +354,53 @@ pustaka standar saja. Kompilasi katalog di build yang sama yang menghasilkan
 artefak yang Anda deploy, sehingga berkas `.mo` di dalamnya persis berkas
 `.po` yang telah ditinjau, dan tidak ada hasil kompilasi laptop siapa pun yang
 pernah terkirim.
+
+Bagaimana mereka ikut terbawa bergantung pada apa yang Anda deploy. Sebuah
+wheel membawanya sebagai data paket, yang berarti katalognya harus berada *di
+dalam* direktori paket — `src/myapp/locales/`, bukan `locales/` di tingkat
+teratas — dan backend build-nya harus diberi tahu untuk menyertakan berkas
+yang biasanya disembunyikan `.gitignore`:
+
+=== "Hatchling"
+
+    ```toml
+    [tool.hatch.build]
+    # .mo files are build output, so they are gitignored; name them or the
+    # wheel ships without a single translation.
+    artifacts = ["src/myapp/locales/**/*.mo"]
+    ```
+
+=== "setuptools"
+
+    ```toml
+    [tool.setuptools.package-data]
+    myapp = ["locales/*/LC_MESSAGES/*.mo"]
+    ```
+
+Bacalah mereka kembali melalui paketnya, bukan melalui jalur relatif terhadap
+pohon sumber, yang berhenti ada begitu wheel-nya terpasang:
+
+```python
+import gettext
+from importlib.resources import as_file, files
+
+with as_file(files("myapp") / "locales") as localedir:
+    translations = gettext.translation("messages", localedir=localedir, languages=["ja"])
+```
+
+Sebuah image kontainer punya tugas yang lebih mudah: kompilasi selama tahap
+build dan salin hasilnya, meninggalkan Babel di tahap itu.
+
+```dockerfile
+FROM python:3.14-slim AS build
+COPY . /src
+RUN cd /src && python -m pip install ".[babel]" \
+    && pybabel compile -d src/myapp/locales
+
+FROM python:3.14-slim
+COPY --from=build /src /src
+RUN python -m pip install /src   # no [babel]: rendering needs the stdlib only
+```
 
 Sebelum sebuah rilis, daftar periksa yang menjadi inti halaman ini:
 

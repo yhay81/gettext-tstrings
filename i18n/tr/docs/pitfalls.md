@@ -124,8 +124,19 @@ sekiz sayfası da öyle — bu, aralarındaki kod bloklarını karşılaştıran
 denetimden geçer, çünkü onlar aynı dosyadır.
 
 Bunların ikisi de bir çeviri kütüphanesinin görebileceği şeyler değildir.
-İkisini de, bir kez akla geldikten sonra, sınamak ucuzdur: kaynakla
-karşılaştırın ve bir fark isteyin.
+İkisini de sınamak ucuzdur, ama her girdinin kaynağından farklı olmasını
+şart koşarak değil: `OK`, ürün adları, kişi adları, kısaltmalar ve kod
+tanımlayıcıları kendilerine çevrilir; bunu yasaklayan bir denetim ise sonsuza
+dek yanlış pozitif üretir.
+
+Bunun yerine *oranı* ölçün — bütün bir katalog ya da bütün bir sayfa
+üzerinden — ve aykırı değerleri bir insana gönderin. Bu sitenin kendi testi
+tam olarak bunu yapar: her dil sürümünün düz metin satırlarını İngilizce
+kaynakla karşılaştırır ve %25'in üzerinde aynılıkta başarısız olur. Sahte dil
+sürümü %87'deydi; gerçek çevirilerin hepsi %4 ile %8 arasında oturuyor — bu
+da URL'ler ve alıntılanmış program çıktısı gibi meşru biçimde çakışan
+satırların küçük kuyruğudur. İki küme birbirinden yeterince uzak; eşiğin
+hassas olması gerekmiyor.
 
 ## Çevrilen tek şey katalog değildir { #the-catalog-is-not-the-only-translated-thing }
 

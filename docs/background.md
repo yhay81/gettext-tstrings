@@ -43,7 +43,7 @@ significant extra considerations that simpler use cases did not.
 A decade later, [PEP 750] — by Jim Baker, Guido van Rossum, Paul Everitt,
 Koudai Aono, Lysandros Nikolaou, and Dave Peck — revived the idea as
 t-strings, was [accepted in April 2025][sc-resolution], and shipped in
-[Python 3.14] in October 2025. PEP 501 was then withdrawn in its favour. One
+[Python 3.14] in October 2025. PEP 501 was then withdrawn in its favor. One
 detail matters for this page: i18n is *not* among PEP 750's stated
 motivations. The PEP generalized the mechanism — a template type any library
 can consume — and left the translation question exactly where PEP 501 had
@@ -72,7 +72,7 @@ this library later had to answer:
 - **Is gettext even the right target?** Barry Warsaw — who had argued during
   PEP 750's development that t-strings were not a good fit for i18n — pointed
   to his [`flufl.i18n`][flufl-i18n] and its `$`-string style as the friendlier
-  tool; others argued for leaving gettext behind entirely in favour of newer
+  tool; others argued for leaving gettext behind entirely in favor of newer
   systems such as [Fluent].
 - **And the meta-question:** whatever the standard library ships, it can
   essentially never change. A convention with this many open choices is a
@@ -111,7 +111,7 @@ here, each on its own page:
 The discussion has not ended, and this project is a participant in it, not a
 verdict on it. If you have production gettext experience that bears on these
 choices, the [same thread][discuss-thread] and this repository's
-[Discussions][gh-discussions] are where it is argued.
+[Discussions][gh-discussions] are where the discussion continues.
 
 ## Timeline
 
@@ -121,7 +121,7 @@ choices, the [same thread][discuss-thread] and this repository's
 | 2015 | [PEP 501] proposes interpolation templates, with i18n as its first motivation; deferred. |
 | 2016 | f-strings ship in Python 3.6 — interpolation gets its syntax, and translation cannot use it. |
 | Jul 2024 | [PEP 750] proposes t-strings. |
-| Apr 2025 | PEP 750 [accepted][sc-resolution]; PEP 501 withdrawn in its favour. |
+| Apr 2025 | PEP 750 [accepted][sc-resolution]; PEP 501 withdrawn in its favor. |
 | Aug 2025 | The [Support t-strings in gettext][discuss-thread] thread opens, with a stdlib [pull request][cpython-pr]. |
 | Oct 2025 | [Python 3.14] ships t-strings; the stdlib issue closes as [not planned][cpython-issue]. |
 | 2026 | `gettext-tstrings` ships as an alpha, with [spec v1](spec.md) and its conformance suite. |

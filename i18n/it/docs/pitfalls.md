@@ -12,7 +12,7 @@ sembri.
 
 Ogni sezione qui sotto è qualcosa che è andato davvero storto qui, come si
 presentava all'epoca e dove passa il confine tra ciò che la libreria controlla
-per te e ciò che resta un tuo giudizio.
+per te e ciò che richiede ancora il giudizio umano.
 
 ## Rinominare una variabile fa ritradurre una frase { #renaming-a-variable-retranslates-a-sentence }
 
@@ -133,8 +133,19 @@ copie byte per byte della sorgente inglese — cosa che supera un controllo che
 confronta i blocchi di codice tra le due, perché sono lo stesso file.
 
 Nessuno dei due è qualcosa che una libreria di traduzione possa vedere.
-Entrambi sono facili da testare una volta che sai di doverlo fare: confronta
-con la sorgente e pretendi una differenza.
+Entrambi sono facili da testare, ma non pretendendo che ogni voce differisca
+dalla sua sorgente: `OK`, i nomi di prodotto, i nomi di persona, gli acronimi
+e gli identificatori di codice si traducono tutti in sé stessi, e un controllo
+che lo vieti produce falsi positivi per sempre.
+
+Misura invece il *tasso*, su un intero catalogo o un'intera pagina, e manda a
+una persona i valori anomali. Il test di questo sito fa esattamente questo:
+confronta le righe di prosa di ogni edizione con la sorgente inglese e
+fallisce sopra il 25% di righe identiche. L'edizione contraffatta stava
+all'87%; ogni traduzione autentica sta tra il 4% e l'8%, che è la piccola coda
+di righe che legittimamente coincidono, come URL e output di programma
+citato. Le due popolazioni sono abbastanza distanti da non richiedere una
+soglia precisa.
 
 ## Il catalogo non è l'unica cosa tradotta { #the-catalog-is-not-the-only-translated-thing }
 

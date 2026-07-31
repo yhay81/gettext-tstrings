@@ -128,8 +128,18 @@ octet ale sursei englezești — ceea ce trece de o verificare ce compară
 blocurile de cod dintre ele, fiindcă sunt același fișier.
 
 Niciuna dintre ele nu este ceva ce poate vedea o bibliotecă de traducere.
-Amândouă sunt ieftin de testat odată ce știi că trebuie: compară cu sursa și
-cere o diferență.
+Amândouă sunt ieftin de testat, dar nu cerând ca fiecare intrare să difere de
+sursa ei: `OK`, numele de produse, numele de persoane, acronimele și
+identificatorii din cod se traduc toate prin ele însele, iar o verificare care
+interzice asta produce fals-pozitive la nesfârșit.
+
+Măsoară în schimb *rata*, pe un catalog întreg sau pe o pagină întreagă, și
+trimite valorile aberante la un om. Testul acestui sit face exact asta —
+compară liniile de proză ale fiecărei ediții cu sursa englezească și eșuează
+peste 25% identice. Ediția falsificată stătea la 87%; fiecare traducere
+autentică stă între 4% și 8%, coada mică de linii care coincid în mod legitim,
+cum sunt URL-urile și rezultatele de program citate. Cele două populații sunt
+suficient de departe una de alta încât pragul nu are nevoie să fie precis.
 
 ## Catalogul nu este singurul lucru tradus { #the-catalog-is-not-the-only-translated-thing }
 

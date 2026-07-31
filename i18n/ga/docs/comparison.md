@@ -104,8 +104,8 @@ ndiaidh a chéile.
 _("Hello %(name)s") % {"name": name}
 ```
 
-Cad is féidir dul amú: tuairteálann litir amháin scriosta in aistriúchán an
-rindreáil.
+Cad is féidir dul amú: éiríonn eisceacht ama rite as sealbhóir ionaid
+millte, mura mbeireann bailíochtú na catalóige air ar dtús.
 
 Iompraíonn teaghrán na catalóige comhréir printf, lena n-áirítear litir
 chineáil ag an deireadh — an `s` i `%(name)s` — atá éasca a ligean thar do
@@ -307,9 +307,9 @@ cheana, mar sin ciallaíonn é a aistriú blúire a aistriú. Coinníonn t-strin
 coinníonn siad comhréir cosúil le f-string agus ceangal follasach luachanna ag
 an am céanna.
 
-Insítear le foinsí ar [Cúlra](background.md) conas a shroich Python an
-crosbhóthar seo — dhá PEP deich mbliana ó chéile, agus an plé sa leabharlann
-chaighdeánach a dúnadh gan freagra.
+Insítear le foinsí ar [Cúlra](background.md) conas a shroich Python an áit seo
+— dhá PEP deich mbliana ó chéile, agus an plé sa leabharlann chaighdeánach a
+dúnadh gan freagra.
 
   [PEP 750]: https://peps.python.org/pep-0750/
   [stdlib-template]: https://docs.python.org/3/library/string.html#template-strings

@@ -120,8 +120,8 @@ ciascuna nella sua pagina:
 La discussione non è finita, e questo progetto ne è un partecipante, non un
 verdetto. Se hai esperienza di gettext in produzione che riguarda queste
 scelte, lo [stesso thread][discuss-thread] e le
-[Discussions][gh-discussions] di questo repository sono i luoghi dove se ne
-discute.
+[Discussions][gh-discussions] di questo repository sono i luoghi dove la
+discussione prosegue.
 
 ## Cronologia { #timeline }
 

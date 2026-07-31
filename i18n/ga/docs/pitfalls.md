@@ -136,8 +136,19 @@ Bhéarla iad — rud a éiríonn le seiceáil a chuireann na bloic chóid eatart
 gcomparáid, mar gurb ionann comhad dóibh.
 
 Ní féidir le leabharlann aistriúcháin ceachtar acu a fheiceáil. Tá an dá cheann
-saor le tástáil a luaithe is eol duit gur cheart: déan comparáid leis an
-bhfoinse agus éiligh difríocht.
+saor le tástáil, ach ní trína éileamh go mbeadh gach iontráil difriúil óna
+foinse: aistríonn `OK`, ainmneacha táirgí, ainmneacha daoine, acrainmneacha
+agus aitheantóirí cóid go léir mar iad féin, agus tugann seiceáil a chuireann
+cosc air sin torthaí bréagdhearfacha go deo.
+
+Tomhais an *ráta* ina ionad sin, thar chatalóg iomlán nó thar leathanach
+iomlán, agus cuir na heisceachtaí chuig duine daonna. Déanann tástáil an tsuímh
+seo féin díreach é sin — cuireann sí línte próis gach eagráin i gcomparáid leis
+an bhfoinse Bhéarla agus teipeann uirthi os cionn 25% comhionann. Bhí an
+t-eagrán bréige ag 87%; luíonn gach fíoraistriúchán idir 4% agus 8%, is é sin an
+t-eireaball beag de línte a chomhtharlaíonn go dlisteanach, ar nós URLanna agus
+aschur cláir a luaitear. Tá an dá dhaonra sách fada óna chéile nach gá don
+tairseach a bheith beacht.
 
 ## Ní hí an chatalóg an t-aon rud a aistrítear { #the-catalog-is-not-the-only-translated-thing }
 

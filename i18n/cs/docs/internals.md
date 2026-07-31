@@ -127,24 +127,26 @@ angličtina nemá.
 Nic z toho není hypotetické: katalog rozhraní tohoto webu nese zprávu v
 množném čísle `Built {n} localized page` / `Built {n} localized pages` —
 dvě anglické větve — a jazykové edice webu překládají tuto jedinou zprávu
-do jedné až šesti forem:
+do jedné až šesti forem.
 
-| Katalog | Formy | Překlady v pořadí forem |
-| --- | --- | --- |
-| Japonština | 1 | `ローカライズ済みページを{n}件ビルドしました` |
-| Turečtina | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` — dvakrát, identicky: turecká podstatná jména zůstávají po číslovce v jednotném čísle |
-| Italština | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` — příčestí se shoduje v rodě a čísle |
-| Lotyština | 3 | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` — třetí forma je **jen pro nulu** |
-| Ruština | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
-| Polština | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
-| Slovinština | 4 | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` — druhá je **duál**, pro přesně dvě |
-| Irština | 5 | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` — jedna, dvě, 3–6, 7–10 a zbytek; kmen se střídá, ale *leathanach* začíná na `l`, na kterém se žádná irská mutace nepíše, takže několik forem splývá |
-| Arabština | 6 | mezi nimi `تم إنشاء صفحة مترجمة واحدة ({n})` pro přesně jeden a `تم إنشاء {n} صفحات مترجمة` pro několik |
+??? example "Devět z těchto edic, v pořadí forem"
 
-Každý řádek je živý záznam v `i18n/*/LC_MESSAGES/site.po` tohoto
-repozitáře, vykreslovaný [vícejazyčným buildem](index.md) při každém
-vydání — a test připíná tuto tabulku k těmto katalogům, takže se od sebe
-nemohou rozjet.
+    | Katalog | Formy | Překlady v pořadí forem |
+    | --- | --- | --- |
+    | Japonština | 1 | `ローカライズ済みページを{n}件ビルドしました` |
+    | Turečtina | 2 | `{n} yerelleştirilmiş sayfa oluşturuldu` — dvakrát, identicky: turecká podstatná jména zůstávají po číslovce v jednotném čísle |
+    | Italština | 2 | `Generata {n} pagina localizzata` · `Generate {n} pagine localizzate` — příčestí se shoduje v rodě a čísle |
+    | Lotyština | 3 | `Izveidota {n} lokalizēta lapa` · `Izveidotas {n} lokalizētas lapas` · `Izveidots {n} lokalizētu lapu` — třetí forma je **jen pro nulu** |
+    | Ruština | 3 | `Собрана {n} локализованная страница` · `Собраны {n} локализованные страницы` · `Собрано {n} локализованных страниц` |
+    | Polština | 3 | `Zbudowano {n} zlokalizowaną stronę` · `Zbudowano {n} zlokalizowane strony` · `Zbudowano {n} zlokalizowanych stron` |
+    | Slovinština | 4 | `Zgrajena {n} lokalizirana stran` · `Zgrajeni {n} lokalizirani strani` · `Zgrajene {n} lokalizirane strani` · `Zgrajenih {n} lokaliziranih strani` — druhá je **duál**, pro přesně dvě |
+    | Irština | 5 | `Tógadh {n} leathanach logánaithe` · `Tógadh {n} leathanaigh logánaithe` — jedna, dvě, 3–6, 7–10 a zbytek; kmen se střídá, ale *leathanach* začíná na `l`, na kterém se žádná irská mutace nepíše, takže několik forem splývá |
+    | Arabština | 6 | mezi nimi `تم إنشاء صفحة مترجمة واحدة ({n})` pro přesně jeden a `تم إنشاء {n} صفحات مترجمة` pro několik |
+
+    Každý řádek je živý záznam v `i18n/*/LC_MESSAGES/site.po` tohoto
+    repozitáře, vykreslovaný [vícejazyčným buildem](index.md) při každém
+    vydání — a test připíná tuto tabulku k těmto katalogům, takže se od sebe
+    nemohou rozjet.
 
 V těchto mezích jsou přeuspořádání a opakování záměrně neomezené. Obojí
 je v reálných jazycích gramaticky nezbytné a omezování počtu výskytů by
@@ -245,16 +247,20 @@ Tři keše, jedna na každou fázi:
 
 Každá keš je omezená a žádná neuchovává interpolované *hodnoty* — jen
 statickou strukturu a text vzorů. Výsledek, změřený skriptem
-[`benchmarks/runtime.py`](https://github.com/yhay81/gettext-tstrings/blob/main/benchmarks/runtime.py):
-zhruba 0,4 µs pro zprávu s jedním polem včetně konstrukce samotného
-t-stringu, tedy asi 2,5× víc než prostý `gettext(...).format(...)`, který
-nic nekontroluje. Komentář na začátku
+[`benchmarks/runtime.py`](https://github.com/yhay81/gettext-tstrings/blob/main/benchmarks/runtime.py)
+na CPythonu 3.14.6, macOS 26 na notebooku s arm64: zhruba 0,4 µs pro zprávu
+s jedním polem včetně konstrukce samotného t-stringu, tedy asi 2,7× víc než
+prostý `gettext(...).format(...)`, který nic nekontroluje. Jsou to čísla
+jednoho stroje — skript vypisuje v hlavičce svůj interpret a platformu,
+takže než začnete kterýkoli poměr považovat za svůj, spusťte jej na
+hardwaru, na který skutečně nasazujete. Komentář na začátku
 [`core.py`](https://github.com/yhay81/gettext-tstrings/blob/main/src/gettext_tstrings/core.py)
 zaznamenává jednotlivá měření stojící za tímto tvarem.
 
 ## Reimplementace { #reimplementing-it }
 
-Nic z výše uvedeného není soukromá nauka: konvence je sepsána jako
+Nic z výše uvedeného není specifické pro tuto implementaci: konvence je
+sepsána jako
 [spec v1](spec.md) a její strojově čitelná
 [sada testů konformity](spec.md#conformance) umožňuje extraktoru,
 zásuvnému modulu IDE nebo implementaci v jiném jazyce ověřit se vůči

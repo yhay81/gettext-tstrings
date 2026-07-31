@@ -90,7 +90,7 @@ pull request 也在 2025 年 10 月——3.14 发布几天之后——未经合�
 
 这场讨论尚未结束，本项目是其中的参与者，而不是对它的裁决。如果你拥有与这些
 选择相关的生产 gettext 经验，[同一个帖子][discuss-thread]和本仓库的
-[Discussions][gh-discussions] 正是讨论它们的地方。
+[Discussions][gh-discussions] 正是讨论继续进行的地方。
 
 ## 时间线 { #timeline }
 
