@@ -4,7 +4,7 @@ on:
   # Scorecard grades branch protection, so re-run when those rules change.
   branch_protection_rule:
   schedule:
-    - cron: "18 5 * * 2"
+    - cron: "21 19 * * 4"
   push:
     branches: [main]
 
@@ -14,7 +14,7 @@ permissions:
 jobs:
   analysis:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 1
     permissions:
       security-events: write
       # Needed to publish the result to the OpenSSF API, which is what lets the
