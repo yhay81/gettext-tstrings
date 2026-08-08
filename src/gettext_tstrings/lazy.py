@@ -16,11 +16,16 @@ from .core import gettext, pgettext
 
 
 class LazyString:
-    """A translatable string that renders when first used, not when defined.
+    """A translatable string that renders where it is used, not where it is defined.
 
-    Deliberately unhashable: the rendered text depends on the language active at
-    call time, so a hash would silently change across language switches and
-    corrupt sets and dict keys. Call ``str()`` first to use one as a key.
+    Nothing is memoized: every ``str()`` looks the message up again, because the
+    language bound to the context is free to differ between two uses of the same
+    label — which is the whole point of deferring.
+
+    Deliberately unhashable, for that same reason: the rendered text depends on
+    the language active at call time, so a hash would silently change across
+    language switches and corrupt sets and dict keys. Call ``str()`` first to
+    use one as a key.
     """
 
     __slots__ = ("_render",)
@@ -48,7 +53,7 @@ class LazyString:
 
 
 def lazy_gettext(template: Template, /, *, strict: bool = False) -> LazyString:
-    """Defer translation of one t-string to first use.
+    """Defer translation of one t-string until it renders, and on every render.
 
     ``strict`` selects the response to a catalog whose placeholders do not match
     the source, exactly as it does on the eager functions, and is decided here
@@ -61,5 +66,5 @@ def lazy_gettext(template: Template, /, *, strict: bool = False) -> LazyString:
 
 
 def lazy_pgettext(context: str, template: Template, /, *, strict: bool = False) -> LazyString:
-    """Defer translation of one contextual t-string to first use."""
+    """Defer translation of one contextual t-string until it renders."""
     return LazyString(lambda: pgettext(context, template, strict=strict))

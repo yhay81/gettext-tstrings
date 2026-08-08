@@ -207,7 +207,8 @@ the default (`pool.submit(contextvars.copy_context().run, render)`);
 A t-string captures its values eagerly, which is wrong for a string defined at
 import time — a form label, an enum value, a module constant — that must render
 in whatever language is active when it is *used*. `lazy_gettext` defers the
-catalog lookup and rendering to first use, resolving the current context:
+catalog lookup and rendering to each use, resolving the current context every
+time:
 
 ```python
 from gettext_tstrings import lazy_gettext, lazy_pgettext, use_translations
