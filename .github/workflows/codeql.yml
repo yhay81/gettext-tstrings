@@ -1,12 +1,10 @@
 name: CodeQL
 
 on:
-  push:
-    branches: [main]
   pull_request:
   # A weekly run picks up new queries against code that has not changed.
   schedule:
-    - cron: "27 4 * * 1"
+    - cron: "39 10 * * 4"
 
 permissions:
   contents: read
@@ -18,7 +16,7 @@ concurrency:
 jobs:
   analyze:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 1
     permissions:
       # Writing the results back as code-scanning alerts is the whole point.
       security-events: write

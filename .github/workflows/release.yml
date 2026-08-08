@@ -17,7 +17,7 @@ jobs:
   build:
     needs: checks
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 1
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v5.0.1
         with:
@@ -50,7 +50,7 @@ jobs:
   publish:
     needs: build
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 1
     environment: pypi
     permissions:
       id-token: write
@@ -64,7 +64,7 @@ jobs:
   github-release:
     needs: publish
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 1
     permissions:
       contents: write
     steps:
