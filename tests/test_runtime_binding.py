@@ -33,6 +33,8 @@ class StubTranslations(gettext.NullTranslations):
         return self.messages.get((context, message), message)
 
 
+# Defined at import, the way an application defines a form label — so the two
+# concurrent tasks below share one object and must still render it differently.
 MODULE_LEVEL_LABEL = lazy_gettext(t"Shared label")
 
 
@@ -86,6 +88,17 @@ def test_concurrent_tasks_do_not_share_a_language() -> None:
 
 
 def test_concurrent_tasks_keep_translation_contexts_isolated() -> None:
+    # The test above builds its interleaving out of two sleep durations, which
+    # makes the overlap a matter of timing. The barrier here makes it a fact:
+    # neither task renders until both are inside their own binding. It also
+    # checks the binding rather than only the output — what get_translations()
+    # returns inside each block, and that leaving one restores nothing rather
+    # than the other task's catalog.
+    #
+    # MODULE_LEVEL_LABEL is the part nothing else covers. The lazy tests below
+    # switch languages one after another; a label defined once at import and
+    # rendered by two tasks at the same moment is the shape the guide
+    # recommends for a per-recipient loop, and it has to resolve per task.
     name = "Ada"
     ja = StubTranslations(
         {
