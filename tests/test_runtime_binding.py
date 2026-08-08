@@ -33,6 +33,11 @@ class StubTranslations(gettext.NullTranslations):
         return self.messages.get((context, message), message)
 
 
+# Defined at import, the way an application defines a form label — so the two
+# concurrent tasks below share one object and must still render it differently.
+MODULE_LEVEL_LABEL = lazy_gettext(t"Shared label")
+
+
 def test_use_translations_binds_and_restores_context() -> None:
     name = "Ada"
     ja = StubTranslations({"Hello {name}": "{name}さん、こんにちは"})
@@ -80,6 +85,60 @@ def test_concurrent_tasks_do_not_share_a_language() -> None:
         return list(await asyncio.gather(request("ja", 0.01), request("fr", 0.02)))
 
     assert asyncio.run(both()) == ["Adaさん、こんにちは", "Bonjour Ada"]
+
+
+def test_concurrent_tasks_keep_translation_contexts_isolated() -> None:
+    # The test above builds its interleaving out of two sleep durations, which
+    # makes the overlap a matter of timing. The barrier here makes it a fact:
+    # neither task renders until both are inside their own binding. It also
+    # checks the binding rather than only the output — what get_translations()
+    # returns inside each block, and that leaving one restores nothing rather
+    # than the other task's catalog.
+    #
+    # MODULE_LEVEL_LABEL is the part nothing else covers. The lazy tests below
+    # switch languages one after another; a label defined once at import and
+    # rendered by two tasks at the same moment is the shape the guide
+    # recommends for a per-recipient loop, and it has to resolve per task.
+    name = "Ada"
+    ja = StubTranslations(
+        {
+            "Hello {name}": "{name}さん、こんにちは",
+            "Shared label": "共有ラベル",
+        }
+    )
+    fr = StubTranslations(
+        {
+            "Hello {name}": "Bonjour {name}",
+            "Shared label": "Libellé partagé",
+        }
+    )
+    barrier = asyncio.Barrier(2)
+    active_contexts: list[Translations | None] = []
+
+    async def request(catalog: StubTranslations) -> tuple[str, str]:
+        with use_translations(catalog):
+            assert get_translations() is catalog
+            active_contexts.append(get_translations())
+            await barrier.wait()
+            assert active_contexts.count(ja) == 1
+            assert active_contexts.count(fr) == 1
+            await asyncio.sleep(0)
+            assert get_translations() is catalog
+            rendered = tr(t"Hello {name}"), str(MODULE_LEVEL_LABEL)
+        assert get_translations() is None
+        return rendered
+
+    async def both() -> list[tuple[str, str]]:
+        return list(await asyncio.gather(request(ja), request(fr)))
+
+    assert asyncio.run(both()) == [
+        ("Adaさん、こんにちは", "共有ラベル"),
+        ("Bonjour Ada", "Libellé partagé"),
+    ]
+    assert len(active_contexts) == 2
+    assert active_contexts.count(ja) == 1
+    assert active_contexts.count(fr) == 1
+    assert get_translations() is None
 
 
 def test_a_worker_thread_inherits_the_binding_only_when_the_build_says_so() -> None:
