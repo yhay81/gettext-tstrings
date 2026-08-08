@@ -40,6 +40,15 @@ jobs:
           enable-cache: true
           python-version: ${{ matrix.python-version }}
       - run: uv sync --locked
+      # This is the entry that owns the GNU-toolchain assertions: three tests in
+      # test_toolchain.py run `msgfmt --check-format` to prove the claim that
+      # ordinary gettext tooling catches a broken python-brace-format
+      # translation. Without gettext installed they skip, and the whole
+      # external-tool boundary goes unexercised. The other entries keep skipping
+      # rather than pay the install.
+      - name: Install GNU gettext, for the msgfmt tests
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.14'
+        run: sudo apt-get update && sudo apt-get install --yes gettext
       - run: uv run ruff format --check .
       - run: uv run ruff check .
       - run: uv run mypy
@@ -118,6 +127,19 @@ jobs:
           persist-credentials: false
       - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
       - run: uvx zizmor .github/workflows/
+      # .gitignore does not untrack what is already tracked, so a local cache
+      # file committed once stays in every clone and every archive. The release
+      # policy is that no local state ships; this is the check that says so.
+      - name: Fail if an ignored file is tracked
+        shell: bash
+        run: |
+          tracked=$(git ls-files --cached --ignored --exclude-standard)
+          if [ -n "$tracked" ]; then
+            echo "Tracked although .gitignore excludes them:"
+            echo "$tracked"
+            echo "Remove with: git rm --cached <path>"
+            exit 1
+          fi
 
   all-green:
     # One stable name for the branch ruleset to require. Matrix legs come and
