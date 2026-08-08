@@ -91,3 +91,19 @@ def test_bound_context_catalog(
     name = "report.txt"
 
     assert translator.pgettext("button", t"Open {name}") == "report.txtを開く"
+
+
+def test_bound_plural_catalog(
+    load_translations: Callable[[str], gettext.GNUTranslations],
+) -> None:
+    # The bound plural methods were covered only against in-memory stubs, which
+    # answer whatever they are told to. A compiled MO answers through its own
+    # Plural-Forms header instead — Japanese declares one form, so both counts
+    # select msgstr[0] and the number reaching the message is the caller's.
+    translator = Translator(load_translations("ja"))
+
+    for n in (1, 3):
+        assert translator.ngettext(t"{n} file", t"{n} files", n) == f"{n}個のファイル"
+        assert translator.npgettext("inbox", t"One message", t"{n} messages", n) == (
+            f"{n}件のメッセージ"
+        )
