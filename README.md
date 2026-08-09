@@ -499,3 +499,8 @@ maintainers, and performance specialists are welcome.
 
 Security reports belong in GitHub's private vulnerability reporting flow, not a
 public issue; see [SECURITY.md](SECURITY.md).
+
+## Maintainer
+
+Maintained by [Yusuke Hayashi](https://yusuke-hayashi.com)
+([@yhay81](https://github.com/yhay81)).
