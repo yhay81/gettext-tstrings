@@ -37,7 +37,7 @@ wynika z brakującej funkcji.
 
 W 2015 roku Alyssa Coghlan i Nick Humrich napisali [PEP 501], proponując
 szablony interpolacji, których pierwszą deklarowaną motywacją było i18n —
-„providing a cleaner syntax for i18n translation", jak ujmuje to sam PEP.
+„providing a cleaner syntax for i18n translation”, jak ujmuje to sam PEP.
 Propozycję odroczono, po części dlatego, że dyskusja pokazała, iż przypadek
 i18n niesie istotne dodatkowe komplikacje, których prostsze zastosowania nie
 miały.
@@ -81,7 +81,7 @@ które ta biblioteka musiała później odpowiedzieć:
   ryzykowna rzecz do zamrożenia za pierwszym podejściem.
 
 Konsensus się nie uformował. Zgłoszenie w CPythonie zostało
-[zamknięte jako „not planned"][cpython-issue], a pull request zamknięto bez
+[zamknięte jako „not planned”][cpython-issue], a pull request zamknięto bez
 scalenia w październiku 2025, kilka dni po wydaniu 3.14. Możliwość istniała
 w języku; konwencja nie miała domu.
 

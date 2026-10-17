@@ -81,7 +81,7 @@ a błędem znalezionym przez użytkownika.
     wypełnia po jednym pliku katalogu (`.po`) na język, kompilowanym do
     binarnego `.mo`, który aplikacja wczytuje w czasie działania. Konwencjonalna
     nazwa funkcji tłumaczącej to `_`, więc `_(t"Hello {name}")` czyta się jako
-    „przetłumacz to zdanie". **[Samouczek](tutorial.md)** przechodzi całą
+    „przetłumacz to zdanie”. **[Samouczek](tutorial.md)** przechodzi całą
     ścieżkę — oznacz, wyodrębnij, przetłumacz, skompiluj, uruchom — w około
     pięć minut.
 

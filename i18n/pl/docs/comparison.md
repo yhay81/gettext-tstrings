@@ -46,7 +46,7 @@ każdy styl daje im inną porcję władzy:
 | Skąd pochodzą wartości? | jawne mapowanie | jawne argumenty | zmienne lokalne i globalne wywołującego, plus opcjonalne `extras` | wartości przechwycone wewnątrz t-stringa |
 | Czy katalog może zmienić sposób formatowania wartości? | tak | tak | nie | nie |
 | Czy katalog może sięgać do obiektów (dostęp do atrybutów)? | nie | tak | tak, nazwami z kropką | nie |
-| Gdzie mieszka „bieżący język"? | tam, gdzie umieści go aplikacja | tam, gdzie umieści go aplikacja | stos kodów języków na współdzielonym obiekcie aplikacji | `ContextVar`, osobno dla zadania lub żądania |
+| Gdzie mieszka „bieżący język”? | tam, gdzie umieści go aplikacja | tam, gdzie umieści go aplikacja | stos kodów języków na współdzielonym obiekcie aplikacji | `ContextVar`, osobno dla zadania lub żądania |
 
 **Ile kosztuje integracja.** Wszystko powyżej jest darmowe, jeśli narzędzia
 pasują; tutaj mogą nie pasować:

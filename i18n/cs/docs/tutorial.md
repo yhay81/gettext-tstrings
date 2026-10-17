@@ -154,7 +154,7 @@ print(_(t"Hello {name}"))  # (2)!
 ```
 
 1. Standardní knihovna načte zkompilovaný `.mo` a `Translator` ho naváže na
-   volatelný objekt. `_` je konvenční gettextové jméno pro „přelož tohle" —
+   volatelný objekt. `_` je konvenční gettextové jméno pro „přelož tohle“ —
    krátké, protože se objevuje u každého řetězce viditelného uživateli.
    Provádí tentýž překlad jako `tr`, jen navázaný na jeden katalog.
 2. V místě volání: text t-stringu se stane vyhledávacím klíčem `Hello {name}`,

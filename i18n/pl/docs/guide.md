@@ -258,7 +258,7 @@ tr(t"Hello {name}", translations=translations, strict=True)
 ```
 
 To samo wyszukanie wtedy zgłasza wyjątek, niosący to samo zdanie bez połowy
-„using source text":
+„using source text”:
 
 ```pycon
 >>> strict(t"Hello {name}")
