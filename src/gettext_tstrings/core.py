@@ -19,7 +19,7 @@ from __future__ import annotations
 
 import gettext as _gettext
 import logging
-from collections.abc import Iterator
+from collections.abc import Generator
 from contextlib import contextmanager
 from contextvars import ContextVar
 from dataclasses import dataclass
@@ -87,7 +87,7 @@ def set_translations(translations: Translations | None) -> None:
 
 
 @contextmanager
-def use_translations(translations: Translations | None) -> Iterator[None]:
+def use_translations(translations: Translations | None) -> Generator[None]:
     """Bind translations for the duration of a ``with`` block, then restore."""
     token = _current.set(translations)
     try:

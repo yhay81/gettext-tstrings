@@ -649,6 +649,21 @@ def test_the_site_build_fails_on_a_lenient_warning() -> None:
     assert "{auteur} is not in the source message" in str(caught.value)
 
 
+def test_the_site_build_rejects_emphasis_left_as_text() -> None:
+    # Python-Markdown renders `**変えられない。**約束` as text and says nothing,
+    # so the build has to look at what came out. Code is exempt: an asterisk
+    # there is Python, not markup.
+    builder = _load_site_builder()
+    opening = '<article class="md-content__inner md-typeset">'
+    code = " <code>a * b</code></p>\n<pre><code>f(**options)</code></pre></article>"
+
+    broken = f"{opening}<p>**変えられない。**約束{code}"
+    fixed = f"{opening}<p><strong>変えられない</strong>。約束{code}"
+
+    assert builder._literal_emphasis(broken) == ["**変えられない。**約束"]
+    assert builder._literal_emphasis(fixed) == []
+
+
 def test_site_catalog_matches_messages_extracted_from_builder() -> None:
     with SITE_BUILDER.open("rb") as file:
         extracted = list(

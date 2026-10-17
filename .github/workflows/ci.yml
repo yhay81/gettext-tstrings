@@ -28,12 +28,12 @@ jobs:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 1
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v5.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           # checkout leaves GITHUB_TOKEN in .git/config by default, and an
           # artifact upload follows further down. Do not carry it along.
           persist-credentials: false
-      - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+      - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
         with:
           enable-cache: true
           python-version: ${{ matrix.python-version }}
@@ -118,13 +118,20 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 1
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v5.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           # checkout leaves GITHUB_TOKEN in .git/config by default, and an
           # artifact upload follows further down. Do not carry it along.
           persist-credentials: false
-      - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
-      - run: uvx zizmor .github/workflows/
+      - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
+      # Pinned like every other tool here. zizmor releases add audits, and the
+      # unpinned run started failing on an unchanged main when 1.30 added one.
+      # The token enables the online audits, which compare each pin's version
+      # comment with the tag its SHA really is: seven comments said v5.0.1 on a
+      # v7.0.1 checkout, and the offline run never looked.
+      - run: uvx zizmor@1.31.1 .github/workflows/
+        env:
+          GH_TOKEN: ${{ github.token }}
       # .gitignore does not untrack what is already tracked, so a local cache
       # file committed once stays in every clone and every archive. The release
       # policy is that no local state ships; this is the check that says so.
