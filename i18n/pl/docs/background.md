@@ -1,5 +1,5 @@
 ---
-description: "Trzydzieści lat gettext, dwa PEP-y w odstępie dziesięciu lat i dyskusja o bibliotece standardowej zamknięta jako „not planned": dlaczego ta biblioteka istnieje, z odnośnikami do źródeł."
+description: "Trzydzieści lat gettext, dwa PEP-y w odstępie dziesięciu lat i dyskusja o bibliotece standardowej zamknięta jako „not planned”: dlaczego ta biblioteka istnieje, z odnośnikami do źródeł."
 ---
 
 # Geneza

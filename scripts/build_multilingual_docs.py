@@ -440,6 +440,11 @@ LANGUAGES = (
 RTL_LANGUAGES = frozenset({"ar", "he", "fa", "ur"})
 
 NAV_PATTERN = re.compile(r"nav = \[\n.*?\n\]\n", re.DOTALL)
+# A page's prose as a reader sees it: the article without its code and markup.
+ARTICLE_PATTERN = re.compile(
+    r'<article class="md-content__inner md-typeset">(.*?)</article>', re.DOTALL
+)
+CODE_OR_TAG_PATTERN = re.compile(r"<(pre|code)\b.*?</\1>|<[^>]*>", re.DOTALL)
 PLURAL_PROBES = {
     "en": (1, 2),
     "ja": (0, 1, 2),
@@ -678,7 +683,6 @@ def _stage_project(language: Language, build_root: Path) -> Path:
     shutil.copytree(language.source, docs)
     shutil.copytree(ROOT / "docs" / "assets", docs / "assets")
     shutil.copytree(ROOT / "docs" / "stylesheets", docs / "stylesheets")
-    shutil.copy2(ROOT / "docs" / ".assetsignore", docs / ".assetsignore")
     shutil.copytree(ROOT / "overrides", project / "overrides")
     return project
 
@@ -686,6 +690,22 @@ def _stage_project(language: Language, build_root: Path) -> Path:
 def _localized_url(language: Language, page_url: str = "") -> str:
     prefix = f"/{language.url_path}/" if language.url_path else "/"
     return f"{prefix}{page_url}"
+
+
+def _literal_emphasis(html: str) -> list[str]:
+    """Return each line of a page's prose that shows a ``*`` as text.
+
+    An asterisk left in the prose is emphasis that did not parse. Python-Markdown
+    3.11 adopted CommonMark's flanking rule, under which a ``**`` that follows
+    punctuation closes only before whitespace or more punctuation. Chinese and
+    Japanese put no space after 。, and Korean none before a particle, so
+    ``**変えられない。**約束`` renders both pairs as text — and nothing warns. The
+    upgrade that brought the rule left ten such spans across five pages without a
+    word.
+    """
+    article = ARTICLE_PATTERN.search(html)
+    prose = CODE_OR_TAG_PATTERN.sub("", article.group(1)) if article is not None else ""
+    return [line.strip() for line in prose.splitlines() if "*" in line]
 
 
 def _validate_build(language: Language) -> None:
@@ -704,6 +724,8 @@ def _validate_build(language: Language) -> None:
             f'{_localized_url(language, page_url)}">',
             'class="md-header__button md-icon md-language-switcher"',
             'class="md-language-switcher__label"',
+            # What _literal_emphasis reads; without it, that check passes vacuously.
+            '<article class="md-content__inner md-typeset">',
         }
         expected.update(
             f'href="{_localized_url(alternate, page_url)}" hreflang="{alternate.html_language}"'
@@ -715,6 +737,10 @@ def _validate_build(language: Language) -> None:
             raise ValueError(msg)
         if html.count('aria-current="page"') != 1:
             msg = f"{output} must mark exactly one current language"
+            raise ValueError(msg)
+        literal = _literal_emphasis(html)
+        if literal:
+            msg = f"{output} shows emphasis markup as text: {literal}"
             raise ValueError(msg)
 
     if not (language.output / "search.json").is_file():
@@ -815,6 +841,11 @@ def main() -> None:
         shutil.rmtree(SITE_ROOT, ignore_errors=True)
     for language in selected:
         _build(language, localedir, build_root)
+    # wrangler reads .assetsignore only at the root of the assets directory, and
+    # Zensical has left dotfiles out of the site since 0.0.63, so the build puts
+    # the file there itself. A copy below the root is not an ignore list: it is
+    # uploaded and served like any other asset, as /ja/.assetsignore once was.
+    shutil.copy2(ROOT / "docs" / ".assetsignore", SITE_ROOT / ".assetsignore")
 
 
 if __name__ == "__main__":
