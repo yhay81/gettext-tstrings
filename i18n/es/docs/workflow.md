@@ -334,6 +334,16 @@ una CLI, la petición en un servicio web.
     mayoría de los frameworks o sus ecosistemas ofrecen uno; lo que importa
     aquí es la vinculación alrededor de `call_next`.
 
+    El [experimento ASGI](https://github.com/yhay81/gettext-tstrings/tree/main/experiments/asgi_isolation)
+    ejecuta este middleware bajo FastAPI con 200 peticiones superpuestas en dos
+    idiomas. Cada petición se renderizó en su propio idioma, también en
+    endpoints `def`, cuerpos transmitidos en streaming y tareas en segundo
+    plano, y la vinculación se restauró después de que un handler lanzara una
+    excepción. Vincula aquí o en una dependencia `async def`, pero no en una
+    dependencia `def` simple con `yield`: FastAPI la ejecuta en hilos de
+    trabajo, así que el endpoint nunca ve la vinculación, y salir del bloque
+    lanza `ValueError`.
+
 Dos hábitos de ejecución completan el cuadro. Las cadenas creadas durante el
 import —una etiqueta de formulario, el nombre visible de un enum— no deben
 capturar el idioma que estuviera activo durante el import; defínelas con

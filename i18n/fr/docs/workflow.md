@@ -334,6 +334,16 @@ langue* — le processus pour un CLI, la requête pour un service web.
     plupart des frameworks ou leur écosystème en fournissent une ; ce qui
     compte ici est la liaison autour de `call_next`.
 
+    L'[expérience ASGI](https://github.com/yhay81/gettext-tstrings/tree/main/experiments/asgi_isolation)
+    fait tourner ce middleware sous FastAPI avec 200 requêtes qui se
+    chevauchent, en deux langues. Chaque requête a été rendue dans sa propre
+    langue, y compris dans les endpoints `def`, les corps de réponse diffusés en
+    flux et les tâches d'arrière-plan, et la liaison a été restaurée après qu'un
+    handler a levé une exception. Faites la liaison ici ou dans une dépendance
+    `async def`, mais pas dans une simple dépendance `def` avec `yield` :
+    FastAPI l'exécute dans des threads de travail, donc l'endpoint ne voit
+    jamais la liaison, et la sortie du bloc lève `ValueError`.
+
 Deux habitudes d'exécution complètent le tableau. Les chaînes créées à
 l'import — l'étiquette d'un formulaire, le nom d'affichage d'une enum — ne
 doivent pas capturer la langue active pendant l'import ; définissez-les avec

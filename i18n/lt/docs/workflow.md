@@ -328,6 +328,16 @@ paslauga.
     karkasų ar jų ekosistemų tokią pateikia; čia svarbu susiejimas aplink
     `call_next`.
 
+    [ASGI eksperimentas](https://github.com/yhay81/gettext-tstrings/tree/main/experiments/asgi_isolation)
+    paleidžia šią tarpinę programinę įrangą su FastAPI ir siunčia 200
+    persidengiančių užklausų dviem kalbomis. Kiekviena užklausa buvo atvaizduota
+    savo kalba, taip pat `def` galiniuose taškuose, srautu siunčiamuose atsakymų
+    kūnuose ir foninėse užduotyse, o susiejimas buvo atkurtas po to, kai
+    apdorojimo funkcija iškėlė išimtį. Susiekite čia arba `async def`
+    priklausomybėje, bet ne paprastoje `def` priklausomybėje su `yield`: FastAPI
+    ją vykdo darbinėse gijose, todėl galinis taškas susiejimo niekada nemato, o
+    išėjus iš bloko iškeliama `ValueError`.
+
 Paveikslą užbaigia du veikimo meto įpročiai. Eilutės, sukurtos importavimo
 metu — formos etiketė, išvardijimo rodomas vardas — neturi pagauti tos kalbos,
 kuri buvo aktyvi importuojant; apibrėžkite jas su

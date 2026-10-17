@@ -323,6 +323,16 @@ CLIならプロセス、Webサービスならリクエストです。
     そのecosystemが提供しています。ここで重要なのは、`call_next`を囲む
     束縛です。
 
+    [ASGIの実験](https://github.com/yhay81/gettext-tstrings/tree/main/experiments/asgi_isolation)は、
+    このミドルウェアをFastAPIの下で動かし、2つの言語で200件のリクエストを
+    重ねて送ります。どのリクエストも自分の言語でレンダリングされ、`def`の
+    エンドポイント、ストリーミングされる本文、バックグラウンドタスクでも
+    同じでした。ハンドラーが例外を送出したあとも、束縛は元に戻っていました。
+    束縛はここか`async def`の依存関係で行い、`yield`を使う素の`def`の
+    依存関係では行わないでください。FastAPIはその依存関係をワーカースレッドで
+    実行するため、エンドポイントから束縛は見えず、ブロックを抜けるときに
+    `ValueError`が送出されます。
+
 ランタイムの習慣を2つ加えれば全体像が完成します。import時に作られる文字列 —
 フォームラベルやenumの表示名 — は、import中に有効だった言語を捕捉しては
 なりません。[`lazy_gettext`](guide.md#deferred-translation)で定義すれば、

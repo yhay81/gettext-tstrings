@@ -325,6 +325,16 @@ CLI, y cais ar gyfer gwasanaeth gwe.
     rhan fwyaf o fframweithiau neu eu hecosystemau'n darparu un; yr hyn sy'n
     bwysig yma yw'r rhwymo o amgylch `call_next`.
 
+    Mae'r [arbrawf ASGI](https://github.com/yhay81/gettext-tstrings/tree/main/experiments/asgi_isolation)
+    yn rhedeg y canolwedd hwn o dan FastAPI gyda 200 o geisiadau sy'n
+    gorgyffwrdd mewn dwy iaith. Cafodd pob cais ei rendro yn ei iaith ei hun,
+    mewn endpoints `def`, cyrff wedi'u ffrydio a thasgau cefndir hefyd, ac
+    adferwyd y rhwymiad ar ôl i driniwr godi eithriad. Rhwymwch yma neu mewn
+    dibyniaeth `async def`, ond nid mewn dibyniaeth `def` gyffredin gyda
+    `yield`: mae FastAPI yn ei rhedeg mewn edafedd gweithwyr, felly nid yw'r
+    endpoint byth yn gweld y rhwymiad, ac mae gadael y bloc yn codi
+    `ValueError`.
+
 Mae dau arferiad rhedeg yn cwblhau'r darlun. Rhaid i linynnau a grëir adeg
 mewnforio — label ffurflen, enw arddangos enum — beidio â dal pa iaith bynnag
 oedd yn weithredol yn ystod y mewnforio; diffiniwch nhw gyda

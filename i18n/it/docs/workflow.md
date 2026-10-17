@@ -335,6 +335,16 @@ il processo per una CLI, la richiesta per un servizio web.
     maggior parte dei framework o dei loro ecosistemi ne fornisce uno; ciò
     che conta qui è il binding attorno a `call_next`.
 
+    L'[esperimento ASGI](https://github.com/yhay81/gettext-tstrings/tree/main/experiments/asgi_isolation)
+    esegue questo middleware sotto FastAPI con 200 richieste sovrapposte in due
+    lingue. Ogni richiesta è stata resa nella propria lingua, anche negli
+    endpoint `def`, nei corpi trasmessi in streaming e nei task in background, e
+    il binding è stato ripristinato dopo che un handler ha sollevato
+    un'eccezione. Fai il binding qui o in una dipendenza `async def`, ma non in
+    una semplice dipendenza `def` con `yield`: FastAPI la esegue in thread di
+    lavoro, quindi l'endpoint non vede mai il binding, e uscire dal blocco
+    solleva `ValueError`.
+
 Due abitudini a runtime completano il quadro. Le stringhe create al momento
 dell'import — l'etichetta di un form, il nome visualizzato di un enum — non
 devono catturare qualunque lingua fosse attiva durante l'import; definiscile

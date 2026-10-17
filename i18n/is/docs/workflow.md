@@ -325,6 +325,15 @@ ferlið fyrir skipanalínutól, beiðnina fyrir vefþjónustu.
     umgjarðir eða vistkerfi þeirra leggja slíkt til; það sem skiptir máli hér
     er bindingin utan um `call_next`.
 
+    [ASGI-tilraunin](https://github.com/yhay81/gettext-tstrings/tree/main/experiments/asgi_isolation)
+    keyrir þetta millilag undir FastAPI með 200 skarandi beiðnum á tveimur
+    tungumálum. Hver beiðni var birt á sínu eigin tungumáli, líka í
+    `def`-endapunktum, streymdum svörum og bakgrunnsverkum, og bindingin var
+    endurheimt eftir að meðhöndlari kastaði undantekningu. Bittu hér eða í
+    `async def`-falli sem `Depends` kallar á, en ekki í venjulegu `def`-falli
+    með `yield`: FastAPI keyrir það í vinnuþráðum, svo endapunkturinn sér
+    bindinguna aldrei, og að yfirgefa blokkina kastar `ValueError`.
+
 Tveir vanar á keyrslutíma fullkomna myndina. Strengir sem verða til við
 innflutning — merking á eyðublaði, birtingarnafn í talnaupptalningu — mega
 ekki grípa það tungumál sem var virkt við innflutninginn; skilgreindu þá með

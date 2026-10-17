@@ -333,6 +333,15 @@ het proces voor een CLI, het request voor een webservice.
     frameworks of hun ecosystemen leveren er een; wat hier telt is de
     binding rond `call_next`.
 
+    Het [ASGI-experiment](https://github.com/yhay81/gettext-tstrings/tree/main/experiments/asgi_isolation)
+    draait deze middleware onder FastAPI met 200 overlappende requests in twee
+    talen. Elk request werd in zijn eigen taal gerenderd, ook in
+    `def`-endpoints, gestreamde bodies en achtergrondtaken, en de binding was
+    hersteld nadat een handler een exceptie had opgeworpen. Bind hier of in een
+    `async def`-dependency, maar niet in een gewone `def`-dependency met
+    `yield`: FastAPI draait die in workerthreads, dus het endpoint ziet de
+    binding nooit, en het verlaten van het blok werpt `ValueError` op.
+
 Twee runtimegewoonten maken het plaatje compleet. Strings die bij importtijd
 worden aangemaakt — een formulierlabel, de weergavenaam van een enum — mogen
 niet vastleggen welke taal er tijdens de import toevallig actief was;

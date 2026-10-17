@@ -332,6 +332,16 @@ ombi kwa huduma ya wavuti.
     Accept-Language — mifumo mingi au mifumo ikolojia yao hutoa mmoja;
     kinachohusika hapa ni ufungaji unaozunguka `call_next`.
 
+    [Jaribio la ASGI](https://github.com/yhay81/gettext-tstrings/tree/main/experiments/asgi_isolation)
+    huendesha kiungo hiki cha kati chini ya FastAPI kwa maombi 200 yanayopishana
+    katika lugha mbili. Kila ombi lilionyeshwa katika lugha yake lenyewe, pia
+    katika endpoint za `def`, miili ya majibu inayotiririshwa na kazi za usuli,
+    na ufungaji ulirejeshwa baada ya kidhibiti kurusha hitilafu. Funga hapa au
+    katika tegemezi la `async def`, lakini si katika tegemezi la kawaida la
+    `def` lenye `yield`: FastAPI huliendesha katika nyuzi za kazi, kwa hiyo
+    endpoint haioni ufungaji kamwe, na kutoka nje ya kizuizi hurusha
+    `ValueError`.
+
 Tabia mbili za wakati wa utekelezaji hukamilisha picha. Mifuatano
 iliyotengenezwa wakati wa kuingiza moduli — lebo ya fomu, jina la kuonyesha la
 enum — haipaswi kunasa lugha yoyote iliyokuwa hai wakati wa kuingiza; ibainishe

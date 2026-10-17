@@ -326,6 +326,15 @@ služby.
     většina frameworků nebo jejich ekosystémů nějaké poskytuje; podstatné
     je zde vázání kolem `call_next`.
 
+    [Experiment ASGI](https://github.com/yhay81/gettext-tstrings/tree/main/experiments/asgi_isolation)
+    spouští tento middleware pod FastAPI s 200 překrývajícími se požadavky ve
+    dvou jazycích. Každý požadavek se vykreslil ve vlastním jazyce, i v
+    endpointech `def`, streamovaných tělech odpovědí a úlohách na pozadí, a
+    vázání se obnovilo poté, co handler vyhodil výjimku. Važte zde nebo v
+    závislosti `async def`, ale ne v obyčejné závislosti `def` s `yield`:
+    FastAPI ji spouští v pracovních vláknech, takže endpoint vázání nikdy
+    neuvidí a opuštění bloku vyhodí `ValueError`.
+
 Dva běhové návyky doplňují obraz. Řetězce vytvářené při importu — popisek
 formuláře, zobrazovaný název enumu — nesmějí zachytit jazyk, který byl
 zrovna aktivní během importu; definujte je pomocí

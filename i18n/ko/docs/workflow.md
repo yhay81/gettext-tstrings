@@ -323,6 +323,16 @@ msgstr ""
     자리입니다 — 대부분의 프레임워크나 그 생태계가 하나쯤 제공합니다.
     여기서 중요한 것은 `call_next`를 감싸는 바인딩입니다.
 
+    [ASGI 실험](https://github.com/yhay81/gettext-tstrings/tree/main/experiments/asgi_isolation)은
+    이 미들웨어를 FastAPI에서 실행해 두 언어로 200개의 요청을 겹쳐
+    보냅니다. 모든 요청이 자기 언어로 렌더링되었고, `def` 엔드포인트,
+    스트리밍 본문, 백그라운드 태스크에서도 마찬가지였으며, 핸들러가
+    예외를 낸 뒤에도 바인딩은 복원되었습니다. 바인딩은 여기서 하거나
+    `async def` 의존성에서 하고, `yield`를 쓰는 일반 `def` 의존성에서는
+    하지 마세요. FastAPI는 그 의존성을 워커 스레드에서 실행하므로
+    엔드포인트는 바인딩을 보지 못하고, 블록을 나갈 때 `ValueError`가
+    발생합니다.
+
 런타임 습관 둘이 그림을 완성합니다. import 시점에 만들어지는 문자열 —
 폼 레이블, enum의 표시 이름 — 은 import 중에 활성이던 언어를 캡처해서는
 안 됩니다. [`lazy_gettext`](guide.md#deferred-translation)로 정의하면

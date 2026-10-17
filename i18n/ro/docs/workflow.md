@@ -332,6 +332,15 @@ unei limbi* — procesul, pentru un CLI; cererea, pentru un serviciu web.
     majoritatea framework-urilor sau a ecosistemelor lor oferă una; ce contează
     aici este legarea din jurul lui `call_next`.
 
+    [Experimentul ASGI](https://github.com/yhay81/gettext-tstrings/tree/main/experiments/asgi_isolation)
+    rulează acest middleware sub FastAPI cu 200 de cereri suprapuse, în două
+    limbi. Fiecare cerere s-a randat în propria limbă, inclusiv în endpointurile
+    `def`, în corpurile transmise în flux și în sarcinile de fundal, iar legarea
+    a fost restaurată după ce un handler a ridicat o excepție. Fă legarea aici
+    sau într-o dependență `async def`, dar nu într-o simplă dependență `def` cu
+    `yield`: FastAPI o rulează în fire de lucru, așa că endpointul nu vede
+    niciodată legarea, iar ieșirea din bloc ridică `ValueError`.
+
 Două obiceiuri de rulare completează tabloul. Șirurile create la momentul
 importului — o etichetă de formular, numele afișat al unui enum — nu trebuie să
 captureze limba care se întâmpla să fie activă în timpul importului;

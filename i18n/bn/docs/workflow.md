@@ -324,6 +324,15 @@ msgstr ""
     বেশিরভাগ ফ্রেমওয়ার্ক বা তাদের ইকোসিস্টেম একটি দেয়; এখানে যা গুরুত্বপূর্ণ
     তা হল `call_next`-এর চারপাশের বাঁধাইটি।
 
+    [ASGI পরীক্ষা](https://github.com/yhay81/gettext-tstrings/tree/main/experiments/asgi_isolation)
+    এই মিডলওয়্যারটিকে FastAPI-এর নিচে দুই ভাষায় একসঙ্গে চলা ২০০টি request
+    দিয়ে চালায়। প্রতিটি request নিজের ভাষায় render হয়েছে — `def` endpoint,
+    stream করা body এবং background task-এও — আর কোনো handler exception তোলার
+    পরেও বাঁধাইটি পুনরুদ্ধার হয়েছে। বাঁধাই এখানে করুন বা কোনো `async def`
+    dependency-তে, কিন্তু `yield` সহ সাধারণ `def` dependency-তে নয়: FastAPI
+    সেটিকে worker thread-এ চালায়, তাই endpoint বাঁধাইটি কখনো দেখে না, আর block
+    থেকে বেরোনোর সময় `ValueError` ওঠে।
+
 দুটি রানটাইম অভ্যাস ছবিটি সম্পূর্ণ করে। import-সময়ে তৈরি স্ট্রিং — একটি ফর্ম
 লেবেল, একটি enum-এর প্রদর্শন নাম — import-এর সময় যে ভাষা সক্রিয় ছিল তাকে ধরে
 রাখতে পারে না; সেগুলি [`lazy_gettext`](guide.md#deferred-translation) দিয়ে

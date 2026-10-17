@@ -294,6 +294,14 @@ pipeline 中强制执行它。细节以及内置 checker 在此之外还能捕�
     `negotiate_language` 代表你的 Accept-Language 解析——大多数 framework
     或其生态都提供现成实现；这里的关键是围绕 `call_next` 的绑定。
 
+    [ASGI 实验](https://github.com/yhay81/gettext-tstrings/tree/main/experiments/asgi_isolation)
+    在 FastAPI 下运行这个中间件，用两种语言发出 200 个相互重叠的请求。
+    每个请求都以自己的语言渲染，在 `def` 端点、流式响应体和后台任务中
+    也是如此；处理函数抛出异常之后，绑定也恢复了原状。请在这里或在
+    `async def` 依赖项中绑定，而不要在带 `yield` 的普通 `def` 依赖项中
+    绑定：FastAPI 会在工作线程中运行它，因此端点永远看不到这个绑定，
+    而且离开该块时会抛出 `ValueError`。
+
 两条运行时习惯补全全景。import 时创建的字符串——表单标签、枚举的显示名——
 绝不能捕获 import 期间恰好生效的语言；用
 [`lazy_gettext`](guide.md#deferred-translation) 定义它们，它们就会以*使用时*
