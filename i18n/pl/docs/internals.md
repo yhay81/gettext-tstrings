@@ -207,7 +207,7 @@ jest ślepą uliczką, więc komunikaty są obliczane według trzech reguł:
   to zwykłe nazwy; escapowanie ich zostawiłoby czytelnika bez możliwości
   znalezienia tego, o co chodziło.
 
-Na tej samej zasadzie „brakujący" symbol zastępczy, który *wygląda* na
+Na tej samej zasadzie „brakujący” symbol zastępczy, który *wygląda* na
 obecny, dostaje wyjaśnienie swojej nieobecności — pełnej szerokości nawiasy
 klamrowe z metody wprowadzania wschodnioazjatyckiej, podwojenie `{{name}}`
 z rundy escapowania, nazwa poza jakimikolwiek nawiasami.

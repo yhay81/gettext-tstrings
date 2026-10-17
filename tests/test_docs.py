@@ -664,6 +664,19 @@ def test_the_site_build_rejects_emphasis_left_as_text() -> None:
     assert builder._literal_emphasis(fixed) == []
 
 
+def test_robots_txt_points_at_every_edition_sitemap() -> None:
+    # Each edition's sitemap.xml sits below its own prefix, and the root one
+    # lists the English pages alone. robots.txt is what points a crawler at the
+    # rest, so an edition left out of it is never submitted, and nothing fails.
+    builder = _load_site_builder()
+    prefixes = ["", *(f"{language.lower()}/" for language in LANGUAGES)]
+    expected = [
+        f"Sitemap: https://gettext-tstrings.yhay81.com/{prefix}sitemap.xml" for prefix in prefixes
+    ]
+
+    assert sorted(builder._robots_txt().splitlines()) == sorted(expected)
+
+
 def test_site_catalog_matches_messages_extracted_from_builder() -> None:
     with SITE_BUILDER.open("rb") as file:
         extracted = list(

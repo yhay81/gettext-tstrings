@@ -38,14 +38,16 @@ jobs:
           enable-cache: true
           python-version: ${{ matrix.python-version }}
       - run: uv sync --locked
-      # This is the entry that owns the GNU-toolchain assertions: three tests in
+      # The ubuntu 3.15 entry owns the GNU-toolchain assertions: three tests in
       # test_toolchain.py run `msgfmt --check-format` to prove the claim that
       # ordinary gettext tooling catches a broken python-brace-format
       # translation. Without gettext installed they skip, and the whole
       # external-tool boundary goes unexercised. The other entries keep skipping
-      # rather than pay the install.
+      # rather than pay the install. Not ubuntu 3.14: it already runs the
+      # lower-bound check and the benchmarks below, and with the install as well
+      # it was the entry that came nearest the one-minute timeout.
       - name: Install GNU gettext, for the msgfmt tests
-        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.14'
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.15'
         run: sudo apt-get update && sudo apt-get install --yes gettext
       - run: uv run ruff format --check .
       - run: uv run ruff check .

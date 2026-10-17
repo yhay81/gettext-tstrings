@@ -156,7 +156,7 @@ print(_(t"Hello {name}"))  # (2)!
 
 1. Biblioteka standardowa wczytuje skompilowany `.mo`, a `Translator` wiąże
    go z obiektem wywoływalnym. `_` to konwencjonalna gettextowa nazwa dla
-   „przetłumacz to" — krótka, bo pojawia się przy każdym łańcuchu widocznym
+   „przetłumacz to” — krótka, bo pojawia się przy każdym łańcuchu widocznym
    dla użytkownika. Wykonuje to samo tłumaczenie co `tr`, związane z jednym
    katalogiem.
 2. W miejscu wywołania: tekst t-stringa staje się kluczem wyszukiwania

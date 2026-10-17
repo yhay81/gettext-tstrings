@@ -40,7 +40,7 @@ Turecki, węgierski, perski i bengalski deklarują po dwie formy liczby mnogiej
 i we wszystkich czterech obie formy policzalnego komunikatu to zgodnie z
 prawidłami *ten sam łańcuch* — rzeczownik po liczebniku zostaje w liczbie
 pojedynczej, więc `{n} sayfa` jest poprawne i dla jednej strony, i dla
-dziesięciu. Recenzent, który „naprawi" to powtórzenie, psuje tłumaczenie.
+dziesięciu. Recenzent, który „naprawi” to powtórzenie, psuje tłumaczenie.
 
 Odwrotna pomyłka jest równie łatwa. Trzecia forma łotewskiego istnieje
 **wyłącznie dla zera**; druga forma słoweńskiego to **liczba podwójna**, dla
@@ -67,7 +67,7 @@ z nich zapisanych jest tak samo. To nie wpadka przy kopiuj-wklej:
 wywoływanych przez irlandzkie liczebniki nie jest na `l` zapisywana. Formy
 nadal wykonują prawdziwą pracę — temat wymienia się między *leathanach* a
 *leathanaigh*, a liczebności powyżej dziesięciu wracają do liczby pojedynczej
-— ale żaden rzeczownik o znaczeniu „strona" nie pokazałby tego kontrastu.
+— ale żaden rzeczownik o znaczeniu „strona” nie pokazałby tego kontrastu.
 
 Każde sprawdzenie oznaczające zduplikowane formy jako podejrzane oznaczy
 poprawny irlandzki. Jedynym recenzentem jest tu człowiek, który zna ten język.
@@ -75,7 +75,7 @@ poprawny irlandzki. Jedynym recenzentem jest tu człowiek, który zna ten język
 ## Komunikat może uzgodnić się tylko z jedną liczbą { #a-message-can-only-agree-with-one-count }
 
 Raport z buildu tej strony mówi, ile stron wyrenderowano i ile to zajęło.
-Zapisanie tego jako „Rendered {n} pages in {seconds} seconds" wygląda
+Zapisanie tego jako „Rendered {n} pages in {seconds} seconds” wygląda
 niewinnie i nie jest przetłumaczalne: gettext wybiera jedną formę na
 podstawie jednej liczby, a tą liczbą jest `n`. Słowo *seconds* musiałoby
 uzgodnić się z liczbą, której maszyneria liczby mnogiej nigdy nie widzi.
@@ -89,7 +89,7 @@ jedynym narzędziem do tego jest zapisanie komunikatu inaczej.
 
 ## Zmiana angielskiego zdania zmienia obcą gramatykę { #editing-an-english-sentence-edits-foreign-grammar }
 
-Strona główna mówiła kiedyś „all ten language editions". Usunięcie liczby —
+Strona główna mówiła kiedyś „all ten language editions”. Usunięcie liczby —
 jednosłowna angielska poprawka, zrobiona dlatego, że liczba wciąż się
 dezaktualizowała — zmieniło podmiot z mnogiego na pojedynczy. Hiszpański,
 włoski, portugalski, rosyjski, ukraiński, grecki, niderlandzki i hebrajski

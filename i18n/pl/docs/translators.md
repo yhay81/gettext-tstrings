@@ -65,7 +65,7 @@ arabskiego. Wypełnij każdy slot, który daje Ci katalog.
 
 Dwie reguły, na których ludzie się potykają:
 
-- **Sloty to nie „pojedyncza, mnoga, bardziej mnoga".** Każdy indeks znaczy to,
+- **Sloty to nie „pojedyncza, mnoga, bardziej mnoga”.** Każdy indeks znaczy to,
   co mówi reguła liczby mnogiej Twojego języka. Trzecia forma łotewskiego jest
   wyłącznie dla zera; druga słoweńskiego dla dokładnie dwóch; walijski umieszcza
   przypadek ogólny pod indeksem 0, a pojedynczą pod indeksem 1.
@@ -148,4 +148,4 @@ Dwie rzeczy pomagają bardziej niż jakakolwiek kontrola:
   znaczy.
 - **Pytaj o `msgctxt`.** Gdy to samo słowo pojawia się dwa razy z różnymi
   kontekstami, dzieje się tak dlatego, że oba muszą zostać przetłumaczone
-  inaczej — na przykład „Open" jako przycisk i „Open" jako stan.
+  inaczej — na przykład „Open” jako przycisk i „Open” jako stan.

@@ -213,8 +213,8 @@ msgstr ""
 
 Tłumacz widzi ten komentarz w swoim edytorze, obok komunikatu, po drugiej
 stronie świata. To najtańsza dźwignia jakości w całym przepływie pracy. Dla
-słowa będącego swoim własnym homonimem — „Open" jako przycisk kontra
-„Open" jako stan — nadaj komunikatowi [kontekst](guide.md#binding-a-catalog)
+słowa będącego swoim własnym homonimem — „Open” jako przycisk kontra
+„Open” jako stan — nadaj komunikatowi [kontekst](guide.md#binding-a-catalog)
 przez `pgettext`, który staje się widocznym `msgctxt` w katalogu.
 
 **Pozwól platformie walidować symbole zastępcze.** Każdy komunikat
@@ -228,8 +228,8 @@ wychwytuje ponad nie — są na
 
 **Ufaj siatce bezpieczeństwa dokładnie na tyle, na ile sięga.** Cokolwiek
 wraca z platformy, wciąż jest danymi wchodzącymi do Twojego builda; bramki
-CI powyżej są tym, co zamienia „platforma to pewnie sprawdziła" w „to nie
-może wyjść zepsute".
+CI powyżej są tym, co zamienia „platforma to pewnie sprawdziła” w „to nie
+może wyjść zepsute”.
 
 ## Wiązanie języka w czasie działania { #binding-a-language-at-runtime }
 

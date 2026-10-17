@@ -16,10 +16,10 @@ keywords = ["babel", "gettext", "i18n", "internationalization", "t-strings"]
 classifiers = [
   "Development Status :: 3 - Alpha",
   "Intended Audience :: Developers",
-  "License :: OSI Approved :: MIT License",
   "Operating System :: OS Independent",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3.14",
+  "Programming Language :: Python :: 3.15",
   "Topic :: Software Development :: Internationalization",
   "Typing :: Typed",
 ]

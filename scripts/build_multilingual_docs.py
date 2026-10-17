@@ -692,6 +692,22 @@ def _localized_url(language: Language, page_url: str = "") -> str:
     return f"{prefix}{page_url}"
 
 
+def _robots_txt() -> str:
+    """Point crawlers at every edition's sitemap, not only the English one.
+
+    Each edition is a Zensical project of its own and writes its own sitemap.xml
+    below its prefix. The one at the site root lists the English pages alone, and
+    nothing pointed at the others. The file sets no rules, so it restricts
+    nothing, as /robots.txt did before it existed. Cloudflare's managed
+    robots.txt, if the zone turns it on, is prepended to this file rather than
+    put in its place.
+    """
+    site = SITE_URL.removesuffix("/")
+    return "".join(
+        f"Sitemap: {site}{_localized_url(language, 'sitemap.xml')}\n" for language in LANGUAGES
+    )
+
+
 def _literal_emphasis(html: str) -> list[str]:
     """Return each line of a page's prose that shows a ``*`` as text.
 
@@ -745,6 +761,11 @@ def _validate_build(language: Language) -> None:
 
     if not (language.output / "search.json").is_file():
         msg = f"{language.output} has no localized search index"
+        raise ValueError(msg)
+    # robots.txt names this file whether or not Zensical wrote it, and a release
+    # has changed what Zensical writes without a word before.
+    if not (language.output / "sitemap.xml").is_file():
+        msg = f"{language.output} has no sitemap.xml for robots.txt to point at"
         raise ValueError(msg)
 
 
@@ -841,6 +862,9 @@ def main() -> None:
         shutil.rmtree(SITE_ROOT, ignore_errors=True)
     for language in selected:
         _build(language, localedir, build_root)
+    # Only a full build produces every sitemap this lists.
+    if building_all:
+        (SITE_ROOT / "robots.txt").write_text(_robots_txt(), encoding="utf-8")
     # wrangler reads .assetsignore only at the root of the assets directory, and
     # Zensical has left dotfiles out of the site since 0.0.63, so the build puts
     # the file there itself. A copy below the root is not an ignore list: it is
