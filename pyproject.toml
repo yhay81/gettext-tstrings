@@ -131,6 +131,7 @@ ignore = [
 [tool.ruff.lint.per-file-ignores]
 "benchmarks/*" = ["T201"]  # Measurements are reported with print.
 "examples/*" = ["T201"]    # Examples show what they do with print.
+"experiments/*" = ["T201"] # Experiments report what they found with print.
 "tests/*" = [
   "ARG002",  # Translations stubs must match the argument names of the public Protocol.
   "SLF001",  # Tests that inspect internal cache-limit state (_PLANS and friends) directly.
@@ -141,3 +142,9 @@ python_version = "3.14"
 strict = true
 strict_equality_for_none = true
 files = ["src", "tests", "benchmarks", "examples", "scripts/build_multilingual_docs.py"]
+
+[tool.ty.src]
+# Each experiment declares its own dependencies in inline script metadata, so the
+# project environment cannot resolve its imports. experiments/README.md says how
+# to check one in its own environment.
+exclude = ["experiments"]
