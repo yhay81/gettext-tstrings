@@ -1,0 +1,143 @@
+{
+  "schema": 1,
+  "recorded_at": "2026-10-18T07:40:26+00:00",
+  "commit": {
+    "sha": "9608933a465a9afc40d28d81e3418ba5cf8a445d",
+    "dirty": false
+  },
+  "python": {
+    "version": "3.14.8",
+    "implementation": "cpython",
+    "free_threaded": false,
+    "compiler": "Clang 23.1.3"
+  },
+  "machine": {
+    "system": "Linux",
+    "release": "6.17.0-1022-azure",
+    "architecture": "x86_64",
+    "cpu": "AMD EPYC 7763 64-Core Processor",
+    "cpu_count": 4,
+    "runner_image": "ubuntu24 20261012.334.1"
+  },
+  "settings": {
+    "number": 100000,
+    "repeat": 7,
+    "timer": "time.perf_counter",
+    "statistic": "median of the repeats, in nanoseconds per call",
+    "warm_up": "each cached path is called once before timing, and timeit turns the garbage collector off while it times"
+  },
+  "results": [
+    {
+      "name": "f-string",
+      "statement": "f'Hello {name}'",
+      "median_ns": 47.86,
+      "samples_ns": [
+        49.69,
+        47.88,
+        47.86,
+        48.13,
+        47.54,
+        47.3,
+        47.57
+      ]
+    },
+    {
+      "name": "gettext(str).format",
+      "statement": "translations.gettext('Hello {name}').format(name=name)",
+      "median_ns": 250.09,
+      "samples_ns": [
+        250.43,
+        250.09,
+        252.89,
+        249.93,
+        250.58,
+        249.48,
+        248.99
+      ]
+    },
+    {
+      "name": "compiled.render",
+      "statement": "compiled.render(compiled.msgid)",
+      "median_ns": 208.94,
+      "samples_ns": [
+        208.77,
+        208.48,
+        209.19,
+        208.96,
+        209.45,
+        207.91,
+        208.94
+      ]
+    },
+    {
+      "name": "compile_template",
+      "statement": "compile_template(template)",
+      "median_ns": 377.29,
+      "samples_ns": [
+        376.34,
+        376.43,
+        379.41,
+        377.29,
+        376.91,
+        432.75,
+        398.94
+      ]
+    },
+    {
+      "name": "tr (1 field)",
+      "statement": "tr(t'Hello {name}', translations=translations)",
+      "median_ns": 728.81,
+      "samples_ns": [
+        729.61,
+        729.63,
+        728.81,
+        726.89,
+        727.02,
+        725.13,
+        895.02
+      ]
+    },
+    {
+      "name": "tr (2 fields)",
+      "statement": "tr(t'Category {category} moved to {target}', translations=translations)",
+      "median_ns": 994.14,
+      "samples_ns": [
+        1122.59,
+        1089.66,
+        994.14,
+        1007.02,
+        985.35,
+        981.08,
+        986.26
+      ]
+    },
+    {
+      "name": "Translator (1 field)",
+      "statement": "bound(t'Hello {name}')",
+      "median_ns": 830.51,
+      "samples_ns": [
+        833.78,
+        830.51,
+        856.9,
+        822.26,
+        811.45,
+        811.86,
+        883.41
+      ]
+    },
+    {
+      "name": "ngettext (1 field)",
+      "statement": "ntr(t'One file', t'{n} files', n, translations=translations)",
+      "median_ns": 1382.51,
+      "samples_ns": [
+        1417.38,
+        1388.48,
+        1379.52,
+        1379.52,
+        1382.51,
+        1381.84,
+        1409.5
+      ]
+    }
+  ]
+}
