@@ -338,6 +338,16 @@ den Prozess bei einem CLI, die Anfrage bei einem Webservice.
     Frameworks oder ihre Ökosysteme bringen eines mit; worauf es hier
     ankommt, ist die Bindung um `call_next`.
 
+    Das [ASGI-Experiment](https://github.com/yhay81/gettext-tstrings/tree/main/experiments/asgi_isolation)
+    betreibt diese Middleware unter FastAPI mit 200 überlappenden Anfragen in
+    zwei Sprachen. Jede Anfrage wurde in ihrer eigenen Sprache gerendert, auch
+    in `def`-Endpunkten, gestreamten Antworten und Hintergrundtasks, und die
+    Bindung war wiederhergestellt, nachdem ein Handler eine Ausnahme ausgelöst
+    hatte. Binde hier oder in einer `async def`-Abhängigkeit, aber nicht in
+    einer einfachen `def`-Abhängigkeit mit `yield`: FastAPI führt sie in
+    Worker-Threads aus, deshalb sieht der Endpunkt die Bindung nie, und das
+    Verlassen des Blocks löst `ValueError` aus.
+
 Zwei Laufzeitgewohnheiten vervollständigen das Bild. Strings, die zur
 Importzeit entstehen — ein Formularlabel, der Anzeigename eines Enums —,
 dürfen nicht die Sprache einfangen, die während des Imports gerade aktiv

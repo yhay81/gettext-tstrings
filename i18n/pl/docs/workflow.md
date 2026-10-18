@@ -331,6 +331,15 @@ jeden z nich wybiera. Zwiąż raz na *zakres języka* — proces dla CLI,
     większość frameworków lub ich ekosystemów jakieś dostarcza; tym, co się
     tu liczy, jest wiązanie wokół `call_next`.
 
+    [Eksperyment ASGI](https://github.com/yhay81/gettext-tstrings/tree/main/experiments/asgi_isolation)
+    uruchamia to middleware pod FastAPI z 200 nakładającymi się żądaniami w
+    dwóch językach. Każde żądanie zostało wyrenderowane we własnym języku, także
+    w endpointach `def`, strumieniowanych treściach odpowiedzi i zadaniach w
+    tle, a wiązanie zostało przywrócone po tym, jak handler zgłosił wyjątek.
+    Wiąż tutaj albo w zależności `async def`, ale nie w zwykłej zależności `def`
+    z `yield`: FastAPI uruchamia ją w wątkach roboczych, więc endpoint nigdy nie
+    widzi wiązania, a wyjście z bloku zgłasza `ValueError`.
+
 Dwa nawyki czasu działania dopełniają obraz. Łańcuchy tworzone w czasie
 importu — etykieta formularza, wyświetlana nazwa enuma — nie mogą
 przechwycić języka, który akurat był aktywny podczas importu; definiuj je

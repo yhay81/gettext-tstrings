@@ -333,6 +333,16 @@ süreç, bir web servisi için istek.
     — çoğu çatı ya da ekosistemi bir tane sağlar; burada önemli olan,
     `call_next` çevresindeki bağlamadır.
 
+    [ASGI deneyi](https://github.com/yhay81/gettext-tstrings/tree/main/experiments/asgi_isolation),
+    bu ara katmanı FastAPI altında iki dilde, zamanları çakışan 200 istekle
+    çalıştırır. Her istek kendi dilinde render edildi; `def` uç noktalarında,
+    akışla gönderilen gövdelerde ve arka plan görevlerinde de durum aynıydı ve
+    bir işleyici istisna fırlattıktan sonra bağlama geri yüklendi. Bağlamayı
+    burada ya da bir `async def` bağımlılığında yapın; `yield` kullanan düz bir
+    `def` bağımlılığında yapmayın: FastAPI onu çalışan iş parçacıklarında
+    yürütür, bu yüzden uç nokta bağlamayı hiç görmez ve bloktan çıkmak
+    `ValueError` fırlatır.
+
 İki çalışma zamanı alışkanlığı resmi tamamlar. İçe aktarma anında oluşturulan
 dizgiler — bir form etiketi, bir enum'un görünen adı — içe aktarma sırasında
 hangi dil etkinse onu yakalamamalıdır; onları

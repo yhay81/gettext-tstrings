@@ -335,6 +335,15 @@ CLI-nél a folyamat, webszolgáltatásnál a kérés szintjén.
     legtöbb keretrendszer vagy annak ökoszisztémája ad ilyet; itt a
     `call_next` köré tett kötés a lényeg.
 
+    Az [ASGI-kísérlet](https://github.com/yhay81/gettext-tstrings/tree/main/experiments/asgi_isolation)
+    ezt a köztesréteget FastAPI alatt futtatja, 200 egymást átfedő kéréssel két
+    nyelven. Minden kérés a saját nyelvén renderelődött, a `def` végpontokban, a
+    streamelt választörzsekben és a háttérfeladatokban is, a kötés pedig
+    helyreállt, miután egy kezelő kivételt dobott. Itt köss, vagy egy
+    `async def` függőségben, de ne egy sima, `yield`-et használó `def`
+    függőségben: azt a FastAPI munkaszálakon futtatja, így a végpont soha nem
+    látja a kötést, a blokk elhagyása pedig `ValueError`-t dob.
+
 Két futásidejű szokás teszi teljessé a képet. Az importáláskor létrehozott
 szövegek — egy űrlapfelirat, egy enum megjelenített neve — nem kaphatják el
 azt a nyelvet, amely az importálás alatt épp aktív volt; definiáld őket a

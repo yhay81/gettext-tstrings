@@ -343,6 +343,15 @@ gréasáin.
     soláthraíonn formhór na gcreataí nó a n-éiceachórais ceann; is é an
     ceangal timpeall ar `call_next` an rud is tábhachtaí anseo.
 
+    Ritheann [an turgnamh ASGI](https://github.com/yhay81/gettext-tstrings/tree/main/experiments/asgi_isolation)
+    na bogearraí lárnacha seo faoi FastAPI le 200 iarratas comhuaineach in dhá
+    theanga. Rindreáladh gach iarratas ina theanga féin, i gcríochphointí `def`,
+    i gcorpanna sruthaithe agus i dtascanna cúlra freisin, agus athbhunaíodh an
+    ceangal tar éis do láimhseálaí eisceacht a ardú. Déan an ceangal anseo nó i
+    spleáchas `async def`, ach ní i ngnáthspleáchas `def` le `yield`: ritheann
+    FastAPI é i snáitheanna oibrithe, mar sin ní fheiceann an críochphointe an
+    ceangal riamh, agus ardaíonn fágáil an bhloic `ValueError`.
+
 Cuireann dhá nós ama rite bail ar an bpictiúr. Ní mór do theaghráin a
 chruthaítear ag am iompórtála — lipéad foirme, ainm taispeána áirimh — gan
 cibé teanga a bhí gníomhach le linn na hiompórtála a ghabháil; sainigh le

@@ -321,6 +321,15 @@ a CLI, the request for a web service.
     frameworks or their ecosystems provide one; what matters here is the
     binding around `call_next`.
 
+    The [ASGI experiment](https://github.com/yhay81/gettext-tstrings/tree/main/experiments/asgi_isolation)
+    runs this middleware under FastAPI with 200 overlapping requests in two
+    languages. Each request rendered in its own language, in `def` endpoints,
+    streamed bodies and background tasks as well, and the binding was restored
+    after a handler raised. Bind here or in an `async def` dependency, but not
+    in a plain `def` dependency with `yield`: FastAPI runs that one in worker
+    threads, so the endpoint never sees the binding, and leaving the block
+    raises `ValueError`.
+
 Two runtime habits complete the picture. Strings created at import time — a
 form label, an enum's display name — must not capture whatever language was
 active during import; define them with

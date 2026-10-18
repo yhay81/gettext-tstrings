@@ -328,6 +328,15 @@ processen för ett CLI, förfrågan för en webbtjänst.
     ramverk eller deras ekosystem tillhandahåller en; det som spelar roll
     här är bindningen runt `call_next`.
 
+    [ASGI-experimentet](https://github.com/yhay81/gettext-tstrings/tree/main/experiments/asgi_isolation)
+    kör den här middlewaren under FastAPI med 200 överlappande förfrågningar på
+    två språk. Varje förfrågan renderades på sitt eget språk, även i
+    `def`-endpoints, strömmade svar och bakgrundsuppgifter, och bindningen
+    återställdes efter att en hanterare kastat ett undantag. Bind här eller i
+    ett `async def`-beroende, men inte i ett vanligt `def`-beroende med `yield`:
+    FastAPI kör det i arbetstrådar, så endpointen ser aldrig bindningen, och att
+    lämna blocket kastar `ValueError`.
+
 Två körningsvanor fullbordar bilden. Strängar som skapas vid
 importtillfället — en formuläretikett, ett enums visningsnamn — får inte
 fånga vilket språk som råkade vara aktivt under importen; definiera dem med

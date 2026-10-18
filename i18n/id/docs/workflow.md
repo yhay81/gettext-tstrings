@@ -336,6 +336,16 @@ CLI, permintaan untuk layanan web.
     besar framework atau ekosistemnya menyediakannya; yang penting di sini
     adalah ikatan di sekeliling `call_next`.
 
+    [Eksperimen ASGI](https://github.com/yhay81/gettext-tstrings/tree/main/experiments/asgi_isolation)
+    menjalankan middleware ini di bawah FastAPI dengan 200 permintaan yang
+    saling tumpang tindih dalam dua bahasa. Setiap permintaan dirender dalam
+    bahasanya sendiri, termasuk di endpoint `def`, body yang di-stream, dan
+    tugas latar belakang, dan ikatannya dipulihkan setelah sebuah handler
+    melempar pengecualian. Lakukan ikatan di sini atau di dependensi
+    `async def`, tetapi jangan di dependensi `def` biasa yang memakai `yield`:
+    FastAPI menjalankannya di thread pekerja, sehingga endpoint tidak pernah
+    melihat ikatan itu, dan keluar dari bloknya melempar `ValueError`.
+
 Dua kebiasaan runtime melengkapi gambarnya. String yang dibuat saat impor —
 label formulir, nama tampilan sebuah enum — tidak boleh menangkap bahasa apa
 pun yang aktif selama impor; definisikan dengan

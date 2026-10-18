@@ -331,6 +331,15 @@ trình đối với CLI, request đối với dịch vụ web.
     bạn — hầu hết các framework hoặc hệ sinh thái của chúng đều cung cấp
     sẵn; điều quan trọng ở đây là binding bao quanh `call_next`.
 
+    [Thí nghiệm ASGI](https://github.com/yhay81/gettext-tstrings/tree/main/experiments/asgi_isolation)
+    chạy middleware này dưới FastAPI với 200 request chồng lấn nhau bằng hai
+    ngôn ngữ. Mỗi request đều được render bằng ngôn ngữ của chính nó, kể cả
+    trong endpoint `def`, phần body được stream và các tác vụ nền, và binding
+    được khôi phục sau khi một handler ném ngoại lệ. Hãy bind ở đây hoặc trong
+    một dependency `async def`, đừng bind trong một dependency `def` thường có
+    `yield`: FastAPI chạy nó trong các worker thread, nên endpoint không bao giờ
+    thấy binding, và việc thoát khỏi khối sẽ ném ra `ValueError`.
+
 Hai thói quen lúc chạy sẽ hoàn tất bức tranh. Những chuỗi được tạo lúc
 import — nhãn của một form, tên hiển thị của một enum — không được phép giữ
 chặt ngôn ngữ nào đó đang hoạt động trong lúc import; hãy định nghĩa chúng

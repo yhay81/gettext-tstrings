@@ -322,6 +322,15 @@ vrstice, na zahtevo pri spletni storitvi.
     večina ogrodij ali njihovih ekosistemov ga ponuja; tukaj je pomembna vezava
     okoli `call_next`.
 
+    [Poskus ASGI](https://github.com/yhay81/gettext-tstrings/tree/main/experiments/asgi_isolation)
+    poganja to vmesno programje pod FastAPI z 200 prekrivajočimi se zahtevami v
+    dveh jezikih. Vsaka zahteva se je izrisala v svojem jeziku, tudi v končnih
+    točkah `def`, pretočno poslanih telesih odgovorov in opravilih v ozadju,
+    vezava pa se je obnovila tudi potem, ko je obravnavalnik sprožil izjemo.
+    Vežite tukaj ali v odvisnosti `async def`, ne pa v navadni odvisnosti `def`
+    z `yield`: FastAPI jo izvaja v delovnih nitih, zato končna točka vezave
+    nikoli ne vidi, izhod iz bloka pa sproži `ValueError`.
+
 Sliko dopolnita dve navadi med izvajanjem. Nizi, ustvarjeni ob uvozu — oznaka
 obrazca, prikazno ime naštevnega tipa —, ne smejo ujeti jezika, ki je bil
 dejaven med uvozom; določite jih z

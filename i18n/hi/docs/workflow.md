@@ -328,6 +328,15 @@ msgstr ""
     अधिकांश फ़्रेमवर्क या उनके इकोसिस्टम एक देते हैं; यहाँ जो मायने रखता है
     वह `call_next` के इर्द-गिर्द binding है।
 
+    [ASGI प्रयोग](https://github.com/yhay81/gettext-tstrings/tree/main/experiments/asgi_isolation)
+    इस middleware को FastAPI के तहत दो भाषाओं में एक साथ चलने वाली 200 requests
+    के साथ चलाता है। हर request अपनी ही भाषा में render हुई — `def` endpoints,
+    stream की गई bodies और background tasks में भी — और किसी handler के
+    exception उठाने के बाद binding बहाल हो गई। binding यहीं करें या किसी
+    `async def` dependency में, लेकिन `yield` वाली साधारण `def` dependency में
+    नहीं: FastAPI उसे worker threads में चलाता है, इसलिए endpoint को binding कभी
+    नहीं दिखती, और block से बाहर निकलते समय `ValueError` उठता है।
+
 दो रनटाइम आदतें चित्र को पूरा करती हैं। import के समय बनी स्ट्रिंग्स — कोई
 फ़ॉर्म लेबल, किसी enum का प्रदर्शित नाम — को वह भाषा कैप्चर नहीं करनी चाहिए
 जो import के दौरान सक्रिय थी; उन्हें

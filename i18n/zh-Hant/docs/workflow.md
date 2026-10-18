@@ -292,6 +292,14 @@ msgstr ""
     `negotiate_language` 代表的是你自己的 Accept-Language 剖析——大多數 framework
     或它們的生態系都有現成的；這裡真正要緊的是圍繞 `call_next` 的那個繫結。
 
+    [ASGI 實驗](https://github.com/yhay81/gettext-tstrings/tree/main/experiments/asgi_isolation)
+    在 FastAPI 底下執行這個中介軟體，用兩種語言送出 200 個彼此重疊的請求。
+    每個請求都以自己的語言渲染，在 `def` 端點、串流回應本文與背景任務中
+    也一樣；處理函式拋出例外之後，繫結也恢復原狀。請在這裡或在
+    `async def` 依賴項中繫結，不要在帶 `yield` 的一般 `def` 依賴項中
+    繫結：FastAPI 會在工作執行緒中執行它，所以端點永遠看不到這個繫結，
+    而且離開該區塊時會拋出 `ValueError`。
+
 還有兩個執行階段的習慣能把整幅圖補完。在 import 時建立的字串——表單標籤、列舉的顯示
 名稱——絕不能把 import 期間恰好生效的語言捕捉下來；請改用
 [`lazy_gettext`](guide.md#deferred-translation) 定義它們，它們就會以*被使用當下*生效的

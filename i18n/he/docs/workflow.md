@@ -314,6 +314,14 @@ msgstr ""
     ה-frameworks או הסביבות שסביבם מספקים כזה; מה שחשוב כאן הוא הקשירה
     סביב `call_next`.
 
+    [ניסוי ה-ASGI](https://github.com/yhay81/gettext-tstrings/tree/main/experiments/asgi_isolation)
+    מריץ את ה-middleware הזה תחת FastAPI עם 200 בקשות חופפות בשתי שפות. כל בקשה
+    רונדרה בשפה שלה — גם ב-endpoints מסוג `def`, בגופי תגובה בהזרמה ובמשימות רקע
+    — והקשירה שוחזרה אחרי ש-handler זרק חריגה. בצעו את הקשירה כאן או
+    ב-dependency מסוג `async def`, אבל לא ב-dependency רגיל מסוג `def` עם
+    `yield`: FastAPI מריץ אותו ב-worker threads, ולכן ה-endpoint אף פעם לא רואה
+    את הקשירה, והיציאה מהבלוק זורקת `ValueError`.
+
 שני הרגלים בזמן ריצה משלימים את התמונה. מחרוזות שנוצרות בזמן ייבוא —
 תווית של טופס, שם התצוגה של enum — אסור שילכדו את השפה שבמקרה הייתה
 פעילה במהלך הייבוא; הגדירו אותן עם

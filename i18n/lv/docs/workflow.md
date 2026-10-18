@@ -325,6 +325,15 @@ gadījumā, pieprasījumā tīmekļa servisa gadījumā.
     ietvaru vai to ekosistēmu tādu piedāvā; šeit svarīgā ir piesaiste ap
     `call_next`.
 
+    [ASGI eksperiments](https://github.com/yhay81/gettext-tstrings/tree/main/experiments/asgi_isolation)
+    darbina šo starpprogrammu ar FastAPI, sūtot divās valodās 200 pieprasījumus,
+    kas pārklājas. Katrs pieprasījums tika renderēts savā valodā, arī `def`
+    galapunktos, straumētos atbilžu ķermeņos un fona uzdevumos, un piesaiste
+    tika atjaunota arī pēc tam, kad apstrādātājs izraisīja izņēmumu. Piesaistiet
+    šeit vai `async def` atkarībā, bet ne parastā `def` atkarībā ar `yield`:
+    FastAPI to izpilda darba pavedienos, tāpēc galapunkts piesaisti nekad
+    neredz, un, izejot no bloka, tiek izraisīts `ValueError`.
+
 Divi izpildlaika ieradumi pabeidz ainu. Virknes, kas radītas importa laikā —
 formas uzraksts, enum attēlojamais nosaukums —, nedrīkst notvert to valodu,
 kura gadījās aktīva importa brīdī; definējiet tās ar
