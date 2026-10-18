@@ -134,11 +134,19 @@ locales/ja/LC_MESSAGES/messages.po:25: a format specification for argument
 msgfmt: found 1 fatal error
 ```
 
-يوثق Weblate هذا الفحص باسم
-[Python brace format][weblate-checks]. ولكل منصة سلوكها الخاص بها؛ والأداتان
-المختبرتان هنا هما msgfmt ومدقق Babel الذي توفره الحزمة.
+يشغّل Weblate الفحص نفسه ويسمّيه [Python brace format][weblate-checks]. وقد
+تحققت [رحلة ذهاب وإياب عبر Weblate 2026.10.1][weblate-experiment] منه على هذه
+الكتالوجات: احتفظ الكتالوج المستورد بتعليقات العلامة والأعلام والسياقات وصيغ
+الجمع خلال الترجمة والتصدير، وجُمِّع الملف المصدَّر وعُرض بشكل صحيح. التقط الفحص
+عنصراً نائباً أعيدت تسميته، وتحويلاً مضافاً، وصيغة جمع ينقصها `{n}`، لكنه يخالف
+قواعد هذه الحزمة في موضعين: فهو ينبّه على عنصر نائب مكرر أكثر مما في المصدر،
+وهذا صالح هنا، ويقبل صيغة الجمع الأولى من دون `{n}` حين لا تخدم إلا عدداً
+واحداً، مثل plik البولندية للعدد 1، وهذا غير صالح هنا. يرفض المدقق أدناه هذه
+الحالة، ولا يرفضها `msgfmt`. وللمنصات التجارية فحوص جودة خاصة بها للعناصر
+النائبة مبنية على العلم نفسه، ولم يُتحقق من سلوكها هنا.
 
   [weblate-checks]: https://docs.weblate.org/en/latest/user/checks.html
+  [weblate-experiment]: https://github.com/yhay81/gettext-tstrings/tree/main/experiments/weblate_round_trip
 
 يطبق `pybabel compile` المدقق على كل رسالة موسومة:
 

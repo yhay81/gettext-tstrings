@@ -134,11 +134,20 @@ locales/ja/LC_MESSAGES/messages.po:25: a format specification for argument
 msgfmt: found 1 fatal error
 ```
 
-Weblate는 이 검사를 [Python brace format][weblate-checks]으로 설명합니다.
-각 플랫폼의 동작은 그 플랫폼의 것입니다. 여기서 검증한 도구는 msgfmt와
-패키지가 제공하는 Babel checker입니다.
+Weblate는 같은 검사를 실행하며 이를 [Python brace format][weblate-checks]이라고
+부릅니다. [Weblate 2026.10.1을 거친 왕복][weblate-experiment]으로 이 카탈로그에서의
+동작을 검증했습니다. 가져온 카탈로그는 번역과 내보내기를 거치는 동안 마커 주석,
+플래그, `msgctxt`, 복수형을 모두 유지했고, 내보낸 결과는 올바르게 컴파일되고
+렌더링되었습니다. 이 검사는 이름이 바뀐 placeholder, 추가된 변환, `{n}`이 빠진
+복수형을 잡아냈지만, 이 패키지의 규칙과는 두 군데에서 다릅니다. 원문보다 더
+자주 반복된 placeholder를 경고하는데, 여기서는 유효한 번역입니다. 또 한 숫자에만
+쓰이는 첫 번째 복수형이 `{n}`을 빼먹어도 받아들입니다. 1에 대한 폴란드어
+'plik'이 그 예이며, 이는 여기서 유효하지 않습니다. 아래 checker는 이것을
+거부하지만 `msgfmt`는 거부하지 않습니다. 상용 플랫폼도 같은 플래그에 기반한 자체
+placeholder QA가 있지만, 그 동작은 여기서 검증하지 않았습니다.
 
   [weblate-checks]: https://docs.weblate.org/en/latest/user/checks.html
+  [weblate-experiment]: https://github.com/yhay81/gettext-tstrings/tree/main/experiments/weblate_round_trip
 
 `pybabel compile`은 표시된 메시지마다 checker를 실행합니다.
 

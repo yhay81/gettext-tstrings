@@ -149,12 +149,21 @@ locales/ja/LC_MESSAGES/messages.po:25: a format specification for argument
 msgfmt: found 1 fatal error
 ```
 
-Weblate dokumenterar samma kontroll som
-[Python brace format][weblate-checks], och de kommersiella plattformarna har
-sin egen platshållar-QA nycklad på samma flagga. Varje plattforms beteende är
-dess eget; de två verktygen nedan är de som verifieras här.
+Weblate kör samma kontroll och kallar den [Python brace format][weblate-checks].
+En [rundresa genom Weblate 2026.10.1][weblate-experiment] verifierade den på de
+här katalogerna: en importerad katalog behöll sina markörkommentarer, flaggor,
+kontexter och pluralformer genom översättning och export, och exporten
+kompilerades och renderades korrekt. Kontrollen fångade en omdöpt platshållare,
+en tillagd konvertering och en pluralform utan `{n}`, men avviker på två punkter
+från det här paketets regler. Den flaggar en platshållare som upprepas oftare än
+i källan, vilket är giltigt här, och den godtar en första pluralform utan `{n}`
+när den formen bara tjänar ett enda tal, som polskans *plik* för 1, vilket inte
+är giltigt här. Babel-kontrollen nedan avvisar det fallet, men `msgfmt` gör det
+inte. De kommersiella plattformarna har sin egen platshållar-QA nycklad på samma
+flagga; hur de beter sig är inte verifierat här.
 
   [weblate-checks]: https://docs.weblate.org/en/latest/user/checks.html
+  [weblate-experiment]: https://github.com/yhay81/gettext-tstrings/tree/main/experiments/weblate_round_trip
 
 Utöver det registrerar paketet en Babel-**kontroll** (checker), så att
 `pybabel compile` tillämpar specifikationens regler på varje meddelande som

@@ -149,12 +149,23 @@ locales/ja/LC_MESSAGES/messages.po:25: a format specification for argument
 msgfmt: found 1 fatal error
 ```
 
-Weblate huandika ukaguzi uleule kama [Python brace format][weblate-checks], na
-majukwaa ya kibiashara yana QA yao ya vishika nafasi inayotegemea bendera
-ileile. Tabia ya kila jukwaa ni yake lenyewe; zana mbili zilizo hapa chini ndizo
-zilizothibitishwa hapa.
+Weblate huendesha ukaguzi uleule na kuuita
+[Python brace format][weblate-checks].
+[Safari ya kwenda na kurudi kupitia Weblate 2026.10.1][weblate-experiment]
+iliuthibitisha kwenye katalogi hizi: katalogi iliyoingizwa ilihifadhi maoni yake
+ya alama, bendera, miktadha na maumbo ya wingi katika kutafsiri na kuhamisha, na
+kilichohamishwa kilikusanywa na kuonyeshwa ipasavyo. Ukaguzi ulinasa kishika
+nafasi kilichobadilishwa jina, ubadilishaji ulioongezwa na umbo la wingi lisilo
+na `{n}`, lakini unatofautiana na sheria za kifurushi hiki mara mbili. Unaripoti
+kishika nafasi kinachorudiwa mara nyingi kuliko kwenye chanzo, jambo ambalo ni
+halali hapa, na unakubali umbo la kwanza la wingi lisilo na `{n}` pale umbo hilo
+linapohudumia namba moja tu, kama *plik* ya Kipolandi kwa 1, jambo ambalo si
+halali hapa. Kikaguzi kilicho hapa chini hukataa umbo hilo, lakini `msgfmt`
+haifanyi hivyo. Majukwaa ya kibiashara yana QA yao ya vishika nafasi
+inayotegemea bendera ileile; tabia yao haijathibitishwa hapa.
 
   [weblate-checks]: https://docs.weblate.org/en/latest/user/checks.html
+  [weblate-experiment]: https://github.com/yhay81/gettext-tstrings/tree/main/experiments/weblate_round_trip
 
 Zaidi ya hapo, kifurushi husajili **kikaguzi** cha Babel, hivyo
 `pybabel compile` hutumia kanuni za ainisho kwa kila ujumbe unaobeba maoni ya

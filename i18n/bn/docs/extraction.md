@@ -149,12 +149,20 @@ locales/ja/LC_MESSAGES/messages.po:25: a format specification for argument
 msgfmt: found 1 fatal error
 ```
 
-Weblate একই যাচাইকে [Python brace format][weblate-checks] হিসেবে নথিভুক্ত
-করে, আর বাণিজ্যিক প্ল্যাটফর্মগুলির নিজস্ব placeholder QA-ও ওই একই ফ্ল্যাগে
-বাঁধা। প্রতিটি প্ল্যাটফর্মের আচরণ তার নিজের; নিচের দুটি টুল সেগুলিই যা এখানে
-যাচাই করা হয়েছে।
+Weblate একই যাচাই চালায়, যাকে সে [Python brace format][weblate-checks] বলে।
+[Weblate 2026.10.1-এর মধ্য দিয়ে একটি পূর্ণ আসা-যাওয়া][weblate-experiment] এই
+catalog-গুলিতে তা যাচাই করেছে: আমদানি করা catalog অনুবাদ ও রপ্তানির পুরো পথে তার
+marker মন্তব্য, ফ্ল্যাগ, প্রসঙ্গ আর বহুবচনের রূপগুলি ধরে রেখেছে, আর রপ্তানি করা
+ফাইল ঠিকভাবে compile ও render হয়েছে। যাচাইটি নতুন নাম দেওয়া placeholder, যোগ
+করা conversion আর `{n}` বাদ পড়া বহুবচনের রূপ ধরেছে, তবে দুই জায়গায় এই
+প্যাকেজের নিয়ম থেকে সরে যায়। উৎসের চেয়ে বেশিবার পুনরাবৃত্ত placeholder-কে সে
+চিহ্নিত করে, যা এখানে বৈধ, আর `{n}` ছাড়া প্রথম বহুবচন রূপকে মেনে নেয় যখন সেই
+রূপ কেবল একটি সংখ্যার জন্য, যেমন ১-এর জন্য পোলিশ *plik*, যা এখানে বৈধ নয়। নিচের
+চেকার সেটি প্রত্যাখ্যান করে, `msgfmt` করে না। বাণিজ্যিক প্ল্যাটফর্মগুলির নিজস্ব
+placeholder QA-ও একই ফ্ল্যাগে বাঁধা; তাদের আচরণ এখানে যাচাই করা হয়নি।
 
   [weblate-checks]: https://docs.weblate.org/en/latest/user/checks.html
+  [weblate-experiment]: https://github.com/yhay81/gettext-tstrings/tree/main/experiments/weblate_round_trip
 
 তার উপরে, প্যাকেজটি একটি Babel **চেকার** নিবন্ধন করে, তাই `pybabel compile`
 `gettext-tstrings` মার্কার-মন্তব্য বহন করা প্রতিটি বার্তায় স্পেসিফিকেশনের

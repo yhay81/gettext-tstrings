@@ -150,12 +150,22 @@ locales/ja/LC_MESSAGES/messages.po:25: a format specification for argument
 msgfmt: found 1 fatal error
 ```
 
-Weblate documentează aceeași verificare sub numele
-[Python brace format][weblate-checks], iar platformele comerciale au propriul
-lor QA de substituenți legat de același flag. Comportamentul fiecărei platforme
-este al ei; cele două unelte de mai jos sunt cele verificate aici.
+Weblate rulează aceeași verificare, pe care o numește
+[Python brace format][weblate-checks]. Un
+[drum dus-întors prin Weblate 2026.10.1][weblate-experiment] a verificat-o pe
+aceste cataloage: un catalog importat și-a păstrat, de-a lungul traducerii și
+exportului, comentariile de marcaj, flagurile, contextele și formele de plural,
+iar exportul s-a compilat și s-a randat corect. Verificarea a prins un
+substituent redenumit, o conversie adăugată și o formă de plural fără `{n}`, dar
+se abate în două locuri de la regulile acestui pachet. Semnalează un substituent
+repetat mai des decât în sursă, ceea ce aici este valid, și acceptă o primă
+formă de plural fără `{n}` atunci când acea formă servește un singur număr,
+precum poloneza *plik* pentru 1, ceea ce aici nu este valid. Verificatorul de
+mai jos o respinge, `msgfmt` nu. Platformele comerciale au propriul lor QA de
+substituenți legat de același flag; comportamentul lor nu este verificat aici.
 
   [weblate-checks]: https://docs.weblate.org/en/latest/user/checks.html
+  [weblate-experiment]: https://github.com/yhay81/gettext-tstrings/tree/main/experiments/weblate_round_trip
 
 Pe deasupra, pachetul înregistrează un **verificator** Babel, așa că
 `pybabel compile` aplică regulile specificației fiecărui mesaj care poartă

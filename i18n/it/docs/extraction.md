@@ -153,13 +153,23 @@ locales/ja/LC_MESSAGES/messages.po:25: a format specification for argument
 msgfmt: found 1 fatal error
 ```
 
-Weblate documenta lo stesso controllo come
-[Python brace format][weblate-checks], e le piattaforme commerciali hanno la
-loro QA sui segnaposto agganciata allo stesso flag. Il comportamento di
-ciascuna piattaforma è cosa sua; i due strumenti qui sotto sono quelli
-verificati in questa sede.
+Weblate esegue lo stesso controllo, che chiama
+[Python brace format][weblate-checks]. Un
+[viaggio di andata e ritorno attraverso Weblate 2026.10.1][weblate-experiment]
+lo ha verificato su questi cataloghi: un catalogo importato ha conservato i
+commenti di marcatura, i flag, i contesti e le forme plurali durante la
+traduzione e l'esportazione, e l'esportazione è stata compilata e resa
+correttamente. Il controllo ha individuato un segnaposto rinominato, una
+conversione aggiunta e una forma plurale senza `{n}`, ma si discosta due volte
+dalle regole di questo pacchetto. Segnala un segnaposto ripetuto più spesso che
+nella sorgente, il che qui è valido, e accetta una prima forma plurale senza
+`{n}` quando quella forma serve un solo numero, come il polacco *plik* per 1, il
+che qui non è valido. Il checker qui sotto lo rifiuta, `msgfmt` no. Le
+piattaforme commerciali hanno la loro QA sui segnaposto agganciata allo stesso
+flag; il loro comportamento qui non è verificato.
 
   [weblate-checks]: https://docs.weblate.org/en/latest/user/checks.html
+  [weblate-experiment]: https://github.com/yhay81/gettext-tstrings/tree/main/experiments/weblate_round_trip
 
 In aggiunta, il pacchetto registra un **checker** Babel, così
 `pybabel compile` applica le regole della specifica a ogni messaggio che

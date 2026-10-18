@@ -147,12 +147,22 @@ locales/ja/LC_MESSAGES/messages.po:25: a format specification for argument
 msgfmt: found 1 fatal error
 ```
 
-Weblate skjalfestir sömu athugun sem [Python brace format][weblate-checks], og
-viðskiptavettvangarnir eru með sína eigin gæðaathugun á staðgenglum sem er
-lyklað á sama flagg. Hegðun hvers vettvangs er hans eigin mál; tólin tvö hér
-að neðan eru þau sem hafa verið staðfest hér.
+Weblate keyrir sömu athugun og kallar hana
+[Python brace format][weblate-checks].
+[Hringferð í gegnum Weblate 2026.10.1][weblate-experiment] staðfesti hana á
+þessum þýðingaskrám: innflutt þýðingaskrá hélt merkiathugasemdum sínum, flöggum,
+samhengi og fleirtölumyndum gegnum þýðingu og útflutning, og útflutta skráin var
+þýdd í .mo og birt rétt. Athugunin greip staðgengil með breyttu nafni, viðbætta
+umbreytingu og fleirtölumynd án `{n}`, en víkur tvisvar frá reglum þessa pakka.
+Hún merkir staðgengil sem er endurtekinn oftar en í frumtextanum, sem er gilt
+hér, og hún samþykkir fyrstu fleirtölumyndina án `{n}` þegar sú mynd þjónar
+aðeins einni tölu, eins og pólska *plik* fyrir 1, sem er ekki gilt hér.
+Athugarinn hér að neðan hafnar því, en `msgfmt` ekki. Viðskiptavettvangarnir eru
+með sína eigin gæðaathugun á staðgenglum sem er lykluð á sama flagg; hegðun
+þeirra er ekki staðfest hér.
 
   [weblate-checks]: https://docs.weblate.org/en/latest/user/checks.html
+  [weblate-experiment]: https://github.com/yhay81/gettext-tstrings/tree/main/experiments/weblate_round_trip
 
 Ofan á það skráir pakkinn **athugara** hjá Babel, svo að `pybabel compile`
 beitir reglum forskriftarinnar á hver þau skilaboð sem bera

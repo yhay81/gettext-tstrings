@@ -148,12 +148,22 @@ locales/ja/LC_MESSAGES/messages.po:25: a format specification for argument
 msgfmt: found 1 fatal error
 ```
 
-Weblate aynı denetimi [Python brace format][weblate-checks] adıyla belgeler
-ve ticari platformların aynı bayrağa dayanan kendi yer tutucu QA'ları vardır.
-Her platformun davranışı kendisine aittir; burada doğrulanan, aşağıdaki iki
-araçtır.
+Weblate aynı denetimi çalıştırır ve ona [Python brace format][weblate-checks]
+adını verir. [Weblate 2026.10.1 üzerinden bir gidiş-dönüş][weblate-experiment]
+bu denetimi bu kataloglarda doğruladı: içe aktarılan bir katalog çeviri ve dışa
+aktarma boyunca işaret yorumlarını, bayraklarını, bağlamlarını ve çoğul
+biçimlerini korudu; dışa aktarılan katalog da doğru biçimde derlendi ve render
+edildi. Denetim, adı değiştirilmiş bir yer tutucuyu, eklenmiş bir dönüştürmeyi
+ve `{n}` içermeyen bir çoğul biçimini yakaladı, ancak bu paketin kurallarından
+iki noktada ayrılır. Kaynaktakinden daha sık tekrarlanan bir yer tutucuyu
+işaretler, oysa bu burada geçerlidir; ve yalnızca tek bir sayıya hizmet eden ilk
+çoğul biçimini `{n}` olmadan kabul eder, örneğin 1 için Lehçe *plik*, oysa bu
+burada geçerli değildir. Aşağıdaki denetleyici bunu reddeder, `msgfmt` ise
+reddetmez. Ticari platformların aynı bayrağa dayanan kendi yer tutucu QA'ları
+vardır; davranışları burada doğrulanmamıştır.
 
   [weblate-checks]: https://docs.weblate.org/en/latest/user/checks.html
+  [weblate-experiment]: https://github.com/yhay81/gettext-tstrings/tree/main/experiments/weblate_round_trip
 
 Bunun üzerine paket bir Babel **denetleyicisi** kaydeder; böylece
 `pybabel compile`, `gettext-tstrings` işaret yorumunu taşıyan her mesaja

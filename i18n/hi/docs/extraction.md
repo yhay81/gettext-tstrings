@@ -151,12 +151,21 @@ locales/ja/LC_MESSAGES/messages.po:25: a format specification for argument
 msgfmt: found 1 fatal error
 ```
 
-Weblate इसी जाँच को [Python brace format][weblate-checks] के रूप में
-प्रलेखित करता है, और व्यावसायिक प्लेटफ़ॉर्मों की अपनी placeholder QA इसी
-फ़्लैग पर आधारित है। हर प्लेटफ़ॉर्म का व्यवहार उसका अपना है; नीचे के दो टूल ही
-यहाँ सत्यापित हैं।
+Weblate यही जाँच चलाता है और इसे [Python brace format][weblate-checks] कहता है।
+[Weblate 2026.10.1 से होकर एक पूरे आवागमन][weblate-experiment] ने इन catalogs पर
+इसे सत्यापित किया: import किए गए catalog ने अनुवाद और export के दौरान अपनी
+marker टिप्पणियाँ, फ़्लैग, context और बहुवचन रूप बनाए रखे, और export किया गया
+catalog ठीक से compile और render हुआ। जाँच ने नाम बदला हुआ placeholder, जोड़ा
+गया conversion और `{n}` से रहित बहुवचन रूप पकड़ा, लेकिन यह दो जगह इस पैकेज के
+नियमों से अलग चलती है। यह स्रोत से ज़्यादा बार दोहराए गए placeholder को चिह्नित
+करती है, जो यहाँ मान्य है, और `{n}` के बिना पहले बहुवचन रूप को स्वीकार कर लेती
+है जब वह रूप केवल एक संख्या के लिए हो, जैसे 1 के लिए पोलिश *plik*, जो यहाँ मान्य
+नहीं है। नीचे का checker उसे अस्वीकार करता है, `msgfmt` नहीं। व्यावसायिक
+प्लेटफ़ॉर्मों की अपनी placeholder QA इसी फ़्लैग पर आधारित है; उनका व्यवहार यहाँ
+सत्यापित नहीं है।
 
   [weblate-checks]: https://docs.weblate.org/en/latest/user/checks.html
+  [weblate-experiment]: https://github.com/yhay81/gettext-tstrings/tree/main/experiments/weblate_round_trip
 
 उसके ऊपर, यह पैकेज एक Babel **checker** पंजीकृत करता है, जिससे
 `pybabel compile` `gettext-tstrings` मार्कर टिप्पणी वाले हर संदेश पर

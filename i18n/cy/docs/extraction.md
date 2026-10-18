@@ -149,12 +149,23 @@ locales/ja/LC_MESSAGES/messages.po:25: a format specification for argument
 msgfmt: found 1 fatal error
 ```
 
-Mae Weblate yn dogfennu'r un gwiriad fel [Python brace format][weblate-checks],
-ac mae gan y llwyfannau masnachol eu QA dalwyr lle eu hunain wedi'i allweddu ar
-yr un faner. Eiddo pob llwyfan ei hun yw ei ymddygiad; y ddau offeryn isod yw'r
-rhai a wiriwyd yma.
+Mae Weblate yn rhedeg yr un gwiriad, a'i alw'n
+[Python brace format][weblate-checks]. Gwiriodd
+[taith gron drwy Weblate 2026.10.1][weblate-experiment] ef ar y catalogau hyn:
+cadwodd catalog a fewnforiwyd ei sylwadau marciwr, ei fanerau, ei gyd-destunau
+a'i ffurfiau lluosog drwy'r cyfieithu a'r allforio, a chafodd yr allforiad ei
+grynhoi a'i rendro'n gywir. Daliodd y gwiriad ddaliwr lle wedi'i ailenwi,
+trosiad wedi'i ychwanegu a ffurf luosog heb `{n}`, ond mae'n gwyro oddi wrth
+reolau'r pecyn hwn ddwywaith. Mae'n tynnu sylw at ddaliwr lle a ailadroddir yn
+amlach nag yn y ffynhonnell, sy'n ddilys yma, ac mae'n derbyn ffurf luosog
+gyntaf heb `{n}` pan nad yw'r ffurf honno ond yn gwasanaethu un rhif, megis
+*plik* Pwyleg ar gyfer 1, nad yw'n ddilys yma. Mae'r gwiriwr isod yn gwrthod
+honno, ac nid yw `msgfmt` yn gwneud hynny. Mae gan y llwyfannau masnachol eu QA
+dalwyr lle eu hunain wedi'i allweddu ar yr un faner; nid yw eu hymddygiad wedi'i
+wirio yma.
 
   [weblate-checks]: https://docs.weblate.org/en/latest/user/checks.html
+  [weblate-experiment]: https://github.com/yhay81/gettext-tstrings/tree/main/experiments/weblate_round_trip
 
 Ar ben hynny, mae'r pecyn yn cofrestru **gwiriwr** Babel, felly mae
 `pybabel compile` yn cymhwyso rheolau'r fanyleb i bob neges sy'n cario'r sylw

@@ -148,12 +148,22 @@ locales/ja/LC_MESSAGES/messages.po:25: a format specification for argument
 msgfmt: found 1 fatal error
 ```
 
-Weblate tą pačią patikrą dokumentuoja kaip [Python brace format][weblate-checks],
-o komercinės platformos turi savo vietaženklių kokybės kontrolę, paremtą ta
-pačia žyma. Kiekvienos platformos elgsena yra jos pačios reikalas; du žemiau
-aprašyti įrankiai yra tie, kurie čia patikrinti.
+Weblate vykdo tą pačią patikrą ir vadina ją
+[Python brace format][weblate-checks].
+[Kelionė pirmyn ir atgal per Weblate 2026.10.1][weblate-experiment] ją patikrino
+su šiais katalogais: importuotas katalogas per vertimą ir eksportą išlaikė
+žymeklio komentarus, žymas, kontekstus ir daugiskaitos formas, o eksportas buvo
+teisingai sukompiliuotas ir atvaizduotas. Patikra pagavo pervadintą vietaženklį,
+pridėtą konversiją ir daugiskaitos formą be `{n}`, tačiau dviem atvejais
+nukrypsta nuo šio paketo taisyklių. Ji pažymi vietaženklį, pakartotą dažniau nei
+šaltinyje, nors čia tai galioja, ir priima pirmąją daugiskaitos formą be `{n}`,
+kai ta forma skirta tik vienam skaičiui, pavyzdžiui, lenkų *plik* skaičiui 1,
+nors čia tai negalioja. Žemiau aprašytas tikrintuvas tai atmeta, o `msgfmt` –
+ne. Komercinės platformos turi savo vietaženklių kokybės kontrolę, paremtą ta
+pačia žyma; jų elgsena čia nepatikrinta.
 
   [weblate-checks]: https://docs.weblate.org/en/latest/user/checks.html
+  [weblate-experiment]: https://github.com/yhay81/gettext-tstrings/tree/main/experiments/weblate_round_trip
 
 Be to, paketas užregistruoja Babel **tikrintuvą**, todėl `pybabel compile`
 pritaiko specifikacijos taisykles kiekvienam pranešimui, nešančiam

@@ -146,12 +146,22 @@ locales/ja/LC_MESSAGES/messages.po:25: a format specification for argument
 msgfmt: found 1 fatal error
 ```
 
-Weblate dokumentē to pašu pārbaudi kā [Python brace format][weblate-checks], un
-komerciālajām platformām ir sava vietturu kvalitātes kontrole, kas balstās uz
-to pašu karogu. Katras platformas uzvedība ir tās pašas ziņā; abi zemāk minētie
-rīki ir tie, kas šeit ir pārbaudīti.
+Weblate izpilda to pašu pārbaudi un sauc to par
+[Python brace format][weblate-checks].
+[Turp un atpakaļ ceļš caur Weblate 2026.10.1][weblate-experiment] to pārbaudīja
+uz šiem katalogiem: importēts katalogs tulkošanas un eksporta gaitā saglabāja
+marķiera komentārus, karogus, kontekstus un daudzskaitļa formas, un eksports
+pareizi kompilējās un renderējās. Pārbaude atklāja pārdēvētu vietturi,
+pievienotu konversiju un daudzskaitļa formu bez `{n}`, taču divās vietās tā
+atkāpjas no šīs pakotnes noteikumiem. Tā atzīmē vietturi, kas atkārtots biežāk
+nekā avotā, lai gan šeit tas ir derīgi, un tā pieņem pirmo daudzskaitļa formu
+bez `{n}`, ja šī forma kalpo tikai vienam skaitlim, piemēram, poļu *plik*
+skaitlim 1, lai gan šeit tas nav derīgi. Zemāk aprakstītais pārbaudītājs to
+noraida, bet `msgfmt` ne. Komerciālajām platformām ir sava vietturu kvalitātes
+kontrole, kas balstās uz to pašu karogu; to uzvedība šeit nav pārbaudīta.
 
   [weblate-checks]: https://docs.weblate.org/en/latest/user/checks.html
+  [weblate-experiment]: https://github.com/yhay81/gettext-tstrings/tree/main/experiments/weblate_round_trip
 
 Papildus tam pakotne reģistrē Babel **pārbaudītāju**, tāpēc `pybabel compile`
 piemēro specifikācijas likumus katram ziņojumam, kas nes `gettext-tstrings`

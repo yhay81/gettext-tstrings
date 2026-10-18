@@ -152,13 +152,22 @@ locales/ja/LC_MESSAGES/messages.po:25: a format specification for argument
 msgfmt: found 1 fatal error
 ```
 
-Weblate ghi nhận cùng phép kiểm tra này dưới tên
-[Python brace format][weblate-checks], và các nền tảng thương mại có cơ chế
-QA placeholder riêng dựa trên cùng cờ đó. Hành vi của mỗi nền tảng là chuyện
-riêng của nền tảng đó; hai công cụ dưới đây mới là những công cụ đã được kiểm
-chứng tại đây.
+Weblate chạy cùng phép kiểm tra đó và gọi nó là
+[Python brace format][weblate-checks]. Một
+[chuyến đi khứ hồi qua Weblate 2026.10.1][weblate-experiment] đã kiểm chứng nó
+trên các catalog này: catalog được nhập giữ nguyên chú thích đánh dấu, cờ, ngữ
+cảnh và các dạng số nhiều qua toàn bộ quá trình dịch và xuất, và bản xuất được
+biên dịch, render đúng. Phép kiểm tra bắt được placeholder bị đổi tên, phép
+chuyển đổi bị thêm vào và dạng số nhiều thiếu `{n}`, nhưng khác với quy tắc của
+gói này ở hai điểm. Nó đánh dấu placeholder được lặp lại nhiều lần hơn so với
+nguồn, điều hợp lệ ở đây, và chấp nhận dạng số nhiều đầu tiên không có `{n}` khi
+dạng đó chỉ dùng cho một con số, như *plik* trong tiếng Ba Lan cho 1, điều không
+hợp lệ ở đây. Checker bên dưới từ chối trường hợp này, còn `msgfmt` thì không.
+Các nền tảng thương mại có cơ chế QA placeholder riêng dựa trên cùng cờ đó; hành
+vi của chúng chưa được kiểm chứng tại đây.
 
   [weblate-checks]: https://docs.weblate.org/en/latest/user/checks.html
+  [weblate-experiment]: https://github.com/yhay81/gettext-tstrings/tree/main/experiments/weblate_round_trip
 
 Trên hết, gói này còn đăng ký một **checker** cho Babel, nên `pybabel compile`
 áp dụng các quy tắc của đặc tả cho mọi thông điệp mang chú thích đánh dấu
