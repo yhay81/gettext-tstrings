@@ -421,6 +421,10 @@ Run the reproducible microbenchmark on your target interpreter and hardware:
 uv run python benchmarks/runtime.py
 ```
 
+To compare two commits, record both with the Benchmark workflow and read them
+as [benchmarks/README.md](benchmarks/README.md) describes; one run on a shared
+machine says little on its own.
+
 ## Safety and scope
 
 This is valid:
