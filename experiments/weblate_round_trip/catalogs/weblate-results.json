@@ -1,0 +1,202 @@
+{
+  "versions": {
+    "python": "3.12.15",
+    "weblate": "2026.10.1",
+    "django": "6.0.9",
+    "translate-toolkit": "3.20.0",
+    "postgresql": "postgres (PostgreSQL) 18.6 (Homebrew)"
+  },
+  "component": {
+    "file_format": "po",
+    "vcs": "local",
+    "filemask": "locale/*/LC_MESSAGES/messages.po",
+    "new_base": "locale/messages.pot",
+    "source_language": "en",
+    "check_flags": "",
+    "enforced_checks": [],
+    "language": "pl",
+    "plural_formula": "n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2",
+    "plural_forms": 3
+  },
+  "imported": [
+    {
+      "context": "",
+      "source": [
+        "Welcome back, {name}"
+      ],
+      "flags": "python-brace-format"
+    },
+    {
+      "context": "",
+      "source": [
+        "{n} file",
+        "{n} files"
+      ],
+      "flags": "python-brace-format"
+    },
+    {
+      "context": "button",
+      "source": [
+        "Open"
+      ],
+      "flags": ""
+    },
+    {
+      "context": "state",
+      "source": [
+        "Open"
+      ],
+      "flags": ""
+    },
+    {
+      "context": "",
+      "source": [
+        "Moved {item} to {folder}"
+      ],
+      "flags": "python-brace-format"
+    },
+    {
+      "context": "",
+      "source": [
+        "{player} beat {opponent}, and {player} moves on"
+      ],
+      "flags": "python-brace-format"
+    },
+    {
+      "context": "",
+      "source": [
+        "Hello {name}"
+      ],
+      "flags": "python-brace-format"
+    }
+  ],
+  "broken": [
+    {
+      "case": "renamed placeholder",
+      "context": "",
+      "source": "Welcome back, {name}",
+      "entered": [
+        "Witaj ponownie, {imie}"
+      ],
+      "checks": [
+        {
+          "check": "python_brace_format",
+          "says": "The following format strings are missing: {name}; The following format strings are extra: {imie}"
+        }
+      ]
+    },
+    {
+      "case": "conversion added",
+      "context": "",
+      "source": "Hello {name}",
+      "entered": [
+        "Cześć, {name!r}"
+      ],
+      "checks": [
+        {
+          "check": "python_brace_format",
+          "says": "The following format strings are missing: {name}; The following format strings are extra: {name!r}"
+        }
+      ]
+    },
+    {
+      "case": "second plural form drops {n}",
+      "context": "",
+      "source": "{n} file",
+      "entered": [
+        "{n} plik",
+        "pliki",
+        "{n} plików"
+      ],
+      "checks": [
+        {
+          "check": "python_brace_format",
+          "says": "The following format strings are missing: {n}"
+        }
+      ]
+    },
+    {
+      "case": "first plural form drops {n}",
+      "context": "",
+      "source": "{n} file",
+      "entered": [
+        "plik",
+        "{n} pliki",
+        "{n} plików"
+      ],
+      "checks": []
+    }
+  ],
+  "valid": [
+    {
+      "case": "singular",
+      "context": "",
+      "source": "Welcome back, {name}",
+      "entered": [
+        "Witaj ponownie, {name}"
+      ],
+      "checks": []
+    },
+    {
+      "case": "plural",
+      "context": "",
+      "source": "{n} file",
+      "entered": [
+        "{n} plik",
+        "{n} pliki",
+        "{n} plików"
+      ],
+      "checks": []
+    },
+    {
+      "case": "context: button",
+      "context": "button",
+      "source": "Open",
+      "entered": [
+        "Otwórz"
+      ],
+      "checks": []
+    },
+    {
+      "case": "context: state",
+      "context": "state",
+      "source": "Open",
+      "entered": [
+        "Otwarte"
+      ],
+      "checks": []
+    },
+    {
+      "case": "reordered",
+      "context": "",
+      "source": "Moved {item} to {folder}",
+      "entered": [
+        "Do folderu {folder} przeniesiono {item}"
+      ],
+      "checks": []
+    },
+    {
+      "case": "repeated in the source",
+      "context": "",
+      "source": "{player} beat {opponent}, and {player} moves on",
+      "entered": [
+        "{player} pokonuje gracza {opponent} i {player} przechodzi dalej"
+      ],
+      "checks": []
+    },
+    {
+      "case": "repeated in the translation",
+      "context": "",
+      "source": "Hello {name}",
+      "entered": [
+        "Cześć, {name}! Miło cię znowu widzieć, {name}"
+      ],
+      "checks": [
+        {
+          "check": "python_brace_format",
+          "says": "The following format strings are extra: {name}"
+        }
+      ]
+    }
+  ]
+}
