@@ -92,5 +92,30 @@ host come and go. For a comparison to mean something:
    more on `tr` or `Translator`, the paths applications call most, is worth
    investigating, and so is any change in which case is faster than which.
 
-Records worth keeping are checked in under `results/`, named
-`<date>-<commit>.json`, so that a later comparison has something to start from.
+## Recorded runs
+
+`results/` keeps records the workflow produced, unedited, so that a later
+comparison has something to start from. Each is named
+`<date>-<commit>-<run>.json`, where `<run>` is the workflow's run number.
+
+The first baseline is three runs of `9608933` on 2026-10-18:
+[run 1](https://github.com/yhay81/gettext-tstrings/actions/runs/39108524553),
+[run 2](https://github.com/yhay81/gettext-tstrings/actions/runs/39108529229) and
+[run 3](https://github.com/yhay81/gettext-tstrings/actions/runs/39108534037).
+All three landed on the same runner image (`ubuntu24 20261012.334.1`), CPU
+(AMD EPYC 7763, 4 cores) and interpreter (CPython 3.14.8). Medians in ns/op:
+
+| Case | Run 1 | Run 2 | Run 3 | Spread |
+| --- | ---: | ---: | ---: | ---: |
+| f-string | 46.6 | 45.4 | 47.9 | 5.5% |
+| gettext(str).format | 251.5 | 250.1 | 250.1 | 0.6% |
+| compiled.render | 209.1 | 208.5 | 208.9 | 0.3% |
+| compile_template | 376.4 | 377.7 | 377.3 | 0.4% |
+| tr (1 field) | 732.4 | 733.3 | 728.8 | 0.6% |
+| tr (2 fields) | 990.0 | 989.7 | 994.1 | 0.4% |
+| Translator (1 field) | 816.8 | 826.1 | 830.5 | 1.7% |
+| ngettext (1 field) | 1411.3 | 1382.5 | 1382.5 | 2.1% |
+
+Spread is the largest median over the smallest, less one. The f-string, the
+shortest case, moved most from run to run, so of the two references
+`gettext(str).format` is the steadier one to divide by.
