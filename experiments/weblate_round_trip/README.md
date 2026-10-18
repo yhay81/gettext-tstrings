@@ -25,8 +25,8 @@ directory if it does not find yours.
 Nothing is installed or left running. Weblate runs in a Python 3.12
 environment of its own, which uv builds from the inline metadata and lock of
 `weblate_side.py`. It uses a database cluster created in a temporary directory,
-reachable only on 127.0.0.1 with a random password, which is stopped when the
-run ends. Celery tasks run in place, so no Redis or worker is involved. The one
+which listens only on a Unix socket in a directory no other user can enter,
+needs no password, and is stopped when the run ends. Celery tasks run in place, so no Redis or worker is involved. The one
 dependency Weblate declares that the environment leaves out is `borgbackup`,
 which only Weblate's backup feature uses and which has no wheel for every
 platform. A run takes about 30 seconds, most of them Weblate's database

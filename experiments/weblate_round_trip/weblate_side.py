@@ -21,9 +21,10 @@ versions, the component settings, and what every check said about every
 translation entered.
 
 A throwaway PostgreSQL cluster runs for the length of the call, from the server
-binaries in $PG_BIN or the first installation found, on 127.0.0.1 with a random
-password, and is stopped however the run ends. Weblate runs with Celery tasks
-executed in place, so no Redis or worker is needed.
+binaries in $PG_BIN or the first installation found. It listens only on a Unix
+socket in a directory no other user can enter, needs no password, and is
+stopped however the run ends. Weblate runs with Celery tasks executed in place,
+so no Redis or worker is needed.
 """
 
 from __future__ import annotations
@@ -33,9 +34,7 @@ import io
 import json
 import os
 import re
-import secrets
 import shutil
-import socket
 import subprocess
 import sys
 import tempfile
@@ -102,52 +101,69 @@ def find_postgres() -> Path:
     raise SystemExit(msg)
 
 
+def socket_directory() -> Path:
+    # A Unix socket path is capped near 104 bytes on macOS and 108 on Linux,
+    # which a deep $TMPDIR can exceed; /tmp is the fallback then. mkdtemp makes
+    # the directory 0700, so no other user can reach the socket inside it.
+    directory = Path(tempfile.mkdtemp(prefix="weblate-pg-"))
+    if len(str(directory / ".s.PGSQL.5432")) > 100:
+        directory.rmdir()
+        directory = Path(tempfile.mkdtemp(prefix="weblate-pg-", dir="/tmp"))
+    return directory
+
+
 @contextmanager
 def postgres(work: Path) -> Generator[dict[str, str]]:
-    """A cluster of one database, reachable only from 127.0.0.1, for this run."""
+    """A cluster of one database that only this user can reach, for this run.
+
+    It listens on a Unix socket alone, in a directory no one else can enter, and
+    trusts whoever reaches that socket. There is no TCP port, and no password to
+    generate, store or hand over.
+    """
     binaries = find_postgres()
     # macOS: without a valid locale the postmaster turns multithreaded during
     # startup and refuses to run.
     env = {**os.environ, "LC_ALL": "C"}
-    data, password = work / "pgdata", secrets.token_hex(16)
-    (work / "pwfile").write_text(password + "\n", encoding="utf-8")
-    subprocess.run(
-        [binaries / "initdb", "-D", data, "-U", "postgres", "--auth=scram-sha-256",
-         f"--pwfile={work / 'pwfile'}", "--encoding=UTF8", "--no-locale"],
-        check=True, capture_output=True, env=env,
-    )  # fmt: skip
-    with socket.socket() as probe:
-        probe.bind(("127.0.0.1", 0))
-        port = str(probe.getsockname()[1])
-    # No Unix socket: its path would be too long for macOS under a temp dir.
-    options = f"-p {port} -c listen_addresses=127.0.0.1 -k ''"
-    log = work / "postgres.log"
-    subprocess.run(
-        [binaries / "pg_ctl", "-D", data, "-l", log, "-w", "-o", options, "start"],
-        check=True, capture_output=True, env=env,
-    )  # fmt: skip
+    data, sockets = work / "pgdata", socket_directory()
     try:
-        server = subprocess.run(
-            [binaries / "postgres", "--version"], check=True, capture_output=True, text=True
-        ).stdout.strip()
         subprocess.run(
-            [binaries / "psql", "-h", "127.0.0.1", "-p", port, "-U", "postgres", "-c",
-             "CREATE DATABASE weblate"],
-            check=True, capture_output=True, env={**env, "PGPASSWORD": password},
+            [binaries / "initdb", "-D", data, "-U", "postgres", "--auth-local=trust",
+             "--auth-host=reject", "--encoding=UTF8", "--no-locale"],
+            check=True, capture_output=True, env=env,
         )  # fmt: skip
-        yield {"port": port, "password": password, "version": server}
+        options = f"-c listen_addresses='' -k {sockets}"
+        log = work / "postgres.log"
+        subprocess.run(
+            [binaries / "pg_ctl", "-D", data, "-l", log, "-w", "-o", options, "start"],
+            check=True, capture_output=True, env=env,
+        )  # fmt: skip
+        try:
+            server = subprocess.run(
+                [binaries / "postgres", "--version"], check=True, capture_output=True, text=True
+            ).stdout.strip()
+            create = "CREATE DATABASE weblate"
+            subprocess.run(
+                [binaries / "psql", "-h", sockets, "-U", "postgres", "-c", create],
+                check=True, capture_output=True, env=env,
+            )  # fmt: skip
+            yield {"host": str(sockets), "version": server}
+        finally:
+            subprocess.run(
+                [binaries / "pg_ctl", "-D", data, "-m", "fast", "-w", "stop"],
+                check=False, capture_output=True, env=env,
+            )  # fmt: skip
     finally:
-        subprocess.run(
-            [binaries / "pg_ctl", "-D", data, "-m", "fast", "-w", "stop"],
-            check=False, capture_output=True, env=env,
-        )  # fmt: skip
+        shutil.rmtree(sockets, ignore_errors=True)
 
 
 SETTINGS = """
+import secrets
+
 from weblate.settings_example import *  # noqa: F403
 
 DEBUG = False
-SECRET_KEY = {secret!r}
+# Made at import and never written down: the key only has to outlive this run.
+SECRET_KEY = secrets.token_hex(32)
 SITE_DOMAIN = "weblate.invalid"
 DATA_DIR = {data!r}
 CACHE_DIR = DATA_DIR + "/cache"
@@ -156,11 +172,9 @@ STATIC_ROOT = DATA_DIR + "/static"
 DATABASES = {{
     "default": {{
         "ENGINE": "django.db.backends.postgresql",
-        "HOST": "127.0.0.1",
-        "PORT": {port!r},
+        "HOST": {host!r},
         "NAME": "weblate",
         "USER": "postgres",
-        "PASSWORD": {password!r},
     }}
 }}
 CACHES = {{
@@ -203,11 +217,7 @@ def main() -> None:
         postgres(Path(tmp)) as db,
     ):
         work = Path(tmp)
-        settings = SETTINGS.format(
-            secret=secrets.token_hex(32),
-            data=str(work / "data"),
-            **{k: db[k] for k in ("port", "password")},
-        )
+        settings = SETTINGS.format(data=str(work / "data"), host=db["host"])
         (work / "experiment_settings.py").write_text(textwrap.dedent(settings), encoding="utf-8")
         sys.path.insert(0, str(work))
         os.environ["DJANGO_SETTINGS_MODULE"] = "experiment_settings"
