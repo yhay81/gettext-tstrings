@@ -1,0 +1,42 @@
+name: Benchmark
+
+# Run by hand, never on a schedule: standing scheduled runs are what the
+# one-minute policy (#45) cuts back. benchmarks/README.md says when to run this
+# and how to compare what it records.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# No concurrency group, unlike the other workflows. The comparison protocol
+# dispatches several runs of one commit, and a group would cancel or drop all
+# but the last of them.
+
+jobs:
+  runtime:
+    # A named image rather than ubuntu-latest, which moves: records are only
+    # comparable within one image, and each says which image and CPU it had.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 1
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # checkout leaves GITHUB_TOKEN in .git/config by default, and an
+          # artifact upload follows further down. Do not carry it along.
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
+        with:
+          enable-cache: true
+          python-version: "3.14"
+      # --no-dev: the benchmark needs the package and nothing else, and the
+      # minute is better spent timing than installing linters.
+      - name: Run the microbenchmarks
+        run: >-
+          uv run --locked --no-dev python benchmarks/runtime.py
+          --json benchmark.json --markdown "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: benchmark-${{ github.sha }}
+          path: benchmark.json
+          if-no-files-found: error

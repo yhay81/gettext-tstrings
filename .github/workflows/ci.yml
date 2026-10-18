@@ -111,7 +111,7 @@ jobs:
         run: uv run --isolated --resolution lowest-direct --extra babel pytest -q
 
       # No threshold: runner variance would make that flaky. This catches
-      # bit-rot and leaves ns/op in the log for manual regression tracking.
+      # bit-rot; results meant for comparison come from benchmark.yml.
       - name: Run the microbenchmarks
         if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.14'
         run: uv run python benchmarks/runtime.py
