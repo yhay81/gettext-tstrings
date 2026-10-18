@@ -150,12 +150,23 @@ locales/ja/LC_MESSAGES/messages.po:25: a format specification for argument
 msgfmt: found 1 fatal error
 ```
 
-Weblate dokumentuje tę samą kontrolę jako
-[Python brace format][weblate-checks], a platformy komercyjne mają własne QA
-symboli zastępczych oparte na tej samej fladze. Zachowanie każdej platformy
-jest jej własną sprawą; dwa narzędzia poniżej są tymi zweryfikowanymi tutaj.
+Weblate uruchamia tę samą kontrolę i nazywa ją
+[Python brace format][weblate-checks].
+[Podróż w obie strony przez Weblate 2026.10.1][weblate-experiment] zweryfikowała
+ją na tych katalogach: zaimportowany katalog zachował podczas tłumaczenia i
+eksportu komentarze ze znacznikiem, flagi, konteksty i formy liczby mnogiej, a
+eksport poprawnie się skompilował i wyrenderował. Kontrola wychwyciła
+przemianowany symbol zastępczy, dodaną konwersję i formę liczby mnogiej bez
+`{n}`, ale w dwóch miejscach odbiega od reguł tego pakietu. Zgłasza symbol
+zastępczy powtórzony częściej niż w źródle, co tutaj jest poprawne, i przyjmuje
+pierwszą formę liczby mnogiej bez `{n}`, gdy ta forma służy tylko jednej
+liczbie, jak polskie *plik* dla 1, co tutaj poprawne nie jest. Checker poniżej
+to odrzuca, a `msgfmt` nie. Platformy komercyjne mają własne QA symboli
+zastępczych oparte na tej samej fladze; ich zachowanie nie jest tu
+zweryfikowane.
 
   [weblate-checks]: https://docs.weblate.org/en/latest/user/checks.html
+  [weblate-experiment]: https://github.com/yhay81/gettext-tstrings/tree/main/experiments/weblate_round_trip
 
 Ponadto pakiet rejestruje **checker** Babel, więc `pybabel compile` stosuje
 reguły specyfikacji do każdego komunikatu niosącego komentarz znacznikowy

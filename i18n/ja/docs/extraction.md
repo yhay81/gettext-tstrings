@@ -145,11 +145,21 @@ locales/ja/LC_MESSAGES/messages.po:25: a format specification for argument
 msgfmt: found 1 fatal error
 ```
 
-Weblateでは同じ検証が[Python brace format][weblate-checks]として文書化されており、
-商用platformにも同じflagに基づくplaceholder QAがあります。各platformの挙動は
-それぞれのものです。ここで検証しているのは以下の2ツールです。
+Weblateは同じ検証を実行し、それを[Python brace format][weblate-checks]と呼んでいます。
+[Weblate 2026.10.1を通した往復][weblate-experiment]で、これらのカタログでの
+動作を検証しました。取り込んだカタログは、翻訳と書き出しを経てもマーカーの
+コメント、flag、`msgctxt`、複数形をすべて保ち、書き出したものは正しく
+コンパイル・レンダリングできました。この検証は、名前を変えたプレースホルダー、
+追加された変換、`{n}`のない複数形を検出しましたが、このパッケージの規則とは
+2点で異なります。原文より多く繰り返したプレースホルダーを警告しますが、
+これはここでは正当です。また、ひとつの数にしか使われない最初の複数形が
+`{n}`を欠いても受け入れます。1に対するポーランド語の「plik」がその例で、
+これはここでは不正です。下のcheckerはこれを拒否しますが、`msgfmt`は拒否しません。
+商用platformも同じflagに基づく独自のplaceholder QAを持っていますが、その挙動は
+ここでは検証していません。
 
   [weblate-checks]: https://docs.weblate.org/en/latest/user/checks.html
+  [weblate-experiment]: https://github.com/yhay81/gettext-tstrings/tree/main/experiments/weblate_round_trip
 
 さらに、このパッケージはBabel **checker**を登録します。そのため
 `pybabel compile`は`gettext-tstrings` marker commentを持つすべてのメッセージへ

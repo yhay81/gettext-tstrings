@@ -154,13 +154,23 @@ locales/ja/LC_MESSAGES/messages.po:25: a format specification for argument
 msgfmt: found 1 fatal error
 ```
 
-Doiciméadaíonn Weblate an tseiceáil chéanna mar
-[Python brace format][weblate-checks], agus tá a ndearbhú cáilíochta
-sealbhóirí ionaid féin ag na hardáin thráchtála bunaithe ar an mbratach
-chéanna. Is leis féin iompar gach ardáin; is iad an dá uirlis thíos na cinn
-atá fíoraithe anseo.
+Ritheann Weblate an tseiceáil chéanna, ar a dtugann sé
+[Python brace format][weblate-checks]. D'fhíoraigh
+[turas timpeall trí Weblate 2026.10.1][weblate-experiment] í ar na catalóga seo:
+choinnigh catalóg iompórtáilte a nótaí marcóra, a bratacha, a comhthéacsanna
+agus a foirmeacha iolra tríd an aistriúchán agus an easpórtáil, agus tiomsaíodh
+agus rindreáladh an easpórtáil i gceart. Rug an tseiceáil ar shealbhóir ionaid
+athainmnithe, ar thiontú breise agus ar fhoirm iolra gan `{n}`, ach imíonn sí ó
+rialacha an phacáiste seo faoi dhó. Marcálann sí sealbhóir ionaid a athdhéantar
+níos minice ná sa bhunfhoinse, rud atá bailí anseo, agus glacann sí leis an
+gcéad fhoirm iolra gan `{n}` nuair nach bhfreastalaíonn an fhoirm sin ach ar
+uimhir amháin, mar shampla *plik* sa Pholainnis do 1, rud nach bhfuil bailí
+anseo. Diúltaíonn an seiceálaí thíos dó sin, ach ní dhiúltaíonn `msgfmt`. Tá a
+ndearbhú cáilíochta sealbhóirí ionaid féin ag na hardáin thráchtála bunaithe ar
+an mbratach chéanna; níl a n-iompar fíoraithe anseo.
 
   [weblate-checks]: https://docs.weblate.org/en/latest/user/checks.html
+  [weblate-experiment]: https://github.com/yhay81/gettext-tstrings/tree/main/experiments/weblate_round_trip
 
 Anuas air sin, cláraíonn an pacáiste **seiceálaí** Babel, mar sin cuireann
 `pybabel compile` rialacha na sonraíochta i bhfeidhm ar gach teachtaireacht a

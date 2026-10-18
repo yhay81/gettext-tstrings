@@ -380,9 +380,12 @@ caught without any extra configuration:
   those out of the `.mo`, so a broken one never reaches a render, and clearing
   the flag is what submits an entry for checking.
 
-Beyond those two, the flag is a documented PO convention rather than something
-this project can vouch for: Weblate documents a [Python brace format
-check](https://docs.weblate.org/en/latest/user/checks.html), and the commercial
+Beyond those two, the flag is a documented PO convention. Weblate's [Python brace
+format check](https://docs.weblate.org/en/latest/user/checks.html) is verified
+too, by a [round trip through Weblate](experiments/weblate_round_trip/): it
+catches the common mistakes, flags a placeholder repeated more often than in the
+source although that is valid here, and lets a plural form used for one number
+only drop `{n}`, which only the bundled checker rejects. The commercial
 platforms have their own placeholder QA. Behavior there is theirs, not verified
 here.
 

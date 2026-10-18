@@ -137,11 +137,18 @@ locales/ja/LC_MESSAGES/messages.po:25: a format specification for argument
 msgfmt: found 1 fatal error
 ```
 
-Weblate 把同一項檢查記載為 [Python brace format][weblate-checks]，而商用平台也有
-各自以同一個旗標為觸發條件的佔位符 QA。每個平台的行為都是它自己的事；下面那兩個
-工具，才是這裡驗證過的。
+Weblate 執行同一項檢查，並稱之為 [Python brace format][weblate-checks]。一次
+[經由 Weblate 2026.10.1 的往返][weblate-experiment]在這些目錄上驗證了它：
+匯入的目錄在翻譯與匯出的過程中保留了標記註解、旗標、`msgctxt` 與複數形式，
+匯出的結果也能正確編譯與渲染。這項檢查抓到了改名的佔位符、加上的轉換，以及
+缺少 `{n}` 的複數形式，但有兩處與本套件的規則不同。它會標出比原文重複更多次
+的佔位符，而這在這裡是合法的；它也會接受缺少 `{n}` 的第一個複數形式，只要該
+形式只對應一個數字，例如波蘭語對應 1 的「plik」，而這在這裡不合法。下面的
+檢查器會拒絕這種情況，`msgfmt` 則不會。商用平台也有各自以同一個旗標為觸發
+條件的佔位符 QA，其行為這裡沒有驗證。
 
   [weblate-checks]: https://docs.weblate.org/en/latest/user/checks.html
+  [weblate-experiment]: https://github.com/yhay81/gettext-tstrings/tree/main/experiments/weblate_round_trip
 
 在此之上，本套件還註冊了一個 Babel **檢查器**，所以 `pybabel compile` 會對每一則
 帶有 `gettext-tstrings` 標記註解的訊息，套用規範裡的規則：

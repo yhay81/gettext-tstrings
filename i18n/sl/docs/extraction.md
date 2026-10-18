@@ -146,12 +146,22 @@ locales/ja/LC_MESSAGES/messages.po:25: a format specification for argument
 msgfmt: found 1 fatal error
 ```
 
-Weblate isto preverjanje dokumentira kot [Python brace format][weblate-checks],
-komercialne platforme pa imajo svoj nadzor kakovosti ograd, vezan na isto
-zastavico. Vedenje vsake platforme je njena lastna stvar; spodnji orodji sta
-tisti, ki sta preverjeni tukaj.
+Weblate izvaja isto preverjanje in ga imenuje
+[Python brace format][weblate-checks].
+[Pot tja in nazaj skozi Weblate 2026.10.1][weblate-experiment] ga je preverila
+na teh katalogih: uvoženi katalog je med prevajanjem in izvozom ohranil
+komentarje z oznako, zastavice, kontekste in množinske oblike, izvoz pa se je
+pravilno prevedel v .mo in izrisal. Preverjanje je ujelo preimenovano ogrado,
+dodano pretvorbo in množinsko obliko brez `{n}`, vendar na dveh mestih odstopa
+od pravil tega paketa. Označi ogrado, ponovljeno pogosteje kot v izvirniku, kar
+je tukaj veljavno, in sprejme prvo množinsko obliko brez `{n}`, kadar ta oblika
+služi le enemu številu, kot poljski *plik* za 1, kar tukaj ni veljavno. Spodnji
+preverjevalnik to zavrne, `msgfmt` pa ne. Komercialne platforme imajo svoj
+nadzor kakovosti ograd, vezan na isto zastavico; njihovo vedenje tukaj ni
+preverjeno.
 
   [weblate-checks]: https://docs.weblate.org/en/latest/user/checks.html
+  [weblate-experiment]: https://github.com/yhay81/gettext-tstrings/tree/main/experiments/weblate_round_trip
 
 Vrh tega paket registrira Babelov **preverjevalnik**, tako da `pybabel compile`
 uporabi pravila specifikacije za vsako sporočilo, ki nosi označevalni komentar

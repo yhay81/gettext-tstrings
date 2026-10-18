@@ -11,15 +11,20 @@ never depends on anything they install.
 | Experiment | Claim | Issue |
 | --- | --- | --- |
 | [`asgi_isolation`](asgi_isolation/) | Per-request bindings stay isolated through a real ASGI request lifecycle, under FastAPI. | [#13](https://github.com/yhay81/gettext-tstrings/issues/13) |
+| [`weblate_round_trip`](weblate_round_trip/) | A catalog survives import, translation and export in Weblate, and Weblate's check works on it, with two documented differences. | [#15](https://github.com/yhay81/gettext-tstrings/issues/15) |
 
 ## Running and changing one
 
 From the repository root, `uv run experiments/<name>/run.py` builds the
 experiment's environment from its lock file, with this checkout of
 gettext-tstrings installed editable, and runs it. A non-zero exit status means
-an expectation failed.
+an expectation failed. Anything an experiment needs beyond uv, such as the
+PostgreSQL server the Weblate one starts, is listed in its README.
 
-After changing an experiment's dependencies, refresh its lock:
+An experiment may have a second script with an environment of its own:
+`weblate_round_trip` runs Weblate from `weblate_side.py`, with Weblate's own
+pinned dependencies on Python 3.12. Lock and check each script the same way.
+After changing a script's dependencies, refresh its lock:
 
 ```console
 uv lock --script experiments/<name>/run.py

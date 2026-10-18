@@ -150,12 +150,22 @@ locales/ja/LC_MESSAGES/messages.po:25: a format specification for argument
 msgfmt: found 1 fatal error
 ```
 
-Weblate documenteert dezelfde controle als
-[Python brace format][weblate-checks], en de commerciële platforms hebben hun
-eigen placeholder-QA op dezelfde vlag. Het gedrag van elk platform is van
-henzelf; de twee tools hieronder zijn degene die hier geverifieerd zijn.
+Weblate voert dezelfde controle uit en noemt die
+[Python brace format][weblate-checks]. Een
+[rondreis door Weblate 2026.10.1][weblate-experiment] heeft die op deze catalogi
+geverifieerd: een geïmporteerde catalogus behield tijdens vertalen en exporteren
+zijn markeringscommentaar, vlaggen, contexten en meervoudsvormen, en de export
+werd correct gecompileerd en gerenderd. De controle ving een hernoemde
+placeholder, een toegevoegde conversie en een meervoudsvorm zonder `{n}`, maar
+wijkt op twee punten af van de regels van dit pakket. Ze markeert een
+placeholder die vaker herhaald wordt dan in de bron, wat hier geldig is, en ze
+accepteert een eerste meervoudsvorm zonder `{n}` als die vorm maar één getal
+bedient, zoals het Poolse *plik* voor 1, wat hier niet geldig is. De checker
+hieronder wijst dat af, `msgfmt` niet. De commerciële platforms hebben hun eigen
+placeholder-QA op dezelfde vlag; hun gedrag is hier niet geverifieerd.
 
   [weblate-checks]: https://docs.weblate.org/en/latest/user/checks.html
+  [weblate-experiment]: https://github.com/yhay81/gettext-tstrings/tree/main/experiments/weblate_round_trip
 
 Daarbovenop registreert het pakket een Babel-**checker**, zodat
 `pybabel compile` de regels van de specificatie toepast op elk bericht dat

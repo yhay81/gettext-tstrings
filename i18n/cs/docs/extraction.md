@@ -149,12 +149,20 @@ locales/ja/LC_MESSAGES/messages.po:25: a format specification for argument
 msgfmt: found 1 fatal error
 ```
 
-Weblate dokumentuje tutéž kontrolu jako
-[Python brace format][weblate-checks] a komerční platformy mají vlastní QA
-zástupných symbolů navázané na tentýž příznak. Chování každé platformy je
-její vlastní; dva nástroje níže jsou ty, které jsou ověřeny zde.
+Weblate spouští tutéž kontrolu pod názvem [Python brace format][weblate-checks].
+[Okružní cesta přes Weblate 2026.10.1][weblate-experiment] ji na těchto
+katalozích ověřila: importovaný katalog si během překladu i exportu zachoval
+komentáře se značkou, příznaky, kontexty i množné tvary a exportovaný soubor se
+správně zkompiloval i vykreslil. Kontrola zachytila přejmenovaný zástupný
+symbol, přidanou konverzi i množný tvar, kterému chybí `{n}`, od pravidel tohoto
+balíčku se ale odchyluje dvakrát. Hlásí zástupný symbol opakovaný častěji než ve
+zdroji, což je zde platné, a přijme první množný tvar bez `{n}`, pokud slouží
+jen jedinému číslu, jako polské *plik* pro 1, což zde platné není. Checker níže
+ho odmítne, `msgfmt` ne. Komerční platformy mají vlastní QA zástupných symbolů
+navázané na tentýž příznak; jejich chování zde ověřeno není.
 
   [weblate-checks]: https://docs.weblate.org/en/latest/user/checks.html
+  [weblate-experiment]: https://github.com/yhay81/gettext-tstrings/tree/main/experiments/weblate_round_trip
 
 Balíček navíc registruje **checker** pro Babel, takže `pybabel compile`
 uplatní pravidla specifikace na každou zprávu nesoucí značkovací komentář

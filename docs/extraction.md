@@ -146,12 +146,21 @@ locales/ja/LC_MESSAGES/messages.po:25: a format specification for argument
 msgfmt: found 1 fatal error
 ```
 
-Weblate documents the same check as [Python brace format][weblate-checks], and
-the commercial platforms have their own placeholder QA keyed on the same flag.
-Each platform's behavior is its own; the two tools below are the ones verified
-here.
+Weblate runs the same check, which it calls
+[Python brace format][weblate-checks]. A
+[round trip through Weblate 2026.10.1][weblate-experiment] verified it on these
+catalogs: an imported catalog kept its marker comments, flags, contexts and
+plural forms through translation and export, and the export compiled and
+rendered correctly. The check caught a renamed placeholder, an added conversion
+and a plural form missing `{n}`, and it departs from this package's rules twice.
+It flags a placeholder repeated more often than in the source, which is valid
+here, and it accepts a first plural form without `{n}` when that form serves one
+number only, such as Polish *plik* for 1, which is not. The checker below
+rejects that one, and `msgfmt` does not. The commercial platforms key their own
+placeholder QA on the same flag; their behavior is not verified here.
 
   [weblate-checks]: https://docs.weblate.org/en/latest/user/checks.html
+  [weblate-experiment]: https://github.com/yhay81/gettext-tstrings/tree/main/experiments/weblate_round_trip
 
 On top of that, the package registers a Babel **checker**, so `pybabel compile`
 applies the specification's rules to every message carrying the

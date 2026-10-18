@@ -149,13 +149,23 @@ locales/ja/LC_MESSAGES/messages.po:25: a format specification for argument
 msgfmt: found 1 fatal error
 ```
 
-Weblate mendokumentasikan pemeriksaan yang sama sebagai
-[Python brace format][weblate-checks], dan platform komersial punya QA
-placeholder mereka sendiri yang bertumpu pada flag yang sama. Perilaku setiap
-platform adalah miliknya sendiri; dua perkakas di bawah adalah yang
-diverifikasi di sini.
+Weblate menjalankan pemeriksaan yang sama, yang disebutnya
+[Python brace format][weblate-checks]. Sebuah
+[perjalanan pulang-pergi melalui Weblate 2026.10.1][weblate-experiment]
+memverifikasinya pada katalog-katalog ini: katalog yang diimpor mempertahankan
+komentar penanda, flag, konteks, dan bentuk jamaknya selama penerjemahan dan
+ekspor, dan hasil ekspornya dikompilasi serta dirender dengan benar. Pemeriksaan
+itu menangkap placeholder yang diganti namanya, konversi yang ditambahkan, dan
+bentuk jamak tanpa `{n}`, tetapi menyimpang dua kali dari aturan paket ini. Ia
+menandai placeholder yang diulang lebih sering daripada di sumber, padahal itu
+sah di sini, dan menerima bentuk jamak pertama tanpa `{n}` bila bentuk itu hanya
+melayani satu angka, seperti *plik* dalam bahasa Polandia untuk 1, padahal itu
+tidak sah di sini. Checker di bawah menolaknya, `msgfmt` tidak. Platform
+komersial punya QA placeholder mereka sendiri yang bertumpu pada flag yang sama;
+perilakunya tidak diverifikasi di sini.
 
   [weblate-checks]: https://docs.weblate.org/en/latest/user/checks.html
+  [weblate-experiment]: https://github.com/yhay81/gettext-tstrings/tree/main/experiments/weblate_round_trip
 
 Di atas itu, paket ini mendaftarkan sebuah **checker** Babel, sehingga
 `pybabel compile` menerapkan aturan-aturan spesifikasi ke setiap pesan yang

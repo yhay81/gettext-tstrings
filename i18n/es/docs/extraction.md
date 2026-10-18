@@ -147,13 +147,22 @@ locales/ja/LC_MESSAGES/messages.po:25: a format specification for argument
 msgfmt: found 1 fatal error
 ```
 
-Weblate documenta la misma comprobación como
-[Python brace format][weblate-checks], y las plataformas comerciales tienen su
-propio QA de marcadores basado en el mismo flag. El comportamiento de cada
-plataforma es cosa suya; las dos herramientas siguientes son las verificadas
-aquí.
+Weblate ejecuta la misma comprobación, a la que llama
+[Python brace format][weblate-checks]. Un
+[viaje de ida y vuelta por Weblate 2026.10.1][weblate-experiment] la verificó
+con estos catálogos: un catálogo importado conservó sus comentarios de marca,
+flags, contextos y formas plurales durante la traducción y la exportación, y la
+exportación se compiló y se renderizó correctamente. La comprobación detectó un
+marcador renombrado, una conversión añadida y una forma plural sin `{n}`, pero
+se aparta en dos puntos de las reglas de este paquete. Señala un marcador
+repetido más veces que en el original, lo que aquí es válido, y acepta una
+primera forma plural sin `{n}` cuando esa forma sirve a un único número, como el
+polaco *plik* para 1, lo que aquí no es válido. El checker de más abajo lo
+rechaza; `msgfmt`, no. Las plataformas comerciales tienen su propio QA de
+marcadores basado en el mismo flag; su comportamiento no está verificado aquí.
 
   [weblate-checks]: https://docs.weblate.org/en/latest/user/checks.html
+  [weblate-experiment]: https://github.com/yhay81/gettext-tstrings/tree/main/experiments/weblate_round_trip
 
 Además, el paquete registra un **checker** de Babel, por lo que
 `pybabel compile` aplica las reglas de la especificación a cada mensaje con el

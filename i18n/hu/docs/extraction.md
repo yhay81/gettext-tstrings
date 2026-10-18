@@ -152,12 +152,22 @@ locales/ja/LC_MESSAGES/messages.po:25: a format specification for argument
 msgfmt: found 1 fatal error
 ```
 
-A Weblate ugyanezt az ellenőrzést [Python brace format][weblate-checks] néven
-dokumentálja, a kereskedelmi platformoknak pedig saját helyőrző-QA-juk van,
-ugyanerre a jelzőre kötve. Minden platform viselkedése a sajátja; az alábbi
-két eszköz az, amelyet itt ellenőriztünk.
+A Weblate ugyanezt az ellenőrzést futtatja,
+[Python brace format][weblate-checks] néven. Egy
+[körút a Weblate 2026.10.1-en át][weblate-experiment] ezeken a katalógusokon
+igazolta: egy importált katalógus a fordítás és az exportálás során megtartotta
+jelölő megjegyzéseit, jelzőit, kontextusait és többes számú alakjait, az export
+pedig helyesen lefordult és renderelődött. Az ellenőrzés elkapott egy átnevezett
+helyőrzőt, egy hozzáadott konverziót és egy `{n}` nélküli többes számú alakot,
+ám két ponton eltér e csomag szabályaitól. Megjelöli a forrásnál többször
+ismételt helyőrzőt, ami itt érvényes, és elfogadja az első többes számú alakot
+`{n}` nélkül, ha az az alak csak egyetlen számra vonatkozik, mint a lengyel
+*plik* az 1-re, ami itt nem érvényes. Az alábbi ellenőrző ezt elutasítja, a
+`msgfmt` nem. A kereskedelmi platformoknak saját helyőrző-QA-juk van, ugyanerre
+a jelzőre kötve; viselkedésüket itt nem ellenőriztük.
 
   [weblate-checks]: https://docs.weblate.org/en/latest/user/checks.html
+  [weblate-experiment]: https://github.com/yhay81/gettext-tstrings/tree/main/experiments/weblate_round_trip
 
 Ezen felül a csomag regisztrál egy Babel-**ellenőrzőt**, így a
 `pybabel compile` a specifikáció szabályait alkalmazza minden olyan üzenetre,
